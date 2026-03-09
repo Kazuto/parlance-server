@@ -1,0 +1,254 @@
+Table users {
+  id integer [primary key]
+  name varchar(100) [not null]
+  email varchar(255) [not null, unique]
+  password varchar(255) [not null]  // bcrypt hashed
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+
+Table roles {
+  id integer [primary key]
+  name varchar(50) [not null, unique]
+  description text [null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+  
+  indexes {
+    name [unique]
+  }
+}
+
+Table permissions {
+  id integer [primary key]
+  name varchar(100) [not null, unique]
+  description text [null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+  
+  indexes {
+    name [unique]
+  }
+}
+
+// Many-to-many: Users can have multiple roles
+Table user_roles {
+  id integer [primary key]
+  user_id integer [not null]
+  role_id integer [not null]
+  
+  indexes {
+    (user_id, role_id) [unique]
+    user_id
+    role_id
+  }
+}
+
+// Many-to-many: Roles can have multiple permissions
+Table role_permissions {
+  id integer [primary key]
+  role_id integer [not null]
+  permission_id integer [not null]
+  
+  indexes {
+    (role_id, permission_id) [unique]
+    role_id
+    permission_id
+  }
+}
+
+Table locales {
+  id integer [primary key]
+  code varchar(10) [not null, unique]
+  name varchar(50) [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+  is_default boolean [not null, default: false]
+    
+  indexes {
+    code [unique]
+    is_default [unique] // where is_default = true
+  }
+}
+
+Table entries {
+  id integer [primary key]
+  key varchar [not null]
+  description text [null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+  created_by integer
+  updated_by integer
+
+  indexes {
+    key [unique]
+    created_by
+    updated_by
+  }
+}
+
+Table localizations {
+  id integer [primary key]
+  locale_id integer [not null]
+  entry_id integer [not null]
+  translation text [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+  created_by integer
+  updated_by integer
+  
+  indexes {
+    (locale_id, entry_id) [unique] // One translation per locale per entry
+    entry_id
+    locale_id
+    created_by
+    updated_by
+  }
+}
+
+Table localization_history {
+  id integer [primary key]
+  localization_id integer [not null]
+  locale_id integer [not null]
+  entry_id integer [not null]
+  user_id integer [null]
+  translation text [not null]
+  action enum('created', 'updated', 'deleted') [not null]
+  changed_at timestamp [not null]
+  
+  indexes {
+    localization_id
+    (localization_id, changed_at)
+    entry_id
+  }
+}
+
+Table scopes {
+  id integer [primary key]
+  name varchar(50) [not null, unique]
+  slug varchar(50) [not null, unique]
+  description text [null]
+  color varchar(7) [null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+  
+  indexes {
+    name [unique]
+    slug [unique]
+  }
+}
+
+Table entry_scopes {
+  id integer [primary key]
+  entry_id integer [not null]
+  scope_id integer [not null]
+  created_at timestamp
+  created_by integer
+  
+  indexes {
+    (entry_id, scope_id) [unique]
+    entry_id
+    scope_id
+  }
+}
+
+Table terminologies {
+  id integer [primary key]
+  term varchar(255) [not null, unique] // The source term
+  description text [null] // Context about when to use this
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+  created_by integer
+  updated_by integer
+    
+  indexes {
+    term [unique]
+    created_by
+    updated_by
+  }
+}
+
+Table definitions {
+  id integer [primary key]
+  locale_id integer [not null]
+  terminology_id integer [not null]
+  translation text [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+  created_by integer
+  updated_by integer
+
+  indexes {
+    (locale_id, terminology_id) [unique]
+    terminology_id
+    locale_id
+    created_by
+    updated_by
+  }
+}
+
+Table definition_history {
+  id integer [primary key]
+  definition_id integer [not null]
+  locale_id integer [not null]
+  terminology_id integer [not null]
+  user_id integer [null]
+  translation text [not null]
+  action enum('created', 'updated', 'deleted') [not null]
+  changed_at timestamp [not null]
+  
+  indexes {
+    definition_id
+    (definition_id, changed_at)
+    terminology_id
+  }
+}
+
+// > many-to-one; < one-to-many; - one-to-one; <> many-to-many
+// Foreign key relationships
+Ref: user_roles.user_id > users.id [delete: cascade]
+Ref: user_roles.role_id > roles.id [delete: cascade]
+
+Ref: role_permissions.role_id > roles.id [delete: cascade]
+Ref: role_permissions.permission_id > permissions.id [delete: cascade]
+
+Ref: localizations.locale_id > locales.id
+Ref: localizations.entry_id > entries.id
+Ref: localizations.created_by > users.id [delete: set null]
+Ref: localizations.updated_by > users.id [delete: set null]
+
+Ref: localization_history.localization_id > localizations.id [delete: cascade]
+Ref: localization_history.locale_id > locales.id
+Ref: localization_history.entry_id > entries.id
+Ref: localization_history.user_id > users.id
+
+Ref: entry_scopes.entry_id > entries.id [delete: cascade]
+Ref: entry_scopes.scope_id > scopes.id [delete: cascade]
+Ref: entry_scopes.created_by > users.id [delete: set null]
+
+Ref: definitions.locale_id > locales.id 
+Ref: definitions.terminology_id > terminologies.id
+Ref: definitions.created_by > users.id [delete: set null]                                                 
+Ref: definitions.updated_by > users.id [delete: set null]
+
+Ref: definition_history.definition_id > definitions.id [delete: cascade]
+Ref: definition_history.locale_id > locales.id
+Ref: definition_history.terminology_id > terminologies.id
+Ref: definition_history.user_id > users.id
+
+Ref: entries.created_by > users.id [delete: set null]
+Ref: entries.updated_by > users.id [delete: set null]
+                                                                                                       
+Ref: terminologies.created_by > users.id [delete: set null]                                               
+Ref: terminologies.updated_by > users.id [delete: set null]                                               
+                                                                                                            
+
