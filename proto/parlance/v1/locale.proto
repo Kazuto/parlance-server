@@ -1,0 +1,83 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/common.proto";
+
+option go_package = "parlance/v1;parlance";
+
+service LocaleService {
+  rpc ListLocales(ListLocalesRequest) returns (ListLocalesResponse);
+  rpc GetLocale(GetLocaleRequest) returns (GetLocaleResponse);
+  rpc CreateLocale(CreateLocaleRequest) returns (CreateLocaleResponse);
+  rpc UpdateLocale(UpdateLocaleRequest) returns (UpdateLocaleResponse);
+  rpc DeleteLocale(DeleteLocaleRequest) returns (DeleteLocaleResponse);
+  rpc GetDefaultLocale(GetDefaultLocaleRequest) returns (GetDefaultLocaleResponse);
+  rpc SetDefaultLocale(SetDefaultLocaleRequest) returns (SetDefaultLocaleResponse);
+}
+
+message Locale {
+  string id = 1;
+  string code = 2;          // e.g., "en", "de-DE", "fr-FR"
+  string name = 3;          // e.g., "English", "German", "French"
+  bool is_default = 4;      // Only one locale can be default
+  string created_at = 5;
+  string updated_at = 6;
+}
+
+message CreateLocaleRequest {
+  string code = 1;
+  string name = 2;
+  bool is_default = 3;
+}
+
+message CreateLocaleResponse {
+  Locale locale = 1;
+}
+
+message UpdateLocaleRequest {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  bool is_default = 4;
+}
+
+message UpdateLocaleResponse {
+  Locale locale = 1;
+}
+
+message DeleteLocaleRequest {
+  string id = 1;
+}
+
+message DeleteLocaleResponse {}
+
+message GetLocaleRequest {
+  string id = 1;
+}
+
+message GetLocaleResponse {
+  Locale locale = 1;
+}
+
+message ListLocalesRequest {
+  PaginationRequest pagination = 1;
+}
+
+message ListLocalesResponse {
+  repeated Locale locales = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetDefaultLocaleRequest {}
+
+message GetDefaultLocaleResponse {
+  Locale locale = 1;
+}
+
+message SetDefaultLocaleRequest {
+  string locale_id = 1;
+}
+
+message SetDefaultLocaleResponse {
+  Locale locale = 1;
+}
