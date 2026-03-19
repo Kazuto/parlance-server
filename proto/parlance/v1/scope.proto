@@ -1,0 +1,98 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/common.proto";
+
+option go_package = "parlance/v1;parlance";
+
+service ScopeService {
+  rpc ListScopes(ListScopesRequest) returns (ListScopesResponse);
+  rpc GetScope(GetScopeRequest) returns (GetScopeResponse);
+  rpc CreateScope(CreateScopeRequest) returns (CreateScopeResponse);
+  rpc UpdateScope(UpdateScopeRequest) returns (UpdateScopeResponse);
+  rpc DeleteScope(DeleteScopeRequest) returns (DeleteScopeResponse);
+
+  // Entry-Scope relationship management
+  rpc AddScopeToEntry(AddScopeToEntryRequest) returns (AddScopeToEntryResponse);
+  rpc RemoveScopeFromEntry(RemoveScopeFromEntryRequest) returns (RemoveScopeFromEntryResponse);
+  rpc GetEntryScopes(GetEntryScopesRequest) returns (GetEntryScopesResponse);
+}
+
+message Scope {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string description = 4;
+  string color = 5;  // Hex color code (e.g., "#FF5733")
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+message CreateScopeRequest {
+  string name = 1;
+  string slug = 2;
+  string description = 3;
+  string color = 4;
+}
+
+message CreateScopeResponse {
+  Scope scope = 1;
+}
+
+message UpdateScopeRequest {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string description = 4;
+  string color = 5;
+}
+
+message UpdateScopeResponse {
+  Scope scope = 1;
+}
+
+message DeleteScopeRequest {
+  string id = 1;
+}
+
+message DeleteScopeResponse {}
+
+message GetScopeRequest {
+  string id = 1;
+}
+
+message GetScopeResponse {
+  Scope scope = 1;
+}
+
+message ListScopesRequest {
+  PaginationRequest pagination = 1;
+}
+
+message ListScopesResponse {
+  repeated Scope scopes = 1;
+  PaginationResponse pagination = 2;
+}
+
+// Entry-Scope relationship management
+message AddScopeToEntryRequest {
+  string entry_id = 1;
+  string scope_id = 2;
+}
+
+message AddScopeToEntryResponse {}
+
+message RemoveScopeFromEntryRequest {
+  string entry_id = 1;
+  string scope_id = 2;
+}
+
+message RemoveScopeFromEntryResponse {}
+
+message GetEntryScopesRequest {
+  string entry_id = 1;
+}
+
+message GetEntryScopesResponse {
+  repeated Scope scopes = 1;
+}
