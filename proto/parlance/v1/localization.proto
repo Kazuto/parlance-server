@@ -1,0 +1,94 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/common.proto";
+
+option go_package = "parlance/v1;parlance";
+
+service LocalizationService {
+  rpc ListLocalizations(ListLocalizationsRequest) returns (ListLocalizationsResponse);
+  rpc GetLocalization(GetLocalizationRequest) returns (GetLocalizationResponse);
+  rpc CreateLocalization(CreateLocalizationRequest) returns (CreateLocalizationResponse);
+  rpc UpdateLocalization(UpdateLocalizationRequest) returns (UpdateLocalizationResponse);
+  rpc DeleteLocalization(DeleteLocalizationRequest) returns (DeleteLocalizationResponse);
+  rpc TranslateLocalization(TranslateLocalizationRequest) returns (TranslateLocalizationResponse);
+  rpc BatchTranslate(BatchTranslateRequest) returns (BatchTranslateResponse);
+}
+
+message Localization {
+  string id = 1;
+  string entry_id = 2;
+  string locale_id = 3;
+  string translation = 4;
+  string created_at = 5;
+  string updated_at = 6;
+  string created_by = 7;
+  string updated_by = 8;
+}
+
+message ListLocalizationsRequest {
+  string entry_id = 1;
+  PaginationRequest pagination = 2;
+}
+
+message ListLocalizationsResponse {
+  repeated Localization localizations = 1;
+  PaginationResponse pagination = 2;
+}
+
+message CreateLocalizationRequest {
+  string entry_id = 1;
+  string locale_id = 2;
+  string translation = 3;
+}
+
+message CreateLocalizationResponse {
+  Localization localization = 1;
+}
+
+message UpdateLocalizationRequest {
+  string id = 1;
+  string translation = 2;
+}
+
+message UpdateLocalizationResponse {
+  Localization localization = 1;
+}
+
+message DeleteLocalizationRequest {
+  string id = 1;
+}
+
+message DeleteLocalizationResponse {}
+
+message GetLocalizationRequest {
+  string id = 1;
+}
+
+message GetLocalizationResponse {
+  Localization localization = 1;
+}
+
+message TranslateLocalizationRequest {
+  string entry_id = 1;
+  string target_locale_id = 2;
+  string source_locale_id = 3;
+  bool apply_terminology = 4;
+}
+
+message TranslateLocalizationResponse {
+  Localization localization = 1;
+}
+
+message BatchTranslateRequest {
+  repeated string entry_ids = 1;
+  string target_locale_id = 2;
+  string source_locale_id = 3;
+  bool apply_terminology = 4;
+}
+
+message BatchTranslateResponse {
+  repeated Localization localizations = 1;
+  int32 success_count = 2;
+  int32 failure_count = 3;
+}
