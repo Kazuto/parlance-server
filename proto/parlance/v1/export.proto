@@ -1,0 +1,43 @@
+syntax = "proto3";
+package parlance.v1;
+
+option go_package = "parlance/v1;parlance";
+
+service ExportService {
+  rpc ExportLaravel(ExportLaravelRequest) returns (ExportLaravelResponse);
+  rpc ExportVueI18n(ExportVueI18nRequest) returns (ExportVueI18nResponse);
+  rpc ExportJson(ExportJsonRequest) returns (ExportJsonResponse);
+}
+
+message ExportLaravelRequest {
+  string locale_code = 1;
+  string scope_id = 2;
+}
+
+message ExportLaravelResponse {
+  string format = 1;          // "laravel"
+  string content = 2;         // Exported file content
+  string filename = 3;        // Suggested filename
+}
+
+message ExportVueI18nRequest {
+  string locale_code = 1;
+  string scope_id = 2;
+}
+
+message ExportVueI18nResponse {
+  string format = 1;          // "vue-i18n"
+  string content = 2;         // Exported file content
+  string filename = 3;        // Suggested filename
+}
+
+message ExportJsonRequest {
+  string locale_code = 1;
+  string scope_id = 2;
+}
+
+message ExportJsonResponse {
+  string format = 1;          // "json"
+  string content = 2;         // Exported file content
+  string filename = 3;        // Suggested filename
+}
