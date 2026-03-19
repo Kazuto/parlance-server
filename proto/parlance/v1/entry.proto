@@ -1,0 +1,107 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/common.proto";
+import "parlance/v1/scope.proto";
+import "parlance/v1/localization.proto";
+
+option go_package = "parlance/v1;parlance";
+
+service EntryService {
+  rpc ListEntries(ListEntriesRequest) returns (ListEntriesResponse);
+  rpc GetEntry(GetEntryRequest) returns (GetEntryResponse);
+  rpc CreateEntry(CreateEntryRequest) returns (CreateEntryResponse);
+  rpc UpdateEntry(UpdateEntryRequest) returns (UpdateEntryResponse);
+  rpc DeleteEntry(DeleteEntryRequest) returns (DeleteEntryResponse);
+  rpc SearchEntries(SearchEntriesRequest) returns (SearchEntriesResponse);
+  rpc GetEntryHistory(GetEntryHistoryRequest) returns (GetEntryHistoryResponse);
+}
+
+message Entry {
+  string id = 1;
+  string key = 2;
+  string description = 3;
+  string created_at = 4;
+  string updated_at = 5;
+  string created_by = 6;
+  string updated_by = 7;
+  repeated Localization localizations = 8;
+  repeated Scope scopes = 9;  // Many-to-many relationship
+}
+
+message ListEntriesRequest {
+  PaginationRequest pagination = 1;
+  string scope_id = 2;
+  string locale_id = 3;
+}
+
+message ListEntriesResponse {
+  repeated Entry entries = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetEntryRequest {
+  string id = 1;
+}
+
+message GetEntryResponse {
+  Entry entry = 1;
+}
+
+message CreateEntryRequest {
+  string key = 1;
+  string scope_id = 2;
+  string description = 3;
+}
+
+message CreateEntryResponse {
+  Entry entry = 1;
+}
+
+message UpdateEntryRequest {
+  string id = 1;
+  string key = 2;
+  string description = 3;
+}
+
+message UpdateEntryResponse {
+  Entry entry = 1;
+}
+
+message DeleteEntryRequest {
+  string id = 1;
+}
+
+message DeleteEntryResponse {}
+
+message SearchEntriesRequest {
+  string query = 1;
+  PaginationRequest pagination = 2;
+  string scope_id = 3;
+}
+
+message SearchEntriesResponse {
+  repeated Entry entries = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetEntryHistoryRequest {
+  string entry_id = 1;
+  PaginationRequest pagination = 2;
+}
+
+message GetEntryHistoryResponse {
+  repeated LocalizationHistory history = 1;
+  PaginationResponse pagination = 2;
+}
+
+message LocalizationHistory {
+  string id = 1;
+  string localization_id = 2;
+  string locale_id = 3;
+  string entry_id = 4;
+  string user_id = 5;
+  string translation = 6;
+  string action = 7;  // "created", "updated", "deleted"
+  string changed_at = 8;
+}
