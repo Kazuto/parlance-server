@@ -1,0 +1,18 @@
+syntax = "proto3";
+package parlance.v1;
+
+option go_package = "parlance/v1;parlance";
+
+message PaginationRequest {
+  int32 page = 1;
+  int32 per_page = 2;
+}
+
+message PaginationResponse {
+  int32 total = 1;
+  int32 page = 2;
+  int32 per_page = 3;
+  int32 total_pages = 4;
+}
+
+message Empty {}
