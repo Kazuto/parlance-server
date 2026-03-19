@@ -1,0 +1,102 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/common.proto";
+import "parlance/v1/user.proto";
+
+option go_package = "parlance/v1;parlance";
+
+service TerminologyService {
+  rpc ListTerminologies(ListTerminologiesRequest) returns (ListTerminologiesResponse);
+  rpc GetTerminology(GetTerminologyRequest) returns (GetTerminologyResponse);
+  rpc CreateTerminology(CreateTerminologyRequest) returns (CreateTerminologyResponse);
+  rpc UpdateTerminology(UpdateTerminologyRequest) returns (UpdateTerminologyResponse);
+  rpc DeleteTerminology(DeleteTerminologyRequest) returns (DeleteTerminologyResponse);
+  rpc GetDefinitionHistory(GetDefinitionHistoryRequest) returns (GetDefinitionHistoryResponse);
+}
+
+message Terminology {
+  string id = 1;
+  string term = 2;
+  string description = 3;
+  repeated Definition definitions = 4;
+  string created_at = 5;
+  string updated_at = 6;
+  string created_by = 7;
+  string updated_by = 8;
+}
+
+message Definition {
+  string id = 1;
+  string terminology_id = 2;
+  string locale_id = 3;
+  string translation = 4;
+  string created_at = 5;
+  string updated_at = 6;
+  string created_by = 7;
+  string updated_by = 8;
+}
+
+message CreateTerminologyRequest {
+  string term = 1;
+  string description = 2;
+}
+
+message CreateTerminologyResponse {
+  Terminology terminology = 1;
+}
+
+message UpdateTerminologyRequest {
+  string id = 1;
+  string term = 2;
+  string description = 3;
+}
+
+message UpdateTerminologyResponse {
+  Terminology terminology = 1;
+}
+
+message DeleteTerminologyRequest {
+  string id = 1;
+}
+
+message DeleteTerminologyResponse {}
+
+message GetTerminologyRequest {
+  string id = 1;
+}
+
+message GetTerminologyResponse {
+  Terminology terminology = 1;
+}
+
+message ListTerminologiesRequest {
+  PaginationRequest pagination = 1;
+}
+
+message ListTerminologiesResponse {
+  repeated Terminology terminologies = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetDefinitionHistoryRequest {
+  string terminology_id = 1;
+  PaginationRequest pagination = 2;
+}
+
+message GetDefinitionHistoryResponse {
+  repeated DefinitionHistory history = 1;
+  PaginationResponse pagination = 2;
+}
+
+message DefinitionHistory {
+  string id = 1;
+  string definition_id = 2;
+  string locale_id = 3;
+  string terminology_id = 4;
+  string user_id = 5;
+  string translation = 6;
+  string action = 7;  // "created", "updated", "deleted"
+  string changed_at = 8;
+  User user = 9;
+}
