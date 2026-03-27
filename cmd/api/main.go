@@ -30,6 +30,16 @@ func main() {
 	}
 	defer db.Close()
 
+	// Run database migrations
+	if err := db.AutoMigrate(); err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
+	}
+
+	// Seed default data
+	if err := db.Seed(); err != nil {
+		log.Fatalf("Failed to seed database: %v", err)
+	}
+
 	// Create HTTP router
 	mux := http.NewServeMux()
 
