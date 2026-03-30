@@ -1,0 +1,46 @@
+meta {
+  name: DeleteDefinition
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.DefinitionService/DeleteDefinition
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "id": "{{definitionId}}"
+  }
+}
+
+docs {
+  # DeleteDefinition
+
+  Soft deletes a definition for a terminology term in a specific locale.
+
+  ## Request
+  - `id` (required): UUID of the definition to delete
+
+  ## Response
+  - Empty response on success
+
+  ## User Tracking
+  The authenticated user is recorded as the deleter.
+
+  ## Soft Delete
+  The definition is not permanently removed - it's marked as deleted with a timestamp.
+  History is preserved in `definition_history`.
+
+  ## History
+  Deletion is automatically tracked in `definition_history` via GORM hooks.
+
+  ## Error Codes
+  - `INVALID_ARGUMENT`: Missing definition ID
+  - `NOT_FOUND`: Definition not found
+
+  ## Example Use Case
+  Remove an outdated or incorrect translation guideline while preserving the audit trail.
+}

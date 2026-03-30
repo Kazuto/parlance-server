@@ -1,0 +1,55 @@
+meta {
+  name: ListDefinitions
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.DefinitionService/ListDefinitions
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "terminologyId": "{{terminologyId}}"
+  }
+}
+
+docs {
+  # ListDefinitions
+
+  Lists all locale-specific translations (definitions) for a terminology term.
+
+  ## Request
+  - `terminology_id` (required): UUID of the terminology
+
+  ## Response
+  - `definitions`: Array of definitions with translations for each locale
+
+  ## Example Use Case
+  View all translations for a terminology term across different locales.
+  For example, if the term is "API", see how it's defined in English, German, Spanish, etc.
+
+  ## Example Response
+  ```json
+  {
+    "definitions": [
+      {
+        "id": "def-1",
+        "terminologyId": "term-123",
+        "localeId": "en",
+        "translation": "Application Programming Interface",
+        "createdAt": "2026-03-30T12:00:00Z"
+      },
+      {
+        "id": "def-2",
+        "terminologyId": "term-123",
+        "localeId": "de",
+        "translation": "Programmierschnittstelle",
+        "createdAt": "2026-03-30T12:05:00Z"
+      }
+    ]
+  }
+  ```
+}
