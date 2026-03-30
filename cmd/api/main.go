@@ -21,6 +21,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/locale"
 	"github.com/kazuto/parlance-server/internal/server/localization"
 	"github.com/kazuto/parlance-server/internal/server/scope"
+	"github.com/kazuto/parlance-server/internal/server/terminology"
 	"github.com/kazuto/parlance-server/internal/server/user"
 )
 
@@ -97,6 +98,12 @@ func main() {
 	mux.Handle(localizationPath, middleware.RequireAuth(cfg.JWT.Secret)(localizationHandler))
 
 	log.Println("✓ Registered LocalizationService (protected)")
+
+	terminologyServer := terminology.NewServer(db)
+	terminologyPath, terminologyHandler := parlancev1connect.NewTerminologyServiceHandler(terminologyServer)
+	mux.Handle(terminologyPath, middleware.RequireAuth(cfg.JWT.Secret)(terminologyHandler))
+
+	log.Println("✓ Registered TerminologyService (protected)")
 	// TODO: Register more services here
 
 	// Create server with h2c (HTTP/2 without TLS for development)
