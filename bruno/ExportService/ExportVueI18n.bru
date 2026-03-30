@@ -1,0 +1,65 @@
+meta {
+  name: ExportVueI18n
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.ExportService/ExportVueI18n
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "localeCode": "en",
+    "scopeId": ""
+  }
+}
+
+docs {
+  # ExportVueI18n
+
+  Exports translations in Vue i18n JSON format with support for nested keys.
+
+  ## Request
+  - `locale_code` (required): Locale to export (e.g., "en", "de")
+  - `scope_id` (optional): Filter by scope ID to export only specific entries
+
+  ## Response
+  - `format`: "vue-i18n"
+  - `content`: JSON file content with nested structure
+  - `filename`: Suggested filename (e.g., "en.json" or "admin_en.json")
+
+  ## Output Format
+  Supports dot notation for nested keys:
+
+  Entry keys like:
+  - "user.profile.name"
+  - "user.profile.email"
+  - "user.settings.theme"
+
+  Export as:
+  ```json
+  {
+    "user": {
+      "profile": {
+        "name": "Name",
+        "email": "Email"
+      },
+      "settings": {
+        "theme": "Theme"
+      }
+    }
+  }
+  ```
+
+  ## Use Case
+  Export translations for Vue.js applications using vue-i18n library.
+
+  ## Features
+  - Nested JSON structure from dot-notation keys
+  - Pretty-printed JSON with 2-space indentation
+  - Supports scope filtering
+  - Compatible with vue-i18n, nuxt-i18n, and similar libraries
+}
