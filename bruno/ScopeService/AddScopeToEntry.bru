@@ -1,0 +1,54 @@
+meta {
+  name: Add Scope to Entry
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.ScopeService/AddScopeToEntry
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "entryId": "{{entryId}}",
+    "scopeId": "{{scopeId}}"
+  }
+}
+
+docs {
+  # Add Scope to Entry
+
+  Associates a scope with a translation entry.
+
+  ## Request
+  - `entryId` (required): The UUID of the entry
+  - `scopeId` (required): The UUID of the scope to add
+
+  ## Behavior
+  - Creates a many-to-many relationship between entry and scope
+  - Duplicate associations are handled gracefully (no error if already exists)
+  - Both entry and scope must exist
+
+  ## Response
+  Returns an empty response on success.
+
+  ## Example Response
+  ```json
+  {}
+  ```
+
+  ## Use Case
+  Scopes help organize translations by area of the application.
+  An entry like "button.save" might be in both "frontend" and "mobile" scopes.
+
+  ## Errors
+  - `INVALID_ARGUMENT`: entry id or scope id is required
+  - `NOT_FOUND`: entry or scope not found
+  - `INTERNAL`: failed to add scope to entry
+}
