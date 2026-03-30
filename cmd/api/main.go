@@ -19,6 +19,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/auth"
 	"github.com/kazuto/parlance-server/internal/server/locale"
 	"github.com/kazuto/parlance-server/internal/server/scope"
+	"github.com/kazuto/parlance-server/internal/server/user"
 )
 
 func main() {
@@ -76,6 +77,13 @@ func main() {
 	mux.Handle(scopePath, middleware.RequireAuth(cfg.JWT.Secret)(scopeHandler))
 
 	log.Println("✓ Registered ScopeService (protected)")
+
+	userServer := user.NewServer(db)
+	userPath, userHandler := parlancev1connect.NewUserServiceHandler(userServer)
+	mux.Handle(userPath, middleware.RequireAuth(cfg.JWT.Secret)(userHandler))
+
+	log.Println("✓ Registered UserService (protected)")
+	// TODO: Register more services here
 
 	// Create server with h2c (HTTP/2 without TLS for development)
 	addr := fmt.Sprintf(":%s", cfg.Server.Port)
