@@ -18,6 +18,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/server/auth"
 	"github.com/kazuto/parlance-server/internal/server/entry"
+	"github.com/kazuto/parlance-server/internal/server/export"
 	"github.com/kazuto/parlance-server/internal/server/locale"
 	"github.com/kazuto/parlance-server/internal/server/localization"
 	"github.com/kazuto/parlance-server/internal/server/scope"
@@ -104,6 +105,12 @@ func main() {
 	mux.Handle(terminologyPath, middleware.RequireAuth(cfg.JWT.Secret)(terminologyHandler))
 
 	log.Println("✓ Registered TerminologyService (protected)")
+
+	exportServer := export.NewServer(db)
+	exportPath, exportHandler := parlancev1connect.NewExportServiceHandler(exportServer)
+	mux.Handle(exportPath, middleware.RequireAuth(cfg.JWT.Secret)(exportHandler))
+
+	log.Println("✓ Registered ExportService (protected)")
 	// TODO: Register more services here
 
 	// Create server with h2c (HTTP/2 without TLS for development)
