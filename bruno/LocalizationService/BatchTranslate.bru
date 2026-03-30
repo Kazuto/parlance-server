@@ -1,0 +1,64 @@
+meta {
+  name: BatchTranslate
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.LocalizationService/BatchTranslate
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "entryIds": [
+      "{{entryId1}}",
+      "{{entryId2}}",
+      "{{entryId3}}"
+    ],
+    "sourceLocaleId": "en",
+    "targetLocaleId": "de"
+  }
+}
+
+docs {
+  # BatchTranslate
+
+  Translates multiple entries at once using AI (DeepL) from source to target locale.
+
+  ## Request
+  - `entry_ids` (required): Array of entry IDs to translate
+  - `source_locale_id` (required): Locale to translate from (e.g., "en")
+  - `target_locale_id` (required): Locale to translate to (e.g., "de")
+
+  ## Response
+  - `localizations`: Array of successfully translated localizations
+  - `success_count`: Number of successful translations
+  - `failure_count`: Number of failed translations
+
+  ## Behavior
+  - Processes each entry independently
+  - Continues on failure (doesn't stop the batch)
+  - For each entry:
+    - Creates new localization if it doesn't exist
+    - Updates existing localization if it exists
+  - Skips entries where source localization is missing
+
+  ## User Tracking
+  The authenticated user is recorded as creator/updater for all translations.
+
+  ## Error Codes
+  - `INVALID_ARGUMENT`: Missing required fields or empty entry IDs array
+
+  ## Example Use Case
+  When adding a new locale to the project, translate all existing entries at once.
+  Useful for initial population of a new language.
+
+  ## Performance
+  Best for batches of 10-100 entries. For larger datasets, consider chunking.
+
+  ## Note
+  Currently returns placeholder "[AI-Translated from source]" prefix.
+  TODO: Integrate DeepL API for real batch translations.
+}

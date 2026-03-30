@@ -1,0 +1,32 @@
+meta {
+  name: ListLocalizations
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.LocalizationService/ListLocalizations
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "entryId": "{{entryId}}"
+  }
+}
+
+docs {
+  # ListLocalizations
+
+  Lists all localizations for a specific entry across all locales.
+
+  ## Request
+  - `entry_id` (required): ID of the entry to get localizations for
+
+  ## Response
+  - `localizations`: Array of localization objects with translations
+
+  ## Example Use Case
+  Get all translations for an entry to display in a translation editor UI.
+}
