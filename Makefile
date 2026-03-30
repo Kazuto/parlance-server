@@ -1,4 +1,4 @@
-.PHONY: dev build test migrate-up migrate-down proto-gen proto-lint proto-breaking install-tools run lint clean
+.PHONY: dev build test test-coverage migrate-up migrate-down proto-gen proto-lint proto-breaking install-tools run lint fmt fmt-check vet ci clean
 
 # Development
 dev:
@@ -12,7 +12,10 @@ run:
 
 # Testing
 test:
-	go test -v ./...
+	go test -v -race -coverprofile=coverage.out ./...
+
+test-coverage: test
+	go tool cover -html=coverage.out
 
 # Proto
 proto-gen:
@@ -35,9 +38,27 @@ migrate-create:
 	@read -p "Enter migration name: " name; \
 	migrate create -ext sql -dir internal/database/migrations -seq $$name
 
+# Formatting
+fmt:
+	gofmt -w .
+
+fmt-check:
+	@if [ -n "$$(gofmt -l .)" ]; then \
+		echo "The following files need formatting:"; \
+		gofmt -l .; \
+		exit 1; \
+	fi
+
+# Vetting
+vet:
+	go vet ./...
+
 # Linting
 lint:
 	golangci-lint run
+
+# CI - Run all checks
+ci: fmt-check vet test
 
 # Tools installation
 install-tools:

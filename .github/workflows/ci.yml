@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: parlance
+          POSTGRES_PASSWORD: parlance
+          POSTGRES_DB: parlance_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache: true
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Verify dependencies
+      run: go mod verify
+
+    - name: Run go vet
+      run: go vet ./...
+
+    - name: Check formatting
+      run: |
+        if [ -n "$(gofmt -l .)" ]; then
+          echo "The following files need formatting:"
+          gofmt -l .
+          exit 1
+        fi
+
+    - name: Run tests
+      run: go test -v -race -coverprofile=coverage.out ./...
+      env:
+        DATABASE_URL: postgres://parlance:parlance@localhost:5432/parlance_test?sslmode=disable
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.out
+        flags: unittests
+        name: codecov-umbrella
+      continue-on-error: true
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache: true
+
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v6
+      with:
+        version: latest
+        args: --timeout=5m
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache: true
+
+    - name: Build
+      run: go build -v -o bin/parlance-api ./cmd/api
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: parlance-api
+        path: bin/parlance-api
+        retention-days: 7

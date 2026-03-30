@@ -1,0 +1,59 @@
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gofmt
+    - goimports
+    - misspell
+    - unconvert
+    - unparam
+    - whitespace
+  disable:
+    - exhaustive
+    - exhaustruct
+    - gochecknoglobals
+    - gochecknoinits
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  govet:
+    check-shadowing: true
+
+  gofmt:
+    simplify: true
+
+  misspell:
+    locale: US
+
+issues:
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - errcheck
+        - unparam
+
+    # Exclude "interface{} can be replaced by any" for now (Go 1.18+ suggestion)
+    - text: "interface\\{\\} can be replaced by any"
+      linters:
+        - gosimple
+
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+output:
+  formats:
+    - format: colored-line-number
+  sort-results: true
