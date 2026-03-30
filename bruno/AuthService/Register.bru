@@ -1,0 +1,69 @@
+meta {
+  name: Register
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.AuthService/Register
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "user@example.com",
+    "password": "securepassword123",
+    "name": "John Doe"
+  }
+}
+
+docs {
+  # Register
+
+  Creates a new user account and returns authentication tokens.
+
+  ## Request
+  - `email` (required): User's email address
+  - `password` (required): User's password (will be hashed)
+  - `name` (required): User's display name
+
+  ## Behavior
+  - New users are automatically assigned the "viewer" role
+  - Password is hashed with bcrypt before storage
+  - Returns both access token (24h) and refresh token (7 days)
+
+  ## Response
+  Returns access tokens and user details with roles and permissions.
+
+  ## Example Response
+  ```json
+  {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": "uuid",
+      "email": "user@example.com",
+      "name": "John Doe",
+      "roles": [
+        {
+          "id": "uuid",
+          "name": "viewer",
+          "permissions": [...]
+        }
+      ],
+      "createdAt": "2026-03-27T18:40:15+01:00",
+      "updatedAt": "2026-03-27T18:40:15+01:00"
+    }
+  }
+  ```
+
+  ## Errors
+  - `INVALID_ARGUMENT`: email, password, or name is required
+  - `ALREADY_EXISTS`: user with this email already exists
+  - `INTERNAL`: failed to create user
+}
