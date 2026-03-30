@@ -332,7 +332,7 @@ func (x *GetEntryResponse) GetEntry() *Entry {
 type CreateEntryRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	ScopeId       string                 `protobuf:"bytes,2,opt,name=scope_id,json=scopeId,proto3" json:"scope_id,omitempty"`
+	ScopeIds      []string               `protobuf:"bytes,2,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -375,11 +375,11 @@ func (x *CreateEntryRequest) GetKey() string {
 	return ""
 }
 
-func (x *CreateEntryRequest) GetScopeId() string {
+func (x *CreateEntryRequest) GetScopeIds() []string {
 	if x != nil {
-		return x.ScopeId
+		return x.ScopeIds
 	}
-	return ""
+	return nil
 }
 
 func (x *CreateEntryRequest) GetDescription() string {
@@ -966,10 +966,10 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\x0fGetEntryRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"<\n" +
 	"\x10GetEntryResponse\x12(\n" +
-	"\x05entry\x18\x01 \x01(\v2\x12.parlance.v1.EntryR\x05entry\"c\n" +
+	"\x05entry\x18\x01 \x01(\v2\x12.parlance.v1.EntryR\x05entry\"e\n" +
 	"\x12CreateEntryRequest\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x19\n" +
-	"\bscope_id\x18\x02 \x01(\tR\ascopeId\x12 \n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1b\n" +
+	"\tscope_ids\x18\x02 \x03(\tR\bscopeIds\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\"?\n" +
 	"\x13CreateEntryResponse\x12(\n" +
 	"\x05entry\x18\x01 \x01(\v2\x12.parlance.v1.EntryR\x05entry\"X\n" +

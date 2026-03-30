@@ -36,11 +36,13 @@ func (s *Server) CreateEntry(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create entry: %w", err))
 	}
 
-	// Associate scope if provided
-	if req.Msg.ScopeId != "" {
-		var scope models.Scope
-		if err := s.db.First(&scope, "id = ?", req.Msg.ScopeId).Error; err == nil {
-			s.db.Model(entry).Association("Scopes").Append(&scope)
+	// Associate scopes if provided
+	if len(req.Msg.ScopeIds) > 0 {
+		var scopes []models.Scope
+		if err := s.db.Where("id IN ?", req.Msg.ScopeIds).Find(&scopes).Error; err == nil {
+			if len(scopes) > 0 {
+				s.db.Model(entry).Association("Scopes").Append(&scopes)
+			}
 		}
 	}
 

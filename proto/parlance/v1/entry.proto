@@ -50,7 +50,7 @@ message GetEntryResponse {
 
 message CreateEntryRequest {
   string key = 1;
-  string scope_id = 2;
+  repeated string scope_ids = 2;
   string description = 3;
 }
 
