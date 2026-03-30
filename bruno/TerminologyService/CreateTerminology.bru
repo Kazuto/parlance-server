@@ -1,0 +1,46 @@
+meta {
+  name: CreateTerminology
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.TerminologyService/CreateTerminology
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "term": "API",
+    "description": "Application Programming Interface - always keep capitalized and untranslated"
+  }
+}
+
+docs {
+  # CreateTerminology
+
+  Creates a new terminology entry in the glossary.
+
+  ## Request
+  - `term` (required): The term to add to the glossary
+  - `description` (optional): Guidelines on how to translate or use this term
+
+  ## Response
+  - `terminology`: The created terminology object
+
+  ## User Tracking
+  The authenticated user is automatically recorded as `created_by`.
+
+  ## Error Codes
+  - `INVALID_ARGUMENT`: Missing required term field
+  - `ALREADY_EXISTS`: Term already exists in glossary
+
+  ## Example Use Case
+  Add a new technical term to the glossary with translation guidelines for translators.
+
+  Common examples:
+  - Brand names that should remain untranslated
+  - Technical terms with specific translation requirements
+  - Acronyms with locale-specific expansions
+}

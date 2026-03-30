@@ -1,0 +1,8 @@
+{
+  "auth": {
+    "mode": "bearer",
+    "bearer": {
+      "token": "{{accessToken}}"
+    }
+  }
+}
