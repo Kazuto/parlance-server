@@ -60,6 +60,16 @@ func LocalizationToProto(l *models.Localization) *pb.Localization {
 		return nil
 	}
 
+	createdBy := ""
+	if l.CreatedBy != nil {
+		createdBy = *l.CreatedBy
+	}
+
+	updatedBy := ""
+	if l.UpdatedBy != nil {
+		updatedBy = *l.UpdatedBy
+	}
+
 	return &pb.Localization{
 		Id:          l.ID,
 		EntryId:     l.EntryID,
@@ -67,7 +77,19 @@ func LocalizationToProto(l *models.Localization) *pb.Localization {
 		Translation: l.Translation,
 		CreatedAt:   l.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt:   l.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		CreatedBy:   createdBy,
+		UpdatedBy:   updatedBy,
 	}
+}
+
+// LocalizationsToProto converts a slice of Localization models to protobuf
+func LocalizationsToProto(localizations []models.Localization) []*pb.Localization {
+	result := make([]*pb.Localization, len(localizations))
+	for i, loc := range localizations {
+		result[i] = LocalizationToProto(&loc)
+	}
+
+	return result
 }
 
 // LocalizationHistoryToProto converts a database LocalizationHistory model to protobuf
