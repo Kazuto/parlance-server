@@ -1,8 +1,8 @@
 package converter
 
 import (
-	"github.com/kazuto/parlance-server/internal/models"
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/models"
 )
 
 // UserToProto converts a database User model to protobuf

@@ -5,8 +5,8 @@ import (
 
 	"gorm.io/datatypes"
 
-	"github.com/kazuto/parlance-server/internal/models"
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/models"
 )
 
 // LocaleToProto converts a database Locale model to protobuf

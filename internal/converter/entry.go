@@ -1,8 +1,8 @@
 package converter
 
 import (
-	"github.com/kazuto/parlance-server/internal/models"
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/models"
 )
 
 // EntryToProto converts a database Entry model to protobuf
@@ -32,15 +32,15 @@ func EntryToProto(e *models.Entry, requestLocale string) *pb.Entry {
 	}
 
 	return &pb.Entry{
-		Id:             e.ID,
-		Key:            e.Key,
-		Description:    e.Description,
-		CreatedAt:      e.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt:      e.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		CreatedBy:      createdBy,
-		UpdatedBy:      updatedBy,
-		Localizations:  localizations,
-		Scopes:         scopes,
+		Id:            e.ID,
+		Key:           e.Key,
+		Description:   e.Description,
+		CreatedAt:     e.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt:     e.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		CreatedBy:     createdBy,
+		UpdatedBy:     updatedBy,
+		Localizations: localizations,
+		Scopes:        scopes,
 	}
 }
 
@@ -104,14 +104,14 @@ func LocalizationHistoryToProto(h *models.LocalizationHistory) *pb.LocalizationH
 	}
 
 	return &pb.LocalizationHistory{
-		Id:              h.ID,
-		LocalizationId:  h.LocalizationID,
-		LocaleId:        h.LocaleID,
-		EntryId:         h.EntryID,
-		UserId:          userID,
-		Translation:     h.Translation,
-		Action:          h.Action,
-		ChangedAt:       h.ChangedAt.Format("2006-01-02T15:04:05Z07:00"),
+		Id:             h.ID,
+		LocalizationId: h.LocalizationID,
+		LocaleId:       h.LocaleID,
+		EntryId:        h.EntryID,
+		UserId:         userID,
+		Translation:    h.Translation,
+		Action:         h.Action,
+		ChangedAt:      h.ChangedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}
 }
 
