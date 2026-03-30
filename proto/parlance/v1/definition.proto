@@ -1,0 +1,57 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/common.proto";
+
+option go_package = "parlance/v1;parlance";
+
+service DefinitionService {
+  rpc ListDefinitions(ListDefinitionsRequest) returns (ListDefinitionsResponse);
+  rpc CreateDefinition(CreateDefinitionRequest) returns (CreateDefinitionResponse);
+  rpc UpdateDefinition(UpdateDefinitionRequest) returns (UpdateDefinitionResponse);
+  rpc DeleteDefinition(DeleteDefinitionRequest) returns (DeleteDefinitionResponse);
+}
+
+message Definition {
+  string id = 1;
+  string terminology_id = 2;
+  string locale_id = 3;
+  string translation = 4;
+  string created_at = 5;
+  string updated_at = 6;
+  string created_by = 7;
+  string updated_by = 8;
+}
+
+message ListDefinitionsRequest {
+  string terminology_id = 1;
+}
+
+message ListDefinitionsResponse {
+  repeated Definition definitions = 1;
+}
+
+message CreateDefinitionRequest {
+  string terminology_id = 1;
+  string locale_id = 2;
+  string translation = 3;
+}
+
+message CreateDefinitionResponse {
+  Definition definition = 1;
+}
+
+message UpdateDefinitionRequest {
+  string id = 1;
+  string translation = 2;
+}
+
+message UpdateDefinitionResponse {
+  Definition definition = 1;
+}
+
+message DeleteDefinitionRequest {
+  string id = 1;
+}
+
+message DeleteDefinitionResponse {}

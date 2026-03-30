@@ -3,6 +3,7 @@ package parlance.v1;
 
 import "parlance/v1/common.proto";
 import "parlance/v1/user.proto";
+import "parlance/v1/definition.proto";
 
 option go_package = "parlance/v1;parlance";
 
@@ -20,17 +21,6 @@ message Terminology {
   string term = 2;
   string description = 3;
   repeated Definition definitions = 4;
-  string created_at = 5;
-  string updated_at = 6;
-  string created_by = 7;
-  string updated_by = 8;
-}
-
-message Definition {
-  string id = 1;
-  string terminology_id = 2;
-  string locale_id = 3;
-  string translation = 4;
   string created_at = 5;
   string updated_at = 6;
   string created_by = 7;

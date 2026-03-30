@@ -17,6 +17,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/database"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/server/auth"
+	"github.com/kazuto/parlance-server/internal/server/definition"
 	"github.com/kazuto/parlance-server/internal/server/entry"
 	"github.com/kazuto/parlance-server/internal/server/export"
 	"github.com/kazuto/parlance-server/internal/server/locale"
@@ -105,6 +106,12 @@ func main() {
 	mux.Handle(terminologyPath, middleware.RequireAuth(cfg.JWT.Secret)(terminologyHandler))
 
 	log.Println("✓ Registered TerminologyService (protected)")
+
+	definitionServer := definition.NewServer(db)
+	definitionPath, definitionHandler := parlancev1connect.NewDefinitionServiceHandler(definitionServer)
+	mux.Handle(definitionPath, middleware.RequireAuth(cfg.JWT.Secret)(definitionHandler))
+
+	log.Println("✓ Registered DefinitionService (protected)")
 
 	exportServer := export.NewServer(db)
 	exportPath, exportHandler := parlancev1connect.NewExportServiceHandler(exportServer)

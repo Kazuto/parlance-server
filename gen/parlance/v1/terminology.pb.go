@@ -121,106 +121,6 @@ func (x *Terminology) GetUpdatedBy() string {
 	return ""
 }
 
-type Definition struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	TerminologyId string                 `protobuf:"bytes,2,opt,name=terminology_id,json=terminologyId,proto3" json:"terminology_id,omitempty"`
-	LocaleId      string                 `protobuf:"bytes,3,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
-	Translation   string                 `protobuf:"bytes,4,opt,name=translation,proto3" json:"translation,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	CreatedBy     string                 `protobuf:"bytes,7,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	UpdatedBy     string                 `protobuf:"bytes,8,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Definition) Reset() {
-	*x = Definition{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Definition) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Definition) ProtoMessage() {}
-
-func (x *Definition) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Definition.ProtoReflect.Descriptor instead.
-func (*Definition) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *Definition) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *Definition) GetTerminologyId() string {
-	if x != nil {
-		return x.TerminologyId
-	}
-	return ""
-}
-
-func (x *Definition) GetLocaleId() string {
-	if x != nil {
-		return x.LocaleId
-	}
-	return ""
-}
-
-func (x *Definition) GetTranslation() string {
-	if x != nil {
-		return x.Translation
-	}
-	return ""
-}
-
-func (x *Definition) GetCreatedAt() string {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return ""
-}
-
-func (x *Definition) GetUpdatedAt() string {
-	if x != nil {
-		return x.UpdatedAt
-	}
-	return ""
-}
-
-func (x *Definition) GetCreatedBy() string {
-	if x != nil {
-		return x.CreatedBy
-	}
-	return ""
-}
-
-func (x *Definition) GetUpdatedBy() string {
-	if x != nil {
-		return x.UpdatedBy
-	}
-	return ""
-}
-
 type CreateTerminologyRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Term          string                 `protobuf:"bytes,1,opt,name=term,proto3" json:"term,omitempty"`
@@ -231,7 +131,7 @@ type CreateTerminologyRequest struct {
 
 func (x *CreateTerminologyRequest) Reset() {
 	*x = CreateTerminologyRequest{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[2]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -243,7 +143,7 @@ func (x *CreateTerminologyRequest) String() string {
 func (*CreateTerminologyRequest) ProtoMessage() {}
 
 func (x *CreateTerminologyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[2]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -256,7 +156,7 @@ func (x *CreateTerminologyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTerminologyRequest.ProtoReflect.Descriptor instead.
 func (*CreateTerminologyRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{2}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *CreateTerminologyRequest) GetTerm() string {
@@ -282,7 +182,7 @@ type CreateTerminologyResponse struct {
 
 func (x *CreateTerminologyResponse) Reset() {
 	*x = CreateTerminologyResponse{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[3]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -294,7 +194,7 @@ func (x *CreateTerminologyResponse) String() string {
 func (*CreateTerminologyResponse) ProtoMessage() {}
 
 func (x *CreateTerminologyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[3]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -307,7 +207,7 @@ func (x *CreateTerminologyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTerminologyResponse.ProtoReflect.Descriptor instead.
 func (*CreateTerminologyResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{3}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *CreateTerminologyResponse) GetTerminology() *Terminology {
@@ -328,7 +228,7 @@ type UpdateTerminologyRequest struct {
 
 func (x *UpdateTerminologyRequest) Reset() {
 	*x = UpdateTerminologyRequest{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[4]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -340,7 +240,7 @@ func (x *UpdateTerminologyRequest) String() string {
 func (*UpdateTerminologyRequest) ProtoMessage() {}
 
 func (x *UpdateTerminologyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[4]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -353,7 +253,7 @@ func (x *UpdateTerminologyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateTerminologyRequest.ProtoReflect.Descriptor instead.
 func (*UpdateTerminologyRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{4}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *UpdateTerminologyRequest) GetId() string {
@@ -386,7 +286,7 @@ type UpdateTerminologyResponse struct {
 
 func (x *UpdateTerminologyResponse) Reset() {
 	*x = UpdateTerminologyResponse{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[5]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -398,7 +298,7 @@ func (x *UpdateTerminologyResponse) String() string {
 func (*UpdateTerminologyResponse) ProtoMessage() {}
 
 func (x *UpdateTerminologyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[5]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -411,7 +311,7 @@ func (x *UpdateTerminologyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateTerminologyResponse.ProtoReflect.Descriptor instead.
 func (*UpdateTerminologyResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{5}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *UpdateTerminologyResponse) GetTerminology() *Terminology {
@@ -430,7 +330,7 @@ type DeleteTerminologyRequest struct {
 
 func (x *DeleteTerminologyRequest) Reset() {
 	*x = DeleteTerminologyRequest{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[6]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -442,7 +342,7 @@ func (x *DeleteTerminologyRequest) String() string {
 func (*DeleteTerminologyRequest) ProtoMessage() {}
 
 func (x *DeleteTerminologyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[6]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -455,7 +355,7 @@ func (x *DeleteTerminologyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteTerminologyRequest.ProtoReflect.Descriptor instead.
 func (*DeleteTerminologyRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{6}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *DeleteTerminologyRequest) GetId() string {
@@ -473,7 +373,7 @@ type DeleteTerminologyResponse struct {
 
 func (x *DeleteTerminologyResponse) Reset() {
 	*x = DeleteTerminologyResponse{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[7]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -485,7 +385,7 @@ func (x *DeleteTerminologyResponse) String() string {
 func (*DeleteTerminologyResponse) ProtoMessage() {}
 
 func (x *DeleteTerminologyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[7]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -498,7 +398,7 @@ func (x *DeleteTerminologyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteTerminologyResponse.ProtoReflect.Descriptor instead.
 func (*DeleteTerminologyResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{7}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{6}
 }
 
 type GetTerminologyRequest struct {
@@ -510,7 +410,7 @@ type GetTerminologyRequest struct {
 
 func (x *GetTerminologyRequest) Reset() {
 	*x = GetTerminologyRequest{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[8]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -522,7 +422,7 @@ func (x *GetTerminologyRequest) String() string {
 func (*GetTerminologyRequest) ProtoMessage() {}
 
 func (x *GetTerminologyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[8]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -535,7 +435,7 @@ func (x *GetTerminologyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTerminologyRequest.ProtoReflect.Descriptor instead.
 func (*GetTerminologyRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{8}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetTerminologyRequest) GetId() string {
@@ -554,7 +454,7 @@ type GetTerminologyResponse struct {
 
 func (x *GetTerminologyResponse) Reset() {
 	*x = GetTerminologyResponse{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[9]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -566,7 +466,7 @@ func (x *GetTerminologyResponse) String() string {
 func (*GetTerminologyResponse) ProtoMessage() {}
 
 func (x *GetTerminologyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[9]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -579,7 +479,7 @@ func (x *GetTerminologyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTerminologyResponse.ProtoReflect.Descriptor instead.
 func (*GetTerminologyResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{9}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetTerminologyResponse) GetTerminology() *Terminology {
@@ -598,7 +498,7 @@ type ListTerminologiesRequest struct {
 
 func (x *ListTerminologiesRequest) Reset() {
 	*x = ListTerminologiesRequest{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[10]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -610,7 +510,7 @@ func (x *ListTerminologiesRequest) String() string {
 func (*ListTerminologiesRequest) ProtoMessage() {}
 
 func (x *ListTerminologiesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[10]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -623,7 +523,7 @@ func (x *ListTerminologiesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTerminologiesRequest.ProtoReflect.Descriptor instead.
 func (*ListTerminologiesRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{10}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListTerminologiesRequest) GetPagination() *PaginationRequest {
@@ -643,7 +543,7 @@ type ListTerminologiesResponse struct {
 
 func (x *ListTerminologiesResponse) Reset() {
 	*x = ListTerminologiesResponse{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[11]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -655,7 +555,7 @@ func (x *ListTerminologiesResponse) String() string {
 func (*ListTerminologiesResponse) ProtoMessage() {}
 
 func (x *ListTerminologiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[11]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -668,7 +568,7 @@ func (x *ListTerminologiesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTerminologiesResponse.ProtoReflect.Descriptor instead.
 func (*ListTerminologiesResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{11}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ListTerminologiesResponse) GetTerminologies() []*Terminology {
@@ -695,7 +595,7 @@ type GetDefinitionHistoryRequest struct {
 
 func (x *GetDefinitionHistoryRequest) Reset() {
 	*x = GetDefinitionHistoryRequest{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[12]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -707,7 +607,7 @@ func (x *GetDefinitionHistoryRequest) String() string {
 func (*GetDefinitionHistoryRequest) ProtoMessage() {}
 
 func (x *GetDefinitionHistoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[12]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -720,7 +620,7 @@ func (x *GetDefinitionHistoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDefinitionHistoryRequest.ProtoReflect.Descriptor instead.
 func (*GetDefinitionHistoryRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{12}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetDefinitionHistoryRequest) GetTerminologyId() string {
@@ -747,7 +647,7 @@ type GetDefinitionHistoryResponse struct {
 
 func (x *GetDefinitionHistoryResponse) Reset() {
 	*x = GetDefinitionHistoryResponse{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[13]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -759,7 +659,7 @@ func (x *GetDefinitionHistoryResponse) String() string {
 func (*GetDefinitionHistoryResponse) ProtoMessage() {}
 
 func (x *GetDefinitionHistoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[13]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -772,7 +672,7 @@ func (x *GetDefinitionHistoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDefinitionHistoryResponse.ProtoReflect.Descriptor instead.
 func (*GetDefinitionHistoryResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{13}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetDefinitionHistoryResponse) GetHistory() []*DefinitionHistory {
@@ -806,7 +706,7 @@ type DefinitionHistory struct {
 
 func (x *DefinitionHistory) Reset() {
 	*x = DefinitionHistory{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[14]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -818,7 +718,7 @@ func (x *DefinitionHistory) String() string {
 func (*DefinitionHistory) ProtoMessage() {}
 
 func (x *DefinitionHistory) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[14]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -831,7 +731,7 @@ func (x *DefinitionHistory) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DefinitionHistory.ProtoReflect.Descriptor instead.
 func (*DefinitionHistory) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{14}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *DefinitionHistory) GetId() string {
@@ -901,26 +801,12 @@ var File_parlance_v1_terminology_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_terminology_proto_rawDesc = "" +
 	"\n" +
-	"\x1dparlance/v1/terminology.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x16parlance/v1/user.proto\"\x8a\x02\n" +
+	"\x1dparlance/v1/terminology.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x16parlance/v1/user.proto\x1a\x1cparlance/v1/definition.proto\"\x8a\x02\n" +
 	"\vTerminology\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04term\x18\x02 \x01(\tR\x04term\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x129\n" +
 	"\vdefinitions\x18\x04 \x03(\v2\x17.parlance.v1.DefinitionR\vdefinitions\x12\x1d\n" +
-	"\n" +
-	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
-	"\n" +
-	"updated_at\x18\x06 \x01(\tR\tupdatedAt\x12\x1d\n" +
-	"\n" +
-	"created_by\x18\a \x01(\tR\tcreatedBy\x12\x1d\n" +
-	"\n" +
-	"updated_by\x18\b \x01(\tR\tupdatedBy\"\xfe\x01\n" +
-	"\n" +
-	"Definition\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
-	"\x0eterminology_id\x18\x02 \x01(\tR\rterminologyId\x12\x1b\n" +
-	"\tlocale_id\x18\x03 \x01(\tR\blocaleId\x12 \n" +
-	"\vtranslation\x18\x04 \x01(\tR\vtranslation\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
@@ -998,29 +884,29 @@ func file_parlance_v1_terminology_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_terminology_proto_rawDescData
 }
 
-var file_parlance_v1_terminology_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_parlance_v1_terminology_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_parlance_v1_terminology_proto_goTypes = []any{
 	(*Terminology)(nil),                  // 0: parlance.v1.Terminology
-	(*Definition)(nil),                   // 1: parlance.v1.Definition
-	(*CreateTerminologyRequest)(nil),     // 2: parlance.v1.CreateTerminologyRequest
-	(*CreateTerminologyResponse)(nil),    // 3: parlance.v1.CreateTerminologyResponse
-	(*UpdateTerminologyRequest)(nil),     // 4: parlance.v1.UpdateTerminologyRequest
-	(*UpdateTerminologyResponse)(nil),    // 5: parlance.v1.UpdateTerminologyResponse
-	(*DeleteTerminologyRequest)(nil),     // 6: parlance.v1.DeleteTerminologyRequest
-	(*DeleteTerminologyResponse)(nil),    // 7: parlance.v1.DeleteTerminologyResponse
-	(*GetTerminologyRequest)(nil),        // 8: parlance.v1.GetTerminologyRequest
-	(*GetTerminologyResponse)(nil),       // 9: parlance.v1.GetTerminologyResponse
-	(*ListTerminologiesRequest)(nil),     // 10: parlance.v1.ListTerminologiesRequest
-	(*ListTerminologiesResponse)(nil),    // 11: parlance.v1.ListTerminologiesResponse
-	(*GetDefinitionHistoryRequest)(nil),  // 12: parlance.v1.GetDefinitionHistoryRequest
-	(*GetDefinitionHistoryResponse)(nil), // 13: parlance.v1.GetDefinitionHistoryResponse
-	(*DefinitionHistory)(nil),            // 14: parlance.v1.DefinitionHistory
+	(*CreateTerminologyRequest)(nil),     // 1: parlance.v1.CreateTerminologyRequest
+	(*CreateTerminologyResponse)(nil),    // 2: parlance.v1.CreateTerminologyResponse
+	(*UpdateTerminologyRequest)(nil),     // 3: parlance.v1.UpdateTerminologyRequest
+	(*UpdateTerminologyResponse)(nil),    // 4: parlance.v1.UpdateTerminologyResponse
+	(*DeleteTerminologyRequest)(nil),     // 5: parlance.v1.DeleteTerminologyRequest
+	(*DeleteTerminologyResponse)(nil),    // 6: parlance.v1.DeleteTerminologyResponse
+	(*GetTerminologyRequest)(nil),        // 7: parlance.v1.GetTerminologyRequest
+	(*GetTerminologyResponse)(nil),       // 8: parlance.v1.GetTerminologyResponse
+	(*ListTerminologiesRequest)(nil),     // 9: parlance.v1.ListTerminologiesRequest
+	(*ListTerminologiesResponse)(nil),    // 10: parlance.v1.ListTerminologiesResponse
+	(*GetDefinitionHistoryRequest)(nil),  // 11: parlance.v1.GetDefinitionHistoryRequest
+	(*GetDefinitionHistoryResponse)(nil), // 12: parlance.v1.GetDefinitionHistoryResponse
+	(*DefinitionHistory)(nil),            // 13: parlance.v1.DefinitionHistory
+	(*Definition)(nil),                   // 14: parlance.v1.Definition
 	(*PaginationRequest)(nil),            // 15: parlance.v1.PaginationRequest
 	(*PaginationResponse)(nil),           // 16: parlance.v1.PaginationResponse
 	(*User)(nil),                         // 17: parlance.v1.User
 }
 var file_parlance_v1_terminology_proto_depIdxs = []int32{
-	1,  // 0: parlance.v1.Terminology.definitions:type_name -> parlance.v1.Definition
+	14, // 0: parlance.v1.Terminology.definitions:type_name -> parlance.v1.Definition
 	0,  // 1: parlance.v1.CreateTerminologyResponse.terminology:type_name -> parlance.v1.Terminology
 	0,  // 2: parlance.v1.UpdateTerminologyResponse.terminology:type_name -> parlance.v1.Terminology
 	0,  // 3: parlance.v1.GetTerminologyResponse.terminology:type_name -> parlance.v1.Terminology
@@ -1028,21 +914,21 @@ var file_parlance_v1_terminology_proto_depIdxs = []int32{
 	0,  // 5: parlance.v1.ListTerminologiesResponse.terminologies:type_name -> parlance.v1.Terminology
 	16, // 6: parlance.v1.ListTerminologiesResponse.pagination:type_name -> parlance.v1.PaginationResponse
 	15, // 7: parlance.v1.GetDefinitionHistoryRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	14, // 8: parlance.v1.GetDefinitionHistoryResponse.history:type_name -> parlance.v1.DefinitionHistory
+	13, // 8: parlance.v1.GetDefinitionHistoryResponse.history:type_name -> parlance.v1.DefinitionHistory
 	16, // 9: parlance.v1.GetDefinitionHistoryResponse.pagination:type_name -> parlance.v1.PaginationResponse
 	17, // 10: parlance.v1.DefinitionHistory.user:type_name -> parlance.v1.User
-	10, // 11: parlance.v1.TerminologyService.ListTerminologies:input_type -> parlance.v1.ListTerminologiesRequest
-	8,  // 12: parlance.v1.TerminologyService.GetTerminology:input_type -> parlance.v1.GetTerminologyRequest
-	2,  // 13: parlance.v1.TerminologyService.CreateTerminology:input_type -> parlance.v1.CreateTerminologyRequest
-	4,  // 14: parlance.v1.TerminologyService.UpdateTerminology:input_type -> parlance.v1.UpdateTerminologyRequest
-	6,  // 15: parlance.v1.TerminologyService.DeleteTerminology:input_type -> parlance.v1.DeleteTerminologyRequest
-	12, // 16: parlance.v1.TerminologyService.GetDefinitionHistory:input_type -> parlance.v1.GetDefinitionHistoryRequest
-	11, // 17: parlance.v1.TerminologyService.ListTerminologies:output_type -> parlance.v1.ListTerminologiesResponse
-	9,  // 18: parlance.v1.TerminologyService.GetTerminology:output_type -> parlance.v1.GetTerminologyResponse
-	3,  // 19: parlance.v1.TerminologyService.CreateTerminology:output_type -> parlance.v1.CreateTerminologyResponse
-	5,  // 20: parlance.v1.TerminologyService.UpdateTerminology:output_type -> parlance.v1.UpdateTerminologyResponse
-	7,  // 21: parlance.v1.TerminologyService.DeleteTerminology:output_type -> parlance.v1.DeleteTerminologyResponse
-	13, // 22: parlance.v1.TerminologyService.GetDefinitionHistory:output_type -> parlance.v1.GetDefinitionHistoryResponse
+	9,  // 11: parlance.v1.TerminologyService.ListTerminologies:input_type -> parlance.v1.ListTerminologiesRequest
+	7,  // 12: parlance.v1.TerminologyService.GetTerminology:input_type -> parlance.v1.GetTerminologyRequest
+	1,  // 13: parlance.v1.TerminologyService.CreateTerminology:input_type -> parlance.v1.CreateTerminologyRequest
+	3,  // 14: parlance.v1.TerminologyService.UpdateTerminology:input_type -> parlance.v1.UpdateTerminologyRequest
+	5,  // 15: parlance.v1.TerminologyService.DeleteTerminology:input_type -> parlance.v1.DeleteTerminologyRequest
+	11, // 16: parlance.v1.TerminologyService.GetDefinitionHistory:input_type -> parlance.v1.GetDefinitionHistoryRequest
+	10, // 17: parlance.v1.TerminologyService.ListTerminologies:output_type -> parlance.v1.ListTerminologiesResponse
+	8,  // 18: parlance.v1.TerminologyService.GetTerminology:output_type -> parlance.v1.GetTerminologyResponse
+	2,  // 19: parlance.v1.TerminologyService.CreateTerminology:output_type -> parlance.v1.CreateTerminologyResponse
+	4,  // 20: parlance.v1.TerminologyService.UpdateTerminology:output_type -> parlance.v1.UpdateTerminologyResponse
+	6,  // 21: parlance.v1.TerminologyService.DeleteTerminology:output_type -> parlance.v1.DeleteTerminologyResponse
+	12, // 22: parlance.v1.TerminologyService.GetDefinitionHistory:output_type -> parlance.v1.GetDefinitionHistoryResponse
 	17, // [17:23] is the sub-list for method output_type
 	11, // [11:17] is the sub-list for method input_type
 	11, // [11:11] is the sub-list for extension type_name
@@ -1057,13 +943,14 @@ func file_parlance_v1_terminology_proto_init() {
 	}
 	file_parlance_v1_common_proto_init()
 	file_parlance_v1_user_proto_init()
+	file_parlance_v1_definition_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_terminology_proto_rawDesc), len(file_parlance_v1_terminology_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   15,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
