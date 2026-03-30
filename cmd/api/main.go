@@ -15,6 +15,8 @@ import (
 	"github.com/kazuto/parlance-server/gen/parlance/v1/parlancev1connect"
 	"github.com/kazuto/parlance-server/internal/config"
 	"github.com/kazuto/parlance-server/internal/database"
+	"github.com/kazuto/parlance-server/internal/middleware"
+	"github.com/kazuto/parlance-server/internal/server/auth"
 	"github.com/kazuto/parlance-server/internal/server/locale"
 )
 
@@ -52,6 +54,9 @@ func main() {
 		w.Write([]byte(`{"status":"ok","service":"parlance-api"}`))
 	})
 
+	// Create auth middleware
+	authMiddleware := middleware.AuthMiddleware(cfg.JWT.Secret)
+
 	// Register Connect RPC services
 	localeServer := locale.NewServer(db)
 	localePath, localeHandler := parlancev1connect.NewLocaleServiceHandler(localeServer)
@@ -59,11 +64,17 @@ func main() {
 
 	log.Println("✓ Registered LocaleService")
 
+	authServer := auth.NewServer(db, cfg)
+	authPath, authHandler := parlancev1connect.NewAuthServiceHandler(authServer)
+	mux.Handle(authPath, authHandler)
+
+	log.Println("✓ Registered AuthService")
+
 	// Create server with h2c (HTTP/2 without TLS for development)
 	addr := fmt.Sprintf(":%s", cfg.Server.Port)
 	srv := &http.Server{
 		Addr:         addr,
-		Handler:      h2c.NewHandler(corsMiddleware(mux, cfg.CORS.AllowedOrigins), &http2.Server{}),
+		Handler:      h2c.NewHandler(corsMiddleware(authMiddleware(mux), cfg.CORS.AllowedOrigins), &http2.Server{}),
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
