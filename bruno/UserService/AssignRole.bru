@@ -1,0 +1,79 @@
+meta {
+  name: Assign Role
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.UserService/AssignRole
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "userId": "{{userId}}",
+    "roleId": "{{roleId}}"
+  }
+}
+
+docs {
+  # Assign Role
+
+  Assigns a role to a user.
+
+  ## Authentication
+  Requires valid access token.
+
+  ## Request
+  - `userId` (required): The UUID of the user
+  - `roleId` (required): The UUID of the role to assign
+
+  ## Behavior
+  - Adds the role to the user's existing roles
+  - Does not remove existing roles
+  - Duplicate assignments are handled gracefully (no error if already assigned)
+
+  ## Response
+  Returns the user with updated roles.
+
+  ## Example Response
+  ```json
+  {
+    "user": {
+      "id": "uuid",
+      "email": "user@example.com",
+      "name": "John Doe",
+      "roles": [
+        {
+          "id": "uuid",
+          "name": "viewer",
+          "permissions": [...]
+        },
+        {
+          "id": "uuid",
+          "name": "translator",
+          "permissions": [...]
+        }
+      ],
+      "createdAt": "2026-03-27T18:40:15+01:00",
+      "updatedAt": "2026-03-27T19:10:00+01:00"
+    }
+  }
+  ```
+
+  ## Available Roles
+  - **admin**: Full system access
+  - **translator**: Can create and edit translations
+  - **reviewer**: Can review and approve translations
+  - **viewer**: Read-only access
+
+  ## Errors
+  - `INVALID_ARGUMENT`: user id or role id is required
+  - `NOT_FOUND`: user or role not found
+  - `INTERNAL`: failed to assign role
+}

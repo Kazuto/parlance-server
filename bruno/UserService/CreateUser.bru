@@ -1,0 +1,70 @@
+meta {
+  name: Create User
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.UserService/CreateUser
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "newuser@example.com",
+    "password": "securepassword123",
+    "name": "Jane Smith"
+  }
+}
+
+docs {
+  # Create User
+
+  Creates a new user account.
+
+  ## Authentication
+  Requires valid access token.
+
+  ## Request
+  - `email` (required): User's email address
+  - `password` (required): User's password (will be hashed)
+  - `name` (required): User's display name
+
+  ## Behavior
+  - New users are automatically assigned the "viewer" role
+  - Password is hashed with bcrypt before storage
+  - Email must be unique
+
+  ## Response
+  Returns the newly created user with their default role.
+
+  ## Example Response
+  ```json
+  {
+    "user": {
+      "id": "uuid",
+      "email": "newuser@example.com",
+      "name": "Jane Smith",
+      "roles": [
+        {
+          "id": "uuid",
+          "name": "viewer",
+          "permissions": [...]
+        }
+      ],
+      "createdAt": "2026-03-27T19:00:00+01:00",
+      "updatedAt": "2026-03-27T19:00:00+01:00"
+    }
+  }
+  ```
+
+  ## Errors
+  - `INVALID_ARGUMENT`: email, password, or name is required
+  - `ALREADY_EXISTS`: user with this email already exists
+  - `INTERNAL`: failed to create user
+}
