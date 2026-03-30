@@ -17,6 +17,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/database"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/server/auth"
+	"github.com/kazuto/parlance-server/internal/server/entry"
 	"github.com/kazuto/parlance-server/internal/server/locale"
 	"github.com/kazuto/parlance-server/internal/server/scope"
 	"github.com/kazuto/parlance-server/internal/server/user"
@@ -83,6 +84,12 @@ func main() {
 	mux.Handle(userPath, middleware.RequireAuth(cfg.JWT.Secret)(userHandler))
 
 	log.Println("✓ Registered UserService (protected)")
+
+	entryServer := entry.NewServer(db)
+	entryPath, entryHandler := parlancev1connect.NewEntryServiceHandler(entryServer)
+	mux.Handle(entryPath, middleware.RequireAuth(cfg.JWT.Secret)(entryHandler))
+
+	log.Println("✓ Registered EntryService (protected)")
 	// TODO: Register more services here
 
 	// Create server with h2c (HTTP/2 without TLS for development)
