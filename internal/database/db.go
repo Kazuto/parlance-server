@@ -117,14 +117,14 @@ func (db *DB) Seed() error {
 
 	// Seed locales
 	locales := []models.Locale{
-		{Code: "en", Name: "English", IsDefault: true},
-		{Code: "de", Name: "German", IsDefault: false},
-		{Code: "fr", Name: "French", IsDefault: false},
-		{Code: "es", Name: "Spanish", IsDefault: false},
-		{Code: "it", Name: "Italian", IsDefault: false},
-		{Code: "pt", Name: "Portuguese", IsDefault: false},
-		{Code: "ja", Name: "Japanese", IsDefault: false},
-		{Code: "zh", Name: "Chinese", IsDefault: false},
+		{Code: "en", Names: []byte(`{"en":"English","de":"Englisch","fr":"Anglais","es":"Inglés","it":"Inglese","pt":"Inglês","ja":"英語","zh":"英语"}`), IsDefault: true},
+		{Code: "de", Names: []byte(`{"en":"German","de":"Deutsch","fr":"Allemand","es":"Alemán","it":"Tedesco","pt":"Alemão","ja":"ドイツ語","zh":"德语"}`), IsDefault: false},
+		{Code: "fr", Names: []byte(`{"en":"French","de":"Französisch","fr":"Français","es":"Francés","it":"Francese","pt":"Francês","ja":"フランス語","zh":"法语"}`), IsDefault: false},
+		{Code: "es", Names: []byte(`{"en":"Spanish","de":"Spanisch","fr":"Espagnol","es":"Español","it":"Spagnolo","pt":"Espanhol","ja":"スペイン語","zh":"西班牙语"}`), IsDefault: false},
+		{Code: "it", Names: []byte(`{"en":"Italian","de":"Italienisch","fr":"Italien","es":"Italiano","it":"Italiano","pt":"Italiano","ja":"イタリア語","zh":"意大利语"}`), IsDefault: false},
+		{Code: "pt", Names: []byte(`{"en":"Portuguese","de":"Portugiesisch","fr":"Portugais","es":"Portugués","it":"Portoghese","pt":"Português","ja":"ポルトガル語","zh":"葡萄牙语"}`), IsDefault: false},
+		{Code: "ja", Names: []byte(`{"en":"Japanese","de":"Japanisch","fr":"Japonais","es":"Japonés","it":"Giapponese","pt":"Japonês","ja":"日本語","zh":"日语"}`), IsDefault: false},
+		{Code: "zh", Names: []byte(`{"en":"Chinese","de":"Chinesisch","fr":"Chinois","es":"Chino","it":"Cinese","pt":"Chinês","ja":"中国語","zh":"中文"}`), IsDefault: false},
 	}
 
 	if err := db.Create(&locales).Error; err != nil {

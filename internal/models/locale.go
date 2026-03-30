@@ -3,13 +3,14 @@ package models
 import (
 	"time"
 
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
 type Locale struct {
 	ID        string         `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
 	Code      string         `gorm:"type:varchar(10);uniqueIndex;not null" json:"code"`
-	Name      string         `gorm:"type:varchar(100);not null" json:"name"`
+	Names     datatypes.JSON `gorm:"type:jsonb;not null" json:"names"` // {"en": "English", "de": "Englisch", ...}
 	IsDefault bool           `gorm:"default:false;not null" json:"is_default"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`

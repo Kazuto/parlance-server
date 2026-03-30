@@ -12,8 +12,10 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
+	"github.com/kazuto/parlance-server/gen/parlance/v1/parlancev1connect"
 	"github.com/kazuto/parlance-server/internal/config"
 	"github.com/kazuto/parlance-server/internal/database"
+	"github.com/kazuto/parlance-server/internal/server/locale"
 )
 
 func main() {
@@ -50,11 +52,12 @@ func main() {
 		w.Write([]byte(`{"status":"ok","service":"parlance-api"}`))
 	})
 
-	// TODO: Register Connect RPC services here
-	// Example:
-	// entryServer := server.NewEntryServer(db)
-	// path, handler := entryv1connect.NewEntryServiceHandler(entryServer)
-	// mux.Handle(path, handler)
+	// Register Connect RPC services
+	localeServer := locale.NewServer(db)
+	localePath, localeHandler := parlancev1connect.NewLocaleServiceHandler(localeServer)
+	mux.Handle(localePath, localeHandler)
+
+	log.Println("✓ Registered LocaleService")
 
 	// Create server with h2c (HTTP/2 without TLS for development)
 	addr := fmt.Sprintf(":%s", cfg.Server.Port)
