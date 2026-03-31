@@ -1,0 +1,72 @@
+syntax = "proto3";
+package parlance.v1;
+
+option go_package = "parlance/v1;parlance";
+
+service ImportService {
+  rpc ImportLaravel(ImportLaravelRequest) returns (ImportLaravelResponse);
+  rpc ImportVueI18N(ImportVueI18NRequest) returns (ImportVueI18NResponse);
+  rpc ImportJson(ImportJsonRequest) returns (ImportJsonResponse);
+}
+
+// Laravel PHP array import
+message ImportLaravelRequest {
+  string locale_id = 1;           // Target locale
+  repeated string scope_ids = 2;  // Scopes to assign
+  bytes file_content = 3;         // File content as bytes
+  string filename = 4;            // Original filename (optional, for logging)
+  ImportMode mode = 5;            // How to handle conflicts
+}
+
+message ImportLaravelResponse {
+  ImportResult result = 1;
+}
+
+// Vue i18n JSON import
+message ImportVueI18NRequest {
+  string locale_id = 1;
+  repeated string scope_ids = 2;
+  bytes file_content = 3;         // File content as bytes
+  string filename = 4;            // Original filename (optional)
+  ImportMode mode = 5;
+}
+
+message ImportVueI18NResponse {
+  ImportResult result = 1;
+}
+
+// Flat JSON import
+message ImportJsonRequest {
+  string locale_id = 1;
+  repeated string scope_ids = 2;
+  bytes file_content = 3;         // File content as bytes
+  string filename = 4;            // Original filename (optional)
+  ImportMode mode = 5;
+}
+
+message ImportJsonResponse {
+  ImportResult result = 1;
+}
+
+// Import modes
+enum ImportMode {
+  IMPORT_MODE_UNSPECIFIED = 0;
+  CREATE_ONLY = 1;      // Only create new entries, skip existing
+  UPDATE_ONLY = 2;      // Only update existing entries
+  CREATE_OR_UPDATE = 3; // Upsert: create new or update existing (default)
+  REPLACE_ALL = 4;      // Delete all entries in scope first, then import
+}
+
+// Import result statistics
+message ImportResult {
+  int32 entries_created = 1;
+  int32 entries_updated = 2;
+  int32 entries_skipped = 3;
+  int32 entries_failed = 4;
+  repeated ImportError errors = 5;
+}
+
+message ImportError {
+  string key = 1;
+  string message = 2;
+}

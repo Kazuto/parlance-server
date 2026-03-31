@@ -20,6 +20,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/definition"
 	"github.com/kazuto/parlance-server/internal/server/entry"
 	"github.com/kazuto/parlance-server/internal/server/export"
+	importservice "github.com/kazuto/parlance-server/internal/server/import"
 	"github.com/kazuto/parlance-server/internal/server/locale"
 	"github.com/kazuto/parlance-server/internal/server/localization"
 	"github.com/kazuto/parlance-server/internal/server/scope"
@@ -118,7 +119,12 @@ func main() {
 	mux.Handle(exportPath, middleware.RequireAuth(cfg.JWT.Secret)(exportHandler))
 
 	log.Println("✓ Registered ExportService (protected)")
-	// TODO: Register more services here
+
+	importServer := importservice.NewServer(db)
+	importPath, importHandler := parlancev1connect.NewImportServiceHandler(importServer)
+	mux.Handle(importPath, middleware.RequireAuth(cfg.JWT.Secret)(importHandler))
+
+	log.Println("✓ Registered ImportService (protected)")
 
 	// Create server with h2c (HTTP/2 without TLS for development)
 	addr := fmt.Sprintf(":%s", cfg.Server.Port)
