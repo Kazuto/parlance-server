@@ -51,6 +51,9 @@ const (
 	// TerminologyServiceGetDefinitionHistoryProcedure is the fully-qualified name of the
 	// TerminologyService's GetDefinitionHistory RPC.
 	TerminologyServiceGetDefinitionHistoryProcedure = "/parlance.v1.TerminologyService/GetDefinitionHistory"
+	// TerminologyServiceSuggestTerminologiesProcedure is the fully-qualified name of the
+	// TerminologyService's SuggestTerminologies RPC.
+	TerminologyServiceSuggestTerminologiesProcedure = "/parlance.v1.TerminologyService/SuggestTerminologies"
 )
 
 // TerminologyServiceClient is a client for the parlance.v1.TerminologyService service.
@@ -61,6 +64,7 @@ type TerminologyServiceClient interface {
 	UpdateTerminology(context.Context, *connect.Request[v1.UpdateTerminologyRequest]) (*connect.Response[v1.UpdateTerminologyResponse], error)
 	DeleteTerminology(context.Context, *connect.Request[v1.DeleteTerminologyRequest]) (*connect.Response[v1.DeleteTerminologyResponse], error)
 	GetDefinitionHistory(context.Context, *connect.Request[v1.GetDefinitionHistoryRequest]) (*connect.Response[v1.GetDefinitionHistoryResponse], error)
+	SuggestTerminologies(context.Context, *connect.Request[v1.SuggestTerminologiesRequest]) (*connect.Response[v1.SuggestTerminologiesResponse], error)
 }
 
 // NewTerminologyServiceClient constructs a client for the parlance.v1.TerminologyService service.
@@ -110,6 +114,12 @@ func NewTerminologyServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			connect.WithSchema(terminologyServiceMethods.ByName("GetDefinitionHistory")),
 			connect.WithClientOptions(opts...),
 		),
+		suggestTerminologies: connect.NewClient[v1.SuggestTerminologiesRequest, v1.SuggestTerminologiesResponse](
+			httpClient,
+			baseURL+TerminologyServiceSuggestTerminologiesProcedure,
+			connect.WithSchema(terminologyServiceMethods.ByName("SuggestTerminologies")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -121,6 +131,7 @@ type terminologyServiceClient struct {
 	updateTerminology    *connect.Client[v1.UpdateTerminologyRequest, v1.UpdateTerminologyResponse]
 	deleteTerminology    *connect.Client[v1.DeleteTerminologyRequest, v1.DeleteTerminologyResponse]
 	getDefinitionHistory *connect.Client[v1.GetDefinitionHistoryRequest, v1.GetDefinitionHistoryResponse]
+	suggestTerminologies *connect.Client[v1.SuggestTerminologiesRequest, v1.SuggestTerminologiesResponse]
 }
 
 // ListTerminologies calls parlance.v1.TerminologyService.ListTerminologies.
@@ -153,6 +164,11 @@ func (c *terminologyServiceClient) GetDefinitionHistory(ctx context.Context, req
 	return c.getDefinitionHistory.CallUnary(ctx, req)
 }
 
+// SuggestTerminologies calls parlance.v1.TerminologyService.SuggestTerminologies.
+func (c *terminologyServiceClient) SuggestTerminologies(ctx context.Context, req *connect.Request[v1.SuggestTerminologiesRequest]) (*connect.Response[v1.SuggestTerminologiesResponse], error) {
+	return c.suggestTerminologies.CallUnary(ctx, req)
+}
+
 // TerminologyServiceHandler is an implementation of the parlance.v1.TerminologyService service.
 type TerminologyServiceHandler interface {
 	ListTerminologies(context.Context, *connect.Request[v1.ListTerminologiesRequest]) (*connect.Response[v1.ListTerminologiesResponse], error)
@@ -161,6 +177,7 @@ type TerminologyServiceHandler interface {
 	UpdateTerminology(context.Context, *connect.Request[v1.UpdateTerminologyRequest]) (*connect.Response[v1.UpdateTerminologyResponse], error)
 	DeleteTerminology(context.Context, *connect.Request[v1.DeleteTerminologyRequest]) (*connect.Response[v1.DeleteTerminologyResponse], error)
 	GetDefinitionHistory(context.Context, *connect.Request[v1.GetDefinitionHistoryRequest]) (*connect.Response[v1.GetDefinitionHistoryResponse], error)
+	SuggestTerminologies(context.Context, *connect.Request[v1.SuggestTerminologiesRequest]) (*connect.Response[v1.SuggestTerminologiesResponse], error)
 }
 
 // NewTerminologyServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -206,6 +223,12 @@ func NewTerminologyServiceHandler(svc TerminologyServiceHandler, opts ...connect
 		connect.WithSchema(terminologyServiceMethods.ByName("GetDefinitionHistory")),
 		connect.WithHandlerOptions(opts...),
 	)
+	terminologyServiceSuggestTerminologiesHandler := connect.NewUnaryHandler(
+		TerminologyServiceSuggestTerminologiesProcedure,
+		svc.SuggestTerminologies,
+		connect.WithSchema(terminologyServiceMethods.ByName("SuggestTerminologies")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/parlance.v1.TerminologyService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case TerminologyServiceListTerminologiesProcedure:
@@ -220,6 +243,8 @@ func NewTerminologyServiceHandler(svc TerminologyServiceHandler, opts ...connect
 			terminologyServiceDeleteTerminologyHandler.ServeHTTP(w, r)
 		case TerminologyServiceGetDefinitionHistoryProcedure:
 			terminologyServiceGetDefinitionHistoryHandler.ServeHTTP(w, r)
+		case TerminologyServiceSuggestTerminologiesProcedure:
+			terminologyServiceSuggestTerminologiesHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -251,4 +276,8 @@ func (UnimplementedTerminologyServiceHandler) DeleteTerminology(context.Context,
 
 func (UnimplementedTerminologyServiceHandler) GetDefinitionHistory(context.Context, *connect.Request[v1.GetDefinitionHistoryRequest]) (*connect.Response[v1.GetDefinitionHistoryResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.TerminologyService.GetDefinitionHistory is not implemented"))
+}
+
+func (UnimplementedTerminologyServiceHandler) SuggestTerminologies(context.Context, *connect.Request[v1.SuggestTerminologiesRequest]) (*connect.Response[v1.SuggestTerminologiesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.TerminologyService.SuggestTerminologies is not implemented"))
 }

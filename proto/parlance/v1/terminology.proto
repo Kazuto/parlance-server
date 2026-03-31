@@ -14,6 +14,7 @@ service TerminologyService {
   rpc UpdateTerminology(UpdateTerminologyRequest) returns (UpdateTerminologyResponse);
   rpc DeleteTerminology(DeleteTerminologyRequest) returns (DeleteTerminologyResponse);
   rpc GetDefinitionHistory(GetDefinitionHistoryRequest) returns (GetDefinitionHistoryResponse);
+  rpc SuggestTerminologies(SuggestTerminologiesRequest) returns (SuggestTerminologiesResponse);
 }
 
 message Terminology {
@@ -89,4 +90,20 @@ message DefinitionHistory {
   string action = 7;  // "created", "updated", "deleted"
   string changed_at = 8;
   User user = 9;
+}
+
+// Terminology suggestions for translation assistance
+message SuggestTerminologiesRequest {
+  string source_text = 1;        // Source text to analyze (e.g., "Delete logo and return to dashboard")
+  string target_locale_id = 2;   // Target locale for suggestions
+}
+
+message SuggestTerminologiesResponse {
+  repeated TerminologySuggestion suggestions = 1;
+}
+
+message TerminologySuggestion {
+  Terminology terminology = 1;           // The terminology entry
+  string target_translation = 2;         // What to use in target locale (e.g., "Logo" for de)
+  repeated string matched_words = 3;     // Words that matched from source text (e.g., ["logo"])
 }
