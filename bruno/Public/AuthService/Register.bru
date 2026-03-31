@@ -16,7 +16,7 @@ headers {
 
 body:json {
   {
-    "email": "user@example.com",
+    "email": "user@parlance.dev",
     "password": "securepassword123",
     "name": "John Doe"
   }
@@ -24,22 +24,22 @@ body:json {
 
 docs {
   # Register
-
+  
   Creates a new user account and returns authentication tokens.
-
+  
   ## Request
   - `email` (required): User's email address
   - `password` (required): User's password (will be hashed)
   - `name` (required): User's display name
-
+  
   ## Behavior
   - New users are automatically assigned the "viewer" role
   - Password is hashed with bcrypt before storage
   - Returns both access token (24h) and refresh token (7 days)
-
+  
   ## Response
   Returns access tokens and user details with roles and permissions.
-
+  
   ## Example Response
   ```json
   {
@@ -61,7 +61,7 @@ docs {
     }
   }
   ```
-
+  
   ## Errors
   - `INVALID_ARGUMENT`: email, password, or name is required
   - `ALREADY_EXISTS`: user with this email already exists
