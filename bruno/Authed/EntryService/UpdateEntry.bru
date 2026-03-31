@@ -1,0 +1,77 @@
+meta {
+  name: Update Entry
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.EntryService/UpdateEntry
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": "{{entryId}}",
+    "key": "button.cancel",
+    "description": "Updated cancel button label"
+  }
+}
+
+script:pre-request {
+  const entryId = bru.getVar('entryId');
+
+  if (!entryId) {
+      await bru.runRequest('Authed/EntryService/ListEntries');
+
+      return;
+  }
+}
+
+docs {
+  # Update Entry
+
+  Updates an existing translation entry.
+
+  ## Authentication
+  Requires valid access token. User ID is automatically tracked as updater.
+
+  ## Request
+  - `id` (required): The UUID of the entry to update
+  - `key` (optional): Updated entry key
+  - `description` (optional): Updated description
+
+  ## Behavior
+  - Only provided fields will be updated
+  - UpdatedBy is automatically set from authenticated user
+  - To update scopes, use ScopeService endpoints
+
+  ## Response
+  Returns the updated entry.
+
+  ## Example Response
+  ```json
+  {
+    "entry": {
+      "id": "uuid",
+      "key": "button.cancel",
+      "description": "Updated cancel button label",
+      "createdAt": "2026-03-27T19:05:00+01:00",
+      "updatedAt": "2026-03-27T19:10:00+01:00",
+      "createdBy": "user-uuid",
+      "updatedBy": "user-uuid",
+      "localizations": [...],
+      "scopes": [...]
+    }
+  }
+  ```
+
+  ## Errors
+  - `INVALID_ARGUMENT`: entry id is required
+  - `NOT_FOUND`: entry not found
+  - `INTERNAL`: failed to update entry
+}

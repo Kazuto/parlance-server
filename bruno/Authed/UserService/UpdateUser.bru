@@ -1,0 +1,74 @@
+meta {
+  name: Update User
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.UserService/UpdateUser
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": "{{userId}}",
+    "email": "updated@example.com",
+    "name": "Jane Smith Updated"
+  }
+}
+
+script:pre-request {
+  const userId = bru.getVar('userId');
+
+  if (!userId) {
+      await bru.runRequest('Authed/UserService/ListUsers');
+
+      return;
+  }
+}
+
+docs {
+  # Update User
+
+  Updates an existing user's details.
+
+  ## Authentication
+  Requires valid access token.
+
+  ## Request
+  - `id` (required): The UUID of the user to update
+  - `email` (optional): Updated email address
+  - `name` (optional): Updated display name
+
+  ## Behavior
+  - Only provided fields will be updated
+  - Password cannot be updated through this endpoint
+  - Use AssignRole to modify user roles
+
+  ## Response
+  Returns the updated user.
+
+  ## Example Response
+  ```json
+  {
+    "user": {
+      "id": "uuid",
+      "email": "updated@example.com",
+      "name": "Jane Smith Updated",
+      "roles": [...],
+      "createdAt": "2026-03-27T19:00:00+01:00",
+      "updatedAt": "2026-03-27T19:05:00+01:00"
+    }
+  }
+  ```
+
+  ## Errors
+  - `INVALID_ARGUMENT`: user id is required
+  - `NOT_FOUND`: user not found
+  - `INTERNAL`: failed to update user
+}

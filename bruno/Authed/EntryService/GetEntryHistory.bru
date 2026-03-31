@@ -1,0 +1,96 @@
+meta {
+  name: Get Entry History
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.EntryService/GetEntryHistory
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "entryId": "{{entryId}}",
+    "pagination": {
+      "page": 1,
+      "perPage": 20
+    }
+  }
+}
+
+script:pre-request {
+  const entryId = bru.getVar('entryId');
+
+  if (!entryId) {
+      await bru.runRequest('Authed/EntryService/ListEntries');
+
+      return;
+  }
+}
+
+docs {
+  # Get Entry History
+
+  Retrieves the localization change history for an entry.
+
+  ## Authentication
+  Requires valid access token.
+
+  ## Request
+  - `entryId` (required): The UUID of the entry
+  - `pagination.page` (optional): Page number, defaults to 1
+  - `pagination.perPage` (optional): Items per page, defaults to 20, max 100
+
+  ## Response
+  Returns a paginated list of localization changes, ordered by most recent first.
+
+  ## Example Response
+  ```json
+  {
+    "history": [
+      {
+        "id": "uuid",
+        "localizationId": "localization-uuid",
+        "localeId": "locale-uuid",
+        "entryId": "entry-uuid",
+        "userId": "user-uuid",
+        "translation": "Save",
+        "action": "updated",
+        "changedAt": "2026-03-27T19:15:00+01:00"
+      },
+      {
+        "id": "uuid",
+        "localizationId": "localization-uuid",
+        "localeId": "locale-uuid",
+        "entryId": "entry-uuid",
+        "userId": "user-uuid",
+        "translation": "Speichern",
+        "action": "created",
+        "changedAt": "2026-03-27T19:00:00+01:00"
+      }
+    ],
+    "pagination": {
+      "total": 15,
+      "page": 1,
+      "perPage": 20,
+      "totalPages": 1
+    }
+  }
+  ```
+
+  ## Actions
+  - `created`: New translation was added
+  - `updated`: Translation was modified
+  - `deleted`: Translation was removed
+
+  ## Use Cases
+  - Audit trail for translations
+  - Track who changed what and when
+  - Rollback information for mistakes
+}

@@ -1,0 +1,59 @@
+meta {
+  name: Delete Locale
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.LocaleService/DeleteLocale
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": "{{localeId}}"
+  }
+}
+
+script:pre-request {
+  const localeId = bru.getVar('localeId');
+
+  if (!localeId) {
+      await bru.runRequest('Authed/LocaleService/ListLocales');
+
+      return;
+  }
+}
+
+docs {
+  # Delete Locale
+
+  Soft deletes a locale from the system.
+
+  ## Request
+  - `id` (required): The UUID of the locale to delete
+
+  ## Behavior
+  - This is a soft delete (sets `deleted_at` timestamp)
+  - The default locale cannot be deleted
+  - You must set a different locale as default before deleting the current default
+
+  ## Response
+  Returns an empty response on success.
+
+  ## Example Response
+  ```json
+  {}
+  ```
+
+  ## Errors
+  - `INVALID_ARGUMENT`: locale id is required
+  - `NOT_FOUND`: locale not found
+  - `FAILED_PRECONDITION`: cannot delete the default locale
+  - `INTERNAL`: failed to delete locale
+}

@@ -1,0 +1,53 @@
+meta {
+  name: DeleteTerminology
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.TerminologyService/DeleteTerminology
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "id": "{{terminologyId}}"
+  }
+}
+
+script:pre-request {
+  const terminologyId = bru.getVar('terminologyId');
+
+  if (!terminologyId) {
+      await bru.runRequest('Authed/TerminologyService/ListTerminologies');
+
+      return;
+  }
+}
+
+docs {
+  # DeleteTerminology
+
+  Soft deletes a terminology entry from the glossary.
+
+  ## Request
+  - `id` (required): UUID of the terminology to delete
+
+  ## Response
+  - Empty response on success
+
+  ## User Tracking
+  The authenticated user is recorded as the deleter.
+
+  ## Soft Delete
+  The terminology is not permanently removed - it's marked as deleted with a timestamp.
+  Associated definitions and history are preserved.
+
+  ## Error Codes
+  - `INVALID_ARGUMENT`: Missing terminology ID
+  - `NOT_FOUND`: Terminology does not exist
+
+  ## Example Use Case
+  Remove obsolete terms from the glossary while preserving historical translation data.
+}

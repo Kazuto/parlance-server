@@ -1,0 +1,78 @@
+meta {
+  name: CreateDefinition
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.DefinitionService/CreateDefinition
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "terminologyId": "{{terminologyId}}",
+    "localeId": "{{localeId}}",
+    "translation": "Logo"
+  }
+}
+
+script:pre-request {
+  const terminologyId = bru.getVar('terminologyId');
+  const localeId = bru.getVar('localeId');
+
+  if (!terminologyId) {
+      await bru.runRequest('Authed/TerminologyService/ListTerminologies');
+
+      return;
+  }
+
+  if (!localeId) {
+      await bru.runRequest('Authed/LocaleService/ListLocales');
+
+      return;
+  }
+}
+
+docs {
+  # CreateDefinition
+
+  Creates a translation/definition for a terminology term in a specific locale.
+
+  ## Request
+  - `terminology_id` (required): UUID of the terminology term
+  - `locale_id` (required): UUID of the locale
+  - `translation` (required): The actual word/phrase to use in this locale
+
+  ## Response
+  - `definition`: The created definition with metadata
+
+  ## User Tracking
+  The authenticated user is automatically recorded as `created_by`.
+
+  ## History
+  Creation is automatically tracked in `definition_history` via GORM hooks.
+
+  ## Error Codes
+  - `INVALID_ARGUMENT`: Missing required fields
+  - `NOT_FOUND`: Terminology or locale not found
+  - `ALREADY_EXISTS`: Definition already exists for this terminology/locale combination
+
+  ## What are Terminologies & Definitions?
+
+  Terminologies ensure consistent word usage across translations.
+
+  **Example:** "Upload a new logo"
+  - Without terminology: German might use "Motif" → "Ein neues Motif hochladen"
+  - With terminology: German uses "Logo" → "Ein neues Logo hochladen"
+
+  **Terminology:** "Logo" (the term to keep consistent)
+  **Definitions:**
+  - en: "Logo"
+  - de: "Logo" (NOT "Motif")
+  - es: "Logo"
+  - fr: "Logo"
+
+  This ensures "Logo" is always translated as "Logo" across all languages.
+}

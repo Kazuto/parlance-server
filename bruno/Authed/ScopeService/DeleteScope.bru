@@ -1,0 +1,58 @@
+meta {
+  name: Delete Scope
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.ScopeService/DeleteScope
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": "{{scopeId}}"
+  }
+}
+
+script:pre-request {
+  const scopeId = bru.getVar('scopeId');
+
+  if (!scopeId) {
+      await bru.runRequest('Authed/ScopeService/ListScopes');
+
+      return;
+  }
+}
+
+docs {
+  # Delete Scope
+
+  Soft deletes a scope from the system.
+
+  ## Request
+  - `id` (required): The UUID of the scope to delete
+
+  ## Behavior
+  - This is a soft delete (sets `deleted_at` timestamp)
+  - Associated entry-scope relationships are not deleted
+  - Entries can still reference deleted scopes in history
+
+  ## Response
+  Returns an empty response on success.
+
+  ## Example Response
+  ```json
+  {}
+  ```
+
+  ## Errors
+  - `INVALID_ARGUMENT`: scope id is required
+  - `NOT_FOUND`: scope not found
+  - `INTERNAL`: failed to delete scope
+}

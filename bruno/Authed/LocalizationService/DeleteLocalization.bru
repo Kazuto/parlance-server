@@ -1,0 +1,53 @@
+meta {
+  name: DeleteLocalization
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.LocalizationService/DeleteLocalization
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "id": "{{localizationId}}"
+  }
+}
+
+script:pre-request {
+  const localizationId = bru.getVar('localizationId');
+
+  if (!localizationId) {
+      await bru.runRequest('Authed/LocalizationService/ListLocalizations');
+
+      return;
+  }
+}
+
+docs {
+  # DeleteLocalization
+
+  Soft deletes a localization (sets deleted_at timestamp).
+
+  ## Request
+  - `id` (required): UUID of the localization to delete
+
+  ## Response
+  - Empty response on success
+
+  ## User Tracking
+  The authenticated user is automatically recorded as the deleter.
+
+  ## Soft Delete
+  The localization is not permanently removed - it's marked as deleted with a timestamp.
+  History is preserved.
+
+  ## Error Codes
+  - `INVALID_ARGUMENT`: Missing localization ID
+  - `NOT_FOUND`: Localization does not exist
+
+  ## Example Use Case
+  Remove an incorrect or outdated translation while preserving history.
+}

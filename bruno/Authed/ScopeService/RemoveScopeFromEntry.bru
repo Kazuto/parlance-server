@@ -1,0 +1,67 @@
+meta {
+  name: Remove Scope from Entry
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.ScopeService/RemoveScopeFromEntry
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "entryId": "{{entryId}}",
+    "scopeId": "{{scopeId}}"
+  }
+}
+
+script:pre-request {
+  const entryId = bru.getVar('entryId');
+  const scopeId = bru.getVar('scopeId');
+
+  if (!entryId) {
+      await bru.runRequest('Authed/EntryService/ListEntries');
+
+      return;
+  }
+
+  if (!scopeId) {
+      await bru.runRequest('Authed/ScopeService/ListScopes');
+
+      return;
+  }
+}
+
+docs {
+  # Remove Scope from Entry
+
+  Removes a scope association from a translation entry.
+
+  ## Request
+  - `entryId` (required): The UUID of the entry
+  - `scopeId` (required): The UUID of the scope to remove
+
+  ## Behavior
+  - Removes the many-to-many relationship between entry and scope
+  - No error if the association doesn't exist
+  - Both entry and scope must exist
+
+  ## Response
+  Returns an empty response on success.
+
+  ## Example Response
+  ```json
+  {}
+  ```
+
+  ## Errors
+  - `INVALID_ARGUMENT`: entry id or scope id is required
+  - `NOT_FOUND`: entry or scope not found
+  - `INTERNAL`: failed to remove scope from entry
+}

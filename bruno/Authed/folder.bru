@@ -1,0 +1,36 @@
+meta {
+  name: Authed
+}
+
+auth {
+  mode: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+script:pre-request {
+  const token = bru.getVar('accessToken');
+  
+  if (!token) {
+      await bru.runRequest('Public/AuthService/Login');
+  
+      return;
+  }
+  
+  const decodedToken = decodeJwt(token);
+  const currentUnix = Math.floor(Date.now() / 1000);
+  
+  if (decodedToken.exp <= currentUnix) {
+      await bru.runRequest('Public/AuthService/Refresh Token');
+  
+      return;
+  }
+  
+  function decodeJwt(token) {
+      return JSON.parse(
+          Buffer.from(token.split('.')[1], 'base64').toString()
+      );
+  }
+}

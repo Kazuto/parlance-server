@@ -1,0 +1,61 @@
+meta {
+  name: Delete User
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.UserService/DeleteUser
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": "{{userId}}"
+  }
+}
+
+script:pre-request {
+  const userId = bru.getVar('userId');
+
+  if (!userId) {
+      await bru.runRequest('Authed/UserService/ListUsers');
+
+      return;
+  }
+}
+
+docs {
+  # Delete User
+
+  Soft deletes a user from the system.
+
+  ## Authentication
+  Requires valid access token.
+
+  ## Request
+  - `id` (required): The UUID of the user to delete
+
+  ## Behavior
+  - This is a soft delete (sets `deleted_at` timestamp)
+  - User can no longer login
+  - Historical data remains intact
+
+  ## Response
+  Returns an empty response on success.
+
+  ## Example Response
+  ```json
+  {}
+  ```
+
+  ## Errors
+  - `INVALID_ARGUMENT`: user id is required
+  - `NOT_FOUND`: user not found
+  - `INTERNAL`: failed to delete user
+}

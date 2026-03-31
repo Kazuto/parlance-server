@@ -1,0 +1,47 @@
+meta {
+  name: ListTerminologies
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.TerminologyService/ListTerminologies
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "pagination": {
+      "page": 1,
+      "perPage": 50
+    }
+  }
+}
+
+script:post-response {
+  const data = res?.body?.terminologies;
+  
+  if (data) {
+    const ids = data.map((el) => el.id);
+  
+    bru.setVar("terminologyIds", ids);
+    bru.setVar("terminologyId", ids.shift());
+  }
+}
+
+docs {
+  # ListTerminologies
+  
+  Lists all terminology entries (glossary terms) with pagination.
+  
+  ## Request
+  - `pagination` (optional): Page and per_page settings
+  
+  ## Response
+  - `terminologies`: Array of terminology objects with their definitions
+  - `pagination`: Pagination metadata (total, page, per_page, total_pages)
+  
+  ## Example Use Case
+  Display a glossary of terms that translators should use consistently across all locales.
+}
