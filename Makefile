@@ -1,11 +1,20 @@
-.PHONY: dev build test test-coverage migrate-up migrate-down proto-gen proto-lint proto-breaking install-tools run lint fmt fmt-check vet ci clean
+.PHONY: dev dev-stop dev-down dev-logs build test test-coverage migrate-up migrate-down migrate-create proto-gen proto-lint proto-breaking install-tools run lint fmt fmt-check vet ci seed seed-fresh clean
 
 # Development
 dev:
-	docker-compose up
+	docker-compose -f docker/docker-compose.yml up -d
+
+dev-stop:
+	docker-compose -f docker/docker-compose.yml stop
+
+dev-down:
+	docker-compose -f docker/docker-compose.yml down
+
+dev-logs:
+	docker-compose -f docker/docker-compose.yml logs -f
 
 build:
-	docker-compose build
+	docker-compose -f docker/docker-compose.yml build
 
 run:
 	buf generate && go run cmd/api/main.go
@@ -27,16 +36,17 @@ proto-lint:
 proto-breaking:
 	buf breaking --against '.git#branch=main'
 
-# Database migrations
-migrate-up:
-	migrate -path internal/database/migrations -database "postgresql://parlance:secret@localhost:5432/parlance?sslmode=disable" up
-
-migrate-down:
-	migrate -path internal/database/migrations -database "postgresql://parlance:secret@localhost:5432/parlance?sslmode=disable" down
-
-migrate-create:
-	@read -p "Enter migration name: " name; \
-	migrate create -ext sql -dir internal/database/migrations -seq $$name
+# Database seeding
+seed:
+	@echo "Stopping API container..."
+	docker-compose -f docker/docker-compose.yml stop api 2>/dev/null || true
+	@echo "Dropping and recreating database..."
+	PGPASSWORD=secret psql -h localhost -U parlance -d postgres -c "DROP DATABASE IF EXISTS parlance WITH (FORCE);" || true
+	PGPASSWORD=secret psql -h localhost -U parlance -d postgres -c "CREATE DATABASE parlance;"
+	@echo "Running migrations and seeding..."
+	go run cmd/seed/main.go
+	@echo "Restarting API container..."
+	docker-compose -f docker/docker-compose.yml start api 2>/dev/null || true
 
 # Formatting
 fmt:
