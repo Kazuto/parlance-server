@@ -1,0 +1,123 @@
+meta {
+  name: ImportVueI18n
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.ImportService/ImportVueI18N
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "localeId": "{{localeId}}",
+    "scopeIds": ["{{scopeId}}"],
+    "fileContent": "ewogICJ1c2VyIjogewogICAgInByb2ZpbGUiOiB7CiAgICAgICJuYW1lIjogIk5hbWUiLAogICAgICAiZW1haWwiOiAiRW1haWwiCiAgICB9CiAgfSwKICAibG9naW4iOiB7CiAgICAiYnV0dG9uIjogIlNpZ24gSW4iLAogICAgIm1lc3NhZ2UiOiAiV2VsY29tZSBiYWNrISIKICB9Cn0=",
+    "filename": "en.json",
+    "mode": "CREATE_OR_UPDATE"
+  }
+}
+
+docs {
+  # ImportVueI18n
+
+  Import translations from nested JSON format (Vue i18n, react-i18next, etc).
+
+  ## Request
+  - `locale_id` (required): Target locale ID for translations
+  - `scope_ids` (optional): Array of scope IDs to assign entries to
+  - `file_content` (required): Base64-encoded JSON file content
+  - `filename` (optional): Original filename for logging
+  - `mode` (optional): Import mode (default: CREATE_OR_UPDATE)
+
+  ## Import Modes
+  - `CREATE_ONLY`: Only create new entries, skip existing
+  - `UPDATE_ONLY`: Only update existing entries, skip new
+  - `CREATE_OR_UPDATE`: Create new or update existing (default)
+  - `REPLACE_ALL`: Delete all entries in scope first, then import
+
+  ## Expected JSON Format
+  Nested structure with objects:
+  ```json
+  {
+    "user": {
+      "profile": {
+        "name": "Name",
+        "email": "Email"
+      },
+      "settings": {
+        "language": "Language",
+        "theme": "Theme"
+      }
+    },
+    "login": {
+      "button": "Sign In",
+      "message": "Welcome back!"
+    }
+  }
+  ```
+
+  ## How It Works
+  The nested structure is automatically flattened using dot notation:
+  - `user.profile.name` → "Name"
+  - `user.profile.email` → "Email"
+  - `user.settings.language` → "Language"
+  - `login.button` → "Sign In"
+
+  ## File Content Encoding
+  The `file_content` field expects base64-encoded bytes.
+
+  Example base64 in the request above decodes to:
+  ```json
+  {
+    "user": {
+      "profile": {
+        "name": "Name",
+        "email": "Email"
+      }
+    },
+    "login": {
+      "button": "Sign In",
+      "message": "Welcome back!"
+    }
+  }
+  ```
+
+  To encode your JSON file:
+  ```bash
+  cat en.json | base64
+  ```
+
+  ## Response
+  ```json
+  {
+    "result": {
+      "entriesCreated": 4,
+      "entriesUpdated": 0,
+      "entriesSkipped": 0,
+      "entriesFailed": 0,
+      "errors": []
+    }
+  }
+  ```
+
+  ## Use Cases
+  - Migrating from Vue i18n projects
+  - Importing react-i18next translations
+  - Converting from nested format to flat format
+  - Maintaining organized translation files
+
+  ## Supported Value Types
+  - Strings: Imported as translation value
+  - Numbers/Booleans: Converted to strings
+  - Objects: Recursively flattened
+  - Arrays: Skipped (not supported)
+
+  ## Notes
+  - Nested objects of any depth are supported
+  - All flattened keys are created as entries
+  - Dot notation keys are automatically generated
+  - User ID is tracked for created/updated entries
+}

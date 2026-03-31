@@ -1,0 +1,129 @@
+meta {
+  name: ImportLaravel
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.ImportService/ImportLaravel
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "localeId": "{{localeId}}",
+    "scopeIds": ["{{scopeId}}"],
+    "fileContent": "PD9waHAKCnJldHVybiBbCiAgICd3ZWxjb21lLm1lc3NhZ2UnID0+ICdXZWxjb21lIHRvIG91ciBhcHBsaWNhdGlvbicsCiAgICd1c2VyLnByb2ZpbGUubmFtZScgPT4gJ05hbWUnLAogICAgJ2xvZ2luLmJ1dHRvbicgPT4gJ1NpZ24gSW4nLApdOwo=",
+    "filename": "en.php",
+    "mode": "CREATE_OR_UPDATE"
+  }
+}
+
+docs {
+  # ImportLaravel
+
+  Import translations from Laravel PHP array format.
+
+  ## Request
+  - `locale_id` (required): Target locale ID for translations
+  - `scope_ids` (optional): Array of scope IDs to assign entries to
+  - `file_content` (required): Base64-encoded PHP file content
+  - `filename` (optional): Original filename for logging
+  - `mode` (optional): Import mode (default: CREATE_OR_UPDATE)
+
+  ## Import Modes
+  - `CREATE_ONLY`: Only create new entries, skip existing
+  - `UPDATE_ONLY`: Only update existing entries, skip new
+  - `CREATE_OR_UPDATE`: Create new or update existing (default)
+  - `REPLACE_ALL`: Delete all entries in scope first, then import
+
+  ## Expected PHP Format
+  Laravel translation file format with return array:
+  ```php
+  <?php
+
+  return [
+      'welcome.message' => 'Welcome to our application',
+      'user.profile.name' => 'Name',
+      'user.profile.email' => 'Email',
+      'login.button' => 'Sign In',
+      'logout.button' => 'Sign Out',
+  ];
+  ```
+
+  ## Supported Syntax
+  - Single quotes: `'key' => 'value'`
+  - Double quotes: `"key" => "value"`
+  - Escaped quotes: `'It\'s working'`
+  - Mixed quotes: `'key' => "value"`
+
+  ## File Content Encoding
+  The `file_content` field expects base64-encoded bytes.
+
+  Example base64 in the request above decodes to:
+  ```php
+  <?php
+
+  return [
+      'welcome.message' => 'Welcome to our application',
+      'user.profile.name' => 'Name',
+      'login.button' => 'Sign In',
+  ];
+  ```
+
+  To encode your PHP file:
+  ```bash
+  cat en.php | base64
+  ```
+
+  ## Response
+  ```json
+  {
+    "result": {
+      "entriesCreated": 3,
+      "entriesUpdated": 0,
+      "entriesSkipped": 0,
+      "entriesFailed": 0,
+      "errors": []
+    }
+  }
+  ```
+
+  ## Use Cases
+  - Migrating from Laravel applications
+  - Importing Symfony translations
+  - Converting legacy PHP translation files
+  - Bulk importing from PHP-based systems
+
+  ## Parsing Details
+  The parser handles:
+  - PHP opening tags (`<?php`)
+  - Return statement
+  - Array syntax with square brackets
+  - Single and double quoted strings
+  - Escaped quotes within strings
+  - Trailing commas
+
+  ## Limitations
+  - Only flat key-value arrays supported
+  - Nested arrays are not supported
+  - Comments are ignored
+  - Variables and expressions not supported
+
+  ## Notes
+  - All keys are created as entries if they don't exist
+  - Entries are automatically assigned to specified scopes
+  - User ID is tracked for created/updated entries
+  - Invalid PHP syntax will return a validation error
+  - The parser is lenient and focuses on extracting key-value pairs
+
+  ## Example Laravel Migration
+  ```bash
+  # From Laravel lang directory
+  cd resources/lang/en
+  cat messages.php | base64
+
+  # Use the base64 output in the API request
+  ```
+}

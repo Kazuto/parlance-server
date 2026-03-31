@@ -1,0 +1,94 @@
+meta {
+  name: ImportJson
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.ImportService/ImportJson
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "localeId": "{{localeId}}",
+    "scopeIds": ["{{scopeId}}"],
+    "fileContent": "ewogICJ3ZWxjb21lLm1lc3NhZ2UiOiAiV2VsY29tZSB0byBvdXIgYXBwbGljYXRpb24iLAogICJ1c2VyLnByb2ZpbGUubmFtZSI6ICJOYW1lIiwKICAibG9naW4uYnV0dG9uIjogIlNpZ24gSW4iCn0=",
+    "filename": "en.json",
+    "mode": "CREATE_OR_UPDATE"
+  }
+}
+
+docs {
+  # ImportJson
+
+  Import translations from flat JSON key-value format.
+
+  ## Request
+  - `locale_id` (required): Target locale ID for translations
+  - `scope_ids` (optional): Array of scope IDs to assign entries to
+  - `file_content` (required): Base64-encoded JSON file content
+  - `filename` (optional): Original filename for logging
+  - `mode` (optional): Import mode (default: CREATE_OR_UPDATE)
+
+  ## Import Modes
+  - `CREATE_ONLY`: Only create new entries, skip existing
+  - `UPDATE_ONLY`: Only update existing entries, skip new
+  - `CREATE_OR_UPDATE`: Create new or update existing (default)
+  - `REPLACE_ALL`: Delete all entries in scope first, then import
+
+  ## Expected JSON Format
+  Simple flat structure with string keys and values:
+  ```json
+  {
+    "welcome.message": "Welcome to our application",
+    "user.profile.name": "Name",
+    "user.profile.email": "Email",
+    "login.button": "Sign In",
+    "logout.button": "Sign Out"
+  }
+  ```
+
+  ## File Content Encoding
+  The `file_content` field expects base64-encoded bytes.
+
+  Example base64 in the request above decodes to:
+  ```json
+  {
+    "welcome.message": "Welcome to our application",
+    "user.profile.name": "Name",
+    "login.button": "Sign In"
+  }
+  ```
+
+  To encode your JSON file:
+  ```bash
+  cat en.json | base64
+  ```
+
+  ## Response
+  ```json
+  {
+    "result": {
+      "entriesCreated": 3,
+      "entriesUpdated": 0,
+      "entriesSkipped": 0,
+      "entriesFailed": 0,
+      "errors": []
+    }
+  }
+  ```
+
+  ## Use Cases
+  - Migrating from other translation systems
+  - Bulk importing translations from external sources
+  - Restoring from backups
+  - Round-trip workflow: Export → Edit → Import
+
+  ## Notes
+  - All keys are created as entries if they don't exist
+  - Entries are automatically assigned to specified scopes
+  - User ID is tracked for created/updated entries
+  - Invalid JSON will return a validation error
+}
