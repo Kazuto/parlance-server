@@ -19,6 +19,7 @@ func RoleToProto(r *models.Role) *pb.Role {
 	return &pb.Role{
 		Id:          r.ID,
 		Name:        r.Name,
+		Description: r.Description,
 		Permissions: permissions,
 	}
 }

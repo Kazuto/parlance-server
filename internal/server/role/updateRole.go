@@ -21,7 +21,7 @@ func (s *Server) UpdateRole(
 	}
 
 	var role models.Role
-	if err := s.db.First(&role, "id = ?", req.Msg.Id).Error; err != nil {
+	if err := s.db.Preload("Permissions").First(&role, "id = ?", req.Msg.Id).Error; err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("Role not found"))
 	}
 
