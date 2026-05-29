@@ -30,7 +30,7 @@ func (s *Server) ImportJson(
 	// Set default mode if not specified
 	mode := req.Msg.Mode
 	if mode == pb.ImportMode_IMPORT_MODE_UNSPECIFIED {
-		mode = pb.ImportMode_CREATE_OR_UPDATE
+		mode = pb.ImportMode_IMPORT_MODE_CREATE_OR_UPDATE
 	}
 
 	// Process import

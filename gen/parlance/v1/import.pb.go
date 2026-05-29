@@ -77,8 +77,8 @@ func (ImportMode) EnumDescriptor() ([]byte, []int) {
 	return file_parlance_v1_import_proto_rawDescGZIP(), []int{0}
 }
 
-// Laravel PHP array import
-type ImportLaravelRequest struct {
+// PHP array import
+type ImportPhpRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	LocaleId      string                 `protobuf:"bytes,1,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`          // Target locale
 	ScopeIds      []string               `protobuf:"bytes,2,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`          // Scopes to assign
@@ -89,20 +89,20 @@ type ImportLaravelRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ImportLaravelRequest) Reset() {
-	*x = ImportLaravelRequest{}
+func (x *ImportPhpRequest) Reset() {
+	*x = ImportPhpRequest{}
 	mi := &file_parlance_v1_import_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ImportLaravelRequest) String() string {
+func (x *ImportPhpRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ImportLaravelRequest) ProtoMessage() {}
+func (*ImportPhpRequest) ProtoMessage() {}
 
-func (x *ImportLaravelRequest) ProtoReflect() protoreflect.Message {
+func (x *ImportPhpRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_parlance_v1_import_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -114,67 +114,67 @@ func (x *ImportLaravelRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ImportLaravelRequest.ProtoReflect.Descriptor instead.
-func (*ImportLaravelRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ImportPhpRequest.ProtoReflect.Descriptor instead.
+func (*ImportPhpRequest) Descriptor() ([]byte, []int) {
 	return file_parlance_v1_import_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ImportLaravelRequest) GetLocaleId() string {
+func (x *ImportPhpRequest) GetLocaleId() string {
 	if x != nil {
 		return x.LocaleId
 	}
 	return ""
 }
 
-func (x *ImportLaravelRequest) GetScopeIds() []string {
+func (x *ImportPhpRequest) GetScopeIds() []string {
 	if x != nil {
 		return x.ScopeIds
 	}
 	return nil
 }
 
-func (x *ImportLaravelRequest) GetFileContent() []byte {
+func (x *ImportPhpRequest) GetFileContent() []byte {
 	if x != nil {
 		return x.FileContent
 	}
 	return nil
 }
 
-func (x *ImportLaravelRequest) GetFilename() string {
+func (x *ImportPhpRequest) GetFilename() string {
 	if x != nil {
 		return x.Filename
 	}
 	return ""
 }
 
-func (x *ImportLaravelRequest) GetMode() ImportMode {
+func (x *ImportPhpRequest) GetMode() ImportMode {
 	if x != nil {
 		return x.Mode
 	}
 	return ImportMode_IMPORT_MODE_UNSPECIFIED
 }
 
-type ImportLaravelResponse struct {
+type ImportPhpResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Result        *ImportResult          `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ImportLaravelResponse) Reset() {
-	*x = ImportLaravelResponse{}
+func (x *ImportPhpResponse) Reset() {
+	*x = ImportPhpResponse{}
 	mi := &file_parlance_v1_import_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ImportLaravelResponse) String() string {
+func (x *ImportPhpResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ImportLaravelResponse) ProtoMessage() {}
+func (*ImportPhpResponse) ProtoMessage() {}
 
-func (x *ImportLaravelResponse) ProtoReflect() protoreflect.Message {
+func (x *ImportPhpResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_parlance_v1_import_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -186,133 +186,12 @@ func (x *ImportLaravelResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ImportLaravelResponse.ProtoReflect.Descriptor instead.
-func (*ImportLaravelResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ImportPhpResponse.ProtoReflect.Descriptor instead.
+func (*ImportPhpResponse) Descriptor() ([]byte, []int) {
 	return file_parlance_v1_import_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ImportLaravelResponse) GetResult() *ImportResult {
-	if x != nil {
-		return x.Result
-	}
-	return nil
-}
-
-// Vue i18n JSON import
-type ImportVueI18NRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	LocaleId      string                 `protobuf:"bytes,1,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
-	ScopeIds      []string               `protobuf:"bytes,2,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`
-	FileContent   []byte                 `protobuf:"bytes,3,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"` // File content as bytes
-	Filename      string                 `protobuf:"bytes,4,opt,name=filename,proto3" json:"filename,omitempty"`                          // Original filename (optional)
-	Mode          ImportMode             `protobuf:"varint,5,opt,name=mode,proto3,enum=parlance.v1.ImportMode" json:"mode,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ImportVueI18NRequest) Reset() {
-	*x = ImportVueI18NRequest{}
-	mi := &file_parlance_v1_import_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ImportVueI18NRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ImportVueI18NRequest) ProtoMessage() {}
-
-func (x *ImportVueI18NRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_import_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ImportVueI18NRequest.ProtoReflect.Descriptor instead.
-func (*ImportVueI18NRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_import_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *ImportVueI18NRequest) GetLocaleId() string {
-	if x != nil {
-		return x.LocaleId
-	}
-	return ""
-}
-
-func (x *ImportVueI18NRequest) GetScopeIds() []string {
-	if x != nil {
-		return x.ScopeIds
-	}
-	return nil
-}
-
-func (x *ImportVueI18NRequest) GetFileContent() []byte {
-	if x != nil {
-		return x.FileContent
-	}
-	return nil
-}
-
-func (x *ImportVueI18NRequest) GetFilename() string {
-	if x != nil {
-		return x.Filename
-	}
-	return ""
-}
-
-func (x *ImportVueI18NRequest) GetMode() ImportMode {
-	if x != nil {
-		return x.Mode
-	}
-	return ImportMode_IMPORT_MODE_UNSPECIFIED
-}
-
-type ImportVueI18NResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Result        *ImportResult          `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ImportVueI18NResponse) Reset() {
-	*x = ImportVueI18NResponse{}
-	mi := &file_parlance_v1_import_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ImportVueI18NResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ImportVueI18NResponse) ProtoMessage() {}
-
-func (x *ImportVueI18NResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_import_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ImportVueI18NResponse.ProtoReflect.Descriptor instead.
-func (*ImportVueI18NResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_import_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *ImportVueI18NResponse) GetResult() *ImportResult {
+func (x *ImportPhpResponse) GetResult() *ImportResult {
 	if x != nil {
 		return x.Result
 	}
@@ -333,7 +212,7 @@ type ImportJsonRequest struct {
 
 func (x *ImportJsonRequest) Reset() {
 	*x = ImportJsonRequest{}
-	mi := &file_parlance_v1_import_proto_msgTypes[4]
+	mi := &file_parlance_v1_import_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -345,7 +224,7 @@ func (x *ImportJsonRequest) String() string {
 func (*ImportJsonRequest) ProtoMessage() {}
 
 func (x *ImportJsonRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_import_proto_msgTypes[4]
+	mi := &file_parlance_v1_import_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -358,7 +237,7 @@ func (x *ImportJsonRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportJsonRequest.ProtoReflect.Descriptor instead.
 func (*ImportJsonRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_import_proto_rawDescGZIP(), []int{4}
+	return file_parlance_v1_import_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ImportJsonRequest) GetLocaleId() string {
@@ -405,7 +284,7 @@ type ImportJsonResponse struct {
 
 func (x *ImportJsonResponse) Reset() {
 	*x = ImportJsonResponse{}
-	mi := &file_parlance_v1_import_proto_msgTypes[5]
+	mi := &file_parlance_v1_import_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -417,7 +296,7 @@ func (x *ImportJsonResponse) String() string {
 func (*ImportJsonResponse) ProtoMessage() {}
 
 func (x *ImportJsonResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_import_proto_msgTypes[5]
+	mi := &file_parlance_v1_import_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -430,7 +309,7 @@ func (x *ImportJsonResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportJsonResponse.ProtoReflect.Descriptor instead.
 func (*ImportJsonResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_import_proto_rawDescGZIP(), []int{5}
+	return file_parlance_v1_import_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ImportJsonResponse) GetResult() *ImportResult {
@@ -454,7 +333,7 @@ type ImportResult struct {
 
 func (x *ImportResult) Reset() {
 	*x = ImportResult{}
-	mi := &file_parlance_v1_import_proto_msgTypes[6]
+	mi := &file_parlance_v1_import_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -466,7 +345,7 @@ func (x *ImportResult) String() string {
 func (*ImportResult) ProtoMessage() {}
 
 func (x *ImportResult) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_import_proto_msgTypes[6]
+	mi := &file_parlance_v1_import_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -479,7 +358,7 @@ func (x *ImportResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportResult.ProtoReflect.Descriptor instead.
 func (*ImportResult) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_import_proto_rawDescGZIP(), []int{6}
+	return file_parlance_v1_import_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ImportResult) GetEntriesCreated() int32 {
@@ -527,7 +406,7 @@ type ImportError struct {
 
 func (x *ImportError) Reset() {
 	*x = ImportError{}
-	mi := &file_parlance_v1_import_proto_msgTypes[7]
+	mi := &file_parlance_v1_import_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -539,7 +418,7 @@ func (x *ImportError) String() string {
 func (*ImportError) ProtoMessage() {}
 
 func (x *ImportError) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_import_proto_msgTypes[7]
+	mi := &file_parlance_v1_import_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -552,7 +431,7 @@ func (x *ImportError) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportError.ProtoReflect.Descriptor instead.
 func (*ImportError) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_import_proto_rawDescGZIP(), []int{7}
+	return file_parlance_v1_import_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ImportError) GetKey() string {
@@ -573,22 +452,14 @@ var File_parlance_v1_import_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_import_proto_rawDesc = "" +
 	"\n" +
-	"\x18parlance/v1/import.proto\x12\vparlance.v1\"\xbc\x01\n" +
-	"\x14ImportLaravelRequest\x12\x1b\n" +
+	"\x18parlance/v1/import.proto\x12\vparlance.v1\"\xb8\x01\n" +
+	"\x10ImportPhpRequest\x12\x1b\n" +
 	"\tlocale_id\x18\x01 \x01(\tR\blocaleId\x12\x1b\n" +
 	"\tscope_ids\x18\x02 \x03(\tR\bscopeIds\x12!\n" +
 	"\ffile_content\x18\x03 \x01(\fR\vfileContent\x12\x1a\n" +
 	"\bfilename\x18\x04 \x01(\tR\bfilename\x12+\n" +
-	"\x04mode\x18\x05 \x01(\x0e2\x17.parlance.v1.ImportModeR\x04mode\"J\n" +
-	"\x15ImportLaravelResponse\x121\n" +
-	"\x06result\x18\x01 \x01(\v2\x19.parlance.v1.ImportResultR\x06result\"\xbc\x01\n" +
-	"\x14ImportVueI18NRequest\x12\x1b\n" +
-	"\tlocale_id\x18\x01 \x01(\tR\blocaleId\x12\x1b\n" +
-	"\tscope_ids\x18\x02 \x03(\tR\bscopeIds\x12!\n" +
-	"\ffile_content\x18\x03 \x01(\fR\vfileContent\x12\x1a\n" +
-	"\bfilename\x18\x04 \x01(\tR\bfilename\x12+\n" +
-	"\x04mode\x18\x05 \x01(\x0e2\x17.parlance.v1.ImportModeR\x04mode\"J\n" +
-	"\x15ImportVueI18NResponse\x121\n" +
+	"\x04mode\x18\x05 \x01(\x0e2\x17.parlance.v1.ImportModeR\x04mode\"F\n" +
+	"\x11ImportPhpResponse\x121\n" +
 	"\x06result\x18\x01 \x01(\v2\x19.parlance.v1.ImportResultR\x06result\"\xb9\x01\n" +
 	"\x11ImportJsonRequest\x12\x1b\n" +
 	"\tlocale_id\x18\x01 \x01(\tR\blocaleId\x12\x1b\n" +
@@ -613,10 +484,9 @@ const file_parlance_v1_import_proto_rawDesc = "" +
 	"\x17IMPORT_MODE_CREATE_ONLY\x10\x01\x12\x1b\n" +
 	"\x17IMPORT_MODE_UPDATE_ONLY\x10\x02\x12 \n" +
 	"\x1cIMPORT_MODE_CREATE_OR_UPDATE\x10\x03\x12\x1b\n" +
-	"\x17IMPORT_MODE_REPLACE_ALL\x10\x042\x8e\x02\n" +
-	"\rImportService\x12V\n" +
-	"\rImportLaravel\x12!.parlance.v1.ImportLaravelRequest\x1a\".parlance.v1.ImportLaravelResponse\x12V\n" +
-	"\rImportVueI18N\x12!.parlance.v1.ImportVueI18NRequest\x1a\".parlance.v1.ImportVueI18NResponse\x12M\n" +
+	"\x17IMPORT_MODE_REPLACE_ALL\x10\x042\xaa\x01\n" +
+	"\rImportService\x12J\n" +
+	"\tImportPhp\x12\x1d.parlance.v1.ImportPhpRequest\x1a\x1e.parlance.v1.ImportPhpResponse\x12M\n" +
 	"\n" +
 	"ImportJson\x12\x1e.parlance.v1.ImportJsonRequest\x1a\x1f.parlance.v1.ImportJsonResponseB\xa9\x01\n" +
 	"\x0fcom.parlance.v1B\vImportProtoP\x01Z<github.com/kazuto/parlance-server/gen/parlance/v1;parlancev1\xa2\x02\x03PXX\xaa\x02\vParlance.V1\xca\x02\vParlance\\V1\xe2\x02\x17Parlance\\V1\\GPBMetadata\xea\x02\fParlance::V1b\x06proto3"
@@ -634,37 +504,31 @@ func file_parlance_v1_import_proto_rawDescGZIP() []byte {
 }
 
 var file_parlance_v1_import_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_parlance_v1_import_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_parlance_v1_import_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_parlance_v1_import_proto_goTypes = []any{
-	(ImportMode)(0),               // 0: parlance.v1.ImportMode
-	(*ImportLaravelRequest)(nil),  // 1: parlance.v1.ImportLaravelRequest
-	(*ImportLaravelResponse)(nil), // 2: parlance.v1.ImportLaravelResponse
-	(*ImportVueI18NRequest)(nil),  // 3: parlance.v1.ImportVueI18NRequest
-	(*ImportVueI18NResponse)(nil), // 4: parlance.v1.ImportVueI18NResponse
-	(*ImportJsonRequest)(nil),     // 5: parlance.v1.ImportJsonRequest
-	(*ImportJsonResponse)(nil),    // 6: parlance.v1.ImportJsonResponse
-	(*ImportResult)(nil),          // 7: parlance.v1.ImportResult
-	(*ImportError)(nil),           // 8: parlance.v1.ImportError
+	(ImportMode)(0),            // 0: parlance.v1.ImportMode
+	(*ImportPhpRequest)(nil),   // 1: parlance.v1.ImportPhpRequest
+	(*ImportPhpResponse)(nil),  // 2: parlance.v1.ImportPhpResponse
+	(*ImportJsonRequest)(nil),  // 3: parlance.v1.ImportJsonRequest
+	(*ImportJsonResponse)(nil), // 4: parlance.v1.ImportJsonResponse
+	(*ImportResult)(nil),       // 5: parlance.v1.ImportResult
+	(*ImportError)(nil),        // 6: parlance.v1.ImportError
 }
 var file_parlance_v1_import_proto_depIdxs = []int32{
-	0,  // 0: parlance.v1.ImportLaravelRequest.mode:type_name -> parlance.v1.ImportMode
-	7,  // 1: parlance.v1.ImportLaravelResponse.result:type_name -> parlance.v1.ImportResult
-	0,  // 2: parlance.v1.ImportVueI18NRequest.mode:type_name -> parlance.v1.ImportMode
-	7,  // 3: parlance.v1.ImportVueI18NResponse.result:type_name -> parlance.v1.ImportResult
-	0,  // 4: parlance.v1.ImportJsonRequest.mode:type_name -> parlance.v1.ImportMode
-	7,  // 5: parlance.v1.ImportJsonResponse.result:type_name -> parlance.v1.ImportResult
-	8,  // 6: parlance.v1.ImportResult.errors:type_name -> parlance.v1.ImportError
-	1,  // 7: parlance.v1.ImportService.ImportLaravel:input_type -> parlance.v1.ImportLaravelRequest
-	3,  // 8: parlance.v1.ImportService.ImportVueI18N:input_type -> parlance.v1.ImportVueI18NRequest
-	5,  // 9: parlance.v1.ImportService.ImportJson:input_type -> parlance.v1.ImportJsonRequest
-	2,  // 10: parlance.v1.ImportService.ImportLaravel:output_type -> parlance.v1.ImportLaravelResponse
-	4,  // 11: parlance.v1.ImportService.ImportVueI18N:output_type -> parlance.v1.ImportVueI18NResponse
-	6,  // 12: parlance.v1.ImportService.ImportJson:output_type -> parlance.v1.ImportJsonResponse
-	10, // [10:13] is the sub-list for method output_type
-	7,  // [7:10] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	0, // 0: parlance.v1.ImportPhpRequest.mode:type_name -> parlance.v1.ImportMode
+	5, // 1: parlance.v1.ImportPhpResponse.result:type_name -> parlance.v1.ImportResult
+	0, // 2: parlance.v1.ImportJsonRequest.mode:type_name -> parlance.v1.ImportMode
+	5, // 3: parlance.v1.ImportJsonResponse.result:type_name -> parlance.v1.ImportResult
+	6, // 4: parlance.v1.ImportResult.errors:type_name -> parlance.v1.ImportError
+	1, // 5: parlance.v1.ImportService.ImportPhp:input_type -> parlance.v1.ImportPhpRequest
+	3, // 6: parlance.v1.ImportService.ImportJson:input_type -> parlance.v1.ImportJsonRequest
+	2, // 7: parlance.v1.ImportService.ImportPhp:output_type -> parlance.v1.ImportPhpResponse
+	4, // 8: parlance.v1.ImportService.ImportJson:output_type -> parlance.v1.ImportJsonResponse
+	7, // [7:9] is the sub-list for method output_type
+	5, // [5:7] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_import_proto_init() }
@@ -678,7 +542,7 @@ func file_parlance_v1_import_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_import_proto_rawDesc), len(file_parlance_v1_import_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   8,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

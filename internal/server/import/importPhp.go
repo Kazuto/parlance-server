@@ -10,10 +10,10 @@ import (
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
 
-func (s *Server) ImportLaravel(
+func (s *Server) ImportPhp(
 	ctx context.Context,
-	req *connect.Request[pb.ImportLaravelRequest],
-) (*connect.Response[pb.ImportLaravelResponse], error) {
+	req *connect.Request[pb.ImportPhpRequest],
+) (*connect.Response[pb.ImportPhpResponse], error) {
 	if req.Msg.LocaleId == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale_id is required"))
 	}
@@ -32,7 +32,7 @@ func (s *Server) ImportLaravel(
 	// Set default mode if not specified
 	mode := req.Msg.Mode
 	if mode == pb.ImportMode_IMPORT_MODE_UNSPECIFIED {
-		mode = pb.ImportMode_CREATE_OR_UPDATE
+		mode = pb.ImportMode_IMPORT_MODE_CREATE_OR_UPDATE
 	}
 
 	// Process import
@@ -41,7 +41,7 @@ func (s *Server) ImportLaravel(
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	return connect.NewResponse(&pb.ImportLaravelResponse{
+	return connect.NewResponse(&pb.ImportPhpResponse{
 		Result: result,
 	}), nil
 }

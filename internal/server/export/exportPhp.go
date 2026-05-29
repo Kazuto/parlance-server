@@ -11,10 +11,10 @@ import (
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
 
-func (s *Server) ExportLaravel(
+func (s *Server) ExportPhp(
 	ctx context.Context,
-	req *connect.Request[pb.ExportLaravelRequest],
-) (*connect.Response[pb.ExportLaravelResponse], error) {
+	req *connect.Request[pb.ExportPhpRequest],
+) (*connect.Response[pb.ExportPhpResponse], error) {
 	if req.Msg.LocaleCode == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale code is required"))
 	}
@@ -65,8 +65,8 @@ func (s *Server) ExportLaravel(
 		}
 	}
 
-	return connect.NewResponse(&pb.ExportLaravelResponse{
-		Format:   "laravel",
+	return connect.NewResponse(&pb.ExportPhpResponse{
+		Format:   "php",
 		Content:  content.String(),
 		Filename: filename,
 	}), nil

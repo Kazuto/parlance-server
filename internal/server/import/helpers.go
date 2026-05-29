@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kazuto/parlance-server/internal/models"
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/models"
 )
 
 // processImport handles the common import logic for all formats
@@ -41,7 +41,7 @@ func (s *Server) processImport(
 	}
 
 	// Handle REPLACE_ALL mode
-	if mode == pb.ImportMode_REPLACE_ALL && len(scopeIDs) > 0 {
+	if mode == pb.ImportMode_IMPORT_MODE_REPLACE_ALL && len(scopeIDs) > 0 {
 		// Delete all localizations for entries in these scopes
 		var entryIDs []string
 		s.db.Model(&models.Entry{}).
@@ -87,13 +87,13 @@ func (s *Server) processTranslation(
 	entryExists := err == nil
 
 	// Handle CREATE_ONLY mode
-	if mode == pb.ImportMode_CREATE_ONLY && entryExists {
+	if mode == pb.ImportMode_IMPORT_MODE_CREATE_ONLY && entryExists {
 		result.EntriesSkipped++
 		return nil
 	}
 
 	// Handle UPDATE_ONLY mode
-	if mode == pb.ImportMode_UPDATE_ONLY && !entryExists {
+	if mode == pb.ImportMode_IMPORT_MODE_UPDATE_ONLY && !entryExists {
 		result.EntriesSkipped++
 		return nil
 	}

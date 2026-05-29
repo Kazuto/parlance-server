@@ -33,12 +33,8 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// ImportServiceImportLaravelProcedure is the fully-qualified name of the ImportService's
-	// ImportLaravel RPC.
-	ImportServiceImportLaravelProcedure = "/parlance.v1.ImportService/ImportLaravel"
-	// ImportServiceImportVueI18NProcedure is the fully-qualified name of the ImportService's
-	// ImportVueI18N RPC.
-	ImportServiceImportVueI18NProcedure = "/parlance.v1.ImportService/ImportVueI18N"
+	// ImportServiceImportPhpProcedure is the fully-qualified name of the ImportService's ImportPhp RPC.
+	ImportServiceImportPhpProcedure = "/parlance.v1.ImportService/ImportPhp"
 	// ImportServiceImportJsonProcedure is the fully-qualified name of the ImportService's ImportJson
 	// RPC.
 	ImportServiceImportJsonProcedure = "/parlance.v1.ImportService/ImportJson"
@@ -46,8 +42,7 @@ const (
 
 // ImportServiceClient is a client for the parlance.v1.ImportService service.
 type ImportServiceClient interface {
-	ImportLaravel(context.Context, *connect.Request[v1.ImportLaravelRequest]) (*connect.Response[v1.ImportLaravelResponse], error)
-	ImportVueI18N(context.Context, *connect.Request[v1.ImportVueI18NRequest]) (*connect.Response[v1.ImportVueI18NResponse], error)
+	ImportPhp(context.Context, *connect.Request[v1.ImportPhpRequest]) (*connect.Response[v1.ImportPhpResponse], error)
 	ImportJson(context.Context, *connect.Request[v1.ImportJsonRequest]) (*connect.Response[v1.ImportJsonResponse], error)
 }
 
@@ -62,16 +57,10 @@ func NewImportServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 	baseURL = strings.TrimRight(baseURL, "/")
 	importServiceMethods := v1.File_parlance_v1_import_proto.Services().ByName("ImportService").Methods()
 	return &importServiceClient{
-		importLaravel: connect.NewClient[v1.ImportLaravelRequest, v1.ImportLaravelResponse](
+		importPhp: connect.NewClient[v1.ImportPhpRequest, v1.ImportPhpResponse](
 			httpClient,
-			baseURL+ImportServiceImportLaravelProcedure,
-			connect.WithSchema(importServiceMethods.ByName("ImportLaravel")),
-			connect.WithClientOptions(opts...),
-		),
-		importVueI18N: connect.NewClient[v1.ImportVueI18NRequest, v1.ImportVueI18NResponse](
-			httpClient,
-			baseURL+ImportServiceImportVueI18NProcedure,
-			connect.WithSchema(importServiceMethods.ByName("ImportVueI18N")),
+			baseURL+ImportServiceImportPhpProcedure,
+			connect.WithSchema(importServiceMethods.ByName("ImportPhp")),
 			connect.WithClientOptions(opts...),
 		),
 		importJson: connect.NewClient[v1.ImportJsonRequest, v1.ImportJsonResponse](
@@ -85,19 +74,13 @@ func NewImportServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 
 // importServiceClient implements ImportServiceClient.
 type importServiceClient struct {
-	importLaravel *connect.Client[v1.ImportLaravelRequest, v1.ImportLaravelResponse]
-	importVueI18N *connect.Client[v1.ImportVueI18NRequest, v1.ImportVueI18NResponse]
-	importJson    *connect.Client[v1.ImportJsonRequest, v1.ImportJsonResponse]
+	importPhp  *connect.Client[v1.ImportPhpRequest, v1.ImportPhpResponse]
+	importJson *connect.Client[v1.ImportJsonRequest, v1.ImportJsonResponse]
 }
 
-// ImportLaravel calls parlance.v1.ImportService.ImportLaravel.
-func (c *importServiceClient) ImportLaravel(ctx context.Context, req *connect.Request[v1.ImportLaravelRequest]) (*connect.Response[v1.ImportLaravelResponse], error) {
-	return c.importLaravel.CallUnary(ctx, req)
-}
-
-// ImportVueI18N calls parlance.v1.ImportService.ImportVueI18N.
-func (c *importServiceClient) ImportVueI18N(ctx context.Context, req *connect.Request[v1.ImportVueI18NRequest]) (*connect.Response[v1.ImportVueI18NResponse], error) {
-	return c.importVueI18N.CallUnary(ctx, req)
+// ImportPhp calls parlance.v1.ImportService.ImportPhp.
+func (c *importServiceClient) ImportPhp(ctx context.Context, req *connect.Request[v1.ImportPhpRequest]) (*connect.Response[v1.ImportPhpResponse], error) {
+	return c.importPhp.CallUnary(ctx, req)
 }
 
 // ImportJson calls parlance.v1.ImportService.ImportJson.
@@ -107,8 +90,7 @@ func (c *importServiceClient) ImportJson(ctx context.Context, req *connect.Reque
 
 // ImportServiceHandler is an implementation of the parlance.v1.ImportService service.
 type ImportServiceHandler interface {
-	ImportLaravel(context.Context, *connect.Request[v1.ImportLaravelRequest]) (*connect.Response[v1.ImportLaravelResponse], error)
-	ImportVueI18N(context.Context, *connect.Request[v1.ImportVueI18NRequest]) (*connect.Response[v1.ImportVueI18NResponse], error)
+	ImportPhp(context.Context, *connect.Request[v1.ImportPhpRequest]) (*connect.Response[v1.ImportPhpResponse], error)
 	ImportJson(context.Context, *connect.Request[v1.ImportJsonRequest]) (*connect.Response[v1.ImportJsonResponse], error)
 }
 
@@ -119,16 +101,10 @@ type ImportServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewImportServiceHandler(svc ImportServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	importServiceMethods := v1.File_parlance_v1_import_proto.Services().ByName("ImportService").Methods()
-	importServiceImportLaravelHandler := connect.NewUnaryHandler(
-		ImportServiceImportLaravelProcedure,
-		svc.ImportLaravel,
-		connect.WithSchema(importServiceMethods.ByName("ImportLaravel")),
-		connect.WithHandlerOptions(opts...),
-	)
-	importServiceImportVueI18NHandler := connect.NewUnaryHandler(
-		ImportServiceImportVueI18NProcedure,
-		svc.ImportVueI18N,
-		connect.WithSchema(importServiceMethods.ByName("ImportVueI18N")),
+	importServiceImportPhpHandler := connect.NewUnaryHandler(
+		ImportServiceImportPhpProcedure,
+		svc.ImportPhp,
+		connect.WithSchema(importServiceMethods.ByName("ImportPhp")),
 		connect.WithHandlerOptions(opts...),
 	)
 	importServiceImportJsonHandler := connect.NewUnaryHandler(
@@ -139,10 +115,8 @@ func NewImportServiceHandler(svc ImportServiceHandler, opts ...connect.HandlerOp
 	)
 	return "/parlance.v1.ImportService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case ImportServiceImportLaravelProcedure:
-			importServiceImportLaravelHandler.ServeHTTP(w, r)
-		case ImportServiceImportVueI18NProcedure:
-			importServiceImportVueI18NHandler.ServeHTTP(w, r)
+		case ImportServiceImportPhpProcedure:
+			importServiceImportPhpHandler.ServeHTTP(w, r)
 		case ImportServiceImportJsonProcedure:
 			importServiceImportJsonHandler.ServeHTTP(w, r)
 		default:
@@ -154,12 +128,8 @@ func NewImportServiceHandler(svc ImportServiceHandler, opts ...connect.HandlerOp
 // UnimplementedImportServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedImportServiceHandler struct{}
 
-func (UnimplementedImportServiceHandler) ImportLaravel(context.Context, *connect.Request[v1.ImportLaravelRequest]) (*connect.Response[v1.ImportLaravelResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ImportService.ImportLaravel is not implemented"))
-}
-
-func (UnimplementedImportServiceHandler) ImportVueI18N(context.Context, *connect.Request[v1.ImportVueI18NRequest]) (*connect.Response[v1.ImportVueI18NResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ImportService.ImportVueI18N is not implemented"))
+func (UnimplementedImportServiceHandler) ImportPhp(context.Context, *connect.Request[v1.ImportPhpRequest]) (*connect.Response[v1.ImportPhpResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ImportService.ImportPhp is not implemented"))
 }
 
 func (UnimplementedImportServiceHandler) ImportJson(context.Context, *connect.Request[v1.ImportJsonRequest]) (*connect.Response[v1.ImportJsonResponse], error) {

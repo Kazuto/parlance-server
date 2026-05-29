@@ -4,13 +4,12 @@ package parlance.v1;
 option go_package = "parlance/v1;parlance";
 
 service ImportService {
-  rpc ImportLaravel(ImportLaravelRequest) returns (ImportLaravelResponse);
-  rpc ImportVueI18N(ImportVueI18NRequest) returns (ImportVueI18NResponse);
+  rpc ImportPhp(ImportPhpRequest) returns (ImportPhpResponse);
   rpc ImportJson(ImportJsonRequest) returns (ImportJsonResponse);
 }
 
-// Laravel PHP array import
-message ImportLaravelRequest {
+// PHP array import
+message ImportPhpRequest {
   string locale_id = 1;           // Target locale
   repeated string scope_ids = 2;  // Scopes to assign
   bytes file_content = 3;         // File content as bytes
@@ -18,20 +17,7 @@ message ImportLaravelRequest {
   ImportMode mode = 5;            // How to handle conflicts
 }
 
-message ImportLaravelResponse {
-  ImportResult result = 1;
-}
-
-// Vue i18n JSON import
-message ImportVueI18NRequest {
-  string locale_id = 1;
-  repeated string scope_ids = 2;
-  bytes file_content = 3;         // File content as bytes
-  string filename = 4;            // Original filename (optional)
-  ImportMode mode = 5;
-}
-
-message ImportVueI18NResponse {
+message ImportPhpResponse {
   ImportResult result = 1;
 }
 

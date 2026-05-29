@@ -33,12 +33,8 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// ExportServiceExportLaravelProcedure is the fully-qualified name of the ExportService's
-	// ExportLaravel RPC.
-	ExportServiceExportLaravelProcedure = "/parlance.v1.ExportService/ExportLaravel"
-	// ExportServiceExportVueI18NProcedure is the fully-qualified name of the ExportService's
-	// ExportVueI18n RPC.
-	ExportServiceExportVueI18NProcedure = "/parlance.v1.ExportService/ExportVueI18n"
+	// ExportServiceExportPhpProcedure is the fully-qualified name of the ExportService's ExportPhp RPC.
+	ExportServiceExportPhpProcedure = "/parlance.v1.ExportService/ExportPhp"
 	// ExportServiceExportJsonProcedure is the fully-qualified name of the ExportService's ExportJson
 	// RPC.
 	ExportServiceExportJsonProcedure = "/parlance.v1.ExportService/ExportJson"
@@ -46,8 +42,7 @@ const (
 
 // ExportServiceClient is a client for the parlance.v1.ExportService service.
 type ExportServiceClient interface {
-	ExportLaravel(context.Context, *connect.Request[v1.ExportLaravelRequest]) (*connect.Response[v1.ExportLaravelResponse], error)
-	ExportVueI18N(context.Context, *connect.Request[v1.ExportVueI18NRequest]) (*connect.Response[v1.ExportVueI18NResponse], error)
+	ExportPhp(context.Context, *connect.Request[v1.ExportPhpRequest]) (*connect.Response[v1.ExportPhpResponse], error)
 	ExportJson(context.Context, *connect.Request[v1.ExportJsonRequest]) (*connect.Response[v1.ExportJsonResponse], error)
 }
 
@@ -62,16 +57,10 @@ func NewExportServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 	baseURL = strings.TrimRight(baseURL, "/")
 	exportServiceMethods := v1.File_parlance_v1_export_proto.Services().ByName("ExportService").Methods()
 	return &exportServiceClient{
-		exportLaravel: connect.NewClient[v1.ExportLaravelRequest, v1.ExportLaravelResponse](
+		exportPhp: connect.NewClient[v1.ExportPhpRequest, v1.ExportPhpResponse](
 			httpClient,
-			baseURL+ExportServiceExportLaravelProcedure,
-			connect.WithSchema(exportServiceMethods.ByName("ExportLaravel")),
-			connect.WithClientOptions(opts...),
-		),
-		exportVueI18N: connect.NewClient[v1.ExportVueI18NRequest, v1.ExportVueI18NResponse](
-			httpClient,
-			baseURL+ExportServiceExportVueI18NProcedure,
-			connect.WithSchema(exportServiceMethods.ByName("ExportVueI18n")),
+			baseURL+ExportServiceExportPhpProcedure,
+			connect.WithSchema(exportServiceMethods.ByName("ExportPhp")),
 			connect.WithClientOptions(opts...),
 		),
 		exportJson: connect.NewClient[v1.ExportJsonRequest, v1.ExportJsonResponse](
@@ -85,19 +74,13 @@ func NewExportServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 
 // exportServiceClient implements ExportServiceClient.
 type exportServiceClient struct {
-	exportLaravel *connect.Client[v1.ExportLaravelRequest, v1.ExportLaravelResponse]
-	exportVueI18N *connect.Client[v1.ExportVueI18NRequest, v1.ExportVueI18NResponse]
-	exportJson    *connect.Client[v1.ExportJsonRequest, v1.ExportJsonResponse]
+	exportPhp  *connect.Client[v1.ExportPhpRequest, v1.ExportPhpResponse]
+	exportJson *connect.Client[v1.ExportJsonRequest, v1.ExportJsonResponse]
 }
 
-// ExportLaravel calls parlance.v1.ExportService.ExportLaravel.
-func (c *exportServiceClient) ExportLaravel(ctx context.Context, req *connect.Request[v1.ExportLaravelRequest]) (*connect.Response[v1.ExportLaravelResponse], error) {
-	return c.exportLaravel.CallUnary(ctx, req)
-}
-
-// ExportVueI18N calls parlance.v1.ExportService.ExportVueI18n.
-func (c *exportServiceClient) ExportVueI18N(ctx context.Context, req *connect.Request[v1.ExportVueI18NRequest]) (*connect.Response[v1.ExportVueI18NResponse], error) {
-	return c.exportVueI18N.CallUnary(ctx, req)
+// ExportPhp calls parlance.v1.ExportService.ExportPhp.
+func (c *exportServiceClient) ExportPhp(ctx context.Context, req *connect.Request[v1.ExportPhpRequest]) (*connect.Response[v1.ExportPhpResponse], error) {
+	return c.exportPhp.CallUnary(ctx, req)
 }
 
 // ExportJson calls parlance.v1.ExportService.ExportJson.
@@ -107,8 +90,7 @@ func (c *exportServiceClient) ExportJson(ctx context.Context, req *connect.Reque
 
 // ExportServiceHandler is an implementation of the parlance.v1.ExportService service.
 type ExportServiceHandler interface {
-	ExportLaravel(context.Context, *connect.Request[v1.ExportLaravelRequest]) (*connect.Response[v1.ExportLaravelResponse], error)
-	ExportVueI18N(context.Context, *connect.Request[v1.ExportVueI18NRequest]) (*connect.Response[v1.ExportVueI18NResponse], error)
+	ExportPhp(context.Context, *connect.Request[v1.ExportPhpRequest]) (*connect.Response[v1.ExportPhpResponse], error)
 	ExportJson(context.Context, *connect.Request[v1.ExportJsonRequest]) (*connect.Response[v1.ExportJsonResponse], error)
 }
 
@@ -119,16 +101,10 @@ type ExportServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewExportServiceHandler(svc ExportServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	exportServiceMethods := v1.File_parlance_v1_export_proto.Services().ByName("ExportService").Methods()
-	exportServiceExportLaravelHandler := connect.NewUnaryHandler(
-		ExportServiceExportLaravelProcedure,
-		svc.ExportLaravel,
-		connect.WithSchema(exportServiceMethods.ByName("ExportLaravel")),
-		connect.WithHandlerOptions(opts...),
-	)
-	exportServiceExportVueI18NHandler := connect.NewUnaryHandler(
-		ExportServiceExportVueI18NProcedure,
-		svc.ExportVueI18N,
-		connect.WithSchema(exportServiceMethods.ByName("ExportVueI18n")),
+	exportServiceExportPhpHandler := connect.NewUnaryHandler(
+		ExportServiceExportPhpProcedure,
+		svc.ExportPhp,
+		connect.WithSchema(exportServiceMethods.ByName("ExportPhp")),
 		connect.WithHandlerOptions(opts...),
 	)
 	exportServiceExportJsonHandler := connect.NewUnaryHandler(
@@ -139,10 +115,8 @@ func NewExportServiceHandler(svc ExportServiceHandler, opts ...connect.HandlerOp
 	)
 	return "/parlance.v1.ExportService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case ExportServiceExportLaravelProcedure:
-			exportServiceExportLaravelHandler.ServeHTTP(w, r)
-		case ExportServiceExportVueI18NProcedure:
-			exportServiceExportVueI18NHandler.ServeHTTP(w, r)
+		case ExportServiceExportPhpProcedure:
+			exportServiceExportPhpHandler.ServeHTTP(w, r)
 		case ExportServiceExportJsonProcedure:
 			exportServiceExportJsonHandler.ServeHTTP(w, r)
 		default:
@@ -154,12 +128,8 @@ func NewExportServiceHandler(svc ExportServiceHandler, opts ...connect.HandlerOp
 // UnimplementedExportServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedExportServiceHandler struct{}
 
-func (UnimplementedExportServiceHandler) ExportLaravel(context.Context, *connect.Request[v1.ExportLaravelRequest]) (*connect.Response[v1.ExportLaravelResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ExportService.ExportLaravel is not implemented"))
-}
-
-func (UnimplementedExportServiceHandler) ExportVueI18N(context.Context, *connect.Request[v1.ExportVueI18NRequest]) (*connect.Response[v1.ExportVueI18NResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ExportService.ExportVueI18n is not implemented"))
+func (UnimplementedExportServiceHandler) ExportPhp(context.Context, *connect.Request[v1.ExportPhpRequest]) (*connect.Response[v1.ExportPhpResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ExportService.ExportPhp is not implemented"))
 }
 
 func (UnimplementedExportServiceHandler) ExportJson(context.Context, *connect.Request[v1.ExportJsonRequest]) (*connect.Response[v1.ExportJsonResponse], error) {
