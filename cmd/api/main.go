@@ -24,6 +24,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/locale"
 	"github.com/kazuto/parlance-server/internal/server/localization"
 	"github.com/kazuto/parlance-server/internal/server/permission"
+	"github.com/kazuto/parlance-server/internal/server/role"
 	"github.com/kazuto/parlance-server/internal/server/scope"
 	"github.com/kazuto/parlance-server/internal/server/terminology"
 	"github.com/kazuto/parlance-server/internal/server/user"
@@ -120,6 +121,12 @@ func main() {
 	mux.Handle(permissionPath, middleware.RequireAuth(cfg.JWT.Secret)(permissionHandler))
 
 	log.Println("✓ Registered PermissionService (protected)")
+
+	roleServer := role.NewServer(db)
+	rolePath, roleHandler := parlancev1connect.NewRoleServiceHandler(roleServer)
+	mux.Handle(rolePath, middleware.RequireAuth(cfg.JWT.Secret)(roleHandler))
+
+	log.Println("✓ Registered RoleService (protected)")
 
 	exportServer := export.NewServer(db)
 	exportPath, exportHandler := parlancev1connect.NewExportServiceHandler(exportServer)

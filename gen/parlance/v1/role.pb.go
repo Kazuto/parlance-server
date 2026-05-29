@@ -25,7 +25,8 @@ type Role struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Permissions   []*Permission          `protobuf:"bytes,3,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Permissions   []*Permission          `protobuf:"bytes,4,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -70,6 +71,13 @@ func (x *Role) GetId() string {
 func (x *Role) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *Role) GetDescription() string {
+	if x != nil {
+		return x.Description
 	}
 	return ""
 }
@@ -268,7 +276,8 @@ func (x *GetRoleResponse) GetRole() *Role {
 type CreateRoleRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Permissions   []*Permission          `protobuf:"bytes,2,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	Permissions   []*Permission          `protobuf:"bytes,3,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -306,6 +315,13 @@ func (*CreateRoleRequest) Descriptor() ([]byte, []int) {
 func (x *CreateRoleRequest) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateRoleRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
 	}
 	return ""
 }
@@ -365,7 +381,8 @@ type UpdateRoleRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Permissions   []*Permission          `protobuf:"bytes,3,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Permissions   []*Permission          `protobuf:"bytes,4,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -410,6 +427,13 @@ func (x *UpdateRoleRequest) GetId() string {
 func (x *UpdateRoleRequest) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateRoleRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
 	}
 	return ""
 }
@@ -549,11 +573,12 @@ var File_parlance_v1_role_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_role_proto_rawDesc = "" +
 	"\n" +
-	"\x16parlance/v1/role.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x1cparlance/v1/permission.proto\"e\n" +
+	"\x16parlance/v1/role.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x1cparlance/v1/permission.proto\"\x87\x01\n" +
 	"\x04Role\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x129\n" +
-	"\vpermissions\x18\x03 \x03(\v2\x17.parlance.v1.PermissionR\vpermissions\"R\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x129\n" +
+	"\vpermissions\x18\x04 \x03(\v2\x17.parlance.v1.PermissionR\vpermissions\"R\n" +
 	"\x10ListRolesRequest\x12>\n" +
 	"\n" +
 	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
@@ -566,16 +591,18 @@ const file_parlance_v1_role_proto_rawDesc = "" +
 	"\x0eGetRoleRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"8\n" +
 	"\x0fGetRoleResponse\x12%\n" +
-	"\x04role\x18\x01 \x01(\v2\x11.parlance.v1.RoleR\x04role\"b\n" +
+	"\x04role\x18\x01 \x01(\v2\x11.parlance.v1.RoleR\x04role\"\x84\x01\n" +
 	"\x11CreateRoleRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x129\n" +
-	"\vpermissions\x18\x02 \x03(\v2\x17.parlance.v1.PermissionR\vpermissions\";\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x129\n" +
+	"\vpermissions\x18\x03 \x03(\v2\x17.parlance.v1.PermissionR\vpermissions\";\n" +
 	"\x12CreateRoleResponse\x12%\n" +
-	"\x04role\x18\x01 \x01(\v2\x11.parlance.v1.RoleR\x04role\"r\n" +
+	"\x04role\x18\x01 \x01(\v2\x11.parlance.v1.RoleR\x04role\"\x94\x01\n" +
 	"\x11UpdateRoleRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x129\n" +
-	"\vpermissions\x18\x03 \x03(\v2\x17.parlance.v1.PermissionR\vpermissions\";\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x129\n" +
+	"\vpermissions\x18\x04 \x03(\v2\x17.parlance.v1.PermissionR\vpermissions\";\n" +
 	"\x12UpdateRoleResponse\x12%\n" +
 	"\x04role\x18\x01 \x01(\v2\x11.parlance.v1.RoleR\x04role\"#\n" +
 	"\x11DeleteRoleRequest\x12\x0e\n" +

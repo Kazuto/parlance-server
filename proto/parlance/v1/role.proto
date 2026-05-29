@@ -17,7 +17,8 @@ service RoleService {
 message Role {
   string id = 1;
   string name = 2;
-  repeated Permission permissions = 3;
+  string description = 3;
+  repeated Permission permissions = 4;
 }
 
 message ListRolesRequest {
@@ -39,7 +40,8 @@ message GetRoleResponse {
 
 message CreateRoleRequest {
   string name = 1;
-  repeated Permission permissions = 2;
+  string description = 2;
+  repeated Permission permissions = 3;
 }
 
 message CreateRoleResponse {
@@ -49,7 +51,8 @@ message CreateRoleResponse {
 message UpdateRoleRequest {
   string id = 1;
   string name = 2;
-  repeated Permission permissions = 3;
+  string description = 3;
+  repeated Permission permissions = 4;
 }
 
 message UpdateRoleResponse {
