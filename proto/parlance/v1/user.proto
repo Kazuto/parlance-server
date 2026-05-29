@@ -2,6 +2,7 @@ syntax = "proto3";
 package parlance.v1;
 
 import "parlance/v1/common.proto";
+import "parlance/v1/role.proto";
 
 option go_package = "parlance/v1;parlance";
 
@@ -21,19 +22,6 @@ message User {
   repeated Role roles = 4;
   string created_at = 5;
   string updated_at = 6;
-}
-
-message Role {
-  string id = 1;
-  string name = 2;
-  repeated Permission permissions = 3;
-}
-
-message Permission {
-  string id = 1;
-  string name = 2;
-  string resource = 3;
-  string action = 4;
 }
 
 message ListUsersRequest {

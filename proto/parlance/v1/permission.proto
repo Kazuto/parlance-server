@@ -1,0 +1,67 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/common.proto";
+
+option go_package = "parlance/v1;parlance";
+
+service PermissionService {
+  rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse);
+  rpc GetPermission(GetPermissionRequest) returns (GetPermissionResponse);
+  rpc CreatePermission(CreatePermissionRequest) returns (CreatePermissionResponse);
+  rpc UpdatePermission(UpdatePermissionRequest) returns (UpdatePermissionResponse);
+  rpc DeletePermission(DeletePermissionRequest) returns (DeletePermissionResponse);
+}
+
+message Permission {
+  string id = 1;
+  string name = 2;
+  string resource = 3;
+  string action = 4;
+}
+
+message ListPermissionsRequest {
+  PaginationRequest pagination = 1;
+}
+
+message ListPermissionsResponse {
+  repeated Permission permissions = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetPermissionRequest {
+  string id = 1;
+}
+
+message GetPermissionResponse {
+  Permission permission = 1;
+}
+
+message CreatePermissionRequest {
+  string name = 1;
+  string resource = 2;
+  string action = 3;
+  string description = 4;
+}
+
+message CreatePermissionResponse {
+  Permission permission = 1;
+}
+
+message UpdatePermissionRequest {
+  string id = 1;
+  string name = 2;
+  string resource = 3;
+  string action = 4;
+  string description = 5;
+}
+
+message UpdatePermissionResponse {
+  Permission permission = 1;
+}
+
+message DeletePermissionRequest {
+  string id = 1;
+}
+
+message DeletePermissionResponse {}
