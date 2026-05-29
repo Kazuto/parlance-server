@@ -1,11 +1,11 @@
 meta {
-  name: ExportLaravel
+  name: ExportPhp
   type: http
   seq: 1
 }
 
 post {
-  url: {{baseUrl}}/parlance.v1.ExportService/ExportLaravel
+  url: {{baseUrl}}/parlance.v1.ExportService/ExportPhp
   body: json
   auth: inherit
 }
@@ -18,16 +18,16 @@ body:json {
 }
 
 docs {
-  # ExportLaravel
+  # ExportPhp
 
-  Exports translations in Laravel PHP format for use in Laravel applications.
+  Exports translations in PHP PHP format for use in PHP applications.
 
   ## Request
   - `locale_code` (required): Locale to export (e.g., "en", "de")
   - `scope_id` (optional): Filter by scope ID to export only specific entries
 
   ## Response
-  - `format`: "laravel"
+  - `format`: "PHP"
   - `content`: PHP file content with array of translations
   - `filename`: Suggested filename (e.g., "en.php" or "admin_en.php")
 
@@ -42,7 +42,7 @@ docs {
   ```
 
   ## Use Case
-  Export translations for Laravel projects to place in `resources/lang/{locale}/` directory.
+  Export translations for PHP projects to place in `resources/lang/{locale}/` directory.
 
   ## Features
   - Automatically escapes single quotes in translations

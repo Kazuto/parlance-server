@@ -1,11 +1,11 @@
 meta {
-  name: ImportLaravel
+  name: ImportPhp
   type: http
   seq: 3
 }
 
 post {
-  url: {{baseUrl}}/parlance.v1.ImportService/ImportLaravel
+  url: {{baseUrl}}/parlance.v1.ImportService/ImportPhp
   body: json
   auth: inherit
 }
@@ -21,9 +21,9 @@ body:json {
 }
 
 docs {
-  # ImportLaravel
+  # ImportPhp
 
-  Import translations from Laravel PHP array format.
+  Import translations from PHP PHP array format.
 
   ## Request
   - `locale_id` (required): Target locale ID for translations
@@ -33,13 +33,13 @@ docs {
   - `mode` (optional): Import mode (default: CREATE_OR_UPDATE)
 
   ## Import Modes
-  - `CREATE_ONLY`: Only create new entries, skip existing
-  - `UPDATE_ONLY`: Only update existing entries, skip new
-  - `CREATE_OR_UPDATE`: Create new or update existing (default)
-  - `REPLACE_ALL`: Delete all entries in scope first, then import
+  - `IMPORT_MODE_CREATE_ONLY`: Only create new entries, skip existing
+  - `IMPORT_MODE_UPDATE_ONLY`: Only update existing entries, skip new
+  - `IMPORT_MODE_CREATE_OR_UPDATE`: Create new or update existing (default)
+  - `IMPORT_MODE_REPLACE_ALL`: Delete all entries in scope first, then import
 
   ## Expected PHP Format
-  Laravel translation file format with return array:
+  PHP translation file format with return array:
   ```php
   <?php
 
@@ -91,7 +91,7 @@ docs {
   ```
 
   ## Use Cases
-  - Migrating from Laravel applications
+  - Migrating from PHP applications
   - Importing Symfony translations
   - Converting legacy PHP translation files
   - Bulk importing from PHP-based systems
@@ -118,9 +118,9 @@ docs {
   - Invalid PHP syntax will return a validation error
   - The parser is lenient and focuses on extracting key-value pairs
 
-  ## Example Laravel Migration
+  ## Example PHP Migration
   ```bash
-  # From Laravel lang directory
+  # From PHP lang directory
   cd resources/lang/en
   cat messages.php | base64
 

@@ -33,10 +33,10 @@ docs {
   - `mode` (optional): Import mode (default: CREATE_OR_UPDATE)
 
   ## Import Modes
-  - `CREATE_ONLY`: Only create new entries, skip existing
-  - `UPDATE_ONLY`: Only update existing entries, skip new
-  - `CREATE_OR_UPDATE`: Create new or update existing (default)
-  - `REPLACE_ALL`: Delete all entries in scope first, then import
+  - `IMPORT_MODE_CREATE_ONLY`: Only create new entries, skip existing
+  - `IMPORT_MODE_UPDATE_ONLY`: Only update existing entries, skip new
+  - `IMPORT_MODE_CREATE_OR_UPDATE`: Create new or update existing (default)
+  - `IMPORT_MODE_REPLACE_ALL`: Delete all entries in scope first, then import
 
   ## Expected JSON Format
   Simple flat structure with string keys and values:

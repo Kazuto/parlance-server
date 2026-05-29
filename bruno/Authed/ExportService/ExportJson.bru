@@ -13,24 +13,24 @@ post {
 body:json {
   {
     "localeCode": "en",
-    "scopeId": ""
+    "scopeId": "dcca7701-7870-4604-8229-308c7e8383ac"
   }
 }
 
 docs {
   # ExportJson
-
+  
   Exports translations in generic flat JSON format for maximum compatibility.
-
+  
   ## Request
   - `locale_code` (required): Locale to export (e.g., "en", "de")
   - `scope_id` (optional): Filter by scope ID to export only specific entries
-
+  
   ## Response
   - `format`: "json"
   - `content`: JSON file content with flat key-value structure
   - `filename`: Suggested filename (e.g., "en.json" or "admin_en.json")
-
+  
   ## Output Format
   Simple flat structure:
   ```json
@@ -40,7 +40,7 @@ docs {
     "login.button": "Sign In"
   }
   ```
-
+  
   ## Use Case
   Generic JSON export for:
   - React applications (react-i18next, react-intl)
@@ -48,11 +48,11 @@ docs {
   - Custom i18n implementations
   - API responses
   - Mobile apps
-
+  
   ## Difference from ExportVueI18n
   - ExportVueI18n: Nested structure from dot notation
   - ExportJson: Flat structure, keys preserved as-is
-
+  
   ## Features
   - Simple key-value pairs
   - Pretty-printed JSON with 2-space indentation
