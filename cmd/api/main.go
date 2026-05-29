@@ -23,6 +23,7 @@ import (
 	importservice "github.com/kazuto/parlance-server/internal/server/import"
 	"github.com/kazuto/parlance-server/internal/server/locale"
 	"github.com/kazuto/parlance-server/internal/server/localization"
+	"github.com/kazuto/parlance-server/internal/server/permission"
 	"github.com/kazuto/parlance-server/internal/server/scope"
 	"github.com/kazuto/parlance-server/internal/server/terminology"
 	"github.com/kazuto/parlance-server/internal/server/user"
@@ -113,6 +114,12 @@ func main() {
 	mux.Handle(definitionPath, middleware.RequireAuth(cfg.JWT.Secret)(definitionHandler))
 
 	log.Println("✓ Registered DefinitionService (protected)")
+
+	permissionServer := permission.NewServer(db)
+	permissionPath, permissionHandler := parlancev1connect.NewPermissionServiceHandler(permissionServer)
+	mux.Handle(permissionPath, middleware.RequireAuth(cfg.JWT.Secret)(permissionHandler))
+
+	log.Println("✓ Registered PermissionService (protected)")
 
 	exportServer := export.NewServer(db)
 	exportPath, exportHandler := parlancev1connect.NewExportServiceHandler(exportServer)
