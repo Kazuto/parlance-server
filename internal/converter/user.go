@@ -26,34 +26,10 @@ func UserToProto(u *models.User) *pb.User {
 	}
 }
 
-// RoleToProto converts a database Role model to protobuf
-func RoleToProto(r *models.Role) *pb.Role {
-	if r == nil {
-		return nil
+func UsersToProto(users []models.User) []*pb.User {
+	result := make([]*pb.User, len(users))
+	for i, user := range users {
+		result[i] = UserToProto(&user)
 	}
-
-	permissions := make([]*pb.Permission, len(r.Permissions))
-	for i, perm := range r.Permissions {
-		permissions[i] = PermissionToProto(&perm)
-	}
-
-	return &pb.Role{
-		Id:          r.ID,
-		Name:        r.Name,
-		Permissions: permissions,
-	}
-}
-
-// PermissionToProto converts a database Permission model to protobuf
-func PermissionToProto(p *models.Permission) *pb.Permission {
-	if p == nil {
-		return nil
-	}
-
-	return &pb.Permission{
-		Id:       p.ID,
-		Name:     p.Name,
-		Resource: p.Resource,
-		Action:   p.Action,
-	}
+	return result
 }
