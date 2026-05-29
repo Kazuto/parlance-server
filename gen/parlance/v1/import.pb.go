@@ -25,28 +25,28 @@ const (
 type ImportMode int32
 
 const (
-	ImportMode_IMPORT_MODE_UNSPECIFIED ImportMode = 0
-	ImportMode_CREATE_ONLY             ImportMode = 1 // Only create new entries, skip existing
-	ImportMode_UPDATE_ONLY             ImportMode = 2 // Only update existing entries
-	ImportMode_CREATE_OR_UPDATE        ImportMode = 3 // Upsert: create new or update existing (default)
-	ImportMode_REPLACE_ALL             ImportMode = 4 // Delete all entries in scope first, then import
+	ImportMode_IMPORT_MODE_UNSPECIFIED      ImportMode = 0
+	ImportMode_IMPORT_MODE_CREATE_ONLY      ImportMode = 1 // Only create new entries, skip existing
+	ImportMode_IMPORT_MODE_UPDATE_ONLY      ImportMode = 2 // Only update existing entries
+	ImportMode_IMPORT_MODE_CREATE_OR_UPDATE ImportMode = 3 // Upsert: create new or update existing (default)
+	ImportMode_IMPORT_MODE_REPLACE_ALL      ImportMode = 4 // Delete all entries in scope first, then import
 )
 
 // Enum value maps for ImportMode.
 var (
 	ImportMode_name = map[int32]string{
 		0: "IMPORT_MODE_UNSPECIFIED",
-		1: "CREATE_ONLY",
-		2: "UPDATE_ONLY",
-		3: "CREATE_OR_UPDATE",
-		4: "REPLACE_ALL",
+		1: "IMPORT_MODE_CREATE_ONLY",
+		2: "IMPORT_MODE_UPDATE_ONLY",
+		3: "IMPORT_MODE_CREATE_OR_UPDATE",
+		4: "IMPORT_MODE_REPLACE_ALL",
 	}
 	ImportMode_value = map[string]int32{
-		"IMPORT_MODE_UNSPECIFIED": 0,
-		"CREATE_ONLY":             1,
-		"UPDATE_ONLY":             2,
-		"CREATE_OR_UPDATE":        3,
-		"REPLACE_ALL":             4,
+		"IMPORT_MODE_UNSPECIFIED":      0,
+		"IMPORT_MODE_CREATE_ONLY":      1,
+		"IMPORT_MODE_UPDATE_ONLY":      2,
+		"IMPORT_MODE_CREATE_OR_UPDATE": 3,
+		"IMPORT_MODE_REPLACE_ALL":      4,
 	}
 )
 
@@ -606,14 +606,14 @@ const file_parlance_v1_import_proto_rawDesc = "" +
 	"\x06errors\x18\x05 \x03(\v2\x18.parlance.v1.ImportErrorR\x06errors\"9\n" +
 	"\vImportError\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage*r\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage*\xa2\x01\n" +
 	"\n" +
 	"ImportMode\x12\x1b\n" +
-	"\x17IMPORT_MODE_UNSPECIFIED\x10\x00\x12\x0f\n" +
-	"\vCREATE_ONLY\x10\x01\x12\x0f\n" +
-	"\vUPDATE_ONLY\x10\x02\x12\x14\n" +
-	"\x10CREATE_OR_UPDATE\x10\x03\x12\x0f\n" +
-	"\vREPLACE_ALL\x10\x042\x8e\x02\n" +
+	"\x17IMPORT_MODE_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17IMPORT_MODE_CREATE_ONLY\x10\x01\x12\x1b\n" +
+	"\x17IMPORT_MODE_UPDATE_ONLY\x10\x02\x12 \n" +
+	"\x1cIMPORT_MODE_CREATE_OR_UPDATE\x10\x03\x12\x1b\n" +
+	"\x17IMPORT_MODE_REPLACE_ALL\x10\x042\x8e\x02\n" +
 	"\rImportService\x12V\n" +
 	"\rImportLaravel\x12!.parlance.v1.ImportLaravelRequest\x1a\".parlance.v1.ImportLaravelResponse\x12V\n" +
 	"\rImportVueI18N\x12!.parlance.v1.ImportVueI18NRequest\x1a\".parlance.v1.ImportVueI18NResponse\x12M\n" +

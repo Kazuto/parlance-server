@@ -51,10 +51,10 @@ message ImportJsonResponse {
 // Import modes
 enum ImportMode {
   IMPORT_MODE_UNSPECIFIED = 0;
-  CREATE_ONLY = 1;      // Only create new entries, skip existing
-  UPDATE_ONLY = 2;      // Only update existing entries
-  CREATE_OR_UPDATE = 3; // Upsert: create new or update existing (default)
-  REPLACE_ALL = 4;      // Delete all entries in scope first, then import
+  IMPORT_MODE_CREATE_ONLY = 1;      // Only create new entries, skip existing
+  IMPORT_MODE_UPDATE_ONLY = 2;      // Only update existing entries
+  IMPORT_MODE_CREATE_OR_UPDATE = 3; // Upsert: create new or update existing (default)
+  IMPORT_MODE_REPLACE_ALL = 4;      // Delete all entries in scope first, then import
 }
 
 // Import result statistics
