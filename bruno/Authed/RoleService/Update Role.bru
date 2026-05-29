@@ -1,0 +1,69 @@
+meta {
+  name: Update Role
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.RoleService/UpdateRole
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": "{{roleId}}",
+    "name": "admin",
+    "description": "Allows the user to view translations"
+  }
+}
+
+script:pre-request {
+  const roleId = bru.getVar('roleId');
+  
+  if (!roleId) {
+      await bru.runRequest('Authed/RoleService/ListRoles');
+  
+      return;
+  }
+}
+
+docs {
+  # Update Role
+  
+  Updates an existing role's details.
+  
+  ## Authentication
+  Requires valid access token.
+  
+  ## Request
+  - `id` (required): The UUID of the role to update
+  - `name` (optional): Updated name
+  - `description` (optional): Updated description
+  
+  ## Behavior
+  - Only provided fields will be updated
+  
+  ## Response
+  Returns the updated user.
+  
+  ## Example Response
+  ```json
+  {
+    "role": {
+      "id": "4ff3cc5a-6d62-401e-95d4-120b32673a4a",
+      "name": "admin",
+      "description": "Allows the user to view translations"
+    }
+  }
+  ```
+  
+  ## Errors
+  - `INVALID_ARGUMENT`: role id is required
+  - `NOT_FOUND`: role not found
+  - `INTERNAL`: failed to update role
+}

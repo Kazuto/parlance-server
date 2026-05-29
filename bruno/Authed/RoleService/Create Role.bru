@@ -1,0 +1,54 @@
+meta {
+  name: Create Role
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.RoleService/CreateRole
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Viewer",
+    "description": "Allows the user to view translations."
+  }
+}
+
+docs {
+  # Create Role
+  
+  Creates a new role.
+  
+  ## Authentication
+  Requires valid access token.
+  
+  ## Request
+  - `name` (required): The name of the permission
+  - `description`: An optional description
+  
+  ## Response
+  Returns the newly created permission.
+  
+  ## Example Response
+  ```json
+  {
+    "role": {
+      "id": "78d45ed2-9d6e-455d-8e91-c50bb3236fde",
+      "name": "Viewer",
+      "description": "Allows the user to view translations."
+    }
+  }
+  ```
+  
+  ## Errors
+  - `INVALID_ARGUMENT`: name is required
+  - `ALREADY_EXISTS`: role with this name already exists
+  - `INTERNAL`: failed to create role
+}

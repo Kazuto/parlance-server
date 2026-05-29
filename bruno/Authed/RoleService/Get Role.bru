@@ -1,0 +1,105 @@
+meta {
+  name: Get Role
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.RoleService/GetRole
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": "{{roleId}}"
+  }
+}
+
+script:pre-request {
+  const roleId = bru.getVar('roleId');
+  
+  if (!roleId) {
+      await bru.runRequest('Authed/RoleService/ListRoles');
+  
+      return;
+  }
+}
+
+docs {
+  # Get Role
+  
+  Retrieves a single role with permissions by their ID.
+  
+  ## Authentication
+  Requires valid access token.
+  
+  ## Request
+  - `id` (required): The UUID of the permission to retrieve
+  
+  ## Response
+  Returns the role details.
+  
+  ## Example Response
+  ```json
+  {
+    "role": {
+      "id": "4ff3cc5a-6d62-401e-95d4-120b32673a4a",
+      "name": "admin",
+      "description": "Allows the user to view translations",
+      "permissions": [
+        {
+          "id": "7f3249f3-41e3-400d-9ad7-4c27c943f66a",
+          "name": "create_entry",
+          "resource": "entry",
+          "action": "create"
+        },
+        {
+          "id": "b09fe03f-a62e-4e71-a83d-a7eff2e76301",
+          "name": "read_entry",
+          "resource": "entry",
+          "action": "read"
+        },
+        {
+          "id": "e64d42cf-f57e-4c60-a22d-a198e873be17",
+          "name": "update_entry",
+          "resource": "entry",
+          "action": "update"
+        },
+        {
+          "id": "2ee6d220-563a-4214-9ca9-31d80068b02e",
+          "name": "delete_entry",
+          "resource": "entry",
+          "action": "delete"
+        },
+        {
+          "id": "58beac90-1f3e-4097-b08b-4e03eb0838b7",
+          "name": "create_locale",
+          "resource": "locale",
+          "action": "create"
+        },
+        {
+          "id": "265a2983-0349-4ac5-8b3b-783ae7a55e7d",
+          "name": "manage_users",
+          "resource": "user",
+          "action": "manage"
+        },
+        {
+          "id": "31d1caf4-3765-4195-b856-6ff41333a80f",
+          "name": "manage_terminology",
+          "resource": "terminology",
+          "action": "manage"
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Errors
+  - `INVALID_ARGUMENT`: role id is required
+  - `NOT_FOUND`: role not found
+}

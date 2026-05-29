@@ -1,0 +1,61 @@
+meta {
+  name: Delete Role
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.RoleService/DeleteRole
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": "{{roleId}}"
+  }
+}
+
+script:pre-request {
+  const roleId = bru.getVar('roleId');
+  
+  if (!roleId) {
+      await bru.runRequest('Authed/RoleService/ListRoles');
+  
+      return;
+  }
+}
+
+docs {
+  # Delete Role
+  
+  Soft deletes a role from the system.
+  
+  ## Authentication
+  Requires valid access token.
+  
+  ## Request
+  - `id` (required): The UUID of the role to delete
+  
+  ## Behavior
+  - This is a soft delete (sets `deleted_at` timestamp)
+  - Role can no longer be used
+  - Historical data remains intact
+  
+  ## Response
+  Returns an empty response on success.
+  
+  ## Example Response
+  ```json
+  {}
+  ```
+  
+  ## Errors
+  - `INVALID_ARGUMENT`: role id is required
+  - `NOT_FOUND`: role not found
+  - `INTERNAL`: failed to delete role
+}
