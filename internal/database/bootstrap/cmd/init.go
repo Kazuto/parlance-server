@@ -35,9 +35,13 @@ func (c *InitCommand) Run(ctx context.Context) error {
 		return err
 	}
 
-	// Register initializers
 	roleInit := models.NewRoleInitializer()
 	if err := factory.Register(roleInit); err != nil {
+		return err
+	}
+
+	localeInit := models.NewLocaleInitializer()
+	if err := factory.Register(localeInit); err != nil {
 		return err
 	}
 
