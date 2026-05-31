@@ -1,27 +1,16 @@
 package cmd
 
 import (
+	"log"
+
 	bootstrap "github.com/kazuto/parlance-server/internal/database/seeders"
 	models "github.com/kazuto/parlance-server/internal/database/seeders/models"
 	"gorm.io/gorm"
 )
 
-type InitCommand struct{}
+func Execute(db *gorm.DB) error {
+	log.Println("🌱 Starting database seeding...")
 
-func NewInitCommand() *InitCommand {
-	return &InitCommand{}
-}
-
-// Name returns the command name.
-func (c *InitCommand) Name() string {
-	return "init"
-}
-
-func (c *InitCommand) Description() string {
-	return "Run all database seeder with fake data"
-}
-
-func (c *InitCommand) Run(db *gorm.DB) error {
 	factory := bootstrap.NewSeederFactory()
 
 	// Register seeder
@@ -70,10 +59,7 @@ func (c *InitCommand) Run(db *gorm.DB) error {
 		println(seeder.Name(), "-", seeder.Description())
 	}
 
-	return nil
-}
+	log.Println("✅ Database seeding completed successfully!")
 
-// Dependencies returns any external dependencies required by this command.
-func (c *InitCommand) Dependencies() []string {
-	return []string{"database", "users", "roles", "content"}
+	return nil
 }

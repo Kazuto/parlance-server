@@ -33,38 +33,37 @@ import (
 func main() {
 	log.Println("Starting Parlance Server...")
 
-	// Load configuration
 	cfg := config.Load()
 	log.Printf("Environment: %s", cfg.Server.Env)
 
-	// Connect to database
 	db, err := database.Connect(cfg.Database)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer db.Close()
 
-	// Run database migrations
 	if err := db.AutoMigrate(); err != nil {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
-	// Seed default data
-	if err := db.Seed(); err != nil {
-		log.Fatalf("Failed to seed database: %v", err)
+	if err := db.Bootstrap(); err != nil {
+		log.Fatalf("Failed to bootstrap database: %v", err)
 	}
 
-	// Create HTTP router
+	if cfg.Server.Env == "development" {
+		if err := db.Seed(); err != nil {
+			log.Fatalf("Failed to seed database: %v", err)
+		}
+	}
+
 	mux := http.NewServeMux()
 
-	// Health check endpoint
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"status":"ok","service":"parlance-api"}`))
 	})
 
-	// Create auth middleware
 	authMiddleware := middleware.AuthMiddleware(cfg.JWT.Secret)
 
 	// Register Connect RPC services
