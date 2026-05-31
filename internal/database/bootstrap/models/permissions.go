@@ -36,9 +36,7 @@ func (i *PermissionInitializer) Run(db *gorm.DB) error {
 	}
 
 	for i := range permissions {
-		if err := db.FirstOrCreate(&permissions[i], models.Permission{Name: permissions[i].Name}).Error; err != nil {
-			return err
-		}
+		db.Where("name = ?", permissions[i].Name).FirstOrCreate(&permissions[i])
 	}
 
 	return nil

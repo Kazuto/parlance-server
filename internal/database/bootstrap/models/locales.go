@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/kazuto/parlance-server/internal/models"
-	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -32,13 +31,7 @@ func (i *LocaleInitializer) Run(db *gorm.DB) error {
 	}
 
 	for i := range locales {
-		if err := db.FirstOrCreate(&locales[i], models.Locale{
-			Code:      locales[i].Code,
-			Names:     datatypes.JSON(locales[i].Names),
-			IsDefault: locales[i].IsDefault,
-		}).Error; err != nil {
-			return err
-		}
+		db.Where("code = ?", locales[i].Code).FirstOrCreate(&locales[i])
 	}
 
 	return nil

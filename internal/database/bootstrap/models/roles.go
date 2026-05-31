@@ -25,9 +25,7 @@ func (i *RoleInitializer) Run(db *gorm.DB) error {
 	}
 
 	admin := models.Role{Name: "admin", Permissions: permissions}
-	if err := db.FirstOrCreate(&admin, models.Role{Name: "admin"}).Error; err != nil {
-		return err
-	}
+	db.Where("name = ?", "admin").FirstOrCreate(&admin)
 
 	db.Model(&admin).Association("Permissions").Replace(&permissions)
 
