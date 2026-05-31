@@ -50,12 +50,6 @@ func main() {
 		log.Fatalf("Failed to bootstrap database: %v", err)
 	}
 
-	if cfg.Server.Env == "development" {
-		if err := db.Seed(); err != nil {
-			log.Fatalf("Failed to seed database: %v", err)
-		}
-	}
-
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
