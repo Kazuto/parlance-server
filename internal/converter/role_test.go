@@ -73,59 +73,29 @@ func TestRoleToProto(t *testing.T) {
 	}
 }
 
-func TestPermissionToProto(t *testing.T) {
-	tests := []struct {
-		name       string
-		permission *models.Permission
-		wantNil    bool
-	}{
+func TestRolesToProto(t *testing.T) {
+	roles := []models.Role{
 		{
-			name:       "nil permission",
-			permission: nil,
-			wantNil:    true,
+			ID:   "role-1",
+			Name: "admin",
 		},
 		{
-			name: "basic permission",
-			permission: &models.Permission{
-				ID:       "perm-id",
-				Name:     "create_user",
-				Resource: "user",
-				Action:   "create",
-			},
-			wantNil: false,
+			ID:   "role-2",
+			Name: "viewer",
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := PermissionToProto(tt.permission)
+	result := RolesToProto(roles)
 
-			if tt.wantNil {
-				if result != nil {
-					t.Errorf("PermissionToProto() = %v, want nil", result)
-				}
-				return
-			}
+	if len(result) != 2 {
+		t.Fatalf("RolesToProto() length = %v, want 2", len(result))
+	}
 
-			if result == nil {
-				t.Fatal("PermissionToProto() returned nil")
-			}
+	if result[0].Name != "admin" {
+		t.Errorf("First role name = %v, want admin", result[0].Name)
+	}
 
-			if result.Id != tt.permission.ID {
-				t.Errorf("ID = %v, want %v", result.Id, tt.permission.ID)
-			}
-
-			if result.Name != tt.permission.Name {
-				t.Errorf("Name = %v, want %v", result.Name, tt.permission.Name)
-			}
-
-			if result.Resource != tt.permission.Resource {
-				t.Errorf("Resource = %v, want %v", result.Resource, tt.permission.Resource)
-			}
-
-			if result.Action != tt.permission.Action {
-				t.Errorf("Action = %v, want %v", result.Action, tt.permission.Action)
-			}
-		})
+	if result[1].Name != "viewer" {
+		t.Errorf("Second role name = %v, want viewer", result[1].Name)
 	}
 }

@@ -62,3 +62,34 @@ func TestPermissionToProto(t *testing.T) {
 		})
 	}
 }
+
+func TestPermissionsToProto(t *testing.T) {
+	permissions := []models.Permission{
+		{
+			ID:       "perm-1",
+			Name:     "create_user",
+			Resource: "user",
+			Action:   "create",
+		},
+		{
+			ID:       "perm-2",
+			Name:     "read_user",
+			Resource: "user",
+			Action:   "read",
+		},
+	}
+
+	result := PermissionsToProto(permissions)
+
+	if len(result) != 2 {
+		t.Fatalf("PermissionsToProto() length = %v, want 2", len(result))
+	}
+
+	if result[0].Name != "create_user" {
+		t.Errorf("First permission name = %v, want create_user", result[0].Name)
+	}
+
+	if result[1].Name != "read_user" {
+		t.Errorf("Second permission name = %v, want read_user", result[1].Name)
+	}
+}
