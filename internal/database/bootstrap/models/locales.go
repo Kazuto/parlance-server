@@ -1,12 +1,11 @@
 package models
 
 import (
-	"context"
 	"log"
 
-	"github.com/kazuto/parlance-server/internal/config"
-	"github.com/kazuto/parlance-server/internal/database"
 	"github.com/kazuto/parlance-server/internal/models"
+	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 type LocaleInitializer struct{}
@@ -18,13 +17,8 @@ func (i *LocaleInitializer) Description() string {
 	return "Populates Locales table"
 }
 
-func (i *LocaleInitializer) Run(ctx context.Context) error {
+func (i *LocaleInitializer) Run(db *gorm.DB) error {
 	log.Println("Initializing locales...")
-	cfg := config.Load()
-	db, err := database.Connect(cfg.Database)
-	if err != nil {
-		return err
-	}
 
 	locales := []models.Locale{
 		{Code: "en", Names: []byte(`{"en":"English","de":"Englisch","fr":"Anglais","es":"Inglés","it":"Inglese","pt":"Inglês","ja":"英語","zh":"英语"}`), IsDefault: true},
@@ -40,7 +34,7 @@ func (i *LocaleInitializer) Run(ctx context.Context) error {
 	for i := range locales {
 		if err := db.FirstOrCreate(&locales[i], models.Locale{
 			Code:      locales[i].Code,
-			Names:     locales[i].Names,
+			Names:     datatypes.JSON(locales[i].Names),
 			IsDefault: locales[i].IsDefault,
 		}).Error; err != nil {
 			return err

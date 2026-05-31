@@ -1,7 +1,7 @@
 package bootstrap
 
 import (
-	"context"
+	"gorm.io/gorm"
 )
 
 type InitializerFactory struct {
@@ -20,10 +20,6 @@ func (f *InitializerFactory) All() []Initializer {
 	return f.registry.All()
 }
 
-func (f *InitializerFactory) RunAll(ctx context.Context) error {
-	return f.registry.RunAll(ctx)
-}
-
-func (f *InitializerFactory) RunByName(name string, ctx context.Context) error {
-	return f.registry.RunByName(name, ctx)
+func (f *InitializerFactory) RunAll(db *gorm.DB) error {
+	return f.registry.RunAll(db)
 }

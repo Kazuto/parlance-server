@@ -1,10 +1,9 @@
 package cmd
 
 import (
-	"context"
-
 	bootstrap "github.com/kazuto/parlance-server/internal/database/bootstrap"
 	models "github.com/kazuto/parlance-server/internal/database/bootstrap/models"
+	"gorm.io/gorm"
 )
 
 // InitCommand is the CLI command to run all initializers.
@@ -26,7 +25,7 @@ func (c *InitCommand) Description() string {
 }
 
 // Run executes the command, running all registered initializers.
-func (c *InitCommand) Run(ctx context.Context) error {
+func (c *InitCommand) Run(db *gorm.DB) error {
 	factory := bootstrap.NewInitializerFactory()
 
 	// Register initializers
@@ -46,7 +45,7 @@ func (c *InitCommand) Run(ctx context.Context) error {
 	}
 
 	// Run all initializers
-	if err := factory.RunAll(ctx); err != nil {
+	if err := factory.RunAll(db); err != nil {
 		return err
 	}
 

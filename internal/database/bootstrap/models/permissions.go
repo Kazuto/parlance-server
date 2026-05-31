@@ -1,13 +1,11 @@
 package models
 
 import (
-	"context"
 	"fmt"
 	"log"
 
-	"github.com/kazuto/parlance-server/internal/config"
-	"github.com/kazuto/parlance-server/internal/database"
 	"github.com/kazuto/parlance-server/internal/models"
+	"gorm.io/gorm"
 )
 
 type PermissionInitializer struct{}
@@ -19,13 +17,8 @@ func (i *PermissionInitializer) Description() string {
 	return "Populates Permissions table"
 }
 
-func (i *PermissionInitializer) Run(ctx context.Context) error {
+func (i *PermissionInitializer) Run(db *gorm.DB) error {
 	log.Println("Initializing permissions")
-	cfg := config.Load()
-	db, err := database.Connect(cfg.Database)
-	if err != nil {
-		return err
-	}
 
 	actions := []string{"create", "read", "update", "delete"}
 	resources := []string{"definition", "entry", "locale", "Permission", "scope", "terminology", "user"}

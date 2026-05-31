@@ -1,12 +1,10 @@
 package models
 
 import (
-	"context"
 	"log"
 
-	"github.com/kazuto/parlance-server/internal/config"
-	"github.com/kazuto/parlance-server/internal/database"
 	"github.com/kazuto/parlance-server/internal/models"
+	"gorm.io/gorm"
 )
 
 type RoleInitializer struct{}
@@ -18,13 +16,8 @@ func (i *RoleInitializer) Description() string {
 	return "Populates roles table"
 }
 
-func (i *RoleInitializer) Run(ctx context.Context) error {
+func (i *RoleInitializer) Run(db *gorm.DB) error {
 	log.Println("Initializing admin role and attach permissions...")
-	cfg := config.Load()
-	db, err := database.Connect(cfg.Database)
-	if err != nil {
-		return err
-	}
 
 	var permissions []models.Permission
 	if err := db.Find(&permissions).Error; err != nil {

@@ -1,14 +1,15 @@
 package bootstrap
 
 import (
-	"context"
 	"fmt"
+
+	"gorm.io/gorm"
 )
 
 type Initializer interface {
 	Name() string
 	Description() string
-	Run(ctx context.Context) error
+	Run(db *gorm.DB) error
 	Dependencies() []string
 }
 
@@ -36,19 +37,11 @@ func (r *InitializerRegistry) All() []Initializer {
 	return result
 }
 
-func (r *InitializerRegistry) RunAll(ctx context.Context) error {
+func (r *InitializerRegistry) RunAll(db *gorm.DB) error {
 	for _, init := range r.All() {
-		if err := init.Run(ctx); err != nil {
+		if err := init.Run(db); err != nil {
 			return fmt.Errorf("initializer %s failed: %w", init.Name(), err)
 		}
 	}
 	return nil
-}
-
-func (r *InitializerRegistry) RunByName(name string, ctx context.Context) error {
-	init, ok := r.initializers[name]
-	if !ok {
-		return fmt.Errorf("initializer %s not found", name)
-	}
-	return init.Run(ctx)
 }
