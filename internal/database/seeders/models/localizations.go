@@ -1,8 +1,6 @@
 package models
 
 import (
-	"log"
-
 	"github.com/kazuto/parlance-server/internal/models"
 	"gorm.io/gorm"
 )
@@ -11,26 +9,18 @@ type LocalizationsSeeder struct{}
 
 func NewLocalizationsSeeder() *LocalizationsSeeder { return &LocalizationsSeeder{} }
 
-func (i *LocalizationsSeeder) Name() string { return "localizations" }
-func (i *LocalizationsSeeder) Description() string {
-	return "Seed localizations"
-}
+func (i *LocalizationsSeeder) Name() string { return "Localizations" }
 
 func (i *LocalizationsSeeder) Run(db *gorm.DB) error {
-	log.Println("Seeding localizations...")
-
-	// Get locales
 	var enLocale, deLocale, esLocale, frLocale models.Locale
 	db.Where("code = ?", "en").First(&enLocale)
 	db.Where("code = ?", "de").First(&deLocale)
 	db.Where("code = ?", "es").First(&esLocale)
 	db.Where("code = ?", "fr").First(&frLocale)
 
-	// Get translator user
 	var translator models.User
 	db.Where("email = ?", "translator@parlance.dev").First(&translator)
 
-	// Get entries
 	var entries []models.Entry
 	db.Limit(20).Find(&entries)
 
@@ -176,11 +166,8 @@ func (i *LocalizationsSeeder) Run(db *gorm.DB) error {
 					CreatedBy:   &translator.ID,
 				}
 
-				if err := db.Create(&localization).Error; err != nil {
-					return err
-				}
+				db.Where("entry_id = ? AND locale_id = ?", entry.ID, localeID).FirstOrCreate(&localization)
 			}
-			log.Printf("    Created localizations for: %s", entry.Key)
 		}
 	}
 

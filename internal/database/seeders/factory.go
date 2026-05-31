@@ -20,6 +20,10 @@ func (f *SeederFactory) All() []Seeder {
 	return f.registry.All()
 }
 
+func (f *SeederFactory) Run(seeder Seeder, db *gorm.DB) error {
+	return f.registry.Run(seeder, db)
+}
+
 func (f *SeederFactory) RunAll(db *gorm.DB) error {
 	return f.registry.RunAll(db)
 }

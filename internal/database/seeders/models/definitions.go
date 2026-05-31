@@ -11,14 +11,9 @@ type DefinitionSeeder struct{}
 
 func NewDefinitionSeeder() *DefinitionSeeder { return &DefinitionSeeder{} }
 
-func (i *DefinitionSeeder) Name() string { return "scopes" }
-func (i *DefinitionSeeder) Description() string {
-	return "Seed scopes"
-}
+func (i *DefinitionSeeder) Name() string { return "Definitions" }
 
 func (i *DefinitionSeeder) Run(db *gorm.DB) error {
-	log.Println("Seeding definitions...")
-
 	var translator models.User
 	db.Where("email = ?", "translator@parlance.dev").First(&translator)
 

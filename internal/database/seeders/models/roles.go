@@ -1,9 +1,6 @@
 package models
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/kazuto/parlance-server/internal/models"
 	"gorm.io/gorm"
 )
@@ -12,14 +9,9 @@ type RoleSeeder struct{}
 
 func NewRoleSeeder() *RoleSeeder { return &RoleSeeder{} }
 
-func (i *RoleSeeder) Name() string { return "roles" }
-func (i *RoleSeeder) Description() string {
-	return "Seed roles"
-}
+func (i *RoleSeeder) Name() string { return "Roles" }
 
 func (i *RoleSeeder) Run(db *gorm.DB) error {
-	log.Println("Seeding roles...")
-
 	roles := []models.Role{
 		{Name: "admin", Description: "Full system access"},
 		{Name: "translator", Description: "Can create and edit translations"},
@@ -27,8 +19,8 @@ func (i *RoleSeeder) Run(db *gorm.DB) error {
 		{Name: "viewer", Description: "Read-only access"},
 	}
 
-	if err := db.Create(&roles).Error; err != nil {
-		return fmt.Errorf("failed to seed roles: %w", err)
+	for _, r := range roles {
+		db.Where("name = ?", r.Name).FirstOrCreate(&r)
 	}
 
 	// Assign permissions to roles

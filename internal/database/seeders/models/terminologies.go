@@ -1,8 +1,6 @@
 package models
 
 import (
-	"log"
-
 	"github.com/kazuto/parlance-server/internal/models"
 	"gorm.io/gorm"
 )
@@ -11,14 +9,9 @@ type TerminologySeeder struct{}
 
 func NewTerminologySeeder() *TerminologySeeder { return &TerminologySeeder{} }
 
-func (i *TerminologySeeder) Name() string { return "terminologies" }
-func (i *TerminologySeeder) Description() string {
-	return "Seed terminologies"
-}
+func (i *TerminologySeeder) Name() string { return "Terminologies" }
 
 func (i *TerminologySeeder) Run(db *gorm.DB) error {
-	log.Println("Seeding terminologies...")
-
 	var adminUser models.User
 	db.Where("email = ?", "admin@parlance.dev").First(&adminUser)
 
@@ -45,11 +38,7 @@ func (i *TerminologySeeder) Run(db *gorm.DB) error {
 			CreatedBy:   &adminUser.ID,
 		}
 
-		if err := db.Create(&terminology).Error; err != nil {
-			return err
-		}
-
-		log.Printf("    Created terminology: %s", termData.term)
+		db.Where("term = ?", termData.term).FirstOrCreate(&terminology)
 	}
 
 	return nil

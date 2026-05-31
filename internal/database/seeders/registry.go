@@ -9,7 +9,6 @@ import (
 type Seeder interface {
 	Name() string
 	Run(db *gorm.DB) error
-	Description() string
 }
 
 type SeederRegistry struct {
@@ -34,6 +33,13 @@ func (r *SeederRegistry) All() []Seeder {
 		result = append(result, init)
 	}
 	return result
+}
+
+func (r *SeederRegistry) Run(seeder Seeder, db *gorm.DB) error {
+	if err := seeder.Run(db); err != nil {
+		return fmt.Errorf("seeder %s failed: %w", seeder.Name(), err)
+	}
+	return nil
 }
 
 func (r *SeederRegistry) RunAll(db *gorm.DB) error {

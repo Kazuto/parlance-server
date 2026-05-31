@@ -1,8 +1,6 @@
 package models
 
 import (
-	"log"
-
 	"github.com/kazuto/parlance-server/internal/auth"
 	"github.com/kazuto/parlance-server/internal/models"
 	"gorm.io/gorm"
@@ -12,14 +10,9 @@ type UserSeeder struct{}
 
 func NewUserSeeder() *UserSeeder { return &UserSeeder{} }
 
-func (i *UserSeeder) Name() string { return "users" }
-func (i *UserSeeder) Description() string {
-	return "Seed users"
-}
+func (i *UserSeeder) Name() string { return "Users" }
 
 func (i *UserSeeder) Run(db *gorm.DB) error {
-	log.Println("Seeding users...")
-
 	var adminRole, translatorRole, viewerRole models.Role
 	db.Where("name = ?", "admin").First(&adminRole)
 	db.Where("name = ?", "translator").First(&translatorRole)
@@ -46,15 +39,11 @@ func (i *UserSeeder) Run(db *gorm.DB) error {
 			Name:         userData.name,
 		}
 
-		if err := db.Create(&user).Error; err != nil {
-			return err
-		}
+		db.Where("email = ?", userData.email).FirstOrCreate(&user)
 
 		if err := db.Model(&user).Association("Roles").Replace(&userData.roles); err != nil {
 			return err
 		}
-
-		log.Printf("Created user: %s (password: %s)", userData.email, userData.password)
 	}
 
 	return nil

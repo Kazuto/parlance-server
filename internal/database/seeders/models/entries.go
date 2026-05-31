@@ -1,8 +1,6 @@
 package models
 
 import (
-	"log"
-
 	"github.com/kazuto/parlance-server/internal/models"
 	"gorm.io/gorm"
 )
@@ -11,23 +9,16 @@ type EntriesSeeder struct{}
 
 func NewEntriesSeeder() *EntriesSeeder { return &EntriesSeeder{} }
 
-func (i *EntriesSeeder) Name() string { return "entries" }
-func (i *EntriesSeeder) Description() string {
-	return "Seed entries"
-}
+func (i *EntriesSeeder) Name() string { return "Entries" }
 
 func (i *EntriesSeeder) Run(db *gorm.DB) error {
-	log.Println("Seeding entries...")
-
-	// Get admin user for CreatedBy
 	var adminUser models.User
 	db.Where("email = ?", "admin@parlance.dev").First(&adminUser)
 
-	// Get scopes
 	var frontendScope, backendScope, mobileScope models.Scope
-	db.Where("name = ?", "frontend").First(&frontendScope)
-	db.Where("name = ?", "backend").First(&backendScope)
-	db.Where("name = ?", "mobile").First(&mobileScope)
+	db.Where("name = ?", "Frontend").First(&frontendScope)
+	db.Where("name = ?", "Backend").First(&backendScope)
+	db.Where("name = ?", "Mobile").First(&mobileScope)
 
 	entries := []struct {
 		key         string
@@ -63,15 +54,11 @@ func (i *EntriesSeeder) Run(db *gorm.DB) error {
 			CreatedBy:   &adminUser.ID,
 		}
 
-		if err := db.Create(&entry).Error; err != nil {
-			return err
-		}
+		db.Where("key = ?", entryData.key).FirstOrCreate(&entry)
 
 		if len(entryData.scopes) > 0 {
 			db.Model(&entry).Association("Scopes").Replace(&entryData.scopes)
 		}
-
-		log.Printf("    Created entry: %s", entryData.key)
 	}
 
 	return nil
