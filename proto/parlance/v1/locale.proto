@@ -19,10 +19,11 @@ message Locale {
   string id = 1;
   string code = 2;                    // e.g., "en", "de-DE", "fr-FR"
   string name = 3;                    // Localized name based on request locale
-  map<string, string> names = 7;     // All available translations {"en": "English", "de": "Englisch"}
-  bool is_default = 4;                // Only one locale can be default
-  string created_at = 5;
-  string updated_at = 6;
+  map<string, string> names = 4;     // All available translations {"en": "English", "de": "Englisch"}
+  bool is_default = 5;                // Only one locale can be default
+  string created_at = 6;
+  string updated_at = 7;
+  string deleted_at = 8;
 }
 
 message CreateLocaleRequest {

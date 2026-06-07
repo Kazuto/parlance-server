@@ -30,6 +30,7 @@ type Scope struct {
 	Color         string                 `protobuf:"bytes,5,opt,name=color,proto3" json:"color,omitempty"` // Hex color code (e.g., "#FF5733")
 	CreatedAt     string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     string                 `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DeletedAt     string                 `protobuf:"bytes,8,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -109,6 +110,13 @@ func (x *Scope) GetCreatedAt() string {
 func (x *Scope) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *Scope) GetDeletedAt() string {
+	if x != nil {
+		return x.DeletedAt
 	}
 	return ""
 }
@@ -878,7 +886,7 @@ var File_parlance_v1_scope_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_scope_proto_rawDesc = "" +
 	"\n" +
-	"\x17parlance/v1/scope.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\xb5\x01\n" +
+	"\x17parlance/v1/scope.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\xd4\x01\n" +
 	"\x05Scope\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
@@ -888,7 +896,9 @@ const file_parlance_v1_scope_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x06 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\tR\tupdatedAt\"t\n" +
+	"updated_at\x18\a \x01(\tR\tupdatedAt\x12\x1d\n" +
+	"\n" +
+	"deleted_at\x18\b \x01(\tR\tdeletedAt\"t\n" +
 	"\x12CreateScopeRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04slug\x18\x02 \x01(\tR\x04slug\x12 \n" +

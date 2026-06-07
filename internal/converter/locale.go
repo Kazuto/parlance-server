@@ -41,6 +41,11 @@ func LocaleToProto(l *models.Locale, requestLocale string) *pb.Locale {
 		}
 	}
 
+	deletedAt := ""
+	if l.DeletedAt.Valid {
+		deletedAt = l.DeletedAt.Time.Format("2006-01-02T15:04:05Z07:00")
+	}
+
 	return &pb.Locale{
 		Id:        l.ID,
 		Code:      l.Code,
@@ -49,6 +54,7 @@ func LocaleToProto(l *models.Locale, requestLocale string) *pb.Locale {
 		IsDefault: l.IsDefault,
 		CreatedAt: l.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt: l.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		DeletedAt: deletedAt,
 	}
 }
 

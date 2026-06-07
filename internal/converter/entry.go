@@ -31,12 +31,18 @@ func EntryToProto(e *models.Entry, requestLocale string) *pb.Entry {
 		updatedBy = *e.UpdatedBy
 	}
 
+	deletedAt := ""
+	if e.DeletedAt.Valid {
+		deletedAt = e.DeletedAt.Time.Format("2006-01-02T15:04:05Z07:00")
+	}
+
 	return &pb.Entry{
 		Id:            e.ID,
 		Key:           e.Key,
 		Description:   e.Description,
 		CreatedAt:     e.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt:     e.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		DeletedAt:     deletedAt,
 		CreatedBy:     createdBy,
 		UpdatedBy:     updatedBy,
 		Localizations: localizations,

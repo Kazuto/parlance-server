@@ -25,6 +25,11 @@ func TerminologyToProto(t *models.Terminology) *pb.Terminology {
 		updatedBy = *t.UpdatedBy
 	}
 
+	deletedAt := ""
+	if t.DeletedAt.Valid {
+		deletedAt = t.DeletedAt.Time.Format("2006-01-02T15:04:05Z07:00")
+	}
+
 	return &pb.Terminology{
 		Id:          t.ID,
 		Term:        t.Term,
@@ -32,6 +37,7 @@ func TerminologyToProto(t *models.Terminology) *pb.Terminology {
 		Definitions: definitions,
 		CreatedAt:   t.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt:   t.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		DeletedAt:   deletedAt,
 		CreatedBy:   createdBy,
 		UpdatedBy:   updatedBy,
 	}

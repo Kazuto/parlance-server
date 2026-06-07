@@ -20,6 +20,11 @@ func DefinitionToProto(d *models.Definition) *pb.Definition {
 		updatedBy = *d.UpdatedBy
 	}
 
+	deletedAt := ""
+	if d.DeletedAt.Valid {
+		deletedAt = d.DeletedAt.Time.Format("2006-01-02T15:04:05Z07:00")
+	}
+
 	return &pb.Definition{
 		Id:            d.ID,
 		TerminologyId: d.TerminologyID,
@@ -27,6 +32,7 @@ func DefinitionToProto(d *models.Definition) *pb.Definition {
 		Translation:   d.Translation,
 		CreatedAt:     d.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt:     d.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		DeletedAt:     deletedAt,
 		CreatedBy:     createdBy,
 		UpdatedBy:     updatedBy,
 	}

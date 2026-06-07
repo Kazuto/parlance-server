@@ -28,10 +28,11 @@ type Entry struct {
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     string                 `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	CreatedBy     string                 `protobuf:"bytes,6,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	UpdatedBy     string                 `protobuf:"bytes,7,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
-	Localizations []*Localization        `protobuf:"bytes,8,rep,name=localizations,proto3" json:"localizations,omitempty"`
-	Scopes        []*Scope               `protobuf:"bytes,9,rep,name=scopes,proto3" json:"scopes,omitempty"` // Many-to-many relationship
+	DeletedAt     string                 `protobuf:"bytes,6,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
+	CreatedBy     string                 `protobuf:"bytes,7,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	UpdatedBy     string                 `protobuf:"bytes,8,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
+	Localizations []*Localization        `protobuf:"bytes,9,rep,name=localizations,proto3" json:"localizations,omitempty"`
+	Scopes        []*Scope               `protobuf:"bytes,10,rep,name=scopes,proto3" json:"scopes,omitempty"` // Many-to-many relationship
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -97,6 +98,13 @@ func (x *Entry) GetCreatedAt() string {
 func (x *Entry) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *Entry) GetDeletedAt() string {
+	if x != nil {
+		return x.DeletedAt
 	}
 	return ""
 }
@@ -937,7 +945,7 @@ var File_parlance_v1_entry_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\n" +
-	"\x17parlance/v1/entry.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x17parlance/v1/scope.proto\x1a\x1eparlance/v1/localization.proto\"\xb4\x02\n" +
+	"\x17parlance/v1/entry.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x17parlance/v1/scope.proto\x1a\x1eparlance/v1/localization.proto\"\xd3\x02\n" +
 	"\x05Entry\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x10\n" +
 	"\x03key\x18\x02 \x01(\tR\x03key\x12 \n" +
@@ -947,11 +955,14 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x05 \x01(\tR\tupdatedAt\x12\x1d\n" +
 	"\n" +
-	"created_by\x18\x06 \x01(\tR\tcreatedBy\x12\x1d\n" +
+	"deleted_at\x18\x06 \x01(\tR\tdeletedAt\x12\x1d\n" +
 	"\n" +
-	"updated_by\x18\a \x01(\tR\tupdatedBy\x12?\n" +
-	"\rlocalizations\x18\b \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations\x12*\n" +
-	"\x06scopes\x18\t \x03(\v2\x12.parlance.v1.ScopeR\x06scopes\"\x8c\x01\n" +
+	"created_by\x18\a \x01(\tR\tcreatedBy\x12\x1d\n" +
+	"\n" +
+	"updated_by\x18\b \x01(\tR\tupdatedBy\x12?\n" +
+	"\rlocalizations\x18\t \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations\x12*\n" +
+	"\x06scopes\x18\n" +
+	" \x03(\v2\x12.parlance.v1.ScopeR\x06scopes\"\x8c\x01\n" +
 	"\x12ListEntriesRequest\x12>\n" +
 	"\n" +
 	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +

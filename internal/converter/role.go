@@ -16,11 +16,19 @@ func RoleToProto(r *models.Role) *pb.Role {
 		permissions[i] = PermissionToProto(&perm)
 	}
 
+	deletedAt := ""
+	if r.DeletedAt.Valid {
+		deletedAt = r.DeletedAt.Time.Format("2006-01-02T15:04:05Z07:00")
+	}
+
 	return &pb.Role{
 		Id:          r.ID,
 		Name:        r.Name,
 		Description: r.Description,
 		Permissions: permissions,
+		CreatedAt:   r.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt:   r.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		DeletedAt:   deletedAt,
 	}
 }
 

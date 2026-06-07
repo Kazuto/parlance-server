@@ -11,6 +11,11 @@ func ScopeToProto(s *models.Scope) *pb.Scope {
 		return nil
 	}
 
+	deletedAt := ""
+	if s.DeletedAt.Valid {
+		deletedAt = s.DeletedAt.Time.Format("2006-01-02T15:04:05Z07:00")
+	}
+
 	return &pb.Scope{
 		Id:          s.ID,
 		Name:        s.Name,
@@ -19,6 +24,7 @@ func ScopeToProto(s *models.Scope) *pb.Scope {
 		Color:       s.Color,
 		CreatedAt:   s.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt:   s.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		DeletedAt:   deletedAt,
 	}
 }
 

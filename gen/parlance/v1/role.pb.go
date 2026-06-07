@@ -27,6 +27,9 @@ type Role struct {
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	Permissions   []*Permission          `protobuf:"bytes,4,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DeletedAt     string                 `protobuf:"bytes,7,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -87,6 +90,27 @@ func (x *Role) GetPermissions() []*Permission {
 		return x.Permissions
 	}
 	return nil
+}
+
+func (x *Role) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *Role) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *Role) GetDeletedAt() string {
+	if x != nil {
+		return x.DeletedAt
+	}
+	return ""
 }
 
 type ListRolesRequest struct {
@@ -573,12 +597,18 @@ var File_parlance_v1_role_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_role_proto_rawDesc = "" +
 	"\n" +
-	"\x16parlance/v1/role.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x1cparlance/v1/permission.proto\"\x87\x01\n" +
+	"\x16parlance/v1/role.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x1cparlance/v1/permission.proto\"\xe4\x01\n" +
 	"\x04Role\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x129\n" +
-	"\vpermissions\x18\x04 \x03(\v2\x17.parlance.v1.PermissionR\vpermissions\"R\n" +
+	"\vpermissions\x18\x04 \x03(\v2\x17.parlance.v1.PermissionR\vpermissions\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x06 \x01(\tR\tupdatedAt\x12\x1d\n" +
+	"\n" +
+	"deleted_at\x18\a \x01(\tR\tdeletedAt\"R\n" +
 	"\x10ListRolesRequest\x12>\n" +
 	"\n" +
 	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +

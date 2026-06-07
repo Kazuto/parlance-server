@@ -16,6 +16,11 @@ func UserToProto(u *models.User) *pb.User {
 		roles[i] = RoleToProto(&role)
 	}
 
+	deletedAt := ""
+	if u.DeletedAt.Valid {
+		deletedAt = u.DeletedAt.Time.Format("2006-01-02T15:04:05Z07:00")
+	}
+
 	return &pb.User{
 		Id:        u.ID,
 		Email:     u.Email,
@@ -23,6 +28,7 @@ func UserToProto(u *models.User) *pb.User {
 		Roles:     roles,
 		CreatedAt: u.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt: u.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		DeletedAt: deletedAt,
 	}
 }
 
