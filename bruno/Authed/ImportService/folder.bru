@@ -1,26 +1,27 @@
 meta {
   name: ImportService
+  seq: 9
 }
 
 docs {
   # ImportService
-
+  
   Import translations from external files in various formats.
-
+  
   ## Available Methods
   - **ImportJson**: Import flat JSON key-value pairs
   - **ImportVueI18n**: Import nested JSON (Vue i18n format)
   - **ImportLaravel**: Import PHP array format (Laravel translations)
-
+  
   ## Import Modes
   - `CREATE_ONLY`: Only create new entries, skip existing
   - `UPDATE_ONLY`: Only update existing entries
   - `CREATE_OR_UPDATE`: Upsert (default)
   - `REPLACE_ALL`: Delete all entries in scope first, then import
-
+  
   ## File Upload
   All import methods accept file content as base64-encoded bytes.
-
+  
   ## Response
   All methods return statistics:
   - `entries_created`: Number of new entries created

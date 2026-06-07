@@ -1,0 +1,185 @@
+meta {
+  name: List Permissions
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.PermissionService/ListPermissions
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "pagination": {
+      "page": 1,
+      "perPage": 20
+    }
+  }
+}
+
+script:post-response {
+  const data = res?.body?.permissions;
+  
+  if (data) {
+    const ids = data.map((el) => el.id);
+  
+    bru.setVar("permissionsId", ids);
+    bru.setVar("permissionId", ids.shift());
+  }
+}
+
+docs {
+  # List Permissions
+  
+  Retrieves a paginated list of all permissions in the system.
+  
+  ## Authentication
+  Requires valid access token.
+  
+  ## Request
+  - `pagination.page` (optional): Page number, defaults to 1
+  - `pagination.perPage` (optional): Items per page, defaults to 20, max 100
+  
+  ## Response
+  Returns an array of permissions.
+  
+  ## Example Response
+  ```json
+  {
+    "permissions": [
+      {
+        "id": "f6bb985e-c166-45da-bbdb-1ae94ad2e407",
+        "name": "create_Permission",
+        "resource": "Permission",
+        "action": "create"
+      },
+      {
+        "id": "16de9204-4a1f-4aea-ad0b-d9da1e40bd3b",
+        "name": "create_definition",
+        "resource": "definition",
+        "action": "create"
+      },
+      {
+        "id": "160bc9f7-08f4-408d-9ea0-9da7ebe4b92a",
+        "name": "create_entry",
+        "resource": "entry",
+        "action": "create"
+      },
+      {
+        "id": "416b0a69-70e6-4d97-a7af-746c034b5981",
+        "name": "create_locale",
+        "resource": "locale",
+        "action": "create"
+      },
+      {
+        "id": "8e5c3390-038a-4de6-a7a6-b45651f03084",
+        "name": "create_scope",
+        "resource": "scope",
+        "action": "create"
+      },
+      {
+        "id": "bb6d6afe-98c5-4973-9c19-18c8149eb6bc",
+        "name": "create_terminology",
+        "resource": "terminology",
+        "action": "create"
+      },
+      {
+        "id": "a91fa4d9-4d2d-4b20-a35e-80642708394c",
+        "name": "create_user",
+        "resource": "user",
+        "action": "create"
+      },
+      {
+        "id": "479936b5-248c-4436-afb2-b43da3ac835e",
+        "name": "delete_Permission",
+        "resource": "Permission",
+        "action": "delete"
+      },
+      {
+        "id": "5ce59d9f-342e-41c7-842c-a7ec5d6093da",
+        "name": "delete_definition",
+        "resource": "definition",
+        "action": "delete"
+      },
+      {
+        "id": "e6dc60df-1f50-4b68-9aee-4dab3b3b60da",
+        "name": "delete_entry",
+        "resource": "entry",
+        "action": "delete"
+      },
+      {
+        "id": "177b7b8b-8e93-4122-9e63-a10858db0067",
+        "name": "delete_locale",
+        "resource": "locale",
+        "action": "delete"
+      },
+      {
+        "id": "4c0261d5-4834-4a5c-986f-16ab4bb55a00",
+        "name": "delete_scope",
+        "resource": "scope",
+        "action": "delete"
+      },
+      {
+        "id": "7f8232a9-908c-4585-9020-960b192f93e3",
+        "name": "delete_terminology",
+        "resource": "terminology",
+        "action": "delete"
+      },
+      {
+        "id": "60f51bd4-8a2c-456d-9bf1-385011cca557",
+        "name": "delete_user",
+        "resource": "user",
+        "action": "delete"
+      },
+      {
+        "id": "a88790ba-49fa-4601-a915-1f1b92dda381",
+        "name": "read_Permission",
+        "resource": "Permission",
+        "action": "read"
+      },
+      {
+        "id": "30d3a96c-938b-448c-986f-0c2b21015bbc",
+        "name": "read_definition",
+        "resource": "definition",
+        "action": "read"
+      },
+      {
+        "id": "333b27f3-8014-4e85-badf-caa9d5f24ac3",
+        "name": "read_entry",
+        "resource": "entry",
+        "action": "read"
+      },
+      {
+        "id": "4bd560f0-dd94-4654-8d07-04ae98f899ae",
+        "name": "read_locale",
+        "resource": "locale",
+        "action": "read"
+      },
+      {
+        "id": "3492c89e-709d-4688-a650-416940289ab5",
+        "name": "read_scope",
+        "resource": "scope",
+        "action": "read"
+      },
+      {
+        "id": "c03f47e2-b0bb-4d14-877c-6aa60f8dbdf7",
+        "name": "read_terminology",
+        "resource": "terminology",
+        "action": "read"
+      }
+    ],
+    "pagination": {
+      "total": 28,
+      "page": 1,
+      "perPage": 20,
+      "totalPages": 2
+    }
+  }
+  ```
+}
