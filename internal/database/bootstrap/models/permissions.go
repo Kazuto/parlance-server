@@ -21,7 +21,7 @@ func (i *PermissionInitializer) Run(db *gorm.DB) error {
 	log.Println("Initializing permissions")
 
 	actions := []string{"create", "read", "update", "delete"}
-	resources := []string{"definition", "entry", "locale", "Permission", "scope", "terminology", "user"}
+	resources := []string{"definition", "entry", "locale", "permission", "scope", "terminology", "user"}
 	var permissions []models.Permission
 
 	for _, r := range resources {
