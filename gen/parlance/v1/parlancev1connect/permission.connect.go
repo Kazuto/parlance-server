@@ -39,24 +39,12 @@ const (
 	// PermissionServiceGetPermissionProcedure is the fully-qualified name of the PermissionService's
 	// GetPermission RPC.
 	PermissionServiceGetPermissionProcedure = "/parlance.v1.PermissionService/GetPermission"
-	// PermissionServiceCreatePermissionProcedure is the fully-qualified name of the PermissionService's
-	// CreatePermission RPC.
-	PermissionServiceCreatePermissionProcedure = "/parlance.v1.PermissionService/CreatePermission"
-	// PermissionServiceUpdatePermissionProcedure is the fully-qualified name of the PermissionService's
-	// UpdatePermission RPC.
-	PermissionServiceUpdatePermissionProcedure = "/parlance.v1.PermissionService/UpdatePermission"
-	// PermissionServiceDeletePermissionProcedure is the fully-qualified name of the PermissionService's
-	// DeletePermission RPC.
-	PermissionServiceDeletePermissionProcedure = "/parlance.v1.PermissionService/DeletePermission"
 )
 
 // PermissionServiceClient is a client for the parlance.v1.PermissionService service.
 type PermissionServiceClient interface {
 	ListPermissions(context.Context, *connect.Request[v1.ListPermissionsRequest]) (*connect.Response[v1.ListPermissionsResponse], error)
 	GetPermission(context.Context, *connect.Request[v1.GetPermissionRequest]) (*connect.Response[v1.GetPermissionResponse], error)
-	CreatePermission(context.Context, *connect.Request[v1.CreatePermissionRequest]) (*connect.Response[v1.CreatePermissionResponse], error)
-	UpdatePermission(context.Context, *connect.Request[v1.UpdatePermissionRequest]) (*connect.Response[v1.UpdatePermissionResponse], error)
-	DeletePermission(context.Context, *connect.Request[v1.DeletePermissionRequest]) (*connect.Response[v1.DeletePermissionResponse], error)
 }
 
 // NewPermissionServiceClient constructs a client for the parlance.v1.PermissionService service. By
@@ -82,34 +70,13 @@ func NewPermissionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(permissionServiceMethods.ByName("GetPermission")),
 			connect.WithClientOptions(opts...),
 		),
-		createPermission: connect.NewClient[v1.CreatePermissionRequest, v1.CreatePermissionResponse](
-			httpClient,
-			baseURL+PermissionServiceCreatePermissionProcedure,
-			connect.WithSchema(permissionServiceMethods.ByName("CreatePermission")),
-			connect.WithClientOptions(opts...),
-		),
-		updatePermission: connect.NewClient[v1.UpdatePermissionRequest, v1.UpdatePermissionResponse](
-			httpClient,
-			baseURL+PermissionServiceUpdatePermissionProcedure,
-			connect.WithSchema(permissionServiceMethods.ByName("UpdatePermission")),
-			connect.WithClientOptions(opts...),
-		),
-		deletePermission: connect.NewClient[v1.DeletePermissionRequest, v1.DeletePermissionResponse](
-			httpClient,
-			baseURL+PermissionServiceDeletePermissionProcedure,
-			connect.WithSchema(permissionServiceMethods.ByName("DeletePermission")),
-			connect.WithClientOptions(opts...),
-		),
 	}
 }
 
 // permissionServiceClient implements PermissionServiceClient.
 type permissionServiceClient struct {
-	listPermissions  *connect.Client[v1.ListPermissionsRequest, v1.ListPermissionsResponse]
-	getPermission    *connect.Client[v1.GetPermissionRequest, v1.GetPermissionResponse]
-	createPermission *connect.Client[v1.CreatePermissionRequest, v1.CreatePermissionResponse]
-	updatePermission *connect.Client[v1.UpdatePermissionRequest, v1.UpdatePermissionResponse]
-	deletePermission *connect.Client[v1.DeletePermissionRequest, v1.DeletePermissionResponse]
+	listPermissions *connect.Client[v1.ListPermissionsRequest, v1.ListPermissionsResponse]
+	getPermission   *connect.Client[v1.GetPermissionRequest, v1.GetPermissionResponse]
 }
 
 // ListPermissions calls parlance.v1.PermissionService.ListPermissions.
@@ -122,28 +89,10 @@ func (c *permissionServiceClient) GetPermission(ctx context.Context, req *connec
 	return c.getPermission.CallUnary(ctx, req)
 }
 
-// CreatePermission calls parlance.v1.PermissionService.CreatePermission.
-func (c *permissionServiceClient) CreatePermission(ctx context.Context, req *connect.Request[v1.CreatePermissionRequest]) (*connect.Response[v1.CreatePermissionResponse], error) {
-	return c.createPermission.CallUnary(ctx, req)
-}
-
-// UpdatePermission calls parlance.v1.PermissionService.UpdatePermission.
-func (c *permissionServiceClient) UpdatePermission(ctx context.Context, req *connect.Request[v1.UpdatePermissionRequest]) (*connect.Response[v1.UpdatePermissionResponse], error) {
-	return c.updatePermission.CallUnary(ctx, req)
-}
-
-// DeletePermission calls parlance.v1.PermissionService.DeletePermission.
-func (c *permissionServiceClient) DeletePermission(ctx context.Context, req *connect.Request[v1.DeletePermissionRequest]) (*connect.Response[v1.DeletePermissionResponse], error) {
-	return c.deletePermission.CallUnary(ctx, req)
-}
-
 // PermissionServiceHandler is an implementation of the parlance.v1.PermissionService service.
 type PermissionServiceHandler interface {
 	ListPermissions(context.Context, *connect.Request[v1.ListPermissionsRequest]) (*connect.Response[v1.ListPermissionsResponse], error)
 	GetPermission(context.Context, *connect.Request[v1.GetPermissionRequest]) (*connect.Response[v1.GetPermissionResponse], error)
-	CreatePermission(context.Context, *connect.Request[v1.CreatePermissionRequest]) (*connect.Response[v1.CreatePermissionResponse], error)
-	UpdatePermission(context.Context, *connect.Request[v1.UpdatePermissionRequest]) (*connect.Response[v1.UpdatePermissionResponse], error)
-	DeletePermission(context.Context, *connect.Request[v1.DeletePermissionRequest]) (*connect.Response[v1.DeletePermissionResponse], error)
 }
 
 // NewPermissionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -165,36 +114,12 @@ func NewPermissionServiceHandler(svc PermissionServiceHandler, opts ...connect.H
 		connect.WithSchema(permissionServiceMethods.ByName("GetPermission")),
 		connect.WithHandlerOptions(opts...),
 	)
-	permissionServiceCreatePermissionHandler := connect.NewUnaryHandler(
-		PermissionServiceCreatePermissionProcedure,
-		svc.CreatePermission,
-		connect.WithSchema(permissionServiceMethods.ByName("CreatePermission")),
-		connect.WithHandlerOptions(opts...),
-	)
-	permissionServiceUpdatePermissionHandler := connect.NewUnaryHandler(
-		PermissionServiceUpdatePermissionProcedure,
-		svc.UpdatePermission,
-		connect.WithSchema(permissionServiceMethods.ByName("UpdatePermission")),
-		connect.WithHandlerOptions(opts...),
-	)
-	permissionServiceDeletePermissionHandler := connect.NewUnaryHandler(
-		PermissionServiceDeletePermissionProcedure,
-		svc.DeletePermission,
-		connect.WithSchema(permissionServiceMethods.ByName("DeletePermission")),
-		connect.WithHandlerOptions(opts...),
-	)
 	return "/parlance.v1.PermissionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case PermissionServiceListPermissionsProcedure:
 			permissionServiceListPermissionsHandler.ServeHTTP(w, r)
 		case PermissionServiceGetPermissionProcedure:
 			permissionServiceGetPermissionHandler.ServeHTTP(w, r)
-		case PermissionServiceCreatePermissionProcedure:
-			permissionServiceCreatePermissionHandler.ServeHTTP(w, r)
-		case PermissionServiceUpdatePermissionProcedure:
-			permissionServiceUpdatePermissionHandler.ServeHTTP(w, r)
-		case PermissionServiceDeletePermissionProcedure:
-			permissionServiceDeletePermissionHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -210,16 +135,4 @@ func (UnimplementedPermissionServiceHandler) ListPermissions(context.Context, *c
 
 func (UnimplementedPermissionServiceHandler) GetPermission(context.Context, *connect.Request[v1.GetPermissionRequest]) (*connect.Response[v1.GetPermissionResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.PermissionService.GetPermission is not implemented"))
-}
-
-func (UnimplementedPermissionServiceHandler) CreatePermission(context.Context, *connect.Request[v1.CreatePermissionRequest]) (*connect.Response[v1.CreatePermissionResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.PermissionService.CreatePermission is not implemented"))
-}
-
-func (UnimplementedPermissionServiceHandler) UpdatePermission(context.Context, *connect.Request[v1.UpdatePermissionRequest]) (*connect.Response[v1.UpdatePermissionResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.PermissionService.UpdatePermission is not implemented"))
-}
-
-func (UnimplementedPermissionServiceHandler) DeletePermission(context.Context, *connect.Request[v1.DeletePermissionRequest]) (*connect.Response[v1.DeletePermissionResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.PermissionService.DeletePermission is not implemented"))
 }
