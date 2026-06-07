@@ -17,7 +17,9 @@ build:
 	docker-compose -f docker/docker-compose.yml build
 
 run:
-	buf generate && go run cmd/api/main.go
+	buf generate
+	go run cmd/seed/main.go
+	go run cmd/api/main.go
 
 # Testing
 test:
