@@ -12,26 +12,36 @@ post {
 
 body:json {
   {
-    "terminologyId": "{{terminologyId}}"
+    "terminologyId": "{{terminologyId}}",
+    "pagination": {
+      "page": 1,
+      "perPage": 20
+    },
+    "filter": {
+      // "search": "en",
+      "sort": "created_at",
+      "order": "ASC",
+      "include_deleted": true
+    }
   }
 }
 
 script:pre-request {
   const terminologyId = bru.getVar('terminologyId');
-
+  
   if (!terminologyId) {
       await bru.runRequest('Authed/TerminologyService/ListTerminologies');
-
+  
       return;
   }
 }
 
 script:post-response {
   const data = res?.body?.definitions;
-
+  
   if (data) {
     const ids = data.map((el) => el.id);
-
+  
     bru.setVar("definitionIds", ids);
     bru.setVar("definitionId", ids.shift());
   }

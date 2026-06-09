@@ -16,21 +16,45 @@ headers {
 
 body:json {
   {
+    "scopeId": "{{scopeId}}",
+    "localeId": "{{localeId}}",
     "pagination": {
       "page": 1,
       "perPage": 20
     },
-    "scopeId": "",
-    "localeId": ""
+    "filter": {
+      // "search": "en",
+      "sort": "created_at",
+      "order": "ASC",
+      "include_deleted": true
+    }
+  }
+}
+
+script:pre-request {
+  const scopeId = bru.getVar('scopeId');
+  
+  if (!scopeId) {
+      await bru.runRequest('Authed/ScopeService/ListScopes');
+  
+      return;
+  }
+  
+  const localeId = bru.getVar('localeId');
+  
+  if (!localeId) {
+      await bru.runRequest('Authed/LocaleService/ListLocales');
+  
+      return;
   }
 }
 
 script:post-response {
   const data = res?.body?.entries;
-
+  
   if (data) {
     const ids = data.map((el) => el.id);
-
+  
     bru.setVar("entryIds", ids);
     bru.setVar("entryId", ids.shift());
   }
@@ -38,21 +62,21 @@ script:post-response {
 
 docs {
   # List Entries
-
+  
   Retrieves a paginated list of translation entries.
-
+  
   ## Authentication
   Requires valid access token.
-
+  
   ## Request
   - `pagination.page` (optional): Page number, defaults to 1
   - `pagination.perPage` (optional): Items per page, defaults to 20, max 100
   - `scopeId` (optional): Filter by scope UUID
   - `localeId` (optional): Filter by locale UUID (shows only entries with translations in this locale)
-
+  
   ## Response
   Returns entries with their localizations and scopes.
-
+  
   ## Example Response
   ```json
   {

@@ -19,16 +19,22 @@ body:json {
     "pagination": {
       "page": 1,
       "perPage": 20
+    },
+    "filter": {
+      // "search": "en",
+      "sort": "created_at",
+      "order": "ASC",
+      "include_deleted": true
     }
   }
 }
 
 script:post-response {
   const data = res?.body?.scopes;
-
+  
   if (data) {
     const ids = data.map((el) => el.id);
-
+  
     bru.setVar("scopeIds", ids);
     bru.setVar("scopeId", ids.shift());
   }

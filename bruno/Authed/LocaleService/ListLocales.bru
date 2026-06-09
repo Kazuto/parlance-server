@@ -20,16 +20,22 @@ body:json {
     "pagination": {
       "page": 1,
       "perPage": 20
+    },
+    "filter": {
+      // "search": "en",
+      "sort": "created_at",
+      "order": "ASC",
+      "include_deleted": true
     }
   }
 }
 
 script:post-response {
   const data = res?.body?.locales;
-
+  
   if (data) {
     const ids = data.map((el) => el.id);
-
+  
     bru.setVar("localeIds", ids);
     bru.setVar("localeId", ids.shift());
   }
@@ -37,20 +43,20 @@ script:post-response {
 
 docs {
   # List Locales
-
+  
   Retrieves a paginated list of all locales in the system.
-
+  
   ## Request
   - `pagination.page` (optional): Page number, defaults to 1
   - `pagination.perPage` (optional): Items per page, defaults to 20, max 100
-
+  
   ## Response
   Returns an array of locales with pagination metadata.
-
+  
   ## Headers
   - `Accept-Language` (optional): Preferred locale for the `name` field (e.g., "en", "de", "ja")
     Defaults to "en" if not provided.
-
+  
   ## Example Response
   ```json
   {
@@ -82,7 +88,7 @@ docs {
     }
   }
   ```
-
+  
   **Note**: The `name` field returns the localized name based on `Accept-Language` header.
   The `names` object contains all available translations.
 }

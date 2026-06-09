@@ -12,26 +12,36 @@ post {
 
 body:json {
   {
-    "entryId": "{{entryId}}"
+    "entryId": "{{entryId}}",
+    "pagination": {
+      "page": 1,
+      "perPage": 20
+    },
+    "filter": {
+      // "search": "en",
+      "sort": "created_at",
+      "order": "ASC",
+      "include_deleted": true
+    }
   }
 }
 
 script:pre-request {
   const entryId = bru.getVar('entryId');
-
+  
   if (!entryId) {
       await bru.runRequest('Authed/EntryService/ListEntries');
-
+  
       return;
   }
 }
 
 script:post-response {
   const data = res?.body?.localizations;
-
+  
   if (data) {
     const ids = data.map((el) => el.id);
-
+  
     bru.setVar("localizationIds", ids);
     bru.setVar("localizationId", ids.shift());
   }
@@ -39,15 +49,15 @@ script:post-response {
 
 docs {
   # ListLocalizations
-
+  
   Lists all localizations for a specific entry across all locales.
-
+  
   ## Request
   - `entry_id` (required): ID of the entry to get localizations for
-
+  
   ## Response
   - `localizations`: Array of localization objects with translations
-
+  
   ## Example Use Case
   Get all translations for an entry to display in a translation editor UI.
 }
