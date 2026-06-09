@@ -26,6 +26,7 @@ message Role {
 
 message ListRolesRequest {
   PaginationRequest pagination = 1;
+  FilterRequest filter = 2;
 }
 
 message ListRolesResponse {

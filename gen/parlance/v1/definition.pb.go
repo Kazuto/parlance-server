@@ -133,6 +133,7 @@ type ListDefinitionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TerminologyId string                 `protobuf:"bytes,1,opt,name=terminology_id,json=terminologyId,proto3" json:"terminology_id,omitempty"`
 	Pagination    *PaginationRequest     `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Filter        *FilterRequest         `protobuf:"bytes,3,opt,name=filter,proto3" json:"filter,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -177,6 +178,13 @@ func (x *ListDefinitionsRequest) GetTerminologyId() string {
 func (x *ListDefinitionsRequest) GetPagination() *PaginationRequest {
 	if x != nil {
 		return x.Pagination
+	}
+	return nil
+}
+
+func (x *ListDefinitionsRequest) GetFilter() *FilterRequest {
+	if x != nil {
+		return x.Filter
 	}
 	return nil
 }
@@ -533,12 +541,13 @@ const file_parlance_v1_definition_proto_rawDesc = "" +
 	"\n" +
 	"created_by\x18\b \x01(\tR\tcreatedBy\x12\x1d\n" +
 	"\n" +
-	"updated_by\x18\t \x01(\tR\tupdatedBy\"\x7f\n" +
+	"updated_by\x18\t \x01(\tR\tupdatedBy\"\xb3\x01\n" +
 	"\x16ListDefinitionsRequest\x12%\n" +
 	"\x0eterminology_id\x18\x01 \x01(\tR\rterminologyId\x12>\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
-	"pagination\"\x95\x01\n" +
+	"pagination\x122\n" +
+	"\x06filter\x18\x03 \x01(\v2\x1a.parlance.v1.FilterRequestR\x06filter\"\x95\x01\n" +
 	"\x17ListDefinitionsResponse\x129\n" +
 	"\vdefinitions\x18\x01 \x03(\v2\x17.parlance.v1.DefinitionR\vdefinitions\x12?\n" +
 	"\n" +
@@ -593,27 +602,29 @@ var file_parlance_v1_definition_proto_goTypes = []any{
 	(*DeleteDefinitionRequest)(nil),  // 7: parlance.v1.DeleteDefinitionRequest
 	(*DeleteDefinitionResponse)(nil), // 8: parlance.v1.DeleteDefinitionResponse
 	(*PaginationRequest)(nil),        // 9: parlance.v1.PaginationRequest
-	(*PaginationResponse)(nil),       // 10: parlance.v1.PaginationResponse
+	(*FilterRequest)(nil),            // 10: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),       // 11: parlance.v1.PaginationResponse
 }
 var file_parlance_v1_definition_proto_depIdxs = []int32{
 	9,  // 0: parlance.v1.ListDefinitionsRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	0,  // 1: parlance.v1.ListDefinitionsResponse.definitions:type_name -> parlance.v1.Definition
-	10, // 2: parlance.v1.ListDefinitionsResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	0,  // 3: parlance.v1.CreateDefinitionResponse.definition:type_name -> parlance.v1.Definition
-	0,  // 4: parlance.v1.UpdateDefinitionResponse.definition:type_name -> parlance.v1.Definition
-	1,  // 5: parlance.v1.DefinitionService.ListDefinitions:input_type -> parlance.v1.ListDefinitionsRequest
-	3,  // 6: parlance.v1.DefinitionService.CreateDefinition:input_type -> parlance.v1.CreateDefinitionRequest
-	5,  // 7: parlance.v1.DefinitionService.UpdateDefinition:input_type -> parlance.v1.UpdateDefinitionRequest
-	7,  // 8: parlance.v1.DefinitionService.DeleteDefinition:input_type -> parlance.v1.DeleteDefinitionRequest
-	2,  // 9: parlance.v1.DefinitionService.ListDefinitions:output_type -> parlance.v1.ListDefinitionsResponse
-	4,  // 10: parlance.v1.DefinitionService.CreateDefinition:output_type -> parlance.v1.CreateDefinitionResponse
-	6,  // 11: parlance.v1.DefinitionService.UpdateDefinition:output_type -> parlance.v1.UpdateDefinitionResponse
-	8,  // 12: parlance.v1.DefinitionService.DeleteDefinition:output_type -> parlance.v1.DeleteDefinitionResponse
-	9,  // [9:13] is the sub-list for method output_type
-	5,  // [5:9] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	10, // 1: parlance.v1.ListDefinitionsRequest.filter:type_name -> parlance.v1.FilterRequest
+	0,  // 2: parlance.v1.ListDefinitionsResponse.definitions:type_name -> parlance.v1.Definition
+	11, // 3: parlance.v1.ListDefinitionsResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	0,  // 4: parlance.v1.CreateDefinitionResponse.definition:type_name -> parlance.v1.Definition
+	0,  // 5: parlance.v1.UpdateDefinitionResponse.definition:type_name -> parlance.v1.Definition
+	1,  // 6: parlance.v1.DefinitionService.ListDefinitions:input_type -> parlance.v1.ListDefinitionsRequest
+	3,  // 7: parlance.v1.DefinitionService.CreateDefinition:input_type -> parlance.v1.CreateDefinitionRequest
+	5,  // 8: parlance.v1.DefinitionService.UpdateDefinition:input_type -> parlance.v1.UpdateDefinitionRequest
+	7,  // 9: parlance.v1.DefinitionService.DeleteDefinition:input_type -> parlance.v1.DeleteDefinitionRequest
+	2,  // 10: parlance.v1.DefinitionService.ListDefinitions:output_type -> parlance.v1.ListDefinitionsResponse
+	4,  // 11: parlance.v1.DefinitionService.CreateDefinition:output_type -> parlance.v1.CreateDefinitionResponse
+	6,  // 12: parlance.v1.DefinitionService.UpdateDefinition:output_type -> parlance.v1.UpdateDefinitionResponse
+	8,  // 13: parlance.v1.DefinitionService.DeleteDefinition:output_type -> parlance.v1.DeleteDefinitionResponse
+	10, // [10:14] is the sub-list for method output_type
+	6,  // [6:10] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_definition_proto_init() }

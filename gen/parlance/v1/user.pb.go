@@ -116,6 +116,7 @@ func (x *User) GetDeletedAt() string {
 type ListUsersRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Pagination    *PaginationRequest     `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Filter        *FilterRequest         `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -153,6 +154,13 @@ func (*ListUsersRequest) Descriptor() ([]byte, []int) {
 func (x *ListUsersRequest) GetPagination() *PaginationRequest {
 	if x != nil {
 		return x.Pagination
+	}
+	return nil
+}
+
+func (x *ListUsersRequest) GetFilter() *FilterRequest {
+	if x != nil {
+		return x.Filter
 	}
 	return nil
 }
@@ -696,11 +704,12 @@ const file_parlance_v1_user_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x06 \x01(\tR\tupdatedAt\x12\x1d\n" +
 	"\n" +
-	"deleted_at\x18\a \x01(\tR\tdeletedAt\"R\n" +
+	"deleted_at\x18\a \x01(\tR\tdeletedAt\"\x86\x01\n" +
 	"\x10ListUsersRequest\x12>\n" +
 	"\n" +
 	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
-	"pagination\"}\n" +
+	"pagination\x122\n" +
+	"\x06filter\x18\x02 \x01(\v2\x1a.parlance.v1.FilterRequestR\x06filter\"}\n" +
 	"\x11ListUsersResponse\x12'\n" +
 	"\x05users\x18\x01 \x03(\v2\x11.parlance.v1.UserR\x05users\x12?\n" +
 	"\n" +
@@ -772,34 +781,36 @@ var file_parlance_v1_user_proto_goTypes = []any{
 	(*AssignRoleResponse)(nil), // 12: parlance.v1.AssignRoleResponse
 	(*Role)(nil),               // 13: parlance.v1.Role
 	(*PaginationRequest)(nil),  // 14: parlance.v1.PaginationRequest
-	(*PaginationResponse)(nil), // 15: parlance.v1.PaginationResponse
+	(*FilterRequest)(nil),      // 15: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil), // 16: parlance.v1.PaginationResponse
 }
 var file_parlance_v1_user_proto_depIdxs = []int32{
 	13, // 0: parlance.v1.User.roles:type_name -> parlance.v1.Role
 	14, // 1: parlance.v1.ListUsersRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	0,  // 2: parlance.v1.ListUsersResponse.users:type_name -> parlance.v1.User
-	15, // 3: parlance.v1.ListUsersResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	0,  // 4: parlance.v1.GetUserResponse.user:type_name -> parlance.v1.User
-	0,  // 5: parlance.v1.CreateUserResponse.user:type_name -> parlance.v1.User
-	0,  // 6: parlance.v1.UpdateUserResponse.user:type_name -> parlance.v1.User
-	0,  // 7: parlance.v1.AssignRoleResponse.user:type_name -> parlance.v1.User
-	1,  // 8: parlance.v1.UserService.ListUsers:input_type -> parlance.v1.ListUsersRequest
-	3,  // 9: parlance.v1.UserService.GetUser:input_type -> parlance.v1.GetUserRequest
-	5,  // 10: parlance.v1.UserService.CreateUser:input_type -> parlance.v1.CreateUserRequest
-	7,  // 11: parlance.v1.UserService.UpdateUser:input_type -> parlance.v1.UpdateUserRequest
-	9,  // 12: parlance.v1.UserService.DeleteUser:input_type -> parlance.v1.DeleteUserRequest
-	11, // 13: parlance.v1.UserService.AssignRole:input_type -> parlance.v1.AssignRoleRequest
-	2,  // 14: parlance.v1.UserService.ListUsers:output_type -> parlance.v1.ListUsersResponse
-	4,  // 15: parlance.v1.UserService.GetUser:output_type -> parlance.v1.GetUserResponse
-	6,  // 16: parlance.v1.UserService.CreateUser:output_type -> parlance.v1.CreateUserResponse
-	8,  // 17: parlance.v1.UserService.UpdateUser:output_type -> parlance.v1.UpdateUserResponse
-	10, // 18: parlance.v1.UserService.DeleteUser:output_type -> parlance.v1.DeleteUserResponse
-	12, // 19: parlance.v1.UserService.AssignRole:output_type -> parlance.v1.AssignRoleResponse
-	14, // [14:20] is the sub-list for method output_type
-	8,  // [8:14] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	15, // 2: parlance.v1.ListUsersRequest.filter:type_name -> parlance.v1.FilterRequest
+	0,  // 3: parlance.v1.ListUsersResponse.users:type_name -> parlance.v1.User
+	16, // 4: parlance.v1.ListUsersResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	0,  // 5: parlance.v1.GetUserResponse.user:type_name -> parlance.v1.User
+	0,  // 6: parlance.v1.CreateUserResponse.user:type_name -> parlance.v1.User
+	0,  // 7: parlance.v1.UpdateUserResponse.user:type_name -> parlance.v1.User
+	0,  // 8: parlance.v1.AssignRoleResponse.user:type_name -> parlance.v1.User
+	1,  // 9: parlance.v1.UserService.ListUsers:input_type -> parlance.v1.ListUsersRequest
+	3,  // 10: parlance.v1.UserService.GetUser:input_type -> parlance.v1.GetUserRequest
+	5,  // 11: parlance.v1.UserService.CreateUser:input_type -> parlance.v1.CreateUserRequest
+	7,  // 12: parlance.v1.UserService.UpdateUser:input_type -> parlance.v1.UpdateUserRequest
+	9,  // 13: parlance.v1.UserService.DeleteUser:input_type -> parlance.v1.DeleteUserRequest
+	11, // 14: parlance.v1.UserService.AssignRole:input_type -> parlance.v1.AssignRoleRequest
+	2,  // 15: parlance.v1.UserService.ListUsers:output_type -> parlance.v1.ListUsersResponse
+	4,  // 16: parlance.v1.UserService.GetUser:output_type -> parlance.v1.GetUserResponse
+	6,  // 17: parlance.v1.UserService.CreateUser:output_type -> parlance.v1.CreateUserResponse
+	8,  // 18: parlance.v1.UserService.UpdateUser:output_type -> parlance.v1.UpdateUserResponse
+	10, // 19: parlance.v1.UserService.DeleteUser:output_type -> parlance.v1.DeleteUserResponse
+	12, // 20: parlance.v1.UserService.AssignRole:output_type -> parlance.v1.AssignRoleResponse
+	15, // [15:21] is the sub-list for method output_type
+	9,  // [9:15] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_user_proto_init() }

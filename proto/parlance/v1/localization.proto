@@ -30,11 +30,20 @@ message Localization {
 message ListLocalizationsRequest {
   string entry_id = 1;
   PaginationRequest pagination = 2;
+  FilterRequest filter = 3;
 }
 
 message ListLocalizationsResponse {
   repeated Localization localizations = 1;
   PaginationResponse pagination = 2;
+}
+
+message GetLocalizationRequest {
+  string id = 1;
+}
+
+message GetLocalizationResponse {
+  Localization localization = 1;
 }
 
 message CreateLocalizationRequest {
@@ -61,14 +70,6 @@ message DeleteLocalizationRequest {
 }
 
 message DeleteLocalizationResponse {}
-
-message GetLocalizationRequest {
-  string id = 1;
-}
-
-message GetLocalizationResponse {
-  Localization localization = 1;
-}
 
 message TranslateLocalizationRequest {
   string entry_id = 1;

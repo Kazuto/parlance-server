@@ -129,6 +129,198 @@ func (x *Terminology) GetUpdatedBy() string {
 	return ""
 }
 
+type ListTerminologiesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Pagination    *PaginationRequest     `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Filter        *FilterRequest         `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTerminologiesRequest) Reset() {
+	*x = ListTerminologiesRequest{}
+	mi := &file_parlance_v1_terminology_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTerminologiesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTerminologiesRequest) ProtoMessage() {}
+
+func (x *ListTerminologiesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_terminology_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTerminologiesRequest.ProtoReflect.Descriptor instead.
+func (*ListTerminologiesRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ListTerminologiesRequest) GetPagination() *PaginationRequest {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+func (x *ListTerminologiesRequest) GetFilter() *FilterRequest {
+	if x != nil {
+		return x.Filter
+	}
+	return nil
+}
+
+type ListTerminologiesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Terminologies []*Terminology         `protobuf:"bytes,1,rep,name=terminologies,proto3" json:"terminologies,omitempty"`
+	Pagination    *PaginationResponse    `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTerminologiesResponse) Reset() {
+	*x = ListTerminologiesResponse{}
+	mi := &file_parlance_v1_terminology_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTerminologiesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTerminologiesResponse) ProtoMessage() {}
+
+func (x *ListTerminologiesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_terminology_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTerminologiesResponse.ProtoReflect.Descriptor instead.
+func (*ListTerminologiesResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ListTerminologiesResponse) GetTerminologies() []*Terminology {
+	if x != nil {
+		return x.Terminologies
+	}
+	return nil
+}
+
+func (x *ListTerminologiesResponse) GetPagination() *PaginationResponse {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+type GetTerminologyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTerminologyRequest) Reset() {
+	*x = GetTerminologyRequest{}
+	mi := &file_parlance_v1_terminology_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTerminologyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTerminologyRequest) ProtoMessage() {}
+
+func (x *GetTerminologyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_terminology_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTerminologyRequest.ProtoReflect.Descriptor instead.
+func (*GetTerminologyRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetTerminologyRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetTerminologyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Terminology   *Terminology           `protobuf:"bytes,1,opt,name=terminology,proto3" json:"terminology,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTerminologyResponse) Reset() {
+	*x = GetTerminologyResponse{}
+	mi := &file_parlance_v1_terminology_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTerminologyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTerminologyResponse) ProtoMessage() {}
+
+func (x *GetTerminologyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_terminology_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTerminologyResponse.ProtoReflect.Descriptor instead.
+func (*GetTerminologyResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetTerminologyResponse) GetTerminology() *Terminology {
+	if x != nil {
+		return x.Terminology
+	}
+	return nil
+}
+
 type CreateTerminologyRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Term          string                 `protobuf:"bytes,1,opt,name=term,proto3" json:"term,omitempty"`
@@ -139,7 +331,7 @@ type CreateTerminologyRequest struct {
 
 func (x *CreateTerminologyRequest) Reset() {
 	*x = CreateTerminologyRequest{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[1]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -151,7 +343,7 @@ func (x *CreateTerminologyRequest) String() string {
 func (*CreateTerminologyRequest) ProtoMessage() {}
 
 func (x *CreateTerminologyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[1]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -164,7 +356,7 @@ func (x *CreateTerminologyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTerminologyRequest.ProtoReflect.Descriptor instead.
 func (*CreateTerminologyRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{1}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateTerminologyRequest) GetTerm() string {
@@ -190,7 +382,7 @@ type CreateTerminologyResponse struct {
 
 func (x *CreateTerminologyResponse) Reset() {
 	*x = CreateTerminologyResponse{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[2]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -202,7 +394,7 @@ func (x *CreateTerminologyResponse) String() string {
 func (*CreateTerminologyResponse) ProtoMessage() {}
 
 func (x *CreateTerminologyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[2]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -215,7 +407,7 @@ func (x *CreateTerminologyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTerminologyResponse.ProtoReflect.Descriptor instead.
 func (*CreateTerminologyResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{2}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CreateTerminologyResponse) GetTerminology() *Terminology {
@@ -236,7 +428,7 @@ type UpdateTerminologyRequest struct {
 
 func (x *UpdateTerminologyRequest) Reset() {
 	*x = UpdateTerminologyRequest{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[3]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -248,7 +440,7 @@ func (x *UpdateTerminologyRequest) String() string {
 func (*UpdateTerminologyRequest) ProtoMessage() {}
 
 func (x *UpdateTerminologyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[3]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -261,7 +453,7 @@ func (x *UpdateTerminologyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateTerminologyRequest.ProtoReflect.Descriptor instead.
 func (*UpdateTerminologyRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{3}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdateTerminologyRequest) GetId() string {
@@ -294,7 +486,7 @@ type UpdateTerminologyResponse struct {
 
 func (x *UpdateTerminologyResponse) Reset() {
 	*x = UpdateTerminologyResponse{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[4]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -306,7 +498,7 @@ func (x *UpdateTerminologyResponse) String() string {
 func (*UpdateTerminologyResponse) ProtoMessage() {}
 
 func (x *UpdateTerminologyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[4]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -319,7 +511,7 @@ func (x *UpdateTerminologyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateTerminologyResponse.ProtoReflect.Descriptor instead.
 func (*UpdateTerminologyResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{4}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UpdateTerminologyResponse) GetTerminology() *Terminology {
@@ -338,7 +530,7 @@ type DeleteTerminologyRequest struct {
 
 func (x *DeleteTerminologyRequest) Reset() {
 	*x = DeleteTerminologyRequest{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[5]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -350,7 +542,7 @@ func (x *DeleteTerminologyRequest) String() string {
 func (*DeleteTerminologyRequest) ProtoMessage() {}
 
 func (x *DeleteTerminologyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[5]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -363,7 +555,7 @@ func (x *DeleteTerminologyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteTerminologyRequest.ProtoReflect.Descriptor instead.
 func (*DeleteTerminologyRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{5}
+	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeleteTerminologyRequest) GetId() string {
@@ -381,7 +573,7 @@ type DeleteTerminologyResponse struct {
 
 func (x *DeleteTerminologyResponse) Reset() {
 	*x = DeleteTerminologyResponse{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[6]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -393,7 +585,7 @@ func (x *DeleteTerminologyResponse) String() string {
 func (*DeleteTerminologyResponse) ProtoMessage() {}
 
 func (x *DeleteTerminologyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[6]
+	mi := &file_parlance_v1_terminology_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -406,191 +598,7 @@ func (x *DeleteTerminologyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteTerminologyResponse.ProtoReflect.Descriptor instead.
 func (*DeleteTerminologyResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{6}
-}
-
-type GetTerminologyRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetTerminologyRequest) Reset() {
-	*x = GetTerminologyRequest{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetTerminologyRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetTerminologyRequest) ProtoMessage() {}
-
-func (x *GetTerminologyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetTerminologyRequest.ProtoReflect.Descriptor instead.
-func (*GetTerminologyRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *GetTerminologyRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-type GetTerminologyResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Terminology   *Terminology           `protobuf:"bytes,1,opt,name=terminology,proto3" json:"terminology,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetTerminologyResponse) Reset() {
-	*x = GetTerminologyResponse{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetTerminologyResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetTerminologyResponse) ProtoMessage() {}
-
-func (x *GetTerminologyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetTerminologyResponse.ProtoReflect.Descriptor instead.
-func (*GetTerminologyResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *GetTerminologyResponse) GetTerminology() *Terminology {
-	if x != nil {
-		return x.Terminology
-	}
-	return nil
-}
-
-type ListTerminologiesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Pagination    *PaginationRequest     `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListTerminologiesRequest) Reset() {
-	*x = ListTerminologiesRequest{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListTerminologiesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListTerminologiesRequest) ProtoMessage() {}
-
-func (x *ListTerminologiesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListTerminologiesRequest.ProtoReflect.Descriptor instead.
-func (*ListTerminologiesRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *ListTerminologiesRequest) GetPagination() *PaginationRequest {
-	if x != nil {
-		return x.Pagination
-	}
-	return nil
-}
-
-type ListTerminologiesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Terminologies []*Terminology         `protobuf:"bytes,1,rep,name=terminologies,proto3" json:"terminologies,omitempty"`
-	Pagination    *PaginationResponse    `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListTerminologiesResponse) Reset() {
-	*x = ListTerminologiesResponse{}
-	mi := &file_parlance_v1_terminology_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListTerminologiesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListTerminologiesResponse) ProtoMessage() {}
-
-func (x *ListTerminologiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_terminology_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListTerminologiesResponse.ProtoReflect.Descriptor instead.
-func (*ListTerminologiesResponse) Descriptor() ([]byte, []int) {
 	return file_parlance_v1_terminology_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *ListTerminologiesResponse) GetTerminologies() []*Terminology {
-	if x != nil {
-		return x.Terminologies
-	}
-	return nil
-}
-
-func (x *ListTerminologiesResponse) GetPagination() *PaginationResponse {
-	if x != nil {
-		return x.Pagination
-	}
-	return nil
 }
 
 type GetDefinitionHistoryRequest struct {
@@ -981,7 +989,21 @@ const file_parlance_v1_terminology_proto_rawDesc = "" +
 	"\n" +
 	"created_by\x18\b \x01(\tR\tcreatedBy\x12\x1d\n" +
 	"\n" +
-	"updated_by\x18\t \x01(\tR\tupdatedBy\"P\n" +
+	"updated_by\x18\t \x01(\tR\tupdatedBy\"\x8e\x01\n" +
+	"\x18ListTerminologiesRequest\x12>\n" +
+	"\n" +
+	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
+	"pagination\x122\n" +
+	"\x06filter\x18\x02 \x01(\v2\x1a.parlance.v1.FilterRequestR\x06filter\"\x9c\x01\n" +
+	"\x19ListTerminologiesResponse\x12>\n" +
+	"\rterminologies\x18\x01 \x03(\v2\x18.parlance.v1.TerminologyR\rterminologies\x12?\n" +
+	"\n" +
+	"pagination\x18\x02 \x01(\v2\x1f.parlance.v1.PaginationResponseR\n" +
+	"pagination\"'\n" +
+	"\x15GetTerminologyRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"T\n" +
+	"\x16GetTerminologyResponse\x12:\n" +
+	"\vterminology\x18\x01 \x01(\v2\x18.parlance.v1.TerminologyR\vterminology\"P\n" +
 	"\x18CreateTerminologyRequest\x12\x12\n" +
 	"\x04term\x18\x01 \x01(\tR\x04term\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\"W\n" +
@@ -995,20 +1017,7 @@ const file_parlance_v1_terminology_proto_rawDesc = "" +
 	"\vterminology\x18\x01 \x01(\v2\x18.parlance.v1.TerminologyR\vterminology\"*\n" +
 	"\x18DeleteTerminologyRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x1b\n" +
-	"\x19DeleteTerminologyResponse\"'\n" +
-	"\x15GetTerminologyRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"T\n" +
-	"\x16GetTerminologyResponse\x12:\n" +
-	"\vterminology\x18\x01 \x01(\v2\x18.parlance.v1.TerminologyR\vterminology\"Z\n" +
-	"\x18ListTerminologiesRequest\x12>\n" +
-	"\n" +
-	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
-	"pagination\"\x9c\x01\n" +
-	"\x19ListTerminologiesResponse\x12>\n" +
-	"\rterminologies\x18\x01 \x03(\v2\x18.parlance.v1.TerminologyR\rterminologies\x12?\n" +
-	"\n" +
-	"pagination\x18\x02 \x01(\v2\x1f.parlance.v1.PaginationResponseR\n" +
-	"pagination\"\x84\x01\n" +
+	"\x19DeleteTerminologyResponse\"\x84\x01\n" +
 	"\x1bGetDefinitionHistoryRequest\x12%\n" +
 	"\x0eterminology_id\x18\x01 \x01(\tR\rterminologyId\x12>\n" +
 	"\n" +
@@ -1065,16 +1074,16 @@ func file_parlance_v1_terminology_proto_rawDescGZIP() []byte {
 var file_parlance_v1_terminology_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_parlance_v1_terminology_proto_goTypes = []any{
 	(*Terminology)(nil),                  // 0: parlance.v1.Terminology
-	(*CreateTerminologyRequest)(nil),     // 1: parlance.v1.CreateTerminologyRequest
-	(*CreateTerminologyResponse)(nil),    // 2: parlance.v1.CreateTerminologyResponse
-	(*UpdateTerminologyRequest)(nil),     // 3: parlance.v1.UpdateTerminologyRequest
-	(*UpdateTerminologyResponse)(nil),    // 4: parlance.v1.UpdateTerminologyResponse
-	(*DeleteTerminologyRequest)(nil),     // 5: parlance.v1.DeleteTerminologyRequest
-	(*DeleteTerminologyResponse)(nil),    // 6: parlance.v1.DeleteTerminologyResponse
-	(*GetTerminologyRequest)(nil),        // 7: parlance.v1.GetTerminologyRequest
-	(*GetTerminologyResponse)(nil),       // 8: parlance.v1.GetTerminologyResponse
-	(*ListTerminologiesRequest)(nil),     // 9: parlance.v1.ListTerminologiesRequest
-	(*ListTerminologiesResponse)(nil),    // 10: parlance.v1.ListTerminologiesResponse
+	(*ListTerminologiesRequest)(nil),     // 1: parlance.v1.ListTerminologiesRequest
+	(*ListTerminologiesResponse)(nil),    // 2: parlance.v1.ListTerminologiesResponse
+	(*GetTerminologyRequest)(nil),        // 3: parlance.v1.GetTerminologyRequest
+	(*GetTerminologyResponse)(nil),       // 4: parlance.v1.GetTerminologyResponse
+	(*CreateTerminologyRequest)(nil),     // 5: parlance.v1.CreateTerminologyRequest
+	(*CreateTerminologyResponse)(nil),    // 6: parlance.v1.CreateTerminologyResponse
+	(*UpdateTerminologyRequest)(nil),     // 7: parlance.v1.UpdateTerminologyRequest
+	(*UpdateTerminologyResponse)(nil),    // 8: parlance.v1.UpdateTerminologyResponse
+	(*DeleteTerminologyRequest)(nil),     // 9: parlance.v1.DeleteTerminologyRequest
+	(*DeleteTerminologyResponse)(nil),    // 10: parlance.v1.DeleteTerminologyResponse
 	(*GetDefinitionHistoryRequest)(nil),  // 11: parlance.v1.GetDefinitionHistoryRequest
 	(*GetDefinitionHistoryResponse)(nil), // 12: parlance.v1.GetDefinitionHistoryResponse
 	(*DefinitionHistory)(nil),            // 13: parlance.v1.DefinitionHistory
@@ -1083,42 +1092,44 @@ var file_parlance_v1_terminology_proto_goTypes = []any{
 	(*TerminologySuggestion)(nil),        // 16: parlance.v1.TerminologySuggestion
 	(*Definition)(nil),                   // 17: parlance.v1.Definition
 	(*PaginationRequest)(nil),            // 18: parlance.v1.PaginationRequest
-	(*PaginationResponse)(nil),           // 19: parlance.v1.PaginationResponse
-	(*User)(nil),                         // 20: parlance.v1.User
+	(*FilterRequest)(nil),                // 19: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),           // 20: parlance.v1.PaginationResponse
+	(*User)(nil),                         // 21: parlance.v1.User
 }
 var file_parlance_v1_terminology_proto_depIdxs = []int32{
 	17, // 0: parlance.v1.Terminology.definitions:type_name -> parlance.v1.Definition
-	0,  // 1: parlance.v1.CreateTerminologyResponse.terminology:type_name -> parlance.v1.Terminology
-	0,  // 2: parlance.v1.UpdateTerminologyResponse.terminology:type_name -> parlance.v1.Terminology
-	0,  // 3: parlance.v1.GetTerminologyResponse.terminology:type_name -> parlance.v1.Terminology
-	18, // 4: parlance.v1.ListTerminologiesRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	0,  // 5: parlance.v1.ListTerminologiesResponse.terminologies:type_name -> parlance.v1.Terminology
-	19, // 6: parlance.v1.ListTerminologiesResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	18, // 7: parlance.v1.GetDefinitionHistoryRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	13, // 8: parlance.v1.GetDefinitionHistoryResponse.history:type_name -> parlance.v1.DefinitionHistory
-	19, // 9: parlance.v1.GetDefinitionHistoryResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	20, // 10: parlance.v1.DefinitionHistory.user:type_name -> parlance.v1.User
-	16, // 11: parlance.v1.SuggestTerminologiesResponse.suggestions:type_name -> parlance.v1.TerminologySuggestion
-	0,  // 12: parlance.v1.TerminologySuggestion.terminology:type_name -> parlance.v1.Terminology
-	9,  // 13: parlance.v1.TerminologyService.ListTerminologies:input_type -> parlance.v1.ListTerminologiesRequest
-	7,  // 14: parlance.v1.TerminologyService.GetTerminology:input_type -> parlance.v1.GetTerminologyRequest
-	1,  // 15: parlance.v1.TerminologyService.CreateTerminology:input_type -> parlance.v1.CreateTerminologyRequest
-	3,  // 16: parlance.v1.TerminologyService.UpdateTerminology:input_type -> parlance.v1.UpdateTerminologyRequest
-	5,  // 17: parlance.v1.TerminologyService.DeleteTerminology:input_type -> parlance.v1.DeleteTerminologyRequest
-	11, // 18: parlance.v1.TerminologyService.GetDefinitionHistory:input_type -> parlance.v1.GetDefinitionHistoryRequest
-	14, // 19: parlance.v1.TerminologyService.SuggestTerminologies:input_type -> parlance.v1.SuggestTerminologiesRequest
-	10, // 20: parlance.v1.TerminologyService.ListTerminologies:output_type -> parlance.v1.ListTerminologiesResponse
-	8,  // 21: parlance.v1.TerminologyService.GetTerminology:output_type -> parlance.v1.GetTerminologyResponse
-	2,  // 22: parlance.v1.TerminologyService.CreateTerminology:output_type -> parlance.v1.CreateTerminologyResponse
-	4,  // 23: parlance.v1.TerminologyService.UpdateTerminology:output_type -> parlance.v1.UpdateTerminologyResponse
-	6,  // 24: parlance.v1.TerminologyService.DeleteTerminology:output_type -> parlance.v1.DeleteTerminologyResponse
-	12, // 25: parlance.v1.TerminologyService.GetDefinitionHistory:output_type -> parlance.v1.GetDefinitionHistoryResponse
-	15, // 26: parlance.v1.TerminologyService.SuggestTerminologies:output_type -> parlance.v1.SuggestTerminologiesResponse
-	20, // [20:27] is the sub-list for method output_type
-	13, // [13:20] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	18, // 1: parlance.v1.ListTerminologiesRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	19, // 2: parlance.v1.ListTerminologiesRequest.filter:type_name -> parlance.v1.FilterRequest
+	0,  // 3: parlance.v1.ListTerminologiesResponse.terminologies:type_name -> parlance.v1.Terminology
+	20, // 4: parlance.v1.ListTerminologiesResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	0,  // 5: parlance.v1.GetTerminologyResponse.terminology:type_name -> parlance.v1.Terminology
+	0,  // 6: parlance.v1.CreateTerminologyResponse.terminology:type_name -> parlance.v1.Terminology
+	0,  // 7: parlance.v1.UpdateTerminologyResponse.terminology:type_name -> parlance.v1.Terminology
+	18, // 8: parlance.v1.GetDefinitionHistoryRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	13, // 9: parlance.v1.GetDefinitionHistoryResponse.history:type_name -> parlance.v1.DefinitionHistory
+	20, // 10: parlance.v1.GetDefinitionHistoryResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	21, // 11: parlance.v1.DefinitionHistory.user:type_name -> parlance.v1.User
+	16, // 12: parlance.v1.SuggestTerminologiesResponse.suggestions:type_name -> parlance.v1.TerminologySuggestion
+	0,  // 13: parlance.v1.TerminologySuggestion.terminology:type_name -> parlance.v1.Terminology
+	1,  // 14: parlance.v1.TerminologyService.ListTerminologies:input_type -> parlance.v1.ListTerminologiesRequest
+	3,  // 15: parlance.v1.TerminologyService.GetTerminology:input_type -> parlance.v1.GetTerminologyRequest
+	5,  // 16: parlance.v1.TerminologyService.CreateTerminology:input_type -> parlance.v1.CreateTerminologyRequest
+	7,  // 17: parlance.v1.TerminologyService.UpdateTerminology:input_type -> parlance.v1.UpdateTerminologyRequest
+	9,  // 18: parlance.v1.TerminologyService.DeleteTerminology:input_type -> parlance.v1.DeleteTerminologyRequest
+	11, // 19: parlance.v1.TerminologyService.GetDefinitionHistory:input_type -> parlance.v1.GetDefinitionHistoryRequest
+	14, // 20: parlance.v1.TerminologyService.SuggestTerminologies:input_type -> parlance.v1.SuggestTerminologiesRequest
+	2,  // 21: parlance.v1.TerminologyService.ListTerminologies:output_type -> parlance.v1.ListTerminologiesResponse
+	4,  // 22: parlance.v1.TerminologyService.GetTerminology:output_type -> parlance.v1.GetTerminologyResponse
+	6,  // 23: parlance.v1.TerminologyService.CreateTerminology:output_type -> parlance.v1.CreateTerminologyResponse
+	8,  // 24: parlance.v1.TerminologyService.UpdateTerminology:output_type -> parlance.v1.UpdateTerminologyResponse
+	10, // 25: parlance.v1.TerminologyService.DeleteTerminology:output_type -> parlance.v1.DeleteTerminologyResponse
+	12, // 26: parlance.v1.TerminologyService.GetDefinitionHistory:output_type -> parlance.v1.GetDefinitionHistoryResponse
+	15, // 27: parlance.v1.TerminologyService.SuggestTerminologies:output_type -> parlance.v1.SuggestTerminologiesResponse
+	21, // [21:28] is the sub-list for method output_type
+	14, // [14:21] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_terminology_proto_init() }

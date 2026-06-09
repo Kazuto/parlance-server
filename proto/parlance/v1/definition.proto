@@ -27,6 +27,7 @@ message Definition {
 message ListDefinitionsRequest {
   string terminology_id = 1;
   PaginationRequest pagination = 2;
+  FilterRequest filter = 3;
 }
 
 message ListDefinitionsResponse {

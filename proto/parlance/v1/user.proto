@@ -27,6 +27,7 @@ message User {
 
 message ListUsersRequest {
   PaginationRequest pagination = 1;
+  FilterRequest filter = 2;
 }
 
 message ListUsersResponse {

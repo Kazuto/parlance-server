@@ -133,6 +133,7 @@ type ListLocalizationsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	EntryId       string                 `protobuf:"bytes,1,opt,name=entry_id,json=entryId,proto3" json:"entry_id,omitempty"`
 	Pagination    *PaginationRequest     `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Filter        *FilterRequest         `protobuf:"bytes,3,opt,name=filter,proto3" json:"filter,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -177,6 +178,13 @@ func (x *ListLocalizationsRequest) GetEntryId() string {
 func (x *ListLocalizationsRequest) GetPagination() *PaginationRequest {
 	if x != nil {
 		return x.Pagination
+	}
+	return nil
+}
+
+func (x *ListLocalizationsRequest) GetFilter() *FilterRequest {
+	if x != nil {
+		return x.Filter
 	}
 	return nil
 }
@@ -233,6 +241,94 @@ func (x *ListLocalizationsResponse) GetPagination() *PaginationResponse {
 	return nil
 }
 
+type GetLocalizationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLocalizationRequest) Reset() {
+	*x = GetLocalizationRequest{}
+	mi := &file_parlance_v1_localization_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLocalizationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLocalizationRequest) ProtoMessage() {}
+
+func (x *GetLocalizationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_localization_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLocalizationRequest.ProtoReflect.Descriptor instead.
+func (*GetLocalizationRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetLocalizationRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetLocalizationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Localization  *Localization          `protobuf:"bytes,1,opt,name=localization,proto3" json:"localization,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLocalizationResponse) Reset() {
+	*x = GetLocalizationResponse{}
+	mi := &file_parlance_v1_localization_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLocalizationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLocalizationResponse) ProtoMessage() {}
+
+func (x *GetLocalizationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_localization_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLocalizationResponse.ProtoReflect.Descriptor instead.
+func (*GetLocalizationResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetLocalizationResponse) GetLocalization() *Localization {
+	if x != nil {
+		return x.Localization
+	}
+	return nil
+}
+
 type CreateLocalizationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	EntryId       string                 `protobuf:"bytes,1,opt,name=entry_id,json=entryId,proto3" json:"entry_id,omitempty"`
@@ -244,7 +340,7 @@ type CreateLocalizationRequest struct {
 
 func (x *CreateLocalizationRequest) Reset() {
 	*x = CreateLocalizationRequest{}
-	mi := &file_parlance_v1_localization_proto_msgTypes[3]
+	mi := &file_parlance_v1_localization_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -256,7 +352,7 @@ func (x *CreateLocalizationRequest) String() string {
 func (*CreateLocalizationRequest) ProtoMessage() {}
 
 func (x *CreateLocalizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_localization_proto_msgTypes[3]
+	mi := &file_parlance_v1_localization_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -269,7 +365,7 @@ func (x *CreateLocalizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateLocalizationRequest.ProtoReflect.Descriptor instead.
 func (*CreateLocalizationRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{3}
+	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateLocalizationRequest) GetEntryId() string {
@@ -302,7 +398,7 @@ type CreateLocalizationResponse struct {
 
 func (x *CreateLocalizationResponse) Reset() {
 	*x = CreateLocalizationResponse{}
-	mi := &file_parlance_v1_localization_proto_msgTypes[4]
+	mi := &file_parlance_v1_localization_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -314,7 +410,7 @@ func (x *CreateLocalizationResponse) String() string {
 func (*CreateLocalizationResponse) ProtoMessage() {}
 
 func (x *CreateLocalizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_localization_proto_msgTypes[4]
+	mi := &file_parlance_v1_localization_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -327,7 +423,7 @@ func (x *CreateLocalizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateLocalizationResponse.ProtoReflect.Descriptor instead.
 func (*CreateLocalizationResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{4}
+	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CreateLocalizationResponse) GetLocalization() *Localization {
@@ -347,7 +443,7 @@ type UpdateLocalizationRequest struct {
 
 func (x *UpdateLocalizationRequest) Reset() {
 	*x = UpdateLocalizationRequest{}
-	mi := &file_parlance_v1_localization_proto_msgTypes[5]
+	mi := &file_parlance_v1_localization_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -359,7 +455,7 @@ func (x *UpdateLocalizationRequest) String() string {
 func (*UpdateLocalizationRequest) ProtoMessage() {}
 
 func (x *UpdateLocalizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_localization_proto_msgTypes[5]
+	mi := &file_parlance_v1_localization_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -372,7 +468,7 @@ func (x *UpdateLocalizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateLocalizationRequest.ProtoReflect.Descriptor instead.
 func (*UpdateLocalizationRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{5}
+	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdateLocalizationRequest) GetId() string {
@@ -398,7 +494,7 @@ type UpdateLocalizationResponse struct {
 
 func (x *UpdateLocalizationResponse) Reset() {
 	*x = UpdateLocalizationResponse{}
-	mi := &file_parlance_v1_localization_proto_msgTypes[6]
+	mi := &file_parlance_v1_localization_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -410,7 +506,7 @@ func (x *UpdateLocalizationResponse) String() string {
 func (*UpdateLocalizationResponse) ProtoMessage() {}
 
 func (x *UpdateLocalizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_localization_proto_msgTypes[6]
+	mi := &file_parlance_v1_localization_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -423,7 +519,7 @@ func (x *UpdateLocalizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateLocalizationResponse.ProtoReflect.Descriptor instead.
 func (*UpdateLocalizationResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{6}
+	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UpdateLocalizationResponse) GetLocalization() *Localization {
@@ -442,7 +538,7 @@ type DeleteLocalizationRequest struct {
 
 func (x *DeleteLocalizationRequest) Reset() {
 	*x = DeleteLocalizationRequest{}
-	mi := &file_parlance_v1_localization_proto_msgTypes[7]
+	mi := &file_parlance_v1_localization_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -454,7 +550,7 @@ func (x *DeleteLocalizationRequest) String() string {
 func (*DeleteLocalizationRequest) ProtoMessage() {}
 
 func (x *DeleteLocalizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_localization_proto_msgTypes[7]
+	mi := &file_parlance_v1_localization_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -467,7 +563,7 @@ func (x *DeleteLocalizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteLocalizationRequest.ProtoReflect.Descriptor instead.
 func (*DeleteLocalizationRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{7}
+	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeleteLocalizationRequest) GetId() string {
@@ -485,7 +581,7 @@ type DeleteLocalizationResponse struct {
 
 func (x *DeleteLocalizationResponse) Reset() {
 	*x = DeleteLocalizationResponse{}
-	mi := &file_parlance_v1_localization_proto_msgTypes[8]
+	mi := &file_parlance_v1_localization_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -497,7 +593,7 @@ func (x *DeleteLocalizationResponse) String() string {
 func (*DeleteLocalizationResponse) ProtoMessage() {}
 
 func (x *DeleteLocalizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_localization_proto_msgTypes[8]
+	mi := &file_parlance_v1_localization_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -510,95 +606,7 @@ func (x *DeleteLocalizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteLocalizationResponse.ProtoReflect.Descriptor instead.
 func (*DeleteLocalizationResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{8}
-}
-
-type GetLocalizationRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetLocalizationRequest) Reset() {
-	*x = GetLocalizationRequest{}
-	mi := &file_parlance_v1_localization_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetLocalizationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetLocalizationRequest) ProtoMessage() {}
-
-func (x *GetLocalizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_localization_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetLocalizationRequest.ProtoReflect.Descriptor instead.
-func (*GetLocalizationRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *GetLocalizationRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-type GetLocalizationResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Localization  *Localization          `protobuf:"bytes,1,opt,name=localization,proto3" json:"localization,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetLocalizationResponse) Reset() {
-	*x = GetLocalizationResponse{}
-	mi := &file_parlance_v1_localization_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetLocalizationResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetLocalizationResponse) ProtoMessage() {}
-
-func (x *GetLocalizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_localization_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetLocalizationResponse.ProtoReflect.Descriptor instead.
-func (*GetLocalizationResponse) Descriptor() ([]byte, []int) {
 	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *GetLocalizationResponse) GetLocalization() *Localization {
-	if x != nil {
-		return x.Localization
-	}
-	return nil
 }
 
 type TranslateLocalizationRequest struct {
@@ -860,17 +868,22 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\n" +
 	"created_by\x18\b \x01(\tR\tcreatedBy\x12\x1d\n" +
 	"\n" +
-	"updated_by\x18\t \x01(\tR\tupdatedBy\"u\n" +
+	"updated_by\x18\t \x01(\tR\tupdatedBy\"\xa9\x01\n" +
 	"\x18ListLocalizationsRequest\x12\x19\n" +
 	"\bentry_id\x18\x01 \x01(\tR\aentryId\x12>\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
-	"pagination\"\x9d\x01\n" +
+	"pagination\x122\n" +
+	"\x06filter\x18\x03 \x01(\v2\x1a.parlance.v1.FilterRequestR\x06filter\"\x9d\x01\n" +
 	"\x19ListLocalizationsResponse\x12?\n" +
 	"\rlocalizations\x18\x01 \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations\x12?\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1f.parlance.v1.PaginationResponseR\n" +
-	"pagination\"u\n" +
+	"pagination\"(\n" +
+	"\x16GetLocalizationRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"X\n" +
+	"\x17GetLocalizationResponse\x12=\n" +
+	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"u\n" +
 	"\x19CreateLocalizationRequest\x12\x19\n" +
 	"\bentry_id\x18\x01 \x01(\tR\aentryId\x12\x1b\n" +
 	"\tlocale_id\x18\x02 \x01(\tR\blocaleId\x12 \n" +
@@ -884,11 +897,7 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"+\n" +
 	"\x19DeleteLocalizationRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x1c\n" +
-	"\x1aDeleteLocalizationResponse\"(\n" +
-	"\x16GetLocalizationRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"X\n" +
-	"\x17GetLocalizationResponse\x12=\n" +
-	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"\xba\x01\n" +
+	"\x1aDeleteLocalizationResponse\"\xba\x01\n" +
 	"\x1cTranslateLocalizationRequest\x12\x19\n" +
 	"\bentry_id\x18\x01 \x01(\tR\aentryId\x12(\n" +
 	"\x10target_locale_id\x18\x02 \x01(\tR\x0etargetLocaleId\x12(\n" +
@@ -932,49 +941,51 @@ var file_parlance_v1_localization_proto_goTypes = []any{
 	(*Localization)(nil),                  // 0: parlance.v1.Localization
 	(*ListLocalizationsRequest)(nil),      // 1: parlance.v1.ListLocalizationsRequest
 	(*ListLocalizationsResponse)(nil),     // 2: parlance.v1.ListLocalizationsResponse
-	(*CreateLocalizationRequest)(nil),     // 3: parlance.v1.CreateLocalizationRequest
-	(*CreateLocalizationResponse)(nil),    // 4: parlance.v1.CreateLocalizationResponse
-	(*UpdateLocalizationRequest)(nil),     // 5: parlance.v1.UpdateLocalizationRequest
-	(*UpdateLocalizationResponse)(nil),    // 6: parlance.v1.UpdateLocalizationResponse
-	(*DeleteLocalizationRequest)(nil),     // 7: parlance.v1.DeleteLocalizationRequest
-	(*DeleteLocalizationResponse)(nil),    // 8: parlance.v1.DeleteLocalizationResponse
-	(*GetLocalizationRequest)(nil),        // 9: parlance.v1.GetLocalizationRequest
-	(*GetLocalizationResponse)(nil),       // 10: parlance.v1.GetLocalizationResponse
+	(*GetLocalizationRequest)(nil),        // 3: parlance.v1.GetLocalizationRequest
+	(*GetLocalizationResponse)(nil),       // 4: parlance.v1.GetLocalizationResponse
+	(*CreateLocalizationRequest)(nil),     // 5: parlance.v1.CreateLocalizationRequest
+	(*CreateLocalizationResponse)(nil),    // 6: parlance.v1.CreateLocalizationResponse
+	(*UpdateLocalizationRequest)(nil),     // 7: parlance.v1.UpdateLocalizationRequest
+	(*UpdateLocalizationResponse)(nil),    // 8: parlance.v1.UpdateLocalizationResponse
+	(*DeleteLocalizationRequest)(nil),     // 9: parlance.v1.DeleteLocalizationRequest
+	(*DeleteLocalizationResponse)(nil),    // 10: parlance.v1.DeleteLocalizationResponse
 	(*TranslateLocalizationRequest)(nil),  // 11: parlance.v1.TranslateLocalizationRequest
 	(*TranslateLocalizationResponse)(nil), // 12: parlance.v1.TranslateLocalizationResponse
 	(*BatchTranslateRequest)(nil),         // 13: parlance.v1.BatchTranslateRequest
 	(*BatchTranslateResponse)(nil),        // 14: parlance.v1.BatchTranslateResponse
 	(*PaginationRequest)(nil),             // 15: parlance.v1.PaginationRequest
-	(*PaginationResponse)(nil),            // 16: parlance.v1.PaginationResponse
+	(*FilterRequest)(nil),                 // 16: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),            // 17: parlance.v1.PaginationResponse
 }
 var file_parlance_v1_localization_proto_depIdxs = []int32{
 	15, // 0: parlance.v1.ListLocalizationsRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	0,  // 1: parlance.v1.ListLocalizationsResponse.localizations:type_name -> parlance.v1.Localization
-	16, // 2: parlance.v1.ListLocalizationsResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	0,  // 3: parlance.v1.CreateLocalizationResponse.localization:type_name -> parlance.v1.Localization
-	0,  // 4: parlance.v1.UpdateLocalizationResponse.localization:type_name -> parlance.v1.Localization
-	0,  // 5: parlance.v1.GetLocalizationResponse.localization:type_name -> parlance.v1.Localization
-	0,  // 6: parlance.v1.TranslateLocalizationResponse.localization:type_name -> parlance.v1.Localization
-	0,  // 7: parlance.v1.BatchTranslateResponse.localizations:type_name -> parlance.v1.Localization
-	1,  // 8: parlance.v1.LocalizationService.ListLocalizations:input_type -> parlance.v1.ListLocalizationsRequest
-	9,  // 9: parlance.v1.LocalizationService.GetLocalization:input_type -> parlance.v1.GetLocalizationRequest
-	3,  // 10: parlance.v1.LocalizationService.CreateLocalization:input_type -> parlance.v1.CreateLocalizationRequest
-	5,  // 11: parlance.v1.LocalizationService.UpdateLocalization:input_type -> parlance.v1.UpdateLocalizationRequest
-	7,  // 12: parlance.v1.LocalizationService.DeleteLocalization:input_type -> parlance.v1.DeleteLocalizationRequest
-	11, // 13: parlance.v1.LocalizationService.TranslateLocalization:input_type -> parlance.v1.TranslateLocalizationRequest
-	13, // 14: parlance.v1.LocalizationService.BatchTranslate:input_type -> parlance.v1.BatchTranslateRequest
-	2,  // 15: parlance.v1.LocalizationService.ListLocalizations:output_type -> parlance.v1.ListLocalizationsResponse
-	10, // 16: parlance.v1.LocalizationService.GetLocalization:output_type -> parlance.v1.GetLocalizationResponse
-	4,  // 17: parlance.v1.LocalizationService.CreateLocalization:output_type -> parlance.v1.CreateLocalizationResponse
-	6,  // 18: parlance.v1.LocalizationService.UpdateLocalization:output_type -> parlance.v1.UpdateLocalizationResponse
-	8,  // 19: parlance.v1.LocalizationService.DeleteLocalization:output_type -> parlance.v1.DeleteLocalizationResponse
-	12, // 20: parlance.v1.LocalizationService.TranslateLocalization:output_type -> parlance.v1.TranslateLocalizationResponse
-	14, // 21: parlance.v1.LocalizationService.BatchTranslate:output_type -> parlance.v1.BatchTranslateResponse
-	15, // [15:22] is the sub-list for method output_type
-	8,  // [8:15] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	16, // 1: parlance.v1.ListLocalizationsRequest.filter:type_name -> parlance.v1.FilterRequest
+	0,  // 2: parlance.v1.ListLocalizationsResponse.localizations:type_name -> parlance.v1.Localization
+	17, // 3: parlance.v1.ListLocalizationsResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	0,  // 4: parlance.v1.GetLocalizationResponse.localization:type_name -> parlance.v1.Localization
+	0,  // 5: parlance.v1.CreateLocalizationResponse.localization:type_name -> parlance.v1.Localization
+	0,  // 6: parlance.v1.UpdateLocalizationResponse.localization:type_name -> parlance.v1.Localization
+	0,  // 7: parlance.v1.TranslateLocalizationResponse.localization:type_name -> parlance.v1.Localization
+	0,  // 8: parlance.v1.BatchTranslateResponse.localizations:type_name -> parlance.v1.Localization
+	1,  // 9: parlance.v1.LocalizationService.ListLocalizations:input_type -> parlance.v1.ListLocalizationsRequest
+	3,  // 10: parlance.v1.LocalizationService.GetLocalization:input_type -> parlance.v1.GetLocalizationRequest
+	5,  // 11: parlance.v1.LocalizationService.CreateLocalization:input_type -> parlance.v1.CreateLocalizationRequest
+	7,  // 12: parlance.v1.LocalizationService.UpdateLocalization:input_type -> parlance.v1.UpdateLocalizationRequest
+	9,  // 13: parlance.v1.LocalizationService.DeleteLocalization:input_type -> parlance.v1.DeleteLocalizationRequest
+	11, // 14: parlance.v1.LocalizationService.TranslateLocalization:input_type -> parlance.v1.TranslateLocalizationRequest
+	13, // 15: parlance.v1.LocalizationService.BatchTranslate:input_type -> parlance.v1.BatchTranslateRequest
+	2,  // 16: parlance.v1.LocalizationService.ListLocalizations:output_type -> parlance.v1.ListLocalizationsResponse
+	4,  // 17: parlance.v1.LocalizationService.GetLocalization:output_type -> parlance.v1.GetLocalizationResponse
+	6,  // 18: parlance.v1.LocalizationService.CreateLocalization:output_type -> parlance.v1.CreateLocalizationResponse
+	8,  // 19: parlance.v1.LocalizationService.UpdateLocalization:output_type -> parlance.v1.UpdateLocalizationResponse
+	10, // 20: parlance.v1.LocalizationService.DeleteLocalization:output_type -> parlance.v1.DeleteLocalizationResponse
+	12, // 21: parlance.v1.LocalizationService.TranslateLocalization:output_type -> parlance.v1.TranslateLocalizationResponse
+	14, // 22: parlance.v1.LocalizationService.BatchTranslate:output_type -> parlance.v1.BatchTranslateResponse
+	16, // [16:23] is the sub-list for method output_type
+	9,  // [9:16] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_localization_proto_init() }

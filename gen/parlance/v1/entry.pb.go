@@ -139,9 +139,10 @@ func (x *Entry) GetScopes() []*Scope {
 
 type ListEntriesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Pagination    *PaginationRequest     `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	ScopeId       string                 `protobuf:"bytes,2,opt,name=scope_id,json=scopeId,proto3" json:"scope_id,omitempty"`
-	LocaleId      string                 `protobuf:"bytes,3,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
+	ScopeId       string                 `protobuf:"bytes,1,opt,name=scope_id,json=scopeId,proto3" json:"scope_id,omitempty"`
+	LocaleId      string                 `protobuf:"bytes,2,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
+	Pagination    *PaginationRequest     `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Filter        *FilterRequest         `protobuf:"bytes,4,opt,name=filter,proto3" json:"filter,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -176,13 +177,6 @@ func (*ListEntriesRequest) Descriptor() ([]byte, []int) {
 	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ListEntriesRequest) GetPagination() *PaginationRequest {
-	if x != nil {
-		return x.Pagination
-	}
-	return nil
-}
-
 func (x *ListEntriesRequest) GetScopeId() string {
 	if x != nil {
 		return x.ScopeId
@@ -195,6 +189,20 @@ func (x *ListEntriesRequest) GetLocaleId() string {
 		return x.LocaleId
 	}
 	return ""
+}
+
+func (x *ListEntriesRequest) GetPagination() *PaginationRequest {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+func (x *ListEntriesRequest) GetFilter() *FilterRequest {
+	if x != nil {
+		return x.Filter
+	}
+	return nil
 }
 
 type ListEntriesResponse struct {
@@ -962,13 +970,14 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"updated_by\x18\b \x01(\tR\tupdatedBy\x12?\n" +
 	"\rlocalizations\x18\t \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations\x12*\n" +
 	"\x06scopes\x18\n" +
-	" \x03(\v2\x12.parlance.v1.ScopeR\x06scopes\"\x8c\x01\n" +
-	"\x12ListEntriesRequest\x12>\n" +
+	" \x03(\v2\x12.parlance.v1.ScopeR\x06scopes\"\xc0\x01\n" +
+	"\x12ListEntriesRequest\x12\x19\n" +
+	"\bscope_id\x18\x01 \x01(\tR\ascopeId\x12\x1b\n" +
+	"\tlocale_id\x18\x02 \x01(\tR\blocaleId\x12>\n" +
 	"\n" +
-	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
-	"pagination\x12\x19\n" +
-	"\bscope_id\x18\x02 \x01(\tR\ascopeId\x12\x1b\n" +
-	"\tlocale_id\x18\x03 \x01(\tR\blocaleId\"\x84\x01\n" +
+	"pagination\x18\x03 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
+	"pagination\x122\n" +
+	"\x06filter\x18\x04 \x01(\v2\x1a.parlance.v1.FilterRequestR\x06filter\"\x84\x01\n" +
 	"\x13ListEntriesResponse\x12,\n" +
 	"\aentries\x18\x01 \x03(\v2\x12.parlance.v1.EntryR\aentries\x12?\n" +
 	"\n" +
@@ -1068,42 +1077,44 @@ var file_parlance_v1_entry_proto_goTypes = []any{
 	(*Localization)(nil),            // 16: parlance.v1.Localization
 	(*Scope)(nil),                   // 17: parlance.v1.Scope
 	(*PaginationRequest)(nil),       // 18: parlance.v1.PaginationRequest
-	(*PaginationResponse)(nil),      // 19: parlance.v1.PaginationResponse
+	(*FilterRequest)(nil),           // 19: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),      // 20: parlance.v1.PaginationResponse
 }
 var file_parlance_v1_entry_proto_depIdxs = []int32{
 	16, // 0: parlance.v1.Entry.localizations:type_name -> parlance.v1.Localization
 	17, // 1: parlance.v1.Entry.scopes:type_name -> parlance.v1.Scope
 	18, // 2: parlance.v1.ListEntriesRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	0,  // 3: parlance.v1.ListEntriesResponse.entries:type_name -> parlance.v1.Entry
-	19, // 4: parlance.v1.ListEntriesResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	0,  // 5: parlance.v1.GetEntryResponse.entry:type_name -> parlance.v1.Entry
-	0,  // 6: parlance.v1.CreateEntryResponse.entry:type_name -> parlance.v1.Entry
-	0,  // 7: parlance.v1.UpdateEntryResponse.entry:type_name -> parlance.v1.Entry
-	18, // 8: parlance.v1.SearchEntriesRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	0,  // 9: parlance.v1.SearchEntriesResponse.entries:type_name -> parlance.v1.Entry
-	19, // 10: parlance.v1.SearchEntriesResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	18, // 11: parlance.v1.GetEntryHistoryRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	15, // 12: parlance.v1.GetEntryHistoryResponse.history:type_name -> parlance.v1.LocalizationHistory
-	19, // 13: parlance.v1.GetEntryHistoryResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	1,  // 14: parlance.v1.EntryService.ListEntries:input_type -> parlance.v1.ListEntriesRequest
-	3,  // 15: parlance.v1.EntryService.GetEntry:input_type -> parlance.v1.GetEntryRequest
-	5,  // 16: parlance.v1.EntryService.CreateEntry:input_type -> parlance.v1.CreateEntryRequest
-	7,  // 17: parlance.v1.EntryService.UpdateEntry:input_type -> parlance.v1.UpdateEntryRequest
-	9,  // 18: parlance.v1.EntryService.DeleteEntry:input_type -> parlance.v1.DeleteEntryRequest
-	11, // 19: parlance.v1.EntryService.SearchEntries:input_type -> parlance.v1.SearchEntriesRequest
-	13, // 20: parlance.v1.EntryService.GetEntryHistory:input_type -> parlance.v1.GetEntryHistoryRequest
-	2,  // 21: parlance.v1.EntryService.ListEntries:output_type -> parlance.v1.ListEntriesResponse
-	4,  // 22: parlance.v1.EntryService.GetEntry:output_type -> parlance.v1.GetEntryResponse
-	6,  // 23: parlance.v1.EntryService.CreateEntry:output_type -> parlance.v1.CreateEntryResponse
-	8,  // 24: parlance.v1.EntryService.UpdateEntry:output_type -> parlance.v1.UpdateEntryResponse
-	10, // 25: parlance.v1.EntryService.DeleteEntry:output_type -> parlance.v1.DeleteEntryResponse
-	12, // 26: parlance.v1.EntryService.SearchEntries:output_type -> parlance.v1.SearchEntriesResponse
-	14, // 27: parlance.v1.EntryService.GetEntryHistory:output_type -> parlance.v1.GetEntryHistoryResponse
-	21, // [21:28] is the sub-list for method output_type
-	14, // [14:21] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	19, // 3: parlance.v1.ListEntriesRequest.filter:type_name -> parlance.v1.FilterRequest
+	0,  // 4: parlance.v1.ListEntriesResponse.entries:type_name -> parlance.v1.Entry
+	20, // 5: parlance.v1.ListEntriesResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	0,  // 6: parlance.v1.GetEntryResponse.entry:type_name -> parlance.v1.Entry
+	0,  // 7: parlance.v1.CreateEntryResponse.entry:type_name -> parlance.v1.Entry
+	0,  // 8: parlance.v1.UpdateEntryResponse.entry:type_name -> parlance.v1.Entry
+	18, // 9: parlance.v1.SearchEntriesRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	0,  // 10: parlance.v1.SearchEntriesResponse.entries:type_name -> parlance.v1.Entry
+	20, // 11: parlance.v1.SearchEntriesResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	18, // 12: parlance.v1.GetEntryHistoryRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	15, // 13: parlance.v1.GetEntryHistoryResponse.history:type_name -> parlance.v1.LocalizationHistory
+	20, // 14: parlance.v1.GetEntryHistoryResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	1,  // 15: parlance.v1.EntryService.ListEntries:input_type -> parlance.v1.ListEntriesRequest
+	3,  // 16: parlance.v1.EntryService.GetEntry:input_type -> parlance.v1.GetEntryRequest
+	5,  // 17: parlance.v1.EntryService.CreateEntry:input_type -> parlance.v1.CreateEntryRequest
+	7,  // 18: parlance.v1.EntryService.UpdateEntry:input_type -> parlance.v1.UpdateEntryRequest
+	9,  // 19: parlance.v1.EntryService.DeleteEntry:input_type -> parlance.v1.DeleteEntryRequest
+	11, // 20: parlance.v1.EntryService.SearchEntries:input_type -> parlance.v1.SearchEntriesRequest
+	13, // 21: parlance.v1.EntryService.GetEntryHistory:input_type -> parlance.v1.GetEntryHistoryRequest
+	2,  // 22: parlance.v1.EntryService.ListEntries:output_type -> parlance.v1.ListEntriesResponse
+	4,  // 23: parlance.v1.EntryService.GetEntry:output_type -> parlance.v1.GetEntryResponse
+	6,  // 24: parlance.v1.EntryService.CreateEntry:output_type -> parlance.v1.CreateEntryResponse
+	8,  // 25: parlance.v1.EntryService.UpdateEntry:output_type -> parlance.v1.UpdateEntryResponse
+	10, // 26: parlance.v1.EntryService.DeleteEntry:output_type -> parlance.v1.DeleteEntryResponse
+	12, // 27: parlance.v1.EntryService.SearchEntries:output_type -> parlance.v1.SearchEntriesResponse
+	14, // 28: parlance.v1.EntryService.GetEntryHistory:output_type -> parlance.v1.GetEntryHistoryResponse
+	22, // [22:29] is the sub-list for method output_type
+	15, // [15:22] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_entry_proto_init() }

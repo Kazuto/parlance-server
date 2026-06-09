@@ -141,6 +141,74 @@ func (x *PaginationResponse) GetTotalPages() int32 {
 	return 0
 }
 
+type FilterRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Search         string                 `protobuf:"bytes,1,opt,name=search,proto3" json:"search,omitempty"`
+	Sort           string                 `protobuf:"bytes,2,opt,name=sort,proto3" json:"sort,omitempty"`
+	Order          string                 `protobuf:"bytes,3,opt,name=order,proto3" json:"order,omitempty"`
+	IncludeDeleted bool                   `protobuf:"varint,4,opt,name=include_deleted,json=includeDeleted,proto3" json:"include_deleted,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *FilterRequest) Reset() {
+	*x = FilterRequest{}
+	mi := &file_parlance_v1_common_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FilterRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FilterRequest) ProtoMessage() {}
+
+func (x *FilterRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_common_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FilterRequest.ProtoReflect.Descriptor instead.
+func (*FilterRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_common_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *FilterRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
+}
+
+func (x *FilterRequest) GetSort() string {
+	if x != nil {
+		return x.Sort
+	}
+	return ""
+}
+
+func (x *FilterRequest) GetOrder() string {
+	if x != nil {
+		return x.Order
+	}
+	return ""
+}
+
+func (x *FilterRequest) GetIncludeDeleted() bool {
+	if x != nil {
+		return x.IncludeDeleted
+	}
+	return false
+}
+
 type Empty struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -149,7 +217,7 @@ type Empty struct {
 
 func (x *Empty) Reset() {
 	*x = Empty{}
-	mi := &file_parlance_v1_common_proto_msgTypes[2]
+	mi := &file_parlance_v1_common_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -161,7 +229,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_common_proto_msgTypes[2]
+	mi := &file_parlance_v1_common_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -174,7 +242,7 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_common_proto_rawDescGZIP(), []int{2}
+	return file_parlance_v1_common_proto_rawDescGZIP(), []int{3}
 }
 
 var File_parlance_v1_common_proto protoreflect.FileDescriptor
@@ -190,7 +258,12 @@ const file_parlance_v1_common_proto_rawDesc = "" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x19\n" +
 	"\bper_page\x18\x03 \x01(\x05R\aperPage\x12\x1f\n" +
 	"\vtotal_pages\x18\x04 \x01(\x05R\n" +
-	"totalPages\"\a\n" +
+	"totalPages\"z\n" +
+	"\rFilterRequest\x12\x16\n" +
+	"\x06search\x18\x01 \x01(\tR\x06search\x12\x12\n" +
+	"\x04sort\x18\x02 \x01(\tR\x04sort\x12\x14\n" +
+	"\x05order\x18\x03 \x01(\tR\x05order\x12'\n" +
+	"\x0finclude_deleted\x18\x04 \x01(\bR\x0eincludeDeleted\"\a\n" +
 	"\x05EmptyB\xa9\x01\n" +
 	"\x0fcom.parlance.v1B\vCommonProtoP\x01Z<github.com/kazuto/parlance-server/gen/parlance/v1;parlancev1\xa2\x02\x03PXX\xaa\x02\vParlance.V1\xca\x02\vParlance\\V1\xe2\x02\x17Parlance\\V1\\GPBMetadata\xea\x02\fParlance::V1b\x06proto3"
 
@@ -206,11 +279,12 @@ func file_parlance_v1_common_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_common_proto_rawDescData
 }
 
-var file_parlance_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_parlance_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_parlance_v1_common_proto_goTypes = []any{
 	(*PaginationRequest)(nil),  // 0: parlance.v1.PaginationRequest
 	(*PaginationResponse)(nil), // 1: parlance.v1.PaginationResponse
-	(*Empty)(nil),              // 2: parlance.v1.Empty
+	(*FilterRequest)(nil),      // 2: parlance.v1.FilterRequest
+	(*Empty)(nil),              // 3: parlance.v1.Empty
 }
 var file_parlance_v1_common_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -231,7 +305,7 @@ func file_parlance_v1_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_common_proto_rawDesc), len(file_parlance_v1_common_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

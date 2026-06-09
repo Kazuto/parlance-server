@@ -116,6 +116,7 @@ func (x *Role) GetDeletedAt() string {
 type ListRolesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Pagination    *PaginationRequest     `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Filter        *FilterRequest         `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -153,6 +154,13 @@ func (*ListRolesRequest) Descriptor() ([]byte, []int) {
 func (x *ListRolesRequest) GetPagination() *PaginationRequest {
 	if x != nil {
 		return x.Pagination
+	}
+	return nil
+}
+
+func (x *ListRolesRequest) GetFilter() *FilterRequest {
+	if x != nil {
+		return x.Filter
 	}
 	return nil
 }
@@ -608,11 +616,12 @@ const file_parlance_v1_role_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x06 \x01(\tR\tupdatedAt\x12\x1d\n" +
 	"\n" +
-	"deleted_at\x18\a \x01(\tR\tdeletedAt\"R\n" +
+	"deleted_at\x18\a \x01(\tR\tdeletedAt\"\x86\x01\n" +
 	"\x10ListRolesRequest\x12>\n" +
 	"\n" +
 	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
-	"pagination\"}\n" +
+	"pagination\x122\n" +
+	"\x06filter\x18\x02 \x01(\v2\x1a.parlance.v1.FilterRequestR\x06filter\"}\n" +
 	"\x11ListRolesResponse\x12'\n" +
 	"\x05roles\x18\x01 \x03(\v2\x11.parlance.v1.RoleR\x05roles\x12?\n" +
 	"\n" +
@@ -676,33 +685,35 @@ var file_parlance_v1_role_proto_goTypes = []any{
 	(*DeleteRoleResponse)(nil), // 10: parlance.v1.DeleteRoleResponse
 	(*Permission)(nil),         // 11: parlance.v1.Permission
 	(*PaginationRequest)(nil),  // 12: parlance.v1.PaginationRequest
-	(*PaginationResponse)(nil), // 13: parlance.v1.PaginationResponse
+	(*FilterRequest)(nil),      // 13: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil), // 14: parlance.v1.PaginationResponse
 }
 var file_parlance_v1_role_proto_depIdxs = []int32{
 	11, // 0: parlance.v1.Role.permissions:type_name -> parlance.v1.Permission
 	12, // 1: parlance.v1.ListRolesRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	0,  // 2: parlance.v1.ListRolesResponse.roles:type_name -> parlance.v1.Role
-	13, // 3: parlance.v1.ListRolesResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	0,  // 4: parlance.v1.GetRoleResponse.role:type_name -> parlance.v1.Role
-	11, // 5: parlance.v1.CreateRoleRequest.permissions:type_name -> parlance.v1.Permission
-	0,  // 6: parlance.v1.CreateRoleResponse.role:type_name -> parlance.v1.Role
-	11, // 7: parlance.v1.UpdateRoleRequest.permissions:type_name -> parlance.v1.Permission
-	0,  // 8: parlance.v1.UpdateRoleResponse.role:type_name -> parlance.v1.Role
-	1,  // 9: parlance.v1.RoleService.ListRoles:input_type -> parlance.v1.ListRolesRequest
-	3,  // 10: parlance.v1.RoleService.GetRole:input_type -> parlance.v1.GetRoleRequest
-	5,  // 11: parlance.v1.RoleService.CreateRole:input_type -> parlance.v1.CreateRoleRequest
-	7,  // 12: parlance.v1.RoleService.UpdateRole:input_type -> parlance.v1.UpdateRoleRequest
-	9,  // 13: parlance.v1.RoleService.DeleteRole:input_type -> parlance.v1.DeleteRoleRequest
-	2,  // 14: parlance.v1.RoleService.ListRoles:output_type -> parlance.v1.ListRolesResponse
-	4,  // 15: parlance.v1.RoleService.GetRole:output_type -> parlance.v1.GetRoleResponse
-	6,  // 16: parlance.v1.RoleService.CreateRole:output_type -> parlance.v1.CreateRoleResponse
-	8,  // 17: parlance.v1.RoleService.UpdateRole:output_type -> parlance.v1.UpdateRoleResponse
-	10, // 18: parlance.v1.RoleService.DeleteRole:output_type -> parlance.v1.DeleteRoleResponse
-	14, // [14:19] is the sub-list for method output_type
-	9,  // [9:14] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	13, // 2: parlance.v1.ListRolesRequest.filter:type_name -> parlance.v1.FilterRequest
+	0,  // 3: parlance.v1.ListRolesResponse.roles:type_name -> parlance.v1.Role
+	14, // 4: parlance.v1.ListRolesResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	0,  // 5: parlance.v1.GetRoleResponse.role:type_name -> parlance.v1.Role
+	11, // 6: parlance.v1.CreateRoleRequest.permissions:type_name -> parlance.v1.Permission
+	0,  // 7: parlance.v1.CreateRoleResponse.role:type_name -> parlance.v1.Role
+	11, // 8: parlance.v1.UpdateRoleRequest.permissions:type_name -> parlance.v1.Permission
+	0,  // 9: parlance.v1.UpdateRoleResponse.role:type_name -> parlance.v1.Role
+	1,  // 10: parlance.v1.RoleService.ListRoles:input_type -> parlance.v1.ListRolesRequest
+	3,  // 11: parlance.v1.RoleService.GetRole:input_type -> parlance.v1.GetRoleRequest
+	5,  // 12: parlance.v1.RoleService.CreateRole:input_type -> parlance.v1.CreateRoleRequest
+	7,  // 13: parlance.v1.RoleService.UpdateRole:input_type -> parlance.v1.UpdateRoleRequest
+	9,  // 14: parlance.v1.RoleService.DeleteRole:input_type -> parlance.v1.DeleteRoleRequest
+	2,  // 15: parlance.v1.RoleService.ListRoles:output_type -> parlance.v1.ListRolesResponse
+	4,  // 16: parlance.v1.RoleService.GetRole:output_type -> parlance.v1.GetRoleResponse
+	6,  // 17: parlance.v1.RoleService.CreateRole:output_type -> parlance.v1.CreateRoleResponse
+	8,  // 18: parlance.v1.RoleService.UpdateRole:output_type -> parlance.v1.UpdateRoleResponse
+	10, // 19: parlance.v1.RoleService.DeleteRole:output_type -> parlance.v1.DeleteRoleResponse
+	15, // [15:20] is the sub-list for method output_type
+	10, // [10:15] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_role_proto_init() }

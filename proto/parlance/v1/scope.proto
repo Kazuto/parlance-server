@@ -29,6 +29,24 @@ message Scope {
   string deleted_at = 8;
 }
 
+message ListScopesRequest {
+  PaginationRequest pagination = 1;
+  FilterRequest filter = 2;
+}
+
+message ListScopesResponse {
+  repeated Scope scopes = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetScopeRequest {
+  string id = 1;
+}
+
+message GetScopeResponse {
+  Scope scope = 1;
+}
+
 message CreateScopeRequest {
   string name = 1;
   string slug = 2;
@@ -57,23 +75,6 @@ message DeleteScopeRequest {
 }
 
 message DeleteScopeResponse {}
-
-message GetScopeRequest {
-  string id = 1;
-}
-
-message GetScopeResponse {
-  Scope scope = 1;
-}
-
-message ListScopesRequest {
-  PaginationRequest pagination = 1;
-}
-
-message ListScopesResponse {
-  repeated Scope scopes = 1;
-  PaginationResponse pagination = 2;
-}
 
 // Entry-Scope relationship management
 message AddScopeToEntryRequest {

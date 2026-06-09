@@ -121,6 +121,198 @@ func (x *Scope) GetDeletedAt() string {
 	return ""
 }
 
+type ListScopesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Pagination    *PaginationRequest     `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Filter        *FilterRequest         `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListScopesRequest) Reset() {
+	*x = ListScopesRequest{}
+	mi := &file_parlance_v1_scope_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListScopesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListScopesRequest) ProtoMessage() {}
+
+func (x *ListScopesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_scope_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListScopesRequest.ProtoReflect.Descriptor instead.
+func (*ListScopesRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ListScopesRequest) GetPagination() *PaginationRequest {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+func (x *ListScopesRequest) GetFilter() *FilterRequest {
+	if x != nil {
+		return x.Filter
+	}
+	return nil
+}
+
+type ListScopesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Scopes        []*Scope               `protobuf:"bytes,1,rep,name=scopes,proto3" json:"scopes,omitempty"`
+	Pagination    *PaginationResponse    `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListScopesResponse) Reset() {
+	*x = ListScopesResponse{}
+	mi := &file_parlance_v1_scope_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListScopesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListScopesResponse) ProtoMessage() {}
+
+func (x *ListScopesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_scope_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListScopesResponse.ProtoReflect.Descriptor instead.
+func (*ListScopesResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ListScopesResponse) GetScopes() []*Scope {
+	if x != nil {
+		return x.Scopes
+	}
+	return nil
+}
+
+func (x *ListScopesResponse) GetPagination() *PaginationResponse {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+type GetScopeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetScopeRequest) Reset() {
+	*x = GetScopeRequest{}
+	mi := &file_parlance_v1_scope_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetScopeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetScopeRequest) ProtoMessage() {}
+
+func (x *GetScopeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_scope_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetScopeRequest.ProtoReflect.Descriptor instead.
+func (*GetScopeRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetScopeRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetScopeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Scope         *Scope                 `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetScopeResponse) Reset() {
+	*x = GetScopeResponse{}
+	mi := &file_parlance_v1_scope_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetScopeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetScopeResponse) ProtoMessage() {}
+
+func (x *GetScopeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_scope_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetScopeResponse.ProtoReflect.Descriptor instead.
+func (*GetScopeResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetScopeResponse) GetScope() *Scope {
+	if x != nil {
+		return x.Scope
+	}
+	return nil
+}
+
 type CreateScopeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -133,7 +325,7 @@ type CreateScopeRequest struct {
 
 func (x *CreateScopeRequest) Reset() {
 	*x = CreateScopeRequest{}
-	mi := &file_parlance_v1_scope_proto_msgTypes[1]
+	mi := &file_parlance_v1_scope_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -145,7 +337,7 @@ func (x *CreateScopeRequest) String() string {
 func (*CreateScopeRequest) ProtoMessage() {}
 
 func (x *CreateScopeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_scope_proto_msgTypes[1]
+	mi := &file_parlance_v1_scope_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -158,7 +350,7 @@ func (x *CreateScopeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateScopeRequest.ProtoReflect.Descriptor instead.
 func (*CreateScopeRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{1}
+	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateScopeRequest) GetName() string {
@@ -198,7 +390,7 @@ type CreateScopeResponse struct {
 
 func (x *CreateScopeResponse) Reset() {
 	*x = CreateScopeResponse{}
-	mi := &file_parlance_v1_scope_proto_msgTypes[2]
+	mi := &file_parlance_v1_scope_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -210,7 +402,7 @@ func (x *CreateScopeResponse) String() string {
 func (*CreateScopeResponse) ProtoMessage() {}
 
 func (x *CreateScopeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_scope_proto_msgTypes[2]
+	mi := &file_parlance_v1_scope_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -223,7 +415,7 @@ func (x *CreateScopeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateScopeResponse.ProtoReflect.Descriptor instead.
 func (*CreateScopeResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{2}
+	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CreateScopeResponse) GetScope() *Scope {
@@ -246,7 +438,7 @@ type UpdateScopeRequest struct {
 
 func (x *UpdateScopeRequest) Reset() {
 	*x = UpdateScopeRequest{}
-	mi := &file_parlance_v1_scope_proto_msgTypes[3]
+	mi := &file_parlance_v1_scope_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -258,7 +450,7 @@ func (x *UpdateScopeRequest) String() string {
 func (*UpdateScopeRequest) ProtoMessage() {}
 
 func (x *UpdateScopeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_scope_proto_msgTypes[3]
+	mi := &file_parlance_v1_scope_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -271,7 +463,7 @@ func (x *UpdateScopeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateScopeRequest.ProtoReflect.Descriptor instead.
 func (*UpdateScopeRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{3}
+	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdateScopeRequest) GetId() string {
@@ -318,7 +510,7 @@ type UpdateScopeResponse struct {
 
 func (x *UpdateScopeResponse) Reset() {
 	*x = UpdateScopeResponse{}
-	mi := &file_parlance_v1_scope_proto_msgTypes[4]
+	mi := &file_parlance_v1_scope_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -330,7 +522,7 @@ func (x *UpdateScopeResponse) String() string {
 func (*UpdateScopeResponse) ProtoMessage() {}
 
 func (x *UpdateScopeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_scope_proto_msgTypes[4]
+	mi := &file_parlance_v1_scope_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -343,7 +535,7 @@ func (x *UpdateScopeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateScopeResponse.ProtoReflect.Descriptor instead.
 func (*UpdateScopeResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{4}
+	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UpdateScopeResponse) GetScope() *Scope {
@@ -362,7 +554,7 @@ type DeleteScopeRequest struct {
 
 func (x *DeleteScopeRequest) Reset() {
 	*x = DeleteScopeRequest{}
-	mi := &file_parlance_v1_scope_proto_msgTypes[5]
+	mi := &file_parlance_v1_scope_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -374,7 +566,7 @@ func (x *DeleteScopeRequest) String() string {
 func (*DeleteScopeRequest) ProtoMessage() {}
 
 func (x *DeleteScopeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_scope_proto_msgTypes[5]
+	mi := &file_parlance_v1_scope_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -387,7 +579,7 @@ func (x *DeleteScopeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteScopeRequest.ProtoReflect.Descriptor instead.
 func (*DeleteScopeRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{5}
+	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeleteScopeRequest) GetId() string {
@@ -405,7 +597,7 @@ type DeleteScopeResponse struct {
 
 func (x *DeleteScopeResponse) Reset() {
 	*x = DeleteScopeResponse{}
-	mi := &file_parlance_v1_scope_proto_msgTypes[6]
+	mi := &file_parlance_v1_scope_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -417,7 +609,7 @@ func (x *DeleteScopeResponse) String() string {
 func (*DeleteScopeResponse) ProtoMessage() {}
 
 func (x *DeleteScopeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_scope_proto_msgTypes[6]
+	mi := &file_parlance_v1_scope_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -430,191 +622,7 @@ func (x *DeleteScopeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteScopeResponse.ProtoReflect.Descriptor instead.
 func (*DeleteScopeResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{6}
-}
-
-type GetScopeRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetScopeRequest) Reset() {
-	*x = GetScopeRequest{}
-	mi := &file_parlance_v1_scope_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetScopeRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetScopeRequest) ProtoMessage() {}
-
-func (x *GetScopeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_scope_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetScopeRequest.ProtoReflect.Descriptor instead.
-func (*GetScopeRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *GetScopeRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-type GetScopeResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Scope         *Scope                 `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetScopeResponse) Reset() {
-	*x = GetScopeResponse{}
-	mi := &file_parlance_v1_scope_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetScopeResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetScopeResponse) ProtoMessage() {}
-
-func (x *GetScopeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_scope_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetScopeResponse.ProtoReflect.Descriptor instead.
-func (*GetScopeResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *GetScopeResponse) GetScope() *Scope {
-	if x != nil {
-		return x.Scope
-	}
-	return nil
-}
-
-type ListScopesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Pagination    *PaginationRequest     `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListScopesRequest) Reset() {
-	*x = ListScopesRequest{}
-	mi := &file_parlance_v1_scope_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListScopesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListScopesRequest) ProtoMessage() {}
-
-func (x *ListScopesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_scope_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListScopesRequest.ProtoReflect.Descriptor instead.
-func (*ListScopesRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *ListScopesRequest) GetPagination() *PaginationRequest {
-	if x != nil {
-		return x.Pagination
-	}
-	return nil
-}
-
-type ListScopesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Scopes        []*Scope               `protobuf:"bytes,1,rep,name=scopes,proto3" json:"scopes,omitempty"`
-	Pagination    *PaginationResponse    `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListScopesResponse) Reset() {
-	*x = ListScopesResponse{}
-	mi := &file_parlance_v1_scope_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListScopesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListScopesResponse) ProtoMessage() {}
-
-func (x *ListScopesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_scope_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListScopesResponse.ProtoReflect.Descriptor instead.
-func (*ListScopesResponse) Descriptor() ([]byte, []int) {
 	return file_parlance_v1_scope_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *ListScopesResponse) GetScopes() []*Scope {
-	if x != nil {
-		return x.Scopes
-	}
-	return nil
-}
-
-func (x *ListScopesResponse) GetPagination() *PaginationResponse {
-	if x != nil {
-		return x.Pagination
-	}
-	return nil
 }
 
 // Entry-Scope relationship management
@@ -898,7 +906,21 @@ const file_parlance_v1_scope_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\a \x01(\tR\tupdatedAt\x12\x1d\n" +
 	"\n" +
-	"deleted_at\x18\b \x01(\tR\tdeletedAt\"t\n" +
+	"deleted_at\x18\b \x01(\tR\tdeletedAt\"\x87\x01\n" +
+	"\x11ListScopesRequest\x12>\n" +
+	"\n" +
+	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
+	"pagination\x122\n" +
+	"\x06filter\x18\x02 \x01(\v2\x1a.parlance.v1.FilterRequestR\x06filter\"\x81\x01\n" +
+	"\x12ListScopesResponse\x12*\n" +
+	"\x06scopes\x18\x01 \x03(\v2\x12.parlance.v1.ScopeR\x06scopes\x12?\n" +
+	"\n" +
+	"pagination\x18\x02 \x01(\v2\x1f.parlance.v1.PaginationResponseR\n" +
+	"pagination\"!\n" +
+	"\x0fGetScopeRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"<\n" +
+	"\x10GetScopeResponse\x12(\n" +
+	"\x05scope\x18\x01 \x01(\v2\x12.parlance.v1.ScopeR\x05scope\"t\n" +
 	"\x12CreateScopeRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04slug\x18\x02 \x01(\tR\x04slug\x12 \n" +
@@ -916,20 +938,7 @@ const file_parlance_v1_scope_proto_rawDesc = "" +
 	"\x05scope\x18\x01 \x01(\v2\x12.parlance.v1.ScopeR\x05scope\"$\n" +
 	"\x12DeleteScopeRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x15\n" +
-	"\x13DeleteScopeResponse\"!\n" +
-	"\x0fGetScopeRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"<\n" +
-	"\x10GetScopeResponse\x12(\n" +
-	"\x05scope\x18\x01 \x01(\v2\x12.parlance.v1.ScopeR\x05scope\"S\n" +
-	"\x11ListScopesRequest\x12>\n" +
-	"\n" +
-	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
-	"pagination\"\x81\x01\n" +
-	"\x12ListScopesResponse\x12*\n" +
-	"\x06scopes\x18\x01 \x03(\v2\x12.parlance.v1.ScopeR\x06scopes\x12?\n" +
-	"\n" +
-	"pagination\x18\x02 \x01(\v2\x1f.parlance.v1.PaginationResponseR\n" +
-	"pagination\"N\n" +
+	"\x13DeleteScopeResponse\"N\n" +
 	"\x16AddScopeToEntryRequest\x12\x19\n" +
 	"\bentry_id\x18\x01 \x01(\tR\aentryId\x12\x19\n" +
 	"\bscope_id\x18\x02 \x01(\tR\ascopeId\"\x19\n" +
@@ -970,16 +979,16 @@ func file_parlance_v1_scope_proto_rawDescGZIP() []byte {
 var file_parlance_v1_scope_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_parlance_v1_scope_proto_goTypes = []any{
 	(*Scope)(nil),                        // 0: parlance.v1.Scope
-	(*CreateScopeRequest)(nil),           // 1: parlance.v1.CreateScopeRequest
-	(*CreateScopeResponse)(nil),          // 2: parlance.v1.CreateScopeResponse
-	(*UpdateScopeRequest)(nil),           // 3: parlance.v1.UpdateScopeRequest
-	(*UpdateScopeResponse)(nil),          // 4: parlance.v1.UpdateScopeResponse
-	(*DeleteScopeRequest)(nil),           // 5: parlance.v1.DeleteScopeRequest
-	(*DeleteScopeResponse)(nil),          // 6: parlance.v1.DeleteScopeResponse
-	(*GetScopeRequest)(nil),              // 7: parlance.v1.GetScopeRequest
-	(*GetScopeResponse)(nil),             // 8: parlance.v1.GetScopeResponse
-	(*ListScopesRequest)(nil),            // 9: parlance.v1.ListScopesRequest
-	(*ListScopesResponse)(nil),           // 10: parlance.v1.ListScopesResponse
+	(*ListScopesRequest)(nil),            // 1: parlance.v1.ListScopesRequest
+	(*ListScopesResponse)(nil),           // 2: parlance.v1.ListScopesResponse
+	(*GetScopeRequest)(nil),              // 3: parlance.v1.GetScopeRequest
+	(*GetScopeResponse)(nil),             // 4: parlance.v1.GetScopeResponse
+	(*CreateScopeRequest)(nil),           // 5: parlance.v1.CreateScopeRequest
+	(*CreateScopeResponse)(nil),          // 6: parlance.v1.CreateScopeResponse
+	(*UpdateScopeRequest)(nil),           // 7: parlance.v1.UpdateScopeRequest
+	(*UpdateScopeResponse)(nil),          // 8: parlance.v1.UpdateScopeResponse
+	(*DeleteScopeRequest)(nil),           // 9: parlance.v1.DeleteScopeRequest
+	(*DeleteScopeResponse)(nil),          // 10: parlance.v1.DeleteScopeResponse
 	(*AddScopeToEntryRequest)(nil),       // 11: parlance.v1.AddScopeToEntryRequest
 	(*AddScopeToEntryResponse)(nil),      // 12: parlance.v1.AddScopeToEntryResponse
 	(*RemoveScopeFromEntryRequest)(nil),  // 13: parlance.v1.RemoveScopeFromEntryRequest
@@ -987,37 +996,39 @@ var file_parlance_v1_scope_proto_goTypes = []any{
 	(*GetEntryScopesRequest)(nil),        // 15: parlance.v1.GetEntryScopesRequest
 	(*GetEntryScopesResponse)(nil),       // 16: parlance.v1.GetEntryScopesResponse
 	(*PaginationRequest)(nil),            // 17: parlance.v1.PaginationRequest
-	(*PaginationResponse)(nil),           // 18: parlance.v1.PaginationResponse
+	(*FilterRequest)(nil),                // 18: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),           // 19: parlance.v1.PaginationResponse
 }
 var file_parlance_v1_scope_proto_depIdxs = []int32{
-	0,  // 0: parlance.v1.CreateScopeResponse.scope:type_name -> parlance.v1.Scope
-	0,  // 1: parlance.v1.UpdateScopeResponse.scope:type_name -> parlance.v1.Scope
-	0,  // 2: parlance.v1.GetScopeResponse.scope:type_name -> parlance.v1.Scope
-	17, // 3: parlance.v1.ListScopesRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	0,  // 4: parlance.v1.ListScopesResponse.scopes:type_name -> parlance.v1.Scope
-	18, // 5: parlance.v1.ListScopesResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	0,  // 6: parlance.v1.GetEntryScopesResponse.scopes:type_name -> parlance.v1.Scope
-	9,  // 7: parlance.v1.ScopeService.ListScopes:input_type -> parlance.v1.ListScopesRequest
-	7,  // 8: parlance.v1.ScopeService.GetScope:input_type -> parlance.v1.GetScopeRequest
-	1,  // 9: parlance.v1.ScopeService.CreateScope:input_type -> parlance.v1.CreateScopeRequest
-	3,  // 10: parlance.v1.ScopeService.UpdateScope:input_type -> parlance.v1.UpdateScopeRequest
-	5,  // 11: parlance.v1.ScopeService.DeleteScope:input_type -> parlance.v1.DeleteScopeRequest
-	11, // 12: parlance.v1.ScopeService.AddScopeToEntry:input_type -> parlance.v1.AddScopeToEntryRequest
-	13, // 13: parlance.v1.ScopeService.RemoveScopeFromEntry:input_type -> parlance.v1.RemoveScopeFromEntryRequest
-	15, // 14: parlance.v1.ScopeService.GetEntryScopes:input_type -> parlance.v1.GetEntryScopesRequest
-	10, // 15: parlance.v1.ScopeService.ListScopes:output_type -> parlance.v1.ListScopesResponse
-	8,  // 16: parlance.v1.ScopeService.GetScope:output_type -> parlance.v1.GetScopeResponse
-	2,  // 17: parlance.v1.ScopeService.CreateScope:output_type -> parlance.v1.CreateScopeResponse
-	4,  // 18: parlance.v1.ScopeService.UpdateScope:output_type -> parlance.v1.UpdateScopeResponse
-	6,  // 19: parlance.v1.ScopeService.DeleteScope:output_type -> parlance.v1.DeleteScopeResponse
-	12, // 20: parlance.v1.ScopeService.AddScopeToEntry:output_type -> parlance.v1.AddScopeToEntryResponse
-	14, // 21: parlance.v1.ScopeService.RemoveScopeFromEntry:output_type -> parlance.v1.RemoveScopeFromEntryResponse
-	16, // 22: parlance.v1.ScopeService.GetEntryScopes:output_type -> parlance.v1.GetEntryScopesResponse
-	15, // [15:23] is the sub-list for method output_type
-	7,  // [7:15] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	17, // 0: parlance.v1.ListScopesRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	18, // 1: parlance.v1.ListScopesRequest.filter:type_name -> parlance.v1.FilterRequest
+	0,  // 2: parlance.v1.ListScopesResponse.scopes:type_name -> parlance.v1.Scope
+	19, // 3: parlance.v1.ListScopesResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	0,  // 4: parlance.v1.GetScopeResponse.scope:type_name -> parlance.v1.Scope
+	0,  // 5: parlance.v1.CreateScopeResponse.scope:type_name -> parlance.v1.Scope
+	0,  // 6: parlance.v1.UpdateScopeResponse.scope:type_name -> parlance.v1.Scope
+	0,  // 7: parlance.v1.GetEntryScopesResponse.scopes:type_name -> parlance.v1.Scope
+	1,  // 8: parlance.v1.ScopeService.ListScopes:input_type -> parlance.v1.ListScopesRequest
+	3,  // 9: parlance.v1.ScopeService.GetScope:input_type -> parlance.v1.GetScopeRequest
+	5,  // 10: parlance.v1.ScopeService.CreateScope:input_type -> parlance.v1.CreateScopeRequest
+	7,  // 11: parlance.v1.ScopeService.UpdateScope:input_type -> parlance.v1.UpdateScopeRequest
+	9,  // 12: parlance.v1.ScopeService.DeleteScope:input_type -> parlance.v1.DeleteScopeRequest
+	11, // 13: parlance.v1.ScopeService.AddScopeToEntry:input_type -> parlance.v1.AddScopeToEntryRequest
+	13, // 14: parlance.v1.ScopeService.RemoveScopeFromEntry:input_type -> parlance.v1.RemoveScopeFromEntryRequest
+	15, // 15: parlance.v1.ScopeService.GetEntryScopes:input_type -> parlance.v1.GetEntryScopesRequest
+	2,  // 16: parlance.v1.ScopeService.ListScopes:output_type -> parlance.v1.ListScopesResponse
+	4,  // 17: parlance.v1.ScopeService.GetScope:output_type -> parlance.v1.GetScopeResponse
+	6,  // 18: parlance.v1.ScopeService.CreateScope:output_type -> parlance.v1.CreateScopeResponse
+	8,  // 19: parlance.v1.ScopeService.UpdateScope:output_type -> parlance.v1.UpdateScopeResponse
+	10, // 20: parlance.v1.ScopeService.DeleteScope:output_type -> parlance.v1.DeleteScopeResponse
+	12, // 21: parlance.v1.ScopeService.AddScopeToEntry:output_type -> parlance.v1.AddScopeToEntryResponse
+	14, // 22: parlance.v1.ScopeService.RemoveScopeFromEntry:output_type -> parlance.v1.RemoveScopeFromEntryResponse
+	16, // 23: parlance.v1.ScopeService.GetEntryScopes:output_type -> parlance.v1.GetEntryScopesResponse
+	16, // [16:24] is the sub-list for method output_type
+	8,  // [8:16] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_scope_proto_init() }

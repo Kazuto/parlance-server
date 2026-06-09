@@ -15,4 +15,11 @@ message PaginationResponse {
   int32 total_pages = 4;
 }
 
+message FilterRequest {
+  string search = 1;
+  string sort = 2;
+  string order = 3;
+  bool include_deleted = 4;
+}
+
 message Empty {}

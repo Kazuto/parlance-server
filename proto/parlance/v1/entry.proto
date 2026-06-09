@@ -31,9 +31,10 @@ message Entry {
 }
 
 message ListEntriesRequest {
-  PaginationRequest pagination = 1;
-  string scope_id = 2;
-  string locale_id = 3;
+  string scope_id = 1;
+  string locale_id = 2;
+  PaginationRequest pagination = 3;
+  FilterRequest filter = 4;
 }
 
 message ListEntriesResponse {

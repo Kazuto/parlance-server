@@ -19,6 +19,7 @@ message Permission {
 
 message ListPermissionsRequest {
   PaginationRequest pagination = 1;
+  FilterRequest filter = 2;
 }
 
 message ListPermissionsResponse {

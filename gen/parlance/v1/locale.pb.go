@@ -121,6 +121,110 @@ func (x *Locale) GetDeletedAt() string {
 	return ""
 }
 
+type ListLocalesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Pagination    *PaginationRequest     `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Filter        *FilterRequest         `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListLocalesRequest) Reset() {
+	*x = ListLocalesRequest{}
+	mi := &file_parlance_v1_locale_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListLocalesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListLocalesRequest) ProtoMessage() {}
+
+func (x *ListLocalesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_locale_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListLocalesRequest.ProtoReflect.Descriptor instead.
+func (*ListLocalesRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ListLocalesRequest) GetPagination() *PaginationRequest {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+func (x *ListLocalesRequest) GetFilter() *FilterRequest {
+	if x != nil {
+		return x.Filter
+	}
+	return nil
+}
+
+type ListLocalesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Locales       []*Locale              `protobuf:"bytes,1,rep,name=locales,proto3" json:"locales,omitempty"`
+	Pagination    *PaginationResponse    `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListLocalesResponse) Reset() {
+	*x = ListLocalesResponse{}
+	mi := &file_parlance_v1_locale_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListLocalesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListLocalesResponse) ProtoMessage() {}
+
+func (x *ListLocalesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_locale_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListLocalesResponse.ProtoReflect.Descriptor instead.
+func (*ListLocalesResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ListLocalesResponse) GetLocales() []*Locale {
+	if x != nil {
+		return x.Locales
+	}
+	return nil
+}
+
+func (x *ListLocalesResponse) GetPagination() *PaginationResponse {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
 type CreateLocaleRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
@@ -132,7 +236,7 @@ type CreateLocaleRequest struct {
 
 func (x *CreateLocaleRequest) Reset() {
 	*x = CreateLocaleRequest{}
-	mi := &file_parlance_v1_locale_proto_msgTypes[1]
+	mi := &file_parlance_v1_locale_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -144,7 +248,7 @@ func (x *CreateLocaleRequest) String() string {
 func (*CreateLocaleRequest) ProtoMessage() {}
 
 func (x *CreateLocaleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_locale_proto_msgTypes[1]
+	mi := &file_parlance_v1_locale_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -157,7 +261,7 @@ func (x *CreateLocaleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateLocaleRequest.ProtoReflect.Descriptor instead.
 func (*CreateLocaleRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{1}
+	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CreateLocaleRequest) GetCode() string {
@@ -190,7 +294,7 @@ type CreateLocaleResponse struct {
 
 func (x *CreateLocaleResponse) Reset() {
 	*x = CreateLocaleResponse{}
-	mi := &file_parlance_v1_locale_proto_msgTypes[2]
+	mi := &file_parlance_v1_locale_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -202,7 +306,7 @@ func (x *CreateLocaleResponse) String() string {
 func (*CreateLocaleResponse) ProtoMessage() {}
 
 func (x *CreateLocaleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_locale_proto_msgTypes[2]
+	mi := &file_parlance_v1_locale_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -215,7 +319,7 @@ func (x *CreateLocaleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateLocaleResponse.ProtoReflect.Descriptor instead.
 func (*CreateLocaleResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{2}
+	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *CreateLocaleResponse) GetLocale() *Locale {
@@ -237,7 +341,7 @@ type UpdateLocaleRequest struct {
 
 func (x *UpdateLocaleRequest) Reset() {
 	*x = UpdateLocaleRequest{}
-	mi := &file_parlance_v1_locale_proto_msgTypes[3]
+	mi := &file_parlance_v1_locale_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -249,7 +353,7 @@ func (x *UpdateLocaleRequest) String() string {
 func (*UpdateLocaleRequest) ProtoMessage() {}
 
 func (x *UpdateLocaleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_locale_proto_msgTypes[3]
+	mi := &file_parlance_v1_locale_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -262,7 +366,7 @@ func (x *UpdateLocaleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateLocaleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateLocaleRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{3}
+	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *UpdateLocaleRequest) GetId() string {
@@ -302,7 +406,7 @@ type UpdateLocaleResponse struct {
 
 func (x *UpdateLocaleResponse) Reset() {
 	*x = UpdateLocaleResponse{}
-	mi := &file_parlance_v1_locale_proto_msgTypes[4]
+	mi := &file_parlance_v1_locale_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -314,7 +418,7 @@ func (x *UpdateLocaleResponse) String() string {
 func (*UpdateLocaleResponse) ProtoMessage() {}
 
 func (x *UpdateLocaleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_locale_proto_msgTypes[4]
+	mi := &file_parlance_v1_locale_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -327,7 +431,7 @@ func (x *UpdateLocaleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateLocaleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateLocaleResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{4}
+	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *UpdateLocaleResponse) GetLocale() *Locale {
@@ -346,7 +450,7 @@ type DeleteLocaleRequest struct {
 
 func (x *DeleteLocaleRequest) Reset() {
 	*x = DeleteLocaleRequest{}
-	mi := &file_parlance_v1_locale_proto_msgTypes[5]
+	mi := &file_parlance_v1_locale_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -358,7 +462,7 @@ func (x *DeleteLocaleRequest) String() string {
 func (*DeleteLocaleRequest) ProtoMessage() {}
 
 func (x *DeleteLocaleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_locale_proto_msgTypes[5]
+	mi := &file_parlance_v1_locale_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -371,7 +475,7 @@ func (x *DeleteLocaleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteLocaleRequest.ProtoReflect.Descriptor instead.
 func (*DeleteLocaleRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{5}
+	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *DeleteLocaleRequest) GetId() string {
@@ -389,7 +493,7 @@ type DeleteLocaleResponse struct {
 
 func (x *DeleteLocaleResponse) Reset() {
 	*x = DeleteLocaleResponse{}
-	mi := &file_parlance_v1_locale_proto_msgTypes[6]
+	mi := &file_parlance_v1_locale_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -401,7 +505,7 @@ func (x *DeleteLocaleResponse) String() string {
 func (*DeleteLocaleResponse) ProtoMessage() {}
 
 func (x *DeleteLocaleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_locale_proto_msgTypes[6]
+	mi := &file_parlance_v1_locale_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -414,7 +518,7 @@ func (x *DeleteLocaleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteLocaleResponse.ProtoReflect.Descriptor instead.
 func (*DeleteLocaleResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{6}
+	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{8}
 }
 
 type GetLocaleRequest struct {
@@ -426,7 +530,7 @@ type GetLocaleRequest struct {
 
 func (x *GetLocaleRequest) Reset() {
 	*x = GetLocaleRequest{}
-	mi := &file_parlance_v1_locale_proto_msgTypes[7]
+	mi := &file_parlance_v1_locale_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -438,7 +542,7 @@ func (x *GetLocaleRequest) String() string {
 func (*GetLocaleRequest) ProtoMessage() {}
 
 func (x *GetLocaleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_locale_proto_msgTypes[7]
+	mi := &file_parlance_v1_locale_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -451,7 +555,7 @@ func (x *GetLocaleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLocaleRequest.ProtoReflect.Descriptor instead.
 func (*GetLocaleRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{7}
+	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetLocaleRequest) GetId() string {
@@ -470,7 +574,7 @@ type GetLocaleResponse struct {
 
 func (x *GetLocaleResponse) Reset() {
 	*x = GetLocaleResponse{}
-	mi := &file_parlance_v1_locale_proto_msgTypes[8]
+	mi := &file_parlance_v1_locale_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -482,7 +586,7 @@ func (x *GetLocaleResponse) String() string {
 func (*GetLocaleResponse) ProtoMessage() {}
 
 func (x *GetLocaleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_locale_proto_msgTypes[8]
+	mi := &file_parlance_v1_locale_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -495,108 +599,12 @@ func (x *GetLocaleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLocaleResponse.ProtoReflect.Descriptor instead.
 func (*GetLocaleResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{8}
+	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetLocaleResponse) GetLocale() *Locale {
 	if x != nil {
 		return x.Locale
-	}
-	return nil
-}
-
-type ListLocalesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Pagination    *PaginationRequest     `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListLocalesRequest) Reset() {
-	*x = ListLocalesRequest{}
-	mi := &file_parlance_v1_locale_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListLocalesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListLocalesRequest) ProtoMessage() {}
-
-func (x *ListLocalesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_locale_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListLocalesRequest.ProtoReflect.Descriptor instead.
-func (*ListLocalesRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *ListLocalesRequest) GetPagination() *PaginationRequest {
-	if x != nil {
-		return x.Pagination
-	}
-	return nil
-}
-
-type ListLocalesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Locales       []*Locale              `protobuf:"bytes,1,rep,name=locales,proto3" json:"locales,omitempty"`
-	Pagination    *PaginationResponse    `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListLocalesResponse) Reset() {
-	*x = ListLocalesResponse{}
-	mi := &file_parlance_v1_locale_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListLocalesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListLocalesResponse) ProtoMessage() {}
-
-func (x *ListLocalesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_locale_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListLocalesResponse.ProtoReflect.Descriptor instead.
-func (*ListLocalesResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *ListLocalesResponse) GetLocales() []*Locale {
-	if x != nil {
-		return x.Locales
-	}
-	return nil
-}
-
-func (x *ListLocalesResponse) GetPagination() *PaginationResponse {
-	if x != nil {
-		return x.Pagination
 	}
 	return nil
 }
@@ -790,7 +798,17 @@ const file_parlance_v1_locale_proto_rawDesc = "" +
 	"\n" +
 	"NamesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc5\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x88\x01\n" +
+	"\x12ListLocalesRequest\x12>\n" +
+	"\n" +
+	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
+	"pagination\x122\n" +
+	"\x06filter\x18\x02 \x01(\v2\x1a.parlance.v1.FilterRequestR\x06filter\"\x85\x01\n" +
+	"\x13ListLocalesResponse\x12-\n" +
+	"\alocales\x18\x01 \x03(\v2\x13.parlance.v1.LocaleR\alocales\x12?\n" +
+	"\n" +
+	"pagination\x18\x02 \x01(\v2\x1f.parlance.v1.PaginationResponseR\n" +
+	"pagination\"\xc5\x01\n" +
 	"\x13CreateLocaleRequest\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12A\n" +
 	"\x05names\x18\x02 \x03(\v2+.parlance.v1.CreateLocaleRequest.NamesEntryR\x05names\x12\x1d\n" +
@@ -820,16 +838,7 @@ const file_parlance_v1_locale_proto_rawDesc = "" +
 	"\x10GetLocaleRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"@\n" +
 	"\x11GetLocaleResponse\x12+\n" +
-	"\x06locale\x18\x01 \x01(\v2\x13.parlance.v1.LocaleR\x06locale\"T\n" +
-	"\x12ListLocalesRequest\x12>\n" +
-	"\n" +
-	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
-	"pagination\"\x85\x01\n" +
-	"\x13ListLocalesResponse\x12-\n" +
-	"\alocales\x18\x01 \x03(\v2\x13.parlance.v1.LocaleR\alocales\x12?\n" +
-	"\n" +
-	"pagination\x18\x02 \x01(\v2\x1f.parlance.v1.PaginationResponseR\n" +
-	"pagination\"\x19\n" +
+	"\x06locale\x18\x01 \x01(\v2\x13.parlance.v1.LocaleR\x06locale\"\x19\n" +
 	"\x17GetDefaultLocaleRequest\"G\n" +
 	"\x18GetDefaultLocaleResponse\x12+\n" +
 	"\x06locale\x18\x01 \x01(\v2\x13.parlance.v1.LocaleR\x06locale\"6\n" +
@@ -862,16 +871,16 @@ func file_parlance_v1_locale_proto_rawDescGZIP() []byte {
 var file_parlance_v1_locale_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_parlance_v1_locale_proto_goTypes = []any{
 	(*Locale)(nil),                   // 0: parlance.v1.Locale
-	(*CreateLocaleRequest)(nil),      // 1: parlance.v1.CreateLocaleRequest
-	(*CreateLocaleResponse)(nil),     // 2: parlance.v1.CreateLocaleResponse
-	(*UpdateLocaleRequest)(nil),      // 3: parlance.v1.UpdateLocaleRequest
-	(*UpdateLocaleResponse)(nil),     // 4: parlance.v1.UpdateLocaleResponse
-	(*DeleteLocaleRequest)(nil),      // 5: parlance.v1.DeleteLocaleRequest
-	(*DeleteLocaleResponse)(nil),     // 6: parlance.v1.DeleteLocaleResponse
-	(*GetLocaleRequest)(nil),         // 7: parlance.v1.GetLocaleRequest
-	(*GetLocaleResponse)(nil),        // 8: parlance.v1.GetLocaleResponse
-	(*ListLocalesRequest)(nil),       // 9: parlance.v1.ListLocalesRequest
-	(*ListLocalesResponse)(nil),      // 10: parlance.v1.ListLocalesResponse
+	(*ListLocalesRequest)(nil),       // 1: parlance.v1.ListLocalesRequest
+	(*ListLocalesResponse)(nil),      // 2: parlance.v1.ListLocalesResponse
+	(*CreateLocaleRequest)(nil),      // 3: parlance.v1.CreateLocaleRequest
+	(*CreateLocaleResponse)(nil),     // 4: parlance.v1.CreateLocaleResponse
+	(*UpdateLocaleRequest)(nil),      // 5: parlance.v1.UpdateLocaleRequest
+	(*UpdateLocaleResponse)(nil),     // 6: parlance.v1.UpdateLocaleResponse
+	(*DeleteLocaleRequest)(nil),      // 7: parlance.v1.DeleteLocaleRequest
+	(*DeleteLocaleResponse)(nil),     // 8: parlance.v1.DeleteLocaleResponse
+	(*GetLocaleRequest)(nil),         // 9: parlance.v1.GetLocaleRequest
+	(*GetLocaleResponse)(nil),        // 10: parlance.v1.GetLocaleResponse
 	(*GetDefaultLocaleRequest)(nil),  // 11: parlance.v1.GetDefaultLocaleRequest
 	(*GetDefaultLocaleResponse)(nil), // 12: parlance.v1.GetDefaultLocaleResponse
 	(*SetDefaultLocaleRequest)(nil),  // 13: parlance.v1.SetDefaultLocaleRequest
@@ -880,39 +889,41 @@ var file_parlance_v1_locale_proto_goTypes = []any{
 	nil,                              // 16: parlance.v1.CreateLocaleRequest.NamesEntry
 	nil,                              // 17: parlance.v1.UpdateLocaleRequest.NamesEntry
 	(*PaginationRequest)(nil),        // 18: parlance.v1.PaginationRequest
-	(*PaginationResponse)(nil),       // 19: parlance.v1.PaginationResponse
+	(*FilterRequest)(nil),            // 19: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),       // 20: parlance.v1.PaginationResponse
 }
 var file_parlance_v1_locale_proto_depIdxs = []int32{
 	15, // 0: parlance.v1.Locale.names:type_name -> parlance.v1.Locale.NamesEntry
-	16, // 1: parlance.v1.CreateLocaleRequest.names:type_name -> parlance.v1.CreateLocaleRequest.NamesEntry
-	0,  // 2: parlance.v1.CreateLocaleResponse.locale:type_name -> parlance.v1.Locale
-	17, // 3: parlance.v1.UpdateLocaleRequest.names:type_name -> parlance.v1.UpdateLocaleRequest.NamesEntry
-	0,  // 4: parlance.v1.UpdateLocaleResponse.locale:type_name -> parlance.v1.Locale
-	0,  // 5: parlance.v1.GetLocaleResponse.locale:type_name -> parlance.v1.Locale
-	18, // 6: parlance.v1.ListLocalesRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	0,  // 7: parlance.v1.ListLocalesResponse.locales:type_name -> parlance.v1.Locale
-	19, // 8: parlance.v1.ListLocalesResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	0,  // 9: parlance.v1.GetDefaultLocaleResponse.locale:type_name -> parlance.v1.Locale
-	0,  // 10: parlance.v1.SetDefaultLocaleResponse.locale:type_name -> parlance.v1.Locale
-	9,  // 11: parlance.v1.LocaleService.ListLocales:input_type -> parlance.v1.ListLocalesRequest
-	7,  // 12: parlance.v1.LocaleService.GetLocale:input_type -> parlance.v1.GetLocaleRequest
-	1,  // 13: parlance.v1.LocaleService.CreateLocale:input_type -> parlance.v1.CreateLocaleRequest
-	3,  // 14: parlance.v1.LocaleService.UpdateLocale:input_type -> parlance.v1.UpdateLocaleRequest
-	5,  // 15: parlance.v1.LocaleService.DeleteLocale:input_type -> parlance.v1.DeleteLocaleRequest
-	11, // 16: parlance.v1.LocaleService.GetDefaultLocale:input_type -> parlance.v1.GetDefaultLocaleRequest
-	13, // 17: parlance.v1.LocaleService.SetDefaultLocale:input_type -> parlance.v1.SetDefaultLocaleRequest
-	10, // 18: parlance.v1.LocaleService.ListLocales:output_type -> parlance.v1.ListLocalesResponse
-	8,  // 19: parlance.v1.LocaleService.GetLocale:output_type -> parlance.v1.GetLocaleResponse
-	2,  // 20: parlance.v1.LocaleService.CreateLocale:output_type -> parlance.v1.CreateLocaleResponse
-	4,  // 21: parlance.v1.LocaleService.UpdateLocale:output_type -> parlance.v1.UpdateLocaleResponse
-	6,  // 22: parlance.v1.LocaleService.DeleteLocale:output_type -> parlance.v1.DeleteLocaleResponse
-	12, // 23: parlance.v1.LocaleService.GetDefaultLocale:output_type -> parlance.v1.GetDefaultLocaleResponse
-	14, // 24: parlance.v1.LocaleService.SetDefaultLocale:output_type -> parlance.v1.SetDefaultLocaleResponse
-	18, // [18:25] is the sub-list for method output_type
-	11, // [11:18] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	18, // 1: parlance.v1.ListLocalesRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	19, // 2: parlance.v1.ListLocalesRequest.filter:type_name -> parlance.v1.FilterRequest
+	0,  // 3: parlance.v1.ListLocalesResponse.locales:type_name -> parlance.v1.Locale
+	20, // 4: parlance.v1.ListLocalesResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	16, // 5: parlance.v1.CreateLocaleRequest.names:type_name -> parlance.v1.CreateLocaleRequest.NamesEntry
+	0,  // 6: parlance.v1.CreateLocaleResponse.locale:type_name -> parlance.v1.Locale
+	17, // 7: parlance.v1.UpdateLocaleRequest.names:type_name -> parlance.v1.UpdateLocaleRequest.NamesEntry
+	0,  // 8: parlance.v1.UpdateLocaleResponse.locale:type_name -> parlance.v1.Locale
+	0,  // 9: parlance.v1.GetLocaleResponse.locale:type_name -> parlance.v1.Locale
+	0,  // 10: parlance.v1.GetDefaultLocaleResponse.locale:type_name -> parlance.v1.Locale
+	0,  // 11: parlance.v1.SetDefaultLocaleResponse.locale:type_name -> parlance.v1.Locale
+	1,  // 12: parlance.v1.LocaleService.ListLocales:input_type -> parlance.v1.ListLocalesRequest
+	9,  // 13: parlance.v1.LocaleService.GetLocale:input_type -> parlance.v1.GetLocaleRequest
+	3,  // 14: parlance.v1.LocaleService.CreateLocale:input_type -> parlance.v1.CreateLocaleRequest
+	5,  // 15: parlance.v1.LocaleService.UpdateLocale:input_type -> parlance.v1.UpdateLocaleRequest
+	7,  // 16: parlance.v1.LocaleService.DeleteLocale:input_type -> parlance.v1.DeleteLocaleRequest
+	11, // 17: parlance.v1.LocaleService.GetDefaultLocale:input_type -> parlance.v1.GetDefaultLocaleRequest
+	13, // 18: parlance.v1.LocaleService.SetDefaultLocale:input_type -> parlance.v1.SetDefaultLocaleRequest
+	2,  // 19: parlance.v1.LocaleService.ListLocales:output_type -> parlance.v1.ListLocalesResponse
+	10, // 20: parlance.v1.LocaleService.GetLocale:output_type -> parlance.v1.GetLocaleResponse
+	4,  // 21: parlance.v1.LocaleService.CreateLocale:output_type -> parlance.v1.CreateLocaleResponse
+	6,  // 22: parlance.v1.LocaleService.UpdateLocale:output_type -> parlance.v1.UpdateLocaleResponse
+	8,  // 23: parlance.v1.LocaleService.DeleteLocale:output_type -> parlance.v1.DeleteLocaleResponse
+	12, // 24: parlance.v1.LocaleService.GetDefaultLocale:output_type -> parlance.v1.GetDefaultLocaleResponse
+	14, // 25: parlance.v1.LocaleService.SetDefaultLocale:output_type -> parlance.v1.SetDefaultLocaleResponse
+	19, // [19:26] is the sub-list for method output_type
+	12, // [12:19] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_locale_proto_init() }

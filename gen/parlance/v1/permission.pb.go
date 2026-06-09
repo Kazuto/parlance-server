@@ -92,6 +92,7 @@ func (x *Permission) GetAction() string {
 type ListPermissionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Pagination    *PaginationRequest     `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Filter        *FilterRequest         `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -129,6 +130,13 @@ func (*ListPermissionsRequest) Descriptor() ([]byte, []int) {
 func (x *ListPermissionsRequest) GetPagination() *PaginationRequest {
 	if x != nil {
 		return x.Pagination
+	}
+	return nil
+}
+
+func (x *ListPermissionsRequest) GetFilter() *FilterRequest {
+	if x != nil {
+		return x.Filter
 	}
 	return nil
 }
@@ -283,11 +291,12 @@ const file_parlance_v1_permission_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
 	"\bresource\x18\x03 \x01(\tR\bresource\x12\x16\n" +
-	"\x06action\x18\x04 \x01(\tR\x06action\"X\n" +
+	"\x06action\x18\x04 \x01(\tR\x06action\"\x8c\x01\n" +
 	"\x16ListPermissionsRequest\x12>\n" +
 	"\n" +
 	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
-	"pagination\"\x95\x01\n" +
+	"pagination\x122\n" +
+	"\x06filter\x18\x02 \x01(\v2\x1a.parlance.v1.FilterRequestR\x06filter\"\x95\x01\n" +
 	"\x17ListPermissionsResponse\x129\n" +
 	"\vpermissions\x18\x01 \x03(\v2\x17.parlance.v1.PermissionR\vpermissions\x12?\n" +
 	"\n" +
@@ -324,22 +333,24 @@ var file_parlance_v1_permission_proto_goTypes = []any{
 	(*GetPermissionRequest)(nil),    // 3: parlance.v1.GetPermissionRequest
 	(*GetPermissionResponse)(nil),   // 4: parlance.v1.GetPermissionResponse
 	(*PaginationRequest)(nil),       // 5: parlance.v1.PaginationRequest
-	(*PaginationResponse)(nil),      // 6: parlance.v1.PaginationResponse
+	(*FilterRequest)(nil),           // 6: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),      // 7: parlance.v1.PaginationResponse
 }
 var file_parlance_v1_permission_proto_depIdxs = []int32{
 	5, // 0: parlance.v1.ListPermissionsRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	0, // 1: parlance.v1.ListPermissionsResponse.permissions:type_name -> parlance.v1.Permission
-	6, // 2: parlance.v1.ListPermissionsResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	0, // 3: parlance.v1.GetPermissionResponse.permission:type_name -> parlance.v1.Permission
-	1, // 4: parlance.v1.PermissionService.ListPermissions:input_type -> parlance.v1.ListPermissionsRequest
-	3, // 5: parlance.v1.PermissionService.GetPermission:input_type -> parlance.v1.GetPermissionRequest
-	2, // 6: parlance.v1.PermissionService.ListPermissions:output_type -> parlance.v1.ListPermissionsResponse
-	4, // 7: parlance.v1.PermissionService.GetPermission:output_type -> parlance.v1.GetPermissionResponse
-	6, // [6:8] is the sub-list for method output_type
-	4, // [4:6] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	6, // 1: parlance.v1.ListPermissionsRequest.filter:type_name -> parlance.v1.FilterRequest
+	0, // 2: parlance.v1.ListPermissionsResponse.permissions:type_name -> parlance.v1.Permission
+	7, // 3: parlance.v1.ListPermissionsResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	0, // 4: parlance.v1.GetPermissionResponse.permission:type_name -> parlance.v1.Permission
+	1, // 5: parlance.v1.PermissionService.ListPermissions:input_type -> parlance.v1.ListPermissionsRequest
+	3, // 6: parlance.v1.PermissionService.GetPermission:input_type -> parlance.v1.GetPermissionRequest
+	2, // 7: parlance.v1.PermissionService.ListPermissions:output_type -> parlance.v1.ListPermissionsResponse
+	4, // 8: parlance.v1.PermissionService.GetPermission:output_type -> parlance.v1.GetPermissionResponse
+	7, // [7:9] is the sub-list for method output_type
+	5, // [5:7] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_permission_proto_init() }

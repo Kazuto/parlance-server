@@ -29,6 +29,24 @@ message Terminology {
   string updated_by = 9;
 }
 
+message ListTerminologiesRequest {
+  PaginationRequest pagination = 1;
+  FilterRequest filter = 2;
+}
+
+message ListTerminologiesResponse {
+  repeated Terminology terminologies = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetTerminologyRequest {
+  string id = 1;
+}
+
+message GetTerminologyResponse {
+  Terminology terminology = 1;
+}
+
 message CreateTerminologyRequest {
   string term = 1;
   string description = 2;
@@ -53,23 +71,6 @@ message DeleteTerminologyRequest {
 }
 
 message DeleteTerminologyResponse {}
-
-message GetTerminologyRequest {
-  string id = 1;
-}
-
-message GetTerminologyResponse {
-  Terminology terminology = 1;
-}
-
-message ListTerminologiesRequest {
-  PaginationRequest pagination = 1;
-}
-
-message ListTerminologiesResponse {
-  repeated Terminology terminologies = 1;
-  PaginationResponse pagination = 2;
-}
 
 message GetDefinitionHistoryRequest {
   string terminology_id = 1;

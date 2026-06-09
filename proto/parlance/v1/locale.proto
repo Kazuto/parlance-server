@@ -26,6 +26,16 @@ message Locale {
   string deleted_at = 8;
 }
 
+message ListLocalesRequest {
+  PaginationRequest pagination = 1;
+  FilterRequest filter = 2;
+}
+
+message ListLocalesResponse {
+  repeated Locale locales = 1;
+  PaginationResponse pagination = 2;
+}
+
 message CreateLocaleRequest {
   string code = 1;
   map<string, string> names = 2;  // Translations for the locale name
@@ -61,14 +71,6 @@ message GetLocaleResponse {
   Locale locale = 1;
 }
 
-message ListLocalesRequest {
-  PaginationRequest pagination = 1;
-}
-
-message ListLocalesResponse {
-  repeated Locale locales = 1;
-  PaginationResponse pagination = 2;
-}
 
 message GetDefaultLocaleRequest {}
 
