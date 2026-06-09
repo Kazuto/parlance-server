@@ -7,6 +7,8 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/server/common"
+	"gorm.io/gorm"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -27,8 +29,20 @@ func (s *Server) ListPermissions(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to count Permissions: %w", err))
 	}
 
+	allowedSorts := map[string]bool{"name": true, "slug": true, "created_at": true, "updated_at": true}
+	query, err := common.NewFilter(query, req.Msg.Filter).
+		AllowedSorts(allowedSorts).
+		DefaultSort("name ASC").
+		Search(func(query *gorm.DB, search string) *gorm.DB {
+			return query.Where("name LIKE ?", "%"+search+"%").Where("resource LIKE ?", "%"+search+"%")
+		}).
+		Apply()
+	if err != nil {
+		return nil, err
+	}
+
 	offset := (page - 1) * perPage
-	if err := query.Offset(int(offset)).Limit(int(perPage)).Order("name ASC").Find(&permissions).Error; err != nil {
+	if err := query.Offset(int(offset)).Limit(int(perPage)).Find(&permissions).Error; err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to fetch Permissions: %w", err))
 	}
 

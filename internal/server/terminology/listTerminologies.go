@@ -6,6 +6,8 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/server/common"
+	"gorm.io/gorm"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -29,13 +31,26 @@ func (s *Server) ListTerminologies(
 	var terminologies []models.Terminology
 	var total int64
 
-	offset := (page - 1) * perPage
+	query := s.db.Model(&models.Terminology{})
 
-	if err := s.db.Model(&models.Terminology{}).Count(&total).Error; err != nil {
+	allowedSorts := map[string]bool{"name": true, "slug": true, "created_at": true, "updated_at": true}
+	query, err := common.NewFilter(query, req.Msg.Filter).
+		AllowedSorts(allowedSorts).
+		DefaultSort("term ASC").
+		Search(func(query *gorm.DB, search string) *gorm.DB {
+			return query.Where("name LIKE ?", "%"+search+"%").Where("slug LIKE ?", "%"+search+"%")
+		}).
+		Apply()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := query.Count(&total).Error; err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	if err := s.db.Preload("Definitions").
+	offset := (page - 1) * perPage
+	if err := query.Preload("Definitions").
 		Limit(int(perPage)).
 		Offset(int(offset)).
 		Find(&terminologies).Error; err != nil {

@@ -1,8 +1,8 @@
 package importservice
 
 import (
-	"github.com/kazuto/parlance-server/internal/database"
 	"github.com/kazuto/parlance-server/gen/parlance/v1/parlancev1connect"
+	"github.com/kazuto/parlance-server/internal/database"
 )
 
 type Server struct {

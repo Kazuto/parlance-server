@@ -7,6 +7,8 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/server/common"
+	"gorm.io/gorm"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -25,6 +27,18 @@ func (s *Server) ListEntries(
 		Preload("Localizations").
 		Preload("Scopes")
 
+	allowedSorts := map[string]bool{"key": true, "description": true, "created_at": true, "created_by": true, "updated_at": true, "updated_by": true}
+	query, err := common.NewFilter(query, req.Msg.Filter).
+		AllowedSorts(allowedSorts).
+		DefaultSort("key ASC").
+		Search(func(query *gorm.DB, search string) *gorm.DB {
+			return query.Where("key LIKE ?", "%"+search+"%")
+		}).
+		Apply()
+	if err != nil {
+		return nil, err
+	}
+
 	// Filter by scope if provided
 	if req.Msg.ScopeId != "" {
 		query = query.Joins("JOIN entry_scopes ON entry_scopes.entry_id = entries.id").
@@ -42,7 +56,7 @@ func (s *Server) ListEntries(
 	}
 
 	offset := (page - 1) * perPage
-	if err := query.Offset(int(offset)).Limit(int(perPage)).Order("key ASC").Find(&entries).Error; err != nil {
+	if err := query.Offset(int(offset)).Limit(int(perPage)).Find(&entries).Error; err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to fetch entries: %w", err))
 	}
 

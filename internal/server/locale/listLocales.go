@@ -7,6 +7,8 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/server/common"
+	"gorm.io/gorm"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -35,12 +37,24 @@ func (s *Server) ListLocales(
 
 	query := s.db.Model(&models.Locale{})
 
+	allowedSorts := map[string]bool{"code": true, "name": true, "created_at": true}
+	query, err := common.NewFilter(query, req.Msg.Filter).
+		AllowedSorts(allowedSorts).
+		DefaultSort("code ASC").
+		Search(func(query *gorm.DB, search string) *gorm.DB {
+			return query.Where("code LIKE ?", "%"+search+"%")
+		}).
+		Apply()
+	if err != nil {
+		return nil, err
+	}
+
 	if err := query.Count(&total).Error; err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to count locales: %w", err))
 	}
 
 	offset := (page - 1) * perPage
-	if err := query.Offset(int(offset)).Limit(int(perPage)).Order("code ASC").Find(&locales).Error; err != nil {
+	if err := query.Offset(int(offset)).Limit(int(perPage)).Find(&locales).Error; err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to fetch locales: %w", err))
 	}
 
