@@ -21,7 +21,7 @@ func (s *Server) RestoreScope(
 	}
 
 	var scope models.Scope
-	if err := s.db.First(&scope, "id = ?", req.Msg.Id).Unscoped().Error; err != nil {
+	if err := s.db.Unscoped().First(&scope, "id = ?", req.Msg.Id).Error; err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("scope not found"))
 	}
 

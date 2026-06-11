@@ -22,7 +22,7 @@ func (s *Server) RestoreLocale(
 	}
 
 	var locale models.Locale
-	if err := s.db.First(&locale, "id = ?", req.Msg.Id).Unscoped().Error; err != nil {
+	if err := s.db.Unscoped().First(&locale, "id = ?", req.Msg.Id).Error; err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("locale not found"))
 	}
 

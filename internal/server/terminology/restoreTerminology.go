@@ -21,7 +21,7 @@ func (s *Server) RestoreTerminology(
 	}
 
 	var terminology models.Terminology
-	if err := s.db.Preload("Definitions").First(&terminology, "id = ?", req.Msg.Id).Unscoped().Error; err != nil {
+	if err := s.db.Unscoped().Preload("Definitions").First(&terminology, "id = ?", req.Msg.Id).Error; err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("terminology not found"))
 	}
 

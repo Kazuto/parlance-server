@@ -22,7 +22,7 @@ func (s *Server) RestoreUser(
 	}
 
 	var user models.User
-	if err := s.db.Preload("Roles.Permissions").First(&user, "id = ?", req.Msg.Id).Unscoped().Error; err != nil {
+	if err := s.db.Unscoped().Preload("Roles.Permissions").First(&user, "id = ?", req.Msg.Id).Error; err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("user not found"))
 	}
 

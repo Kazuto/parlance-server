@@ -21,7 +21,7 @@ func (s *Server) RestoreLocalization(
 	}
 
 	var localization models.Localization
-	if err := s.db.First(&localization, "id = ?", req.Msg.Id).Unscoped().Error; err != nil {
+	if err := s.db.Unscoped().First(&localization, "id = ?", req.Msg.Id).Error; err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("localization not found"))
 	}
 

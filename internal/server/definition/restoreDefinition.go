@@ -21,7 +21,7 @@ func (s *Server) RestoreDefinition(
 	}
 
 	var definition models.Definition
-	if err := s.db.First(&definition, "id = ?", req.Msg.Id).Unscoped().Error; err != nil {
+	if err := s.db.Unscoped().First(&definition, "id = ?", req.Msg.Id).Error; err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("definition not found"))
 	}
 

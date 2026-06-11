@@ -21,7 +21,7 @@ func (s *Server) RestoreEntry(
 	}
 
 	var entry models.Entry
-	if err := s.db.Preload("Localizations").Preload("Scopes").First(&entry, "id = ?", req.Msg.Id).Unscoped().Error; err != nil {
+	if err := s.db.Unscoped().Preload("Localizations").Preload("Scopes").First(&entry, "id = ?", req.Msg.Id).Error; err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("entry not found"))
 	}
 
