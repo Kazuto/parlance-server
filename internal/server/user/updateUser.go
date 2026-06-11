@@ -1,10 +1,13 @@
 package user
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/models"
 
@@ -33,6 +36,19 @@ func (s *Server) UpdateUser(
 		user.Name = req.Msg.Name
 	}
 
+	if req.Msg.Locale != "" {
+		user.Locale = &req.Msg.Locale
+	}
+
+	if req.Msg.Avatar != nil && req.Msg.AvatarMime != "" {
+		url, err := s.uploadAvatar(ctx, user.ID, req.Msg.Avatar, req.Msg.AvatarMime)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to upload avatar: %w", err))
+		}
+
+		user.Avatar = &url
+	}
+
 	if err := s.db.Save(&user).Error; err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update user: %w", err))
 	}
@@ -43,4 +59,21 @@ func (s *Server) UpdateUser(
 	return connect.NewResponse(&pb.UpdateUserResponse{
 		User: converter.UserToProto(&user),
 	}), nil
+}
+
+// Upload to S3
+func (s *Server) uploadAvatar(ctx context.Context, userID string, data []byte, contentType string) (string, error) {
+	key := fmt.Sprintf("avatars/%s", userID)
+
+	_, err := s.s3.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(s.bucket),
+		Key:         aws.String(key),
+		Body:        bytes.NewReader(data),
+		ContentType: aws.String(contentType),
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("http://%s/%s/%s", s.endpoint, s.bucket, key), nil
 }

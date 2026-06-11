@@ -21,8 +21,15 @@ services:
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8080}
       - DEEPL_API_KEY=${DEEPL_API_KEY:-}
       - DEEPL_API_URL=${DEEPL_API_URL:-https://api.deepl.com/v2}
+      - S3_ENDPOINT=${S3_ENDPOINT:-minio:9000}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY:-minioadmin}
+      - S3_SECRET_KEY=${S3_SECRET_KEY:-minioadmin}
+      - S3_BUCKET=${S3_BUCKET:-parlance}
+      - S3_USE_SSL=${S3_USE_SSL:-false}
     depends_on:
       postgres:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     volumes:
       - ..:/app
@@ -50,8 +57,30 @@ services:
       retries: 5
     restart: unless-stopped
 
+  minio:
+    container_name: parlance-minio
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${S3_ACCESS_KEY:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${S3_SECRET_KEY:-minioadmin}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # Web console
+    networks:
+      - parlance-network
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  minio_data:
 
 networks:
   parlance-network:

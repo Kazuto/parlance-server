@@ -11,6 +11,8 @@ type User struct {
 	Email        string         `gorm:"type:varchar(255);uniqueIndex;not null" json:"email"`
 	PasswordHash string         `gorm:"type:varchar(255);not null" json:"-"`
 	Name         string         `gorm:"type:varchar(255);not null" json:"name"`
+	Locale       *string        `gorm:"type:varchar(255);default:'en'" json:"locale"`
+	Avatar       *string        `gorm:"type:varchar(255)" json:"avatar"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`

@@ -12,6 +12,11 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+
 	"github.com/kazuto/parlance-server/gen/parlance/v1/parlancev1connect"
 	"github.com/kazuto/parlance-server/internal/config"
 	"github.com/kazuto/parlance-server/internal/database"
@@ -50,6 +55,12 @@ func main() {
 		log.Fatalf("Failed to bootstrap database: %v", err)
 	}
 
+	// After db.Bootstrap()
+	s3Client, err := newS3Client(cfg.S3)
+	if err != nil {
+		log.Fatalf("Failed to connect to S3: %v", err)
+	}
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -79,7 +90,7 @@ func main() {
 
 	log.Println("✓ Registered ScopeService (protected)")
 
-	userServer := user.NewServer(db)
+	userServer := user.NewServer(db, s3Client, cfg.S3)
 	userPath, userHandler := parlancev1connect.NewUserServiceHandler(userServer)
 	mux.Handle(userPath, middleware.RequireAuth(cfg.JWT.Secret)(userHandler))
 
@@ -199,4 +210,24 @@ func corsMiddleware(next http.Handler, allowedOrigins []string) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func newS3Client(cfg config.S3Config) (*s3.Client, error) {
+	awsCfg, err := awsconfig.LoadDefaultConfig(
+		context.Background(),
+		awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
+			cfg.AccessKey,
+			cfg.SecretKey,
+			"",
+		)),
+		awsconfig.WithRegion("us-east-1"),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load S3 config: %w", err)
+	}
+
+	return s3.NewFromConfig(awsCfg, func(o *s3.Options) {
+		o.UsePathStyle = true
+		o.BaseEndpoint = aws.String(fmt.Sprintf("http://%s", cfg.Endpoint))
+	}), nil
 }

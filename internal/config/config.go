@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
+	S3       S3Config
 	JWT      JWTConfig
 	DeepL    DeepLConfig
 	CORS     CORSConfig
@@ -27,6 +28,14 @@ type DatabaseConfig struct {
 	Password string
 	Name     string
 	SSLMode  string
+}
+
+type S3Config struct {
+	AccessKey string
+	SecretKey string
+	Endpoint  string
+	Region    string
+	Bucket    string
 }
 
 type JWTConfig struct {
@@ -62,6 +71,13 @@ func Load() *Config {
 			Password: getEnv("DB_PASSWORD", "secret"),
 			Name:     getEnv("DB_NAME", "parlance"),
 			SSLMode:  getEnv("DB_SSL_MODE", "disable"),
+		},
+		S3: S3Config{
+			AccessKey: getEnv("S3_ACCESS_KEY", ""),
+			SecretKey: getEnv("S3_SECRET_KEY", ""),
+			Endpoint:  getEnv("S3_ENDPOINT", ""),
+			Region:    getEnv("S3_REGION", ""),
+			Bucket:    getEnv("S3_BUCKET", ""),
 		},
 		JWT: JWTConfig{
 			Secret: getEnv("JWT_SECRET", "change-this-secret"),

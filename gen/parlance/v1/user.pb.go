@@ -26,10 +26,12 @@ type User struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Roles         []*Role                `protobuf:"bytes,4,rep,name=roles,proto3" json:"roles,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	DeletedAt     string                 `protobuf:"bytes,7,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
+	Locale        string                 `protobuf:"bytes,4,opt,name=locale,proto3" json:"locale,omitempty"`
+	Avatar        string                 `protobuf:"bytes,5,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	Roles         []*Role                `protobuf:"bytes,6,rep,name=roles,proto3" json:"roles,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DeletedAt     string                 `protobuf:"bytes,9,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -81,6 +83,20 @@ func (x *User) GetEmail() string {
 func (x *User) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *User) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
+}
+
+func (x *User) GetAvatar() string {
+	if x != nil {
+		return x.Avatar
 	}
 	return ""
 }
@@ -310,6 +326,7 @@ type CreateUserRequest struct {
 	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Locale        string                 `protobuf:"bytes,4,opt,name=locale,proto3" json:"locale,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -365,6 +382,13 @@ func (x *CreateUserRequest) GetName() string {
 	return ""
 }
 
+func (x *CreateUserRequest) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
+}
+
 type CreateUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	User          *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
@@ -414,6 +438,9 @@ type UpdateUserRequest struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Locale        string                 `protobuf:"bytes,4,opt,name=locale,proto3" json:"locale,omitempty"`
+	Avatar        []byte                 `protobuf:"bytes,5,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	AvatarMime    string                 `protobuf:"bytes,6,opt,name=avatar_mime,json=avatarMime,proto3" json:"avatar_mime,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -465,6 +492,27 @@ func (x *UpdateUserRequest) GetEmail() string {
 func (x *UpdateUserRequest) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateUserRequest) GetLocale() string {
+	if x != nil {
+		return x.Locale
+	}
+	return ""
+}
+
+func (x *UpdateUserRequest) GetAvatar() []byte {
+	if x != nil {
+		return x.Avatar
+	}
+	return nil
+}
+
+func (x *UpdateUserRequest) GetAvatarMime() string {
+	if x != nil {
+		return x.AvatarMime
 	}
 	return ""
 }
@@ -781,18 +829,20 @@ var File_parlance_v1_user_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_user_proto_rawDesc = "" +
 	"\n" +
-	"\x16parlance/v1/user.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x16parlance/v1/role.proto\"\xc6\x01\n" +
+	"\x16parlance/v1/user.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x16parlance/v1/role.proto\"\xf6\x01\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12'\n" +
-	"\x05roles\x18\x04 \x03(\v2\x11.parlance.v1.RoleR\x05roles\x12\x1d\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
+	"\x06locale\x18\x04 \x01(\tR\x06locale\x12\x16\n" +
+	"\x06avatar\x18\x05 \x01(\tR\x06avatar\x12'\n" +
+	"\x05roles\x18\x06 \x03(\v2\x11.parlance.v1.RoleR\x05roles\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\tR\tupdatedAt\x12\x1d\n" +
+	"updated_at\x18\b \x01(\tR\tupdatedAt\x12\x1d\n" +
 	"\n" +
-	"deleted_at\x18\a \x01(\tR\tdeletedAt\"\x86\x01\n" +
+	"deleted_at\x18\t \x01(\tR\tdeletedAt\"\x86\x01\n" +
 	"\x10ListUsersRequest\x12>\n" +
 	"\n" +
 	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
@@ -806,17 +856,22 @@ const file_parlance_v1_user_proto_rawDesc = "" +
 	"\x0eGetUserRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"8\n" +
 	"\x0fGetUserResponse\x12%\n" +
-	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"Y\n" +
+	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"q\n" +
 	"\x11CreateUserRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\";\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
+	"\x06locale\x18\x04 \x01(\tR\x06locale\";\n" +
 	"\x12CreateUserResponse\x12%\n" +
-	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"M\n" +
+	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"\x9e\x01\n" +
 	"\x11UpdateUserRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\";\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
+	"\x06locale\x18\x04 \x01(\tR\x06locale\x12\x16\n" +
+	"\x06avatar\x18\x05 \x01(\fR\x06avatar\x12\x1f\n" +
+	"\vavatar_mime\x18\x06 \x01(\tR\n" +
+	"avatarMime\";\n" +
 	"\x12UpdateUserResponse\x12%\n" +
 	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"#\n" +
 	"\x11DeleteUserRequest\x12\x0e\n" +
