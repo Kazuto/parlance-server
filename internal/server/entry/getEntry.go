@@ -7,6 +7,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -25,7 +26,9 @@ func (s *Server) GetEntry(
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("entry not found"))
 	}
 
+	requestLocale := common.GetLocaleFromRequest(req)
+
 	return connect.NewResponse(&pb.GetEntryResponse{
-		Entry: converter.EntryToProto(&entry, "en"),
+		Entry: converter.EntryToProto(&entry, requestLocale),
 	}), nil
 }

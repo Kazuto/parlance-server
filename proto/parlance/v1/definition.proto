@@ -17,7 +17,7 @@ service DefinitionService {
 message Definition {
   string id = 1;
   string terminology_id = 2;
-  string definition_id = 3;
+  string locale_id = 3;
   string translation = 4;
   string created_at = 5;
   string updated_at = 6;
@@ -47,7 +47,7 @@ message GetDefinitionResponse {
 
 message CreateDefinitionRequest {
   string terminology_id = 1;
-  string definition_id = 2;
+  string locale_id = 2;
   string translation = 3;
 }
 

@@ -7,6 +7,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -21,7 +22,7 @@ func (s *Server) GetDefaultLocale(
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("default locale not found"))
 	}
 
-	requestLocale := getLocaleFromRequest(req)
+	requestLocale := common.GetLocaleFromRequest(req)
 
 	return connect.NewResponse(&pb.GetDefaultLocaleResponse{
 		Locale: converter.LocaleToProto(&locale, requestLocale),

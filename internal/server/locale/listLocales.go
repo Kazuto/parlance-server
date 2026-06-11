@@ -13,24 +13,13 @@ import (
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
 
-// getLocaleFromRequest extracts locale preference from request headers
-func getLocaleFromRequest[T any](req *connect.Request[T]) string {
-	acceptLang := req.Header().Get("Accept-Language")
-
-	if acceptLang != "" && len(acceptLang) >= 2 {
-		return acceptLang[:2]
-	}
-
-	return "en"
-}
-
 // ListLocales returns a paginated list of locales
 func (s *Server) ListLocales(
 	ctx context.Context,
 	req *connect.Request[pb.ListLocalesRequest],
 ) (*connect.Response[pb.ListLocalesResponse], error) {
 	page, perPage := converter.GetPaginationParams(req.Msg.Pagination)
-	requestLocale := getLocaleFromRequest(req)
+	requestLocale := common.GetLocaleFromRequest(req)
 
 	var locales []models.Locale
 	var total int64

@@ -25,7 +25,7 @@ type Definition struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	TerminologyId string                 `protobuf:"bytes,2,opt,name=terminology_id,json=terminologyId,proto3" json:"terminology_id,omitempty"`
-	DefinitionId  string                 `protobuf:"bytes,3,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
+	LocaleId      string                 `protobuf:"bytes,3,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
 	Translation   string                 `protobuf:"bytes,4,opt,name=translation,proto3" json:"translation,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
@@ -80,9 +80,9 @@ func (x *Definition) GetTerminologyId() string {
 	return ""
 }
 
-func (x *Definition) GetDefinitionId() string {
+func (x *Definition) GetLocaleId() string {
 	if x != nil {
-		return x.DefinitionId
+		return x.LocaleId
 	}
 	return ""
 }
@@ -332,7 +332,7 @@ func (x *GetDefinitionResponse) GetDefinition() *Definition {
 type CreateDefinitionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TerminologyId string                 `protobuf:"bytes,1,opt,name=terminology_id,json=terminologyId,proto3" json:"terminology_id,omitempty"`
-	DefinitionId  string                 `protobuf:"bytes,2,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
+	LocaleId      string                 `protobuf:"bytes,2,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
 	Translation   string                 `protobuf:"bytes,3,opt,name=translation,proto3" json:"translation,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -375,9 +375,9 @@ func (x *CreateDefinitionRequest) GetTerminologyId() string {
 	return ""
 }
 
-func (x *CreateDefinitionRequest) GetDefinitionId() string {
+func (x *CreateDefinitionRequest) GetLocaleId() string {
 	if x != nil {
-		return x.DefinitionId
+		return x.LocaleId
 	}
 	return ""
 }
@@ -701,12 +701,12 @@ var File_parlance_v1_definition_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_definition_proto_rawDesc = "" +
 	"\n" +
-	"\x1cparlance/v1/definition.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\xa5\x02\n" +
+	"\x1cparlance/v1/definition.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\x9d\x02\n" +
 	"\n" +
 	"Definition\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
-	"\x0eterminology_id\x18\x02 \x01(\tR\rterminologyId\x12#\n" +
-	"\rdefinition_id\x18\x03 \x01(\tR\fdefinitionId\x12 \n" +
+	"\x0eterminology_id\x18\x02 \x01(\tR\rterminologyId\x12\x1b\n" +
+	"\tlocale_id\x18\x03 \x01(\tR\blocaleId\x12 \n" +
 	"\vtranslation\x18\x04 \x01(\tR\vtranslation\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
@@ -734,10 +734,10 @@ const file_parlance_v1_definition_proto_rawDesc = "" +
 	"\x15GetDefinitionResponse\x127\n" +
 	"\n" +
 	"definition\x18\x01 \x01(\v2\x17.parlance.v1.DefinitionR\n" +
-	"definition\"\x87\x01\n" +
+	"definition\"\x7f\n" +
 	"\x17CreateDefinitionRequest\x12%\n" +
-	"\x0eterminology_id\x18\x01 \x01(\tR\rterminologyId\x12#\n" +
-	"\rdefinition_id\x18\x02 \x01(\tR\fdefinitionId\x12 \n" +
+	"\x0eterminology_id\x18\x01 \x01(\tR\rterminologyId\x12\x1b\n" +
+	"\tlocale_id\x18\x02 \x01(\tR\blocaleId\x12 \n" +
 	"\vtranslation\x18\x03 \x01(\tR\vtranslation\"S\n" +
 	"\x18CreateDefinitionResponse\x127\n" +
 	"\n" +
