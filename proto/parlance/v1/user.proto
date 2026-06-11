@@ -12,6 +12,7 @@ service UserService {
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
   rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+  rpc RestoreUser(RestoreUserRequest) returns (RestoreUserResponse);
   rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse);
 }
 
@@ -68,6 +69,14 @@ message DeleteUserRequest {
 }
 
 message DeleteUserResponse {}
+
+message RestoreUserRequest {
+  string id = 1;
+}
+
+message RestoreUserResponse {
+  User user = 1;
+}
 
 message AssignRoleRequest {
   string user_id = 1;

@@ -36,6 +36,9 @@ const (
 	// DefinitionServiceListDefinitionsProcedure is the fully-qualified name of the DefinitionService's
 	// ListDefinitions RPC.
 	DefinitionServiceListDefinitionsProcedure = "/parlance.v1.DefinitionService/ListDefinitions"
+	// DefinitionServiceGetDefinitionProcedure is the fully-qualified name of the DefinitionService's
+	// GetDefinition RPC.
+	DefinitionServiceGetDefinitionProcedure = "/parlance.v1.DefinitionService/GetDefinition"
 	// DefinitionServiceCreateDefinitionProcedure is the fully-qualified name of the DefinitionService's
 	// CreateDefinition RPC.
 	DefinitionServiceCreateDefinitionProcedure = "/parlance.v1.DefinitionService/CreateDefinition"
@@ -45,14 +48,19 @@ const (
 	// DefinitionServiceDeleteDefinitionProcedure is the fully-qualified name of the DefinitionService's
 	// DeleteDefinition RPC.
 	DefinitionServiceDeleteDefinitionProcedure = "/parlance.v1.DefinitionService/DeleteDefinition"
+	// DefinitionServiceRestoreDefinitionProcedure is the fully-qualified name of the
+	// DefinitionService's RestoreDefinition RPC.
+	DefinitionServiceRestoreDefinitionProcedure = "/parlance.v1.DefinitionService/RestoreDefinition"
 )
 
 // DefinitionServiceClient is a client for the parlance.v1.DefinitionService service.
 type DefinitionServiceClient interface {
 	ListDefinitions(context.Context, *connect.Request[v1.ListDefinitionsRequest]) (*connect.Response[v1.ListDefinitionsResponse], error)
+	GetDefinition(context.Context, *connect.Request[v1.GetDefinitionRequest]) (*connect.Response[v1.GetDefinitionResponse], error)
 	CreateDefinition(context.Context, *connect.Request[v1.CreateDefinitionRequest]) (*connect.Response[v1.CreateDefinitionResponse], error)
 	UpdateDefinition(context.Context, *connect.Request[v1.UpdateDefinitionRequest]) (*connect.Response[v1.UpdateDefinitionResponse], error)
 	DeleteDefinition(context.Context, *connect.Request[v1.DeleteDefinitionRequest]) (*connect.Response[v1.DeleteDefinitionResponse], error)
+	RestoreDefinition(context.Context, *connect.Request[v1.RestoreDefinitionRequest]) (*connect.Response[v1.RestoreDefinitionResponse], error)
 }
 
 // NewDefinitionServiceClient constructs a client for the parlance.v1.DefinitionService service. By
@@ -70,6 +78,12 @@ func NewDefinitionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			httpClient,
 			baseURL+DefinitionServiceListDefinitionsProcedure,
 			connect.WithSchema(definitionServiceMethods.ByName("ListDefinitions")),
+			connect.WithClientOptions(opts...),
+		),
+		getDefinition: connect.NewClient[v1.GetDefinitionRequest, v1.GetDefinitionResponse](
+			httpClient,
+			baseURL+DefinitionServiceGetDefinitionProcedure,
+			connect.WithSchema(definitionServiceMethods.ByName("GetDefinition")),
 			connect.WithClientOptions(opts...),
 		),
 		createDefinition: connect.NewClient[v1.CreateDefinitionRequest, v1.CreateDefinitionResponse](
@@ -90,20 +104,33 @@ func NewDefinitionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(definitionServiceMethods.ByName("DeleteDefinition")),
 			connect.WithClientOptions(opts...),
 		),
+		restoreDefinition: connect.NewClient[v1.RestoreDefinitionRequest, v1.RestoreDefinitionResponse](
+			httpClient,
+			baseURL+DefinitionServiceRestoreDefinitionProcedure,
+			connect.WithSchema(definitionServiceMethods.ByName("RestoreDefinition")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // definitionServiceClient implements DefinitionServiceClient.
 type definitionServiceClient struct {
-	listDefinitions  *connect.Client[v1.ListDefinitionsRequest, v1.ListDefinitionsResponse]
-	createDefinition *connect.Client[v1.CreateDefinitionRequest, v1.CreateDefinitionResponse]
-	updateDefinition *connect.Client[v1.UpdateDefinitionRequest, v1.UpdateDefinitionResponse]
-	deleteDefinition *connect.Client[v1.DeleteDefinitionRequest, v1.DeleteDefinitionResponse]
+	listDefinitions   *connect.Client[v1.ListDefinitionsRequest, v1.ListDefinitionsResponse]
+	getDefinition     *connect.Client[v1.GetDefinitionRequest, v1.GetDefinitionResponse]
+	createDefinition  *connect.Client[v1.CreateDefinitionRequest, v1.CreateDefinitionResponse]
+	updateDefinition  *connect.Client[v1.UpdateDefinitionRequest, v1.UpdateDefinitionResponse]
+	deleteDefinition  *connect.Client[v1.DeleteDefinitionRequest, v1.DeleteDefinitionResponse]
+	restoreDefinition *connect.Client[v1.RestoreDefinitionRequest, v1.RestoreDefinitionResponse]
 }
 
 // ListDefinitions calls parlance.v1.DefinitionService.ListDefinitions.
 func (c *definitionServiceClient) ListDefinitions(ctx context.Context, req *connect.Request[v1.ListDefinitionsRequest]) (*connect.Response[v1.ListDefinitionsResponse], error) {
 	return c.listDefinitions.CallUnary(ctx, req)
+}
+
+// GetDefinition calls parlance.v1.DefinitionService.GetDefinition.
+func (c *definitionServiceClient) GetDefinition(ctx context.Context, req *connect.Request[v1.GetDefinitionRequest]) (*connect.Response[v1.GetDefinitionResponse], error) {
+	return c.getDefinition.CallUnary(ctx, req)
 }
 
 // CreateDefinition calls parlance.v1.DefinitionService.CreateDefinition.
@@ -121,12 +148,19 @@ func (c *definitionServiceClient) DeleteDefinition(ctx context.Context, req *con
 	return c.deleteDefinition.CallUnary(ctx, req)
 }
 
+// RestoreDefinition calls parlance.v1.DefinitionService.RestoreDefinition.
+func (c *definitionServiceClient) RestoreDefinition(ctx context.Context, req *connect.Request[v1.RestoreDefinitionRequest]) (*connect.Response[v1.RestoreDefinitionResponse], error) {
+	return c.restoreDefinition.CallUnary(ctx, req)
+}
+
 // DefinitionServiceHandler is an implementation of the parlance.v1.DefinitionService service.
 type DefinitionServiceHandler interface {
 	ListDefinitions(context.Context, *connect.Request[v1.ListDefinitionsRequest]) (*connect.Response[v1.ListDefinitionsResponse], error)
+	GetDefinition(context.Context, *connect.Request[v1.GetDefinitionRequest]) (*connect.Response[v1.GetDefinitionResponse], error)
 	CreateDefinition(context.Context, *connect.Request[v1.CreateDefinitionRequest]) (*connect.Response[v1.CreateDefinitionResponse], error)
 	UpdateDefinition(context.Context, *connect.Request[v1.UpdateDefinitionRequest]) (*connect.Response[v1.UpdateDefinitionResponse], error)
 	DeleteDefinition(context.Context, *connect.Request[v1.DeleteDefinitionRequest]) (*connect.Response[v1.DeleteDefinitionResponse], error)
+	RestoreDefinition(context.Context, *connect.Request[v1.RestoreDefinitionRequest]) (*connect.Response[v1.RestoreDefinitionResponse], error)
 }
 
 // NewDefinitionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -140,6 +174,12 @@ func NewDefinitionServiceHandler(svc DefinitionServiceHandler, opts ...connect.H
 		DefinitionServiceListDefinitionsProcedure,
 		svc.ListDefinitions,
 		connect.WithSchema(definitionServiceMethods.ByName("ListDefinitions")),
+		connect.WithHandlerOptions(opts...),
+	)
+	definitionServiceGetDefinitionHandler := connect.NewUnaryHandler(
+		DefinitionServiceGetDefinitionProcedure,
+		svc.GetDefinition,
+		connect.WithSchema(definitionServiceMethods.ByName("GetDefinition")),
 		connect.WithHandlerOptions(opts...),
 	)
 	definitionServiceCreateDefinitionHandler := connect.NewUnaryHandler(
@@ -160,16 +200,26 @@ func NewDefinitionServiceHandler(svc DefinitionServiceHandler, opts ...connect.H
 		connect.WithSchema(definitionServiceMethods.ByName("DeleteDefinition")),
 		connect.WithHandlerOptions(opts...),
 	)
+	definitionServiceRestoreDefinitionHandler := connect.NewUnaryHandler(
+		DefinitionServiceRestoreDefinitionProcedure,
+		svc.RestoreDefinition,
+		connect.WithSchema(definitionServiceMethods.ByName("RestoreDefinition")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/parlance.v1.DefinitionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case DefinitionServiceListDefinitionsProcedure:
 			definitionServiceListDefinitionsHandler.ServeHTTP(w, r)
+		case DefinitionServiceGetDefinitionProcedure:
+			definitionServiceGetDefinitionHandler.ServeHTTP(w, r)
 		case DefinitionServiceCreateDefinitionProcedure:
 			definitionServiceCreateDefinitionHandler.ServeHTTP(w, r)
 		case DefinitionServiceUpdateDefinitionProcedure:
 			definitionServiceUpdateDefinitionHandler.ServeHTTP(w, r)
 		case DefinitionServiceDeleteDefinitionProcedure:
 			definitionServiceDeleteDefinitionHandler.ServeHTTP(w, r)
+		case DefinitionServiceRestoreDefinitionProcedure:
+			definitionServiceRestoreDefinitionHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -183,6 +233,10 @@ func (UnimplementedDefinitionServiceHandler) ListDefinitions(context.Context, *c
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.DefinitionService.ListDefinitions is not implemented"))
 }
 
+func (UnimplementedDefinitionServiceHandler) GetDefinition(context.Context, *connect.Request[v1.GetDefinitionRequest]) (*connect.Response[v1.GetDefinitionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.DefinitionService.GetDefinition is not implemented"))
+}
+
 func (UnimplementedDefinitionServiceHandler) CreateDefinition(context.Context, *connect.Request[v1.CreateDefinitionRequest]) (*connect.Response[v1.CreateDefinitionResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.DefinitionService.CreateDefinition is not implemented"))
 }
@@ -193,4 +247,8 @@ func (UnimplementedDefinitionServiceHandler) UpdateDefinition(context.Context, *
 
 func (UnimplementedDefinitionServiceHandler) DeleteDefinition(context.Context, *connect.Request[v1.DeleteDefinitionRequest]) (*connect.Response[v1.DeleteDefinitionResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.DefinitionService.DeleteDefinition is not implemented"))
+}
+
+func (UnimplementedDefinitionServiceHandler) RestoreDefinition(context.Context, *connect.Request[v1.RestoreDefinitionRequest]) (*connect.Response[v1.RestoreDefinitionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.DefinitionService.RestoreDefinition is not implemented"))
 }

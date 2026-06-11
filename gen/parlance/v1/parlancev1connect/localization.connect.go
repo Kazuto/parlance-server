@@ -48,6 +48,9 @@ const (
 	// LocalizationServiceDeleteLocalizationProcedure is the fully-qualified name of the
 	// LocalizationService's DeleteLocalization RPC.
 	LocalizationServiceDeleteLocalizationProcedure = "/parlance.v1.LocalizationService/DeleteLocalization"
+	// LocalizationServiceRestoreLocalizationProcedure is the fully-qualified name of the
+	// LocalizationService's RestoreLocalization RPC.
+	LocalizationServiceRestoreLocalizationProcedure = "/parlance.v1.LocalizationService/RestoreLocalization"
 	// LocalizationServiceTranslateLocalizationProcedure is the fully-qualified name of the
 	// LocalizationService's TranslateLocalization RPC.
 	LocalizationServiceTranslateLocalizationProcedure = "/parlance.v1.LocalizationService/TranslateLocalization"
@@ -63,6 +66,7 @@ type LocalizationServiceClient interface {
 	CreateLocalization(context.Context, *connect.Request[v1.CreateLocalizationRequest]) (*connect.Response[v1.CreateLocalizationResponse], error)
 	UpdateLocalization(context.Context, *connect.Request[v1.UpdateLocalizationRequest]) (*connect.Response[v1.UpdateLocalizationResponse], error)
 	DeleteLocalization(context.Context, *connect.Request[v1.DeleteLocalizationRequest]) (*connect.Response[v1.DeleteLocalizationResponse], error)
+	RestoreLocalization(context.Context, *connect.Request[v1.RestoreLocalizationRequest]) (*connect.Response[v1.RestoreLocalizationResponse], error)
 	TranslateLocalization(context.Context, *connect.Request[v1.TranslateLocalizationRequest]) (*connect.Response[v1.TranslateLocalizationResponse], error)
 	BatchTranslate(context.Context, *connect.Request[v1.BatchTranslateRequest]) (*connect.Response[v1.BatchTranslateResponse], error)
 }
@@ -108,6 +112,12 @@ func NewLocalizationServiceClient(httpClient connect.HTTPClient, baseURL string,
 			connect.WithSchema(localizationServiceMethods.ByName("DeleteLocalization")),
 			connect.WithClientOptions(opts...),
 		),
+		restoreLocalization: connect.NewClient[v1.RestoreLocalizationRequest, v1.RestoreLocalizationResponse](
+			httpClient,
+			baseURL+LocalizationServiceRestoreLocalizationProcedure,
+			connect.WithSchema(localizationServiceMethods.ByName("RestoreLocalization")),
+			connect.WithClientOptions(opts...),
+		),
 		translateLocalization: connect.NewClient[v1.TranslateLocalizationRequest, v1.TranslateLocalizationResponse](
 			httpClient,
 			baseURL+LocalizationServiceTranslateLocalizationProcedure,
@@ -130,6 +140,7 @@ type localizationServiceClient struct {
 	createLocalization    *connect.Client[v1.CreateLocalizationRequest, v1.CreateLocalizationResponse]
 	updateLocalization    *connect.Client[v1.UpdateLocalizationRequest, v1.UpdateLocalizationResponse]
 	deleteLocalization    *connect.Client[v1.DeleteLocalizationRequest, v1.DeleteLocalizationResponse]
+	restoreLocalization   *connect.Client[v1.RestoreLocalizationRequest, v1.RestoreLocalizationResponse]
 	translateLocalization *connect.Client[v1.TranslateLocalizationRequest, v1.TranslateLocalizationResponse]
 	batchTranslate        *connect.Client[v1.BatchTranslateRequest, v1.BatchTranslateResponse]
 }
@@ -159,6 +170,11 @@ func (c *localizationServiceClient) DeleteLocalization(ctx context.Context, req 
 	return c.deleteLocalization.CallUnary(ctx, req)
 }
 
+// RestoreLocalization calls parlance.v1.LocalizationService.RestoreLocalization.
+func (c *localizationServiceClient) RestoreLocalization(ctx context.Context, req *connect.Request[v1.RestoreLocalizationRequest]) (*connect.Response[v1.RestoreLocalizationResponse], error) {
+	return c.restoreLocalization.CallUnary(ctx, req)
+}
+
 // TranslateLocalization calls parlance.v1.LocalizationService.TranslateLocalization.
 func (c *localizationServiceClient) TranslateLocalization(ctx context.Context, req *connect.Request[v1.TranslateLocalizationRequest]) (*connect.Response[v1.TranslateLocalizationResponse], error) {
 	return c.translateLocalization.CallUnary(ctx, req)
@@ -176,6 +192,7 @@ type LocalizationServiceHandler interface {
 	CreateLocalization(context.Context, *connect.Request[v1.CreateLocalizationRequest]) (*connect.Response[v1.CreateLocalizationResponse], error)
 	UpdateLocalization(context.Context, *connect.Request[v1.UpdateLocalizationRequest]) (*connect.Response[v1.UpdateLocalizationResponse], error)
 	DeleteLocalization(context.Context, *connect.Request[v1.DeleteLocalizationRequest]) (*connect.Response[v1.DeleteLocalizationResponse], error)
+	RestoreLocalization(context.Context, *connect.Request[v1.RestoreLocalizationRequest]) (*connect.Response[v1.RestoreLocalizationResponse], error)
 	TranslateLocalization(context.Context, *connect.Request[v1.TranslateLocalizationRequest]) (*connect.Response[v1.TranslateLocalizationResponse], error)
 	BatchTranslate(context.Context, *connect.Request[v1.BatchTranslateRequest]) (*connect.Response[v1.BatchTranslateResponse], error)
 }
@@ -217,6 +234,12 @@ func NewLocalizationServiceHandler(svc LocalizationServiceHandler, opts ...conne
 		connect.WithSchema(localizationServiceMethods.ByName("DeleteLocalization")),
 		connect.WithHandlerOptions(opts...),
 	)
+	localizationServiceRestoreLocalizationHandler := connect.NewUnaryHandler(
+		LocalizationServiceRestoreLocalizationProcedure,
+		svc.RestoreLocalization,
+		connect.WithSchema(localizationServiceMethods.ByName("RestoreLocalization")),
+		connect.WithHandlerOptions(opts...),
+	)
 	localizationServiceTranslateLocalizationHandler := connect.NewUnaryHandler(
 		LocalizationServiceTranslateLocalizationProcedure,
 		svc.TranslateLocalization,
@@ -241,6 +264,8 @@ func NewLocalizationServiceHandler(svc LocalizationServiceHandler, opts ...conne
 			localizationServiceUpdateLocalizationHandler.ServeHTTP(w, r)
 		case LocalizationServiceDeleteLocalizationProcedure:
 			localizationServiceDeleteLocalizationHandler.ServeHTTP(w, r)
+		case LocalizationServiceRestoreLocalizationProcedure:
+			localizationServiceRestoreLocalizationHandler.ServeHTTP(w, r)
 		case LocalizationServiceTranslateLocalizationProcedure:
 			localizationServiceTranslateLocalizationHandler.ServeHTTP(w, r)
 		case LocalizationServiceBatchTranslateProcedure:
@@ -272,6 +297,10 @@ func (UnimplementedLocalizationServiceHandler) UpdateLocalization(context.Contex
 
 func (UnimplementedLocalizationServiceHandler) DeleteLocalization(context.Context, *connect.Request[v1.DeleteLocalizationRequest]) (*connect.Response[v1.DeleteLocalizationResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.LocalizationService.DeleteLocalization is not implemented"))
+}
+
+func (UnimplementedLocalizationServiceHandler) RestoreLocalization(context.Context, *connect.Request[v1.RestoreLocalizationRequest]) (*connect.Response[v1.RestoreLocalizationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.LocalizationService.RestoreLocalization is not implemented"))
 }
 
 func (UnimplementedLocalizationServiceHandler) TranslateLocalization(context.Context, *connect.Request[v1.TranslateLocalizationRequest]) (*connect.Response[v1.TranslateLocalizationResponse], error) {

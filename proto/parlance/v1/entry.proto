@@ -13,6 +13,7 @@ service EntryService {
   rpc CreateEntry(CreateEntryRequest) returns (CreateEntryResponse);
   rpc UpdateEntry(UpdateEntryRequest) returns (UpdateEntryResponse);
   rpc DeleteEntry(DeleteEntryRequest) returns (DeleteEntryResponse);
+  rpc RestoreEntry(RestoreEntryRequest) returns (RestoreEntryResponse);
   rpc SearchEntries(SearchEntriesRequest) returns (SearchEntriesResponse);
   rpc GetEntryHistory(GetEntryHistoryRequest) returns (GetEntryHistoryResponse);
 }
@@ -75,6 +76,14 @@ message DeleteEntryRequest {
 }
 
 message DeleteEntryResponse {}
+
+message RestoreEntryRequest {
+  string id = 1;
+}
+
+message RestoreEntryResponse {
+  Entry entry = 1;
+}
 
 message SearchEntriesRequest {
   string query = 1;

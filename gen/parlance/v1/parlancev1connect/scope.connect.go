@@ -46,6 +46,9 @@ const (
 	// ScopeServiceDeleteScopeProcedure is the fully-qualified name of the ScopeService's DeleteScope
 	// RPC.
 	ScopeServiceDeleteScopeProcedure = "/parlance.v1.ScopeService/DeleteScope"
+	// ScopeServiceRestoreScopeProcedure is the fully-qualified name of the ScopeService's RestoreScope
+	// RPC.
+	ScopeServiceRestoreScopeProcedure = "/parlance.v1.ScopeService/RestoreScope"
 	// ScopeServiceAddScopeToEntryProcedure is the fully-qualified name of the ScopeService's
 	// AddScopeToEntry RPC.
 	ScopeServiceAddScopeToEntryProcedure = "/parlance.v1.ScopeService/AddScopeToEntry"
@@ -64,6 +67,7 @@ type ScopeServiceClient interface {
 	CreateScope(context.Context, *connect.Request[v1.CreateScopeRequest]) (*connect.Response[v1.CreateScopeResponse], error)
 	UpdateScope(context.Context, *connect.Request[v1.UpdateScopeRequest]) (*connect.Response[v1.UpdateScopeResponse], error)
 	DeleteScope(context.Context, *connect.Request[v1.DeleteScopeRequest]) (*connect.Response[v1.DeleteScopeResponse], error)
+	RestoreScope(context.Context, *connect.Request[v1.RestoreScopeRequest]) (*connect.Response[v1.RestoreScopeResponse], error)
 	// Entry-Scope relationship management
 	AddScopeToEntry(context.Context, *connect.Request[v1.AddScopeToEntryRequest]) (*connect.Response[v1.AddScopeToEntryResponse], error)
 	RemoveScopeFromEntry(context.Context, *connect.Request[v1.RemoveScopeFromEntryRequest]) (*connect.Response[v1.RemoveScopeFromEntryResponse], error)
@@ -111,6 +115,12 @@ func NewScopeServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(scopeServiceMethods.ByName("DeleteScope")),
 			connect.WithClientOptions(opts...),
 		),
+		restoreScope: connect.NewClient[v1.RestoreScopeRequest, v1.RestoreScopeResponse](
+			httpClient,
+			baseURL+ScopeServiceRestoreScopeProcedure,
+			connect.WithSchema(scopeServiceMethods.ByName("RestoreScope")),
+			connect.WithClientOptions(opts...),
+		),
 		addScopeToEntry: connect.NewClient[v1.AddScopeToEntryRequest, v1.AddScopeToEntryResponse](
 			httpClient,
 			baseURL+ScopeServiceAddScopeToEntryProcedure,
@@ -139,6 +149,7 @@ type scopeServiceClient struct {
 	createScope          *connect.Client[v1.CreateScopeRequest, v1.CreateScopeResponse]
 	updateScope          *connect.Client[v1.UpdateScopeRequest, v1.UpdateScopeResponse]
 	deleteScope          *connect.Client[v1.DeleteScopeRequest, v1.DeleteScopeResponse]
+	restoreScope         *connect.Client[v1.RestoreScopeRequest, v1.RestoreScopeResponse]
 	addScopeToEntry      *connect.Client[v1.AddScopeToEntryRequest, v1.AddScopeToEntryResponse]
 	removeScopeFromEntry *connect.Client[v1.RemoveScopeFromEntryRequest, v1.RemoveScopeFromEntryResponse]
 	getEntryScopes       *connect.Client[v1.GetEntryScopesRequest, v1.GetEntryScopesResponse]
@@ -169,6 +180,11 @@ func (c *scopeServiceClient) DeleteScope(ctx context.Context, req *connect.Reque
 	return c.deleteScope.CallUnary(ctx, req)
 }
 
+// RestoreScope calls parlance.v1.ScopeService.RestoreScope.
+func (c *scopeServiceClient) RestoreScope(ctx context.Context, req *connect.Request[v1.RestoreScopeRequest]) (*connect.Response[v1.RestoreScopeResponse], error) {
+	return c.restoreScope.CallUnary(ctx, req)
+}
+
 // AddScopeToEntry calls parlance.v1.ScopeService.AddScopeToEntry.
 func (c *scopeServiceClient) AddScopeToEntry(ctx context.Context, req *connect.Request[v1.AddScopeToEntryRequest]) (*connect.Response[v1.AddScopeToEntryResponse], error) {
 	return c.addScopeToEntry.CallUnary(ctx, req)
@@ -191,6 +207,7 @@ type ScopeServiceHandler interface {
 	CreateScope(context.Context, *connect.Request[v1.CreateScopeRequest]) (*connect.Response[v1.CreateScopeResponse], error)
 	UpdateScope(context.Context, *connect.Request[v1.UpdateScopeRequest]) (*connect.Response[v1.UpdateScopeResponse], error)
 	DeleteScope(context.Context, *connect.Request[v1.DeleteScopeRequest]) (*connect.Response[v1.DeleteScopeResponse], error)
+	RestoreScope(context.Context, *connect.Request[v1.RestoreScopeRequest]) (*connect.Response[v1.RestoreScopeResponse], error)
 	// Entry-Scope relationship management
 	AddScopeToEntry(context.Context, *connect.Request[v1.AddScopeToEntryRequest]) (*connect.Response[v1.AddScopeToEntryResponse], error)
 	RemoveScopeFromEntry(context.Context, *connect.Request[v1.RemoveScopeFromEntryRequest]) (*connect.Response[v1.RemoveScopeFromEntryResponse], error)
@@ -234,6 +251,12 @@ func NewScopeServiceHandler(svc ScopeServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(scopeServiceMethods.ByName("DeleteScope")),
 		connect.WithHandlerOptions(opts...),
 	)
+	scopeServiceRestoreScopeHandler := connect.NewUnaryHandler(
+		ScopeServiceRestoreScopeProcedure,
+		svc.RestoreScope,
+		connect.WithSchema(scopeServiceMethods.ByName("RestoreScope")),
+		connect.WithHandlerOptions(opts...),
+	)
 	scopeServiceAddScopeToEntryHandler := connect.NewUnaryHandler(
 		ScopeServiceAddScopeToEntryProcedure,
 		svc.AddScopeToEntry,
@@ -264,6 +287,8 @@ func NewScopeServiceHandler(svc ScopeServiceHandler, opts ...connect.HandlerOpti
 			scopeServiceUpdateScopeHandler.ServeHTTP(w, r)
 		case ScopeServiceDeleteScopeProcedure:
 			scopeServiceDeleteScopeHandler.ServeHTTP(w, r)
+		case ScopeServiceRestoreScopeProcedure:
+			scopeServiceRestoreScopeHandler.ServeHTTP(w, r)
 		case ScopeServiceAddScopeToEntryProcedure:
 			scopeServiceAddScopeToEntryHandler.ServeHTTP(w, r)
 		case ScopeServiceRemoveScopeFromEntryProcedure:
@@ -297,6 +322,10 @@ func (UnimplementedScopeServiceHandler) UpdateScope(context.Context, *connect.Re
 
 func (UnimplementedScopeServiceHandler) DeleteScope(context.Context, *connect.Request[v1.DeleteScopeRequest]) (*connect.Response[v1.DeleteScopeResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ScopeService.DeleteScope is not implemented"))
+}
+
+func (UnimplementedScopeServiceHandler) RestoreScope(context.Context, *connect.Request[v1.RestoreScopeRequest]) (*connect.Response[v1.RestoreScopeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ScopeService.RestoreScope is not implemented"))
 }
 
 func (UnimplementedScopeServiceHandler) AddScopeToEntry(context.Context, *connect.Request[v1.AddScopeToEntryRequest]) (*connect.Response[v1.AddScopeToEntryResponse], error) {

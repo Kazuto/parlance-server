@@ -43,6 +43,8 @@ const (
 	RoleServiceUpdateRoleProcedure = "/parlance.v1.RoleService/UpdateRole"
 	// RoleServiceDeleteRoleProcedure is the fully-qualified name of the RoleService's DeleteRole RPC.
 	RoleServiceDeleteRoleProcedure = "/parlance.v1.RoleService/DeleteRole"
+	// RoleServiceRestoreRoleProcedure is the fully-qualified name of the RoleService's RestoreRole RPC.
+	RoleServiceRestoreRoleProcedure = "/parlance.v1.RoleService/RestoreRole"
 )
 
 // RoleServiceClient is a client for the parlance.v1.RoleService service.
@@ -52,6 +54,7 @@ type RoleServiceClient interface {
 	CreateRole(context.Context, *connect.Request[v1.CreateRoleRequest]) (*connect.Response[v1.CreateRoleResponse], error)
 	UpdateRole(context.Context, *connect.Request[v1.UpdateRoleRequest]) (*connect.Response[v1.UpdateRoleResponse], error)
 	DeleteRole(context.Context, *connect.Request[v1.DeleteRoleRequest]) (*connect.Response[v1.DeleteRoleResponse], error)
+	RestoreRole(context.Context, *connect.Request[v1.RestoreRoleRequest]) (*connect.Response[v1.RestoreRoleResponse], error)
 }
 
 // NewRoleServiceClient constructs a client for the parlance.v1.RoleService service. By default, it
@@ -95,16 +98,23 @@ func NewRoleServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(roleServiceMethods.ByName("DeleteRole")),
 			connect.WithClientOptions(opts...),
 		),
+		restoreRole: connect.NewClient[v1.RestoreRoleRequest, v1.RestoreRoleResponse](
+			httpClient,
+			baseURL+RoleServiceRestoreRoleProcedure,
+			connect.WithSchema(roleServiceMethods.ByName("RestoreRole")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // roleServiceClient implements RoleServiceClient.
 type roleServiceClient struct {
-	listRoles  *connect.Client[v1.ListRolesRequest, v1.ListRolesResponse]
-	getRole    *connect.Client[v1.GetRoleRequest, v1.GetRoleResponse]
-	createRole *connect.Client[v1.CreateRoleRequest, v1.CreateRoleResponse]
-	updateRole *connect.Client[v1.UpdateRoleRequest, v1.UpdateRoleResponse]
-	deleteRole *connect.Client[v1.DeleteRoleRequest, v1.DeleteRoleResponse]
+	listRoles   *connect.Client[v1.ListRolesRequest, v1.ListRolesResponse]
+	getRole     *connect.Client[v1.GetRoleRequest, v1.GetRoleResponse]
+	createRole  *connect.Client[v1.CreateRoleRequest, v1.CreateRoleResponse]
+	updateRole  *connect.Client[v1.UpdateRoleRequest, v1.UpdateRoleResponse]
+	deleteRole  *connect.Client[v1.DeleteRoleRequest, v1.DeleteRoleResponse]
+	restoreRole *connect.Client[v1.RestoreRoleRequest, v1.RestoreRoleResponse]
 }
 
 // ListRoles calls parlance.v1.RoleService.ListRoles.
@@ -132,6 +142,11 @@ func (c *roleServiceClient) DeleteRole(ctx context.Context, req *connect.Request
 	return c.deleteRole.CallUnary(ctx, req)
 }
 
+// RestoreRole calls parlance.v1.RoleService.RestoreRole.
+func (c *roleServiceClient) RestoreRole(ctx context.Context, req *connect.Request[v1.RestoreRoleRequest]) (*connect.Response[v1.RestoreRoleResponse], error) {
+	return c.restoreRole.CallUnary(ctx, req)
+}
+
 // RoleServiceHandler is an implementation of the parlance.v1.RoleService service.
 type RoleServiceHandler interface {
 	ListRoles(context.Context, *connect.Request[v1.ListRolesRequest]) (*connect.Response[v1.ListRolesResponse], error)
@@ -139,6 +154,7 @@ type RoleServiceHandler interface {
 	CreateRole(context.Context, *connect.Request[v1.CreateRoleRequest]) (*connect.Response[v1.CreateRoleResponse], error)
 	UpdateRole(context.Context, *connect.Request[v1.UpdateRoleRequest]) (*connect.Response[v1.UpdateRoleResponse], error)
 	DeleteRole(context.Context, *connect.Request[v1.DeleteRoleRequest]) (*connect.Response[v1.DeleteRoleResponse], error)
+	RestoreRole(context.Context, *connect.Request[v1.RestoreRoleRequest]) (*connect.Response[v1.RestoreRoleResponse], error)
 }
 
 // NewRoleServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -178,6 +194,12 @@ func NewRoleServiceHandler(svc RoleServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(roleServiceMethods.ByName("DeleteRole")),
 		connect.WithHandlerOptions(opts...),
 	)
+	roleServiceRestoreRoleHandler := connect.NewUnaryHandler(
+		RoleServiceRestoreRoleProcedure,
+		svc.RestoreRole,
+		connect.WithSchema(roleServiceMethods.ByName("RestoreRole")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/parlance.v1.RoleService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case RoleServiceListRolesProcedure:
@@ -190,6 +212,8 @@ func NewRoleServiceHandler(svc RoleServiceHandler, opts ...connect.HandlerOption
 			roleServiceUpdateRoleHandler.ServeHTTP(w, r)
 		case RoleServiceDeleteRoleProcedure:
 			roleServiceDeleteRoleHandler.ServeHTTP(w, r)
+		case RoleServiceRestoreRoleProcedure:
+			roleServiceRestoreRoleHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -217,4 +241,8 @@ func (UnimplementedRoleServiceHandler) UpdateRole(context.Context, *connect.Requ
 
 func (UnimplementedRoleServiceHandler) DeleteRole(context.Context, *connect.Request[v1.DeleteRoleRequest]) (*connect.Response[v1.DeleteRoleResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.RoleService.DeleteRole is not implemented"))
+}
+
+func (UnimplementedRoleServiceHandler) RestoreRole(context.Context, *connect.Request[v1.RestoreRoleRequest]) (*connect.Response[v1.RestoreRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.RoleService.RestoreRole is not implemented"))
 }

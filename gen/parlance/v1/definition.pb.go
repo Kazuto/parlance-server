@@ -25,7 +25,7 @@ type Definition struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	TerminologyId string                 `protobuf:"bytes,2,opt,name=terminology_id,json=terminologyId,proto3" json:"terminology_id,omitempty"`
-	LocaleId      string                 `protobuf:"bytes,3,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
+	DefinitionId  string                 `protobuf:"bytes,3,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
 	Translation   string                 `protobuf:"bytes,4,opt,name=translation,proto3" json:"translation,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
@@ -80,9 +80,9 @@ func (x *Definition) GetTerminologyId() string {
 	return ""
 }
 
-func (x *Definition) GetLocaleId() string {
+func (x *Definition) GetDefinitionId() string {
 	if x != nil {
-		return x.LocaleId
+		return x.DefinitionId
 	}
 	return ""
 }
@@ -241,10 +241,98 @@ func (x *ListDefinitionsResponse) GetPagination() *PaginationResponse {
 	return nil
 }
 
+type GetDefinitionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDefinitionRequest) Reset() {
+	*x = GetDefinitionRequest{}
+	mi := &file_parlance_v1_definition_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDefinitionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDefinitionRequest) ProtoMessage() {}
+
+func (x *GetDefinitionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_definition_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDefinitionRequest.ProtoReflect.Descriptor instead.
+func (*GetDefinitionRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetDefinitionRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetDefinitionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Definition    *Definition            `protobuf:"bytes,1,opt,name=definition,proto3" json:"definition,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDefinitionResponse) Reset() {
+	*x = GetDefinitionResponse{}
+	mi := &file_parlance_v1_definition_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDefinitionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDefinitionResponse) ProtoMessage() {}
+
+func (x *GetDefinitionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_definition_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDefinitionResponse.ProtoReflect.Descriptor instead.
+func (*GetDefinitionResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetDefinitionResponse) GetDefinition() *Definition {
+	if x != nil {
+		return x.Definition
+	}
+	return nil
+}
+
 type CreateDefinitionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TerminologyId string                 `protobuf:"bytes,1,opt,name=terminology_id,json=terminologyId,proto3" json:"terminology_id,omitempty"`
-	LocaleId      string                 `protobuf:"bytes,2,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
+	DefinitionId  string                 `protobuf:"bytes,2,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
 	Translation   string                 `protobuf:"bytes,3,opt,name=translation,proto3" json:"translation,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -252,7 +340,7 @@ type CreateDefinitionRequest struct {
 
 func (x *CreateDefinitionRequest) Reset() {
 	*x = CreateDefinitionRequest{}
-	mi := &file_parlance_v1_definition_proto_msgTypes[3]
+	mi := &file_parlance_v1_definition_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -264,7 +352,7 @@ func (x *CreateDefinitionRequest) String() string {
 func (*CreateDefinitionRequest) ProtoMessage() {}
 
 func (x *CreateDefinitionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_definition_proto_msgTypes[3]
+	mi := &file_parlance_v1_definition_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -277,7 +365,7 @@ func (x *CreateDefinitionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDefinitionRequest.ProtoReflect.Descriptor instead.
 func (*CreateDefinitionRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{3}
+	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateDefinitionRequest) GetTerminologyId() string {
@@ -287,9 +375,9 @@ func (x *CreateDefinitionRequest) GetTerminologyId() string {
 	return ""
 }
 
-func (x *CreateDefinitionRequest) GetLocaleId() string {
+func (x *CreateDefinitionRequest) GetDefinitionId() string {
 	if x != nil {
-		return x.LocaleId
+		return x.DefinitionId
 	}
 	return ""
 }
@@ -310,7 +398,7 @@ type CreateDefinitionResponse struct {
 
 func (x *CreateDefinitionResponse) Reset() {
 	*x = CreateDefinitionResponse{}
-	mi := &file_parlance_v1_definition_proto_msgTypes[4]
+	mi := &file_parlance_v1_definition_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -322,7 +410,7 @@ func (x *CreateDefinitionResponse) String() string {
 func (*CreateDefinitionResponse) ProtoMessage() {}
 
 func (x *CreateDefinitionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_definition_proto_msgTypes[4]
+	mi := &file_parlance_v1_definition_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -335,7 +423,7 @@ func (x *CreateDefinitionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDefinitionResponse.ProtoReflect.Descriptor instead.
 func (*CreateDefinitionResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{4}
+	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CreateDefinitionResponse) GetDefinition() *Definition {
@@ -355,7 +443,7 @@ type UpdateDefinitionRequest struct {
 
 func (x *UpdateDefinitionRequest) Reset() {
 	*x = UpdateDefinitionRequest{}
-	mi := &file_parlance_v1_definition_proto_msgTypes[5]
+	mi := &file_parlance_v1_definition_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -367,7 +455,7 @@ func (x *UpdateDefinitionRequest) String() string {
 func (*UpdateDefinitionRequest) ProtoMessage() {}
 
 func (x *UpdateDefinitionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_definition_proto_msgTypes[5]
+	mi := &file_parlance_v1_definition_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -380,7 +468,7 @@ func (x *UpdateDefinitionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateDefinitionRequest.ProtoReflect.Descriptor instead.
 func (*UpdateDefinitionRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{5}
+	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdateDefinitionRequest) GetId() string {
@@ -406,7 +494,7 @@ type UpdateDefinitionResponse struct {
 
 func (x *UpdateDefinitionResponse) Reset() {
 	*x = UpdateDefinitionResponse{}
-	mi := &file_parlance_v1_definition_proto_msgTypes[6]
+	mi := &file_parlance_v1_definition_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -418,7 +506,7 @@ func (x *UpdateDefinitionResponse) String() string {
 func (*UpdateDefinitionResponse) ProtoMessage() {}
 
 func (x *UpdateDefinitionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_definition_proto_msgTypes[6]
+	mi := &file_parlance_v1_definition_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -431,7 +519,7 @@ func (x *UpdateDefinitionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateDefinitionResponse.ProtoReflect.Descriptor instead.
 func (*UpdateDefinitionResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{6}
+	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UpdateDefinitionResponse) GetDefinition() *Definition {
@@ -450,7 +538,7 @@ type DeleteDefinitionRequest struct {
 
 func (x *DeleteDefinitionRequest) Reset() {
 	*x = DeleteDefinitionRequest{}
-	mi := &file_parlance_v1_definition_proto_msgTypes[7]
+	mi := &file_parlance_v1_definition_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -462,7 +550,7 @@ func (x *DeleteDefinitionRequest) String() string {
 func (*DeleteDefinitionRequest) ProtoMessage() {}
 
 func (x *DeleteDefinitionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_definition_proto_msgTypes[7]
+	mi := &file_parlance_v1_definition_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -475,7 +563,7 @@ func (x *DeleteDefinitionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDefinitionRequest.ProtoReflect.Descriptor instead.
 func (*DeleteDefinitionRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{7}
+	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DeleteDefinitionRequest) GetId() string {
@@ -493,7 +581,7 @@ type DeleteDefinitionResponse struct {
 
 func (x *DeleteDefinitionResponse) Reset() {
 	*x = DeleteDefinitionResponse{}
-	mi := &file_parlance_v1_definition_proto_msgTypes[8]
+	mi := &file_parlance_v1_definition_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -505,7 +593,7 @@ func (x *DeleteDefinitionResponse) String() string {
 func (*DeleteDefinitionResponse) ProtoMessage() {}
 
 func (x *DeleteDefinitionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_definition_proto_msgTypes[8]
+	mi := &file_parlance_v1_definition_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -518,19 +606,107 @@ func (x *DeleteDefinitionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDefinitionResponse.ProtoReflect.Descriptor instead.
 func (*DeleteDefinitionResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{8}
+	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{10}
+}
+
+type RestoreDefinitionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestoreDefinitionRequest) Reset() {
+	*x = RestoreDefinitionRequest{}
+	mi := &file_parlance_v1_definition_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestoreDefinitionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestoreDefinitionRequest) ProtoMessage() {}
+
+func (x *RestoreDefinitionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_definition_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestoreDefinitionRequest.ProtoReflect.Descriptor instead.
+func (*RestoreDefinitionRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *RestoreDefinitionRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type RestoreDefinitionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Definition    *Definition            `protobuf:"bytes,1,opt,name=definition,proto3" json:"definition,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestoreDefinitionResponse) Reset() {
+	*x = RestoreDefinitionResponse{}
+	mi := &file_parlance_v1_definition_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestoreDefinitionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestoreDefinitionResponse) ProtoMessage() {}
+
+func (x *RestoreDefinitionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_definition_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestoreDefinitionResponse.ProtoReflect.Descriptor instead.
+func (*RestoreDefinitionResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *RestoreDefinitionResponse) GetDefinition() *Definition {
+	if x != nil {
+		return x.Definition
+	}
+	return nil
 }
 
 var File_parlance_v1_definition_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_definition_proto_rawDesc = "" +
 	"\n" +
-	"\x1cparlance/v1/definition.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\x9d\x02\n" +
+	"\x1cparlance/v1/definition.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\xa5\x02\n" +
 	"\n" +
 	"Definition\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
-	"\x0eterminology_id\x18\x02 \x01(\tR\rterminologyId\x12\x1b\n" +
-	"\tlocale_id\x18\x03 \x01(\tR\blocaleId\x12 \n" +
+	"\x0eterminology_id\x18\x02 \x01(\tR\rterminologyId\x12#\n" +
+	"\rdefinition_id\x18\x03 \x01(\tR\fdefinitionId\x12 \n" +
 	"\vtranslation\x18\x04 \x01(\tR\vtranslation\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
@@ -552,10 +728,16 @@ const file_parlance_v1_definition_proto_rawDesc = "" +
 	"\vdefinitions\x18\x01 \x03(\v2\x17.parlance.v1.DefinitionR\vdefinitions\x12?\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1f.parlance.v1.PaginationResponseR\n" +
-	"pagination\"\x7f\n" +
+	"pagination\"&\n" +
+	"\x14GetDefinitionRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"P\n" +
+	"\x15GetDefinitionResponse\x127\n" +
+	"\n" +
+	"definition\x18\x01 \x01(\v2\x17.parlance.v1.DefinitionR\n" +
+	"definition\"\x87\x01\n" +
 	"\x17CreateDefinitionRequest\x12%\n" +
-	"\x0eterminology_id\x18\x01 \x01(\tR\rterminologyId\x12\x1b\n" +
-	"\tlocale_id\x18\x02 \x01(\tR\blocaleId\x12 \n" +
+	"\x0eterminology_id\x18\x01 \x01(\tR\rterminologyId\x12#\n" +
+	"\rdefinition_id\x18\x02 \x01(\tR\fdefinitionId\x12 \n" +
 	"\vtranslation\x18\x03 \x01(\tR\vtranslation\"S\n" +
 	"\x18CreateDefinitionResponse\x127\n" +
 	"\n" +
@@ -570,12 +752,20 @@ const file_parlance_v1_definition_proto_rawDesc = "" +
 	"definition\")\n" +
 	"\x17DeleteDefinitionRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x1a\n" +
-	"\x18DeleteDefinitionResponse2\x94\x03\n" +
+	"\x18DeleteDefinitionResponse\"*\n" +
+	"\x18RestoreDefinitionRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"T\n" +
+	"\x19RestoreDefinitionResponse\x127\n" +
+	"\n" +
+	"definition\x18\x01 \x01(\v2\x17.parlance.v1.DefinitionR\n" +
+	"definition2\xd0\x04\n" +
 	"\x11DefinitionService\x12\\\n" +
-	"\x0fListDefinitions\x12#.parlance.v1.ListDefinitionsRequest\x1a$.parlance.v1.ListDefinitionsResponse\x12_\n" +
+	"\x0fListDefinitions\x12#.parlance.v1.ListDefinitionsRequest\x1a$.parlance.v1.ListDefinitionsResponse\x12V\n" +
+	"\rGetDefinition\x12!.parlance.v1.GetDefinitionRequest\x1a\".parlance.v1.GetDefinitionResponse\x12_\n" +
 	"\x10CreateDefinition\x12$.parlance.v1.CreateDefinitionRequest\x1a%.parlance.v1.CreateDefinitionResponse\x12_\n" +
 	"\x10UpdateDefinition\x12$.parlance.v1.UpdateDefinitionRequest\x1a%.parlance.v1.UpdateDefinitionResponse\x12_\n" +
-	"\x10DeleteDefinition\x12$.parlance.v1.DeleteDefinitionRequest\x1a%.parlance.v1.DeleteDefinitionResponseB\xad\x01\n" +
+	"\x10DeleteDefinition\x12$.parlance.v1.DeleteDefinitionRequest\x1a%.parlance.v1.DeleteDefinitionResponse\x12b\n" +
+	"\x11RestoreDefinition\x12%.parlance.v1.RestoreDefinitionRequest\x1a&.parlance.v1.RestoreDefinitionResponseB\xad\x01\n" +
 	"\x0fcom.parlance.v1B\x0fDefinitionProtoP\x01Z<github.com/kazuto/parlance-server/gen/parlance/v1;parlancev1\xa2\x02\x03PXX\xaa\x02\vParlance.V1\xca\x02\vParlance\\V1\xe2\x02\x17Parlance\\V1\\GPBMetadata\xea\x02\fParlance::V1b\x06proto3"
 
 var (
@@ -590,41 +780,51 @@ func file_parlance_v1_definition_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_definition_proto_rawDescData
 }
 
-var file_parlance_v1_definition_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_parlance_v1_definition_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_parlance_v1_definition_proto_goTypes = []any{
-	(*Definition)(nil),               // 0: parlance.v1.Definition
-	(*ListDefinitionsRequest)(nil),   // 1: parlance.v1.ListDefinitionsRequest
-	(*ListDefinitionsResponse)(nil),  // 2: parlance.v1.ListDefinitionsResponse
-	(*CreateDefinitionRequest)(nil),  // 3: parlance.v1.CreateDefinitionRequest
-	(*CreateDefinitionResponse)(nil), // 4: parlance.v1.CreateDefinitionResponse
-	(*UpdateDefinitionRequest)(nil),  // 5: parlance.v1.UpdateDefinitionRequest
-	(*UpdateDefinitionResponse)(nil), // 6: parlance.v1.UpdateDefinitionResponse
-	(*DeleteDefinitionRequest)(nil),  // 7: parlance.v1.DeleteDefinitionRequest
-	(*DeleteDefinitionResponse)(nil), // 8: parlance.v1.DeleteDefinitionResponse
-	(*PaginationRequest)(nil),        // 9: parlance.v1.PaginationRequest
-	(*FilterRequest)(nil),            // 10: parlance.v1.FilterRequest
-	(*PaginationResponse)(nil),       // 11: parlance.v1.PaginationResponse
+	(*Definition)(nil),                // 0: parlance.v1.Definition
+	(*ListDefinitionsRequest)(nil),    // 1: parlance.v1.ListDefinitionsRequest
+	(*ListDefinitionsResponse)(nil),   // 2: parlance.v1.ListDefinitionsResponse
+	(*GetDefinitionRequest)(nil),      // 3: parlance.v1.GetDefinitionRequest
+	(*GetDefinitionResponse)(nil),     // 4: parlance.v1.GetDefinitionResponse
+	(*CreateDefinitionRequest)(nil),   // 5: parlance.v1.CreateDefinitionRequest
+	(*CreateDefinitionResponse)(nil),  // 6: parlance.v1.CreateDefinitionResponse
+	(*UpdateDefinitionRequest)(nil),   // 7: parlance.v1.UpdateDefinitionRequest
+	(*UpdateDefinitionResponse)(nil),  // 8: parlance.v1.UpdateDefinitionResponse
+	(*DeleteDefinitionRequest)(nil),   // 9: parlance.v1.DeleteDefinitionRequest
+	(*DeleteDefinitionResponse)(nil),  // 10: parlance.v1.DeleteDefinitionResponse
+	(*RestoreDefinitionRequest)(nil),  // 11: parlance.v1.RestoreDefinitionRequest
+	(*RestoreDefinitionResponse)(nil), // 12: parlance.v1.RestoreDefinitionResponse
+	(*PaginationRequest)(nil),         // 13: parlance.v1.PaginationRequest
+	(*FilterRequest)(nil),             // 14: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),        // 15: parlance.v1.PaginationResponse
 }
 var file_parlance_v1_definition_proto_depIdxs = []int32{
-	9,  // 0: parlance.v1.ListDefinitionsRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	10, // 1: parlance.v1.ListDefinitionsRequest.filter:type_name -> parlance.v1.FilterRequest
+	13, // 0: parlance.v1.ListDefinitionsRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	14, // 1: parlance.v1.ListDefinitionsRequest.filter:type_name -> parlance.v1.FilterRequest
 	0,  // 2: parlance.v1.ListDefinitionsResponse.definitions:type_name -> parlance.v1.Definition
-	11, // 3: parlance.v1.ListDefinitionsResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	0,  // 4: parlance.v1.CreateDefinitionResponse.definition:type_name -> parlance.v1.Definition
-	0,  // 5: parlance.v1.UpdateDefinitionResponse.definition:type_name -> parlance.v1.Definition
-	1,  // 6: parlance.v1.DefinitionService.ListDefinitions:input_type -> parlance.v1.ListDefinitionsRequest
-	3,  // 7: parlance.v1.DefinitionService.CreateDefinition:input_type -> parlance.v1.CreateDefinitionRequest
-	5,  // 8: parlance.v1.DefinitionService.UpdateDefinition:input_type -> parlance.v1.UpdateDefinitionRequest
-	7,  // 9: parlance.v1.DefinitionService.DeleteDefinition:input_type -> parlance.v1.DeleteDefinitionRequest
-	2,  // 10: parlance.v1.DefinitionService.ListDefinitions:output_type -> parlance.v1.ListDefinitionsResponse
-	4,  // 11: parlance.v1.DefinitionService.CreateDefinition:output_type -> parlance.v1.CreateDefinitionResponse
-	6,  // 12: parlance.v1.DefinitionService.UpdateDefinition:output_type -> parlance.v1.UpdateDefinitionResponse
-	8,  // 13: parlance.v1.DefinitionService.DeleteDefinition:output_type -> parlance.v1.DeleteDefinitionResponse
-	10, // [10:14] is the sub-list for method output_type
-	6,  // [6:10] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	15, // 3: parlance.v1.ListDefinitionsResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	0,  // 4: parlance.v1.GetDefinitionResponse.definition:type_name -> parlance.v1.Definition
+	0,  // 5: parlance.v1.CreateDefinitionResponse.definition:type_name -> parlance.v1.Definition
+	0,  // 6: parlance.v1.UpdateDefinitionResponse.definition:type_name -> parlance.v1.Definition
+	0,  // 7: parlance.v1.RestoreDefinitionResponse.definition:type_name -> parlance.v1.Definition
+	1,  // 8: parlance.v1.DefinitionService.ListDefinitions:input_type -> parlance.v1.ListDefinitionsRequest
+	3,  // 9: parlance.v1.DefinitionService.GetDefinition:input_type -> parlance.v1.GetDefinitionRequest
+	5,  // 10: parlance.v1.DefinitionService.CreateDefinition:input_type -> parlance.v1.CreateDefinitionRequest
+	7,  // 11: parlance.v1.DefinitionService.UpdateDefinition:input_type -> parlance.v1.UpdateDefinitionRequest
+	9,  // 12: parlance.v1.DefinitionService.DeleteDefinition:input_type -> parlance.v1.DeleteDefinitionRequest
+	11, // 13: parlance.v1.DefinitionService.RestoreDefinition:input_type -> parlance.v1.RestoreDefinitionRequest
+	2,  // 14: parlance.v1.DefinitionService.ListDefinitions:output_type -> parlance.v1.ListDefinitionsResponse
+	4,  // 15: parlance.v1.DefinitionService.GetDefinition:output_type -> parlance.v1.GetDefinitionResponse
+	6,  // 16: parlance.v1.DefinitionService.CreateDefinition:output_type -> parlance.v1.CreateDefinitionResponse
+	8,  // 17: parlance.v1.DefinitionService.UpdateDefinition:output_type -> parlance.v1.UpdateDefinitionResponse
+	10, // 18: parlance.v1.DefinitionService.DeleteDefinition:output_type -> parlance.v1.DeleteDefinitionResponse
+	12, // 19: parlance.v1.DefinitionService.RestoreDefinition:output_type -> parlance.v1.RestoreDefinitionResponse
+	14, // [14:20] is the sub-list for method output_type
+	8,  // [8:14] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_definition_proto_init() }
@@ -639,7 +839,7 @@ func file_parlance_v1_definition_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_definition_proto_rawDesc), len(file_parlance_v1_definition_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

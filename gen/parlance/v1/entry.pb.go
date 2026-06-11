@@ -633,6 +633,94 @@ func (*DeleteEntryResponse) Descriptor() ([]byte, []int) {
 	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{10}
 }
 
+type RestoreEntryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestoreEntryRequest) Reset() {
+	*x = RestoreEntryRequest{}
+	mi := &file_parlance_v1_entry_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestoreEntryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestoreEntryRequest) ProtoMessage() {}
+
+func (x *RestoreEntryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_entry_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestoreEntryRequest.ProtoReflect.Descriptor instead.
+func (*RestoreEntryRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *RestoreEntryRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type RestoreEntryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Entry         *Entry                 `protobuf:"bytes,1,opt,name=entry,proto3" json:"entry,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestoreEntryResponse) Reset() {
+	*x = RestoreEntryResponse{}
+	mi := &file_parlance_v1_entry_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestoreEntryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestoreEntryResponse) ProtoMessage() {}
+
+func (x *RestoreEntryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_entry_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestoreEntryResponse.ProtoReflect.Descriptor instead.
+func (*RestoreEntryResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *RestoreEntryResponse) GetEntry() *Entry {
+	if x != nil {
+		return x.Entry
+	}
+	return nil
+}
+
 type SearchEntriesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Query         string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
@@ -644,7 +732,7 @@ type SearchEntriesRequest struct {
 
 func (x *SearchEntriesRequest) Reset() {
 	*x = SearchEntriesRequest{}
-	mi := &file_parlance_v1_entry_proto_msgTypes[11]
+	mi := &file_parlance_v1_entry_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -656,7 +744,7 @@ func (x *SearchEntriesRequest) String() string {
 func (*SearchEntriesRequest) ProtoMessage() {}
 
 func (x *SearchEntriesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_entry_proto_msgTypes[11]
+	mi := &file_parlance_v1_entry_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -669,7 +757,7 @@ func (x *SearchEntriesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchEntriesRequest.ProtoReflect.Descriptor instead.
 func (*SearchEntriesRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{11}
+	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *SearchEntriesRequest) GetQuery() string {
@@ -703,7 +791,7 @@ type SearchEntriesResponse struct {
 
 func (x *SearchEntriesResponse) Reset() {
 	*x = SearchEntriesResponse{}
-	mi := &file_parlance_v1_entry_proto_msgTypes[12]
+	mi := &file_parlance_v1_entry_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -715,7 +803,7 @@ func (x *SearchEntriesResponse) String() string {
 func (*SearchEntriesResponse) ProtoMessage() {}
 
 func (x *SearchEntriesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_entry_proto_msgTypes[12]
+	mi := &file_parlance_v1_entry_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -728,7 +816,7 @@ func (x *SearchEntriesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchEntriesResponse.ProtoReflect.Descriptor instead.
 func (*SearchEntriesResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{12}
+	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *SearchEntriesResponse) GetEntries() []*Entry {
@@ -755,7 +843,7 @@ type GetEntryHistoryRequest struct {
 
 func (x *GetEntryHistoryRequest) Reset() {
 	*x = GetEntryHistoryRequest{}
-	mi := &file_parlance_v1_entry_proto_msgTypes[13]
+	mi := &file_parlance_v1_entry_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -767,7 +855,7 @@ func (x *GetEntryHistoryRequest) String() string {
 func (*GetEntryHistoryRequest) ProtoMessage() {}
 
 func (x *GetEntryHistoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_entry_proto_msgTypes[13]
+	mi := &file_parlance_v1_entry_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -780,7 +868,7 @@ func (x *GetEntryHistoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEntryHistoryRequest.ProtoReflect.Descriptor instead.
 func (*GetEntryHistoryRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{13}
+	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetEntryHistoryRequest) GetEntryId() string {
@@ -807,7 +895,7 @@ type GetEntryHistoryResponse struct {
 
 func (x *GetEntryHistoryResponse) Reset() {
 	*x = GetEntryHistoryResponse{}
-	mi := &file_parlance_v1_entry_proto_msgTypes[14]
+	mi := &file_parlance_v1_entry_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -819,7 +907,7 @@ func (x *GetEntryHistoryResponse) String() string {
 func (*GetEntryHistoryResponse) ProtoMessage() {}
 
 func (x *GetEntryHistoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_entry_proto_msgTypes[14]
+	mi := &file_parlance_v1_entry_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -832,7 +920,7 @@ func (x *GetEntryHistoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEntryHistoryResponse.ProtoReflect.Descriptor instead.
 func (*GetEntryHistoryResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{14}
+	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetEntryHistoryResponse) GetHistory() []*LocalizationHistory {
@@ -865,7 +953,7 @@ type LocalizationHistory struct {
 
 func (x *LocalizationHistory) Reset() {
 	*x = LocalizationHistory{}
-	mi := &file_parlance_v1_entry_proto_msgTypes[15]
+	mi := &file_parlance_v1_entry_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -877,7 +965,7 @@ func (x *LocalizationHistory) String() string {
 func (*LocalizationHistory) ProtoMessage() {}
 
 func (x *LocalizationHistory) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_entry_proto_msgTypes[15]
+	mi := &file_parlance_v1_entry_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -890,7 +978,7 @@ func (x *LocalizationHistory) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LocalizationHistory.ProtoReflect.Descriptor instead.
 func (*LocalizationHistory) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{15}
+	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *LocalizationHistory) GetId() string {
@@ -1001,7 +1089,11 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\x05entry\x18\x01 \x01(\v2\x12.parlance.v1.EntryR\x05entry\"$\n" +
 	"\x12DeleteEntryRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x15\n" +
-	"\x13DeleteEntryResponse\"\x87\x01\n" +
+	"\x13DeleteEntryResponse\"%\n" +
+	"\x13RestoreEntryRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"@\n" +
+	"\x14RestoreEntryResponse\x12(\n" +
+	"\x05entry\x18\x01 \x01(\v2\x12.parlance.v1.EntryR\x05entry\"\x87\x01\n" +
 	"\x14SearchEntriesRequest\x12\x14\n" +
 	"\x05query\x18\x01 \x01(\tR\x05query\x12>\n" +
 	"\n" +
@@ -1032,13 +1124,14 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\vtranslation\x18\x06 \x01(\tR\vtranslation\x12\x16\n" +
 	"\x06action\x18\a \x01(\tR\x06action\x12\x1d\n" +
 	"\n" +
-	"changed_at\x18\b \x01(\tR\tchangedAt2\xd5\x04\n" +
+	"changed_at\x18\b \x01(\tR\tchangedAt2\xaa\x05\n" +
 	"\fEntryService\x12P\n" +
 	"\vListEntries\x12\x1f.parlance.v1.ListEntriesRequest\x1a .parlance.v1.ListEntriesResponse\x12G\n" +
 	"\bGetEntry\x12\x1c.parlance.v1.GetEntryRequest\x1a\x1d.parlance.v1.GetEntryResponse\x12P\n" +
 	"\vCreateEntry\x12\x1f.parlance.v1.CreateEntryRequest\x1a .parlance.v1.CreateEntryResponse\x12P\n" +
 	"\vUpdateEntry\x12\x1f.parlance.v1.UpdateEntryRequest\x1a .parlance.v1.UpdateEntryResponse\x12P\n" +
-	"\vDeleteEntry\x12\x1f.parlance.v1.DeleteEntryRequest\x1a .parlance.v1.DeleteEntryResponse\x12V\n" +
+	"\vDeleteEntry\x12\x1f.parlance.v1.DeleteEntryRequest\x1a .parlance.v1.DeleteEntryResponse\x12S\n" +
+	"\fRestoreEntry\x12 .parlance.v1.RestoreEntryRequest\x1a!.parlance.v1.RestoreEntryResponse\x12V\n" +
 	"\rSearchEntries\x12!.parlance.v1.SearchEntriesRequest\x1a\".parlance.v1.SearchEntriesResponse\x12\\\n" +
 	"\x0fGetEntryHistory\x12#.parlance.v1.GetEntryHistoryRequest\x1a$.parlance.v1.GetEntryHistoryResponseB\xa8\x01\n" +
 	"\x0fcom.parlance.v1B\n" +
@@ -1056,7 +1149,7 @@ func file_parlance_v1_entry_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_entry_proto_rawDescData
 }
 
-var file_parlance_v1_entry_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_parlance_v1_entry_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_parlance_v1_entry_proto_goTypes = []any{
 	(*Entry)(nil),                   // 0: parlance.v1.Entry
 	(*ListEntriesRequest)(nil),      // 1: parlance.v1.ListEntriesRequest
@@ -1069,52 +1162,57 @@ var file_parlance_v1_entry_proto_goTypes = []any{
 	(*UpdateEntryResponse)(nil),     // 8: parlance.v1.UpdateEntryResponse
 	(*DeleteEntryRequest)(nil),      // 9: parlance.v1.DeleteEntryRequest
 	(*DeleteEntryResponse)(nil),     // 10: parlance.v1.DeleteEntryResponse
-	(*SearchEntriesRequest)(nil),    // 11: parlance.v1.SearchEntriesRequest
-	(*SearchEntriesResponse)(nil),   // 12: parlance.v1.SearchEntriesResponse
-	(*GetEntryHistoryRequest)(nil),  // 13: parlance.v1.GetEntryHistoryRequest
-	(*GetEntryHistoryResponse)(nil), // 14: parlance.v1.GetEntryHistoryResponse
-	(*LocalizationHistory)(nil),     // 15: parlance.v1.LocalizationHistory
-	(*Localization)(nil),            // 16: parlance.v1.Localization
-	(*Scope)(nil),                   // 17: parlance.v1.Scope
-	(*PaginationRequest)(nil),       // 18: parlance.v1.PaginationRequest
-	(*FilterRequest)(nil),           // 19: parlance.v1.FilterRequest
-	(*PaginationResponse)(nil),      // 20: parlance.v1.PaginationResponse
+	(*RestoreEntryRequest)(nil),     // 11: parlance.v1.RestoreEntryRequest
+	(*RestoreEntryResponse)(nil),    // 12: parlance.v1.RestoreEntryResponse
+	(*SearchEntriesRequest)(nil),    // 13: parlance.v1.SearchEntriesRequest
+	(*SearchEntriesResponse)(nil),   // 14: parlance.v1.SearchEntriesResponse
+	(*GetEntryHistoryRequest)(nil),  // 15: parlance.v1.GetEntryHistoryRequest
+	(*GetEntryHistoryResponse)(nil), // 16: parlance.v1.GetEntryHistoryResponse
+	(*LocalizationHistory)(nil),     // 17: parlance.v1.LocalizationHistory
+	(*Localization)(nil),            // 18: parlance.v1.Localization
+	(*Scope)(nil),                   // 19: parlance.v1.Scope
+	(*PaginationRequest)(nil),       // 20: parlance.v1.PaginationRequest
+	(*FilterRequest)(nil),           // 21: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),      // 22: parlance.v1.PaginationResponse
 }
 var file_parlance_v1_entry_proto_depIdxs = []int32{
-	16, // 0: parlance.v1.Entry.localizations:type_name -> parlance.v1.Localization
-	17, // 1: parlance.v1.Entry.scopes:type_name -> parlance.v1.Scope
-	18, // 2: parlance.v1.ListEntriesRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	19, // 3: parlance.v1.ListEntriesRequest.filter:type_name -> parlance.v1.FilterRequest
+	18, // 0: parlance.v1.Entry.localizations:type_name -> parlance.v1.Localization
+	19, // 1: parlance.v1.Entry.scopes:type_name -> parlance.v1.Scope
+	20, // 2: parlance.v1.ListEntriesRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	21, // 3: parlance.v1.ListEntriesRequest.filter:type_name -> parlance.v1.FilterRequest
 	0,  // 4: parlance.v1.ListEntriesResponse.entries:type_name -> parlance.v1.Entry
-	20, // 5: parlance.v1.ListEntriesResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	22, // 5: parlance.v1.ListEntriesResponse.pagination:type_name -> parlance.v1.PaginationResponse
 	0,  // 6: parlance.v1.GetEntryResponse.entry:type_name -> parlance.v1.Entry
 	0,  // 7: parlance.v1.CreateEntryResponse.entry:type_name -> parlance.v1.Entry
 	0,  // 8: parlance.v1.UpdateEntryResponse.entry:type_name -> parlance.v1.Entry
-	18, // 9: parlance.v1.SearchEntriesRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	0,  // 10: parlance.v1.SearchEntriesResponse.entries:type_name -> parlance.v1.Entry
-	20, // 11: parlance.v1.SearchEntriesResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	18, // 12: parlance.v1.GetEntryHistoryRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	15, // 13: parlance.v1.GetEntryHistoryResponse.history:type_name -> parlance.v1.LocalizationHistory
-	20, // 14: parlance.v1.GetEntryHistoryResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	1,  // 15: parlance.v1.EntryService.ListEntries:input_type -> parlance.v1.ListEntriesRequest
-	3,  // 16: parlance.v1.EntryService.GetEntry:input_type -> parlance.v1.GetEntryRequest
-	5,  // 17: parlance.v1.EntryService.CreateEntry:input_type -> parlance.v1.CreateEntryRequest
-	7,  // 18: parlance.v1.EntryService.UpdateEntry:input_type -> parlance.v1.UpdateEntryRequest
-	9,  // 19: parlance.v1.EntryService.DeleteEntry:input_type -> parlance.v1.DeleteEntryRequest
-	11, // 20: parlance.v1.EntryService.SearchEntries:input_type -> parlance.v1.SearchEntriesRequest
-	13, // 21: parlance.v1.EntryService.GetEntryHistory:input_type -> parlance.v1.GetEntryHistoryRequest
-	2,  // 22: parlance.v1.EntryService.ListEntries:output_type -> parlance.v1.ListEntriesResponse
-	4,  // 23: parlance.v1.EntryService.GetEntry:output_type -> parlance.v1.GetEntryResponse
-	6,  // 24: parlance.v1.EntryService.CreateEntry:output_type -> parlance.v1.CreateEntryResponse
-	8,  // 25: parlance.v1.EntryService.UpdateEntry:output_type -> parlance.v1.UpdateEntryResponse
-	10, // 26: parlance.v1.EntryService.DeleteEntry:output_type -> parlance.v1.DeleteEntryResponse
-	12, // 27: parlance.v1.EntryService.SearchEntries:output_type -> parlance.v1.SearchEntriesResponse
-	14, // 28: parlance.v1.EntryService.GetEntryHistory:output_type -> parlance.v1.GetEntryHistoryResponse
-	22, // [22:29] is the sub-list for method output_type
-	15, // [15:22] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	0,  // 9: parlance.v1.RestoreEntryResponse.entry:type_name -> parlance.v1.Entry
+	20, // 10: parlance.v1.SearchEntriesRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	0,  // 11: parlance.v1.SearchEntriesResponse.entries:type_name -> parlance.v1.Entry
+	22, // 12: parlance.v1.SearchEntriesResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	20, // 13: parlance.v1.GetEntryHistoryRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	17, // 14: parlance.v1.GetEntryHistoryResponse.history:type_name -> parlance.v1.LocalizationHistory
+	22, // 15: parlance.v1.GetEntryHistoryResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	1,  // 16: parlance.v1.EntryService.ListEntries:input_type -> parlance.v1.ListEntriesRequest
+	3,  // 17: parlance.v1.EntryService.GetEntry:input_type -> parlance.v1.GetEntryRequest
+	5,  // 18: parlance.v1.EntryService.CreateEntry:input_type -> parlance.v1.CreateEntryRequest
+	7,  // 19: parlance.v1.EntryService.UpdateEntry:input_type -> parlance.v1.UpdateEntryRequest
+	9,  // 20: parlance.v1.EntryService.DeleteEntry:input_type -> parlance.v1.DeleteEntryRequest
+	11, // 21: parlance.v1.EntryService.RestoreEntry:input_type -> parlance.v1.RestoreEntryRequest
+	13, // 22: parlance.v1.EntryService.SearchEntries:input_type -> parlance.v1.SearchEntriesRequest
+	15, // 23: parlance.v1.EntryService.GetEntryHistory:input_type -> parlance.v1.GetEntryHistoryRequest
+	2,  // 24: parlance.v1.EntryService.ListEntries:output_type -> parlance.v1.ListEntriesResponse
+	4,  // 25: parlance.v1.EntryService.GetEntry:output_type -> parlance.v1.GetEntryResponse
+	6,  // 26: parlance.v1.EntryService.CreateEntry:output_type -> parlance.v1.CreateEntryResponse
+	8,  // 27: parlance.v1.EntryService.UpdateEntry:output_type -> parlance.v1.UpdateEntryResponse
+	10, // 28: parlance.v1.EntryService.DeleteEntry:output_type -> parlance.v1.DeleteEntryResponse
+	12, // 29: parlance.v1.EntryService.RestoreEntry:output_type -> parlance.v1.RestoreEntryResponse
+	14, // 30: parlance.v1.EntryService.SearchEntries:output_type -> parlance.v1.SearchEntriesResponse
+	16, // 31: parlance.v1.EntryService.GetEntryHistory:output_type -> parlance.v1.GetEntryHistoryResponse
+	24, // [24:32] is the sub-list for method output_type
+	16, // [16:24] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_entry_proto_init() }
@@ -1131,7 +1229,7 @@ func file_parlance_v1_entry_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_entry_proto_rawDesc), len(file_parlance_v1_entry_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

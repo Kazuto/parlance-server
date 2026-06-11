@@ -593,6 +593,94 @@ func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
 	return file_parlance_v1_user_proto_rawDescGZIP(), []int{10}
 }
 
+type RestoreUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestoreUserRequest) Reset() {
+	*x = RestoreUserRequest{}
+	mi := &file_parlance_v1_user_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestoreUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestoreUserRequest) ProtoMessage() {}
+
+func (x *RestoreUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_user_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestoreUserRequest.ProtoReflect.Descriptor instead.
+func (*RestoreUserRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_user_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *RestoreUserRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type RestoreUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	User          *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestoreUserResponse) Reset() {
+	*x = RestoreUserResponse{}
+	mi := &file_parlance_v1_user_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestoreUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestoreUserResponse) ProtoMessage() {}
+
+func (x *RestoreUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_user_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestoreUserResponse.ProtoReflect.Descriptor instead.
+func (*RestoreUserResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_user_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *RestoreUserResponse) GetUser() *User {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
 type AssignRoleRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -603,7 +691,7 @@ type AssignRoleRequest struct {
 
 func (x *AssignRoleRequest) Reset() {
 	*x = AssignRoleRequest{}
-	mi := &file_parlance_v1_user_proto_msgTypes[11]
+	mi := &file_parlance_v1_user_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -615,7 +703,7 @@ func (x *AssignRoleRequest) String() string {
 func (*AssignRoleRequest) ProtoMessage() {}
 
 func (x *AssignRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_user_proto_msgTypes[11]
+	mi := &file_parlance_v1_user_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -628,7 +716,7 @@ func (x *AssignRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignRoleRequest.ProtoReflect.Descriptor instead.
 func (*AssignRoleRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_user_proto_rawDescGZIP(), []int{11}
+	return file_parlance_v1_user_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *AssignRoleRequest) GetUserId() string {
@@ -654,7 +742,7 @@ type AssignRoleResponse struct {
 
 func (x *AssignRoleResponse) Reset() {
 	*x = AssignRoleResponse{}
-	mi := &file_parlance_v1_user_proto_msgTypes[12]
+	mi := &file_parlance_v1_user_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -666,7 +754,7 @@ func (x *AssignRoleResponse) String() string {
 func (*AssignRoleResponse) ProtoMessage() {}
 
 func (x *AssignRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_user_proto_msgTypes[12]
+	mi := &file_parlance_v1_user_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -679,7 +767,7 @@ func (x *AssignRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignRoleResponse.ProtoReflect.Descriptor instead.
 func (*AssignRoleResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_user_proto_rawDescGZIP(), []int{12}
+	return file_parlance_v1_user_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *AssignRoleResponse) GetUser() *User {
@@ -733,12 +821,16 @@ const file_parlance_v1_user_proto_rawDesc = "" +
 	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"#\n" +
 	"\x11DeleteUserRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x14\n" +
-	"\x12DeleteUserResponse\"E\n" +
+	"\x12DeleteUserResponse\"$\n" +
+	"\x12RestoreUserRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"<\n" +
+	"\x13RestoreUserResponse\x12%\n" +
+	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"E\n" +
 	"\x11AssignRoleRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x17\n" +
 	"\arole_id\x18\x02 \x01(\tR\x06roleId\";\n" +
 	"\x12AssignRoleResponse\x12%\n" +
-	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user2\xdb\x03\n" +
+	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user2\xad\x04\n" +
 	"\vUserService\x12J\n" +
 	"\tListUsers\x12\x1d.parlance.v1.ListUsersRequest\x1a\x1e.parlance.v1.ListUsersResponse\x12D\n" +
 	"\aGetUser\x12\x1b.parlance.v1.GetUserRequest\x1a\x1c.parlance.v1.GetUserResponse\x12M\n" +
@@ -747,7 +839,8 @@ const file_parlance_v1_user_proto_rawDesc = "" +
 	"\n" +
 	"UpdateUser\x12\x1e.parlance.v1.UpdateUserRequest\x1a\x1f.parlance.v1.UpdateUserResponse\x12M\n" +
 	"\n" +
-	"DeleteUser\x12\x1e.parlance.v1.DeleteUserRequest\x1a\x1f.parlance.v1.DeleteUserResponse\x12M\n" +
+	"DeleteUser\x12\x1e.parlance.v1.DeleteUserRequest\x1a\x1f.parlance.v1.DeleteUserResponse\x12P\n" +
+	"\vRestoreUser\x12\x1f.parlance.v1.RestoreUserRequest\x1a .parlance.v1.RestoreUserResponse\x12M\n" +
 	"\n" +
 	"AssignRole\x12\x1e.parlance.v1.AssignRoleRequest\x1a\x1f.parlance.v1.AssignRoleResponseB\xa7\x01\n" +
 	"\x0fcom.parlance.v1B\tUserProtoP\x01Z<github.com/kazuto/parlance-server/gen/parlance/v1;parlancev1\xa2\x02\x03PXX\xaa\x02\vParlance.V1\xca\x02\vParlance\\V1\xe2\x02\x17Parlance\\V1\\GPBMetadata\xea\x02\fParlance::V1b\x06proto3"
@@ -764,53 +857,58 @@ func file_parlance_v1_user_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_user_proto_rawDescData
 }
 
-var file_parlance_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_parlance_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_parlance_v1_user_proto_goTypes = []any{
-	(*User)(nil),               // 0: parlance.v1.User
-	(*ListUsersRequest)(nil),   // 1: parlance.v1.ListUsersRequest
-	(*ListUsersResponse)(nil),  // 2: parlance.v1.ListUsersResponse
-	(*GetUserRequest)(nil),     // 3: parlance.v1.GetUserRequest
-	(*GetUserResponse)(nil),    // 4: parlance.v1.GetUserResponse
-	(*CreateUserRequest)(nil),  // 5: parlance.v1.CreateUserRequest
-	(*CreateUserResponse)(nil), // 6: parlance.v1.CreateUserResponse
-	(*UpdateUserRequest)(nil),  // 7: parlance.v1.UpdateUserRequest
-	(*UpdateUserResponse)(nil), // 8: parlance.v1.UpdateUserResponse
-	(*DeleteUserRequest)(nil),  // 9: parlance.v1.DeleteUserRequest
-	(*DeleteUserResponse)(nil), // 10: parlance.v1.DeleteUserResponse
-	(*AssignRoleRequest)(nil),  // 11: parlance.v1.AssignRoleRequest
-	(*AssignRoleResponse)(nil), // 12: parlance.v1.AssignRoleResponse
-	(*Role)(nil),               // 13: parlance.v1.Role
-	(*PaginationRequest)(nil),  // 14: parlance.v1.PaginationRequest
-	(*FilterRequest)(nil),      // 15: parlance.v1.FilterRequest
-	(*PaginationResponse)(nil), // 16: parlance.v1.PaginationResponse
+	(*User)(nil),                // 0: parlance.v1.User
+	(*ListUsersRequest)(nil),    // 1: parlance.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),   // 2: parlance.v1.ListUsersResponse
+	(*GetUserRequest)(nil),      // 3: parlance.v1.GetUserRequest
+	(*GetUserResponse)(nil),     // 4: parlance.v1.GetUserResponse
+	(*CreateUserRequest)(nil),   // 5: parlance.v1.CreateUserRequest
+	(*CreateUserResponse)(nil),  // 6: parlance.v1.CreateUserResponse
+	(*UpdateUserRequest)(nil),   // 7: parlance.v1.UpdateUserRequest
+	(*UpdateUserResponse)(nil),  // 8: parlance.v1.UpdateUserResponse
+	(*DeleteUserRequest)(nil),   // 9: parlance.v1.DeleteUserRequest
+	(*DeleteUserResponse)(nil),  // 10: parlance.v1.DeleteUserResponse
+	(*RestoreUserRequest)(nil),  // 11: parlance.v1.RestoreUserRequest
+	(*RestoreUserResponse)(nil), // 12: parlance.v1.RestoreUserResponse
+	(*AssignRoleRequest)(nil),   // 13: parlance.v1.AssignRoleRequest
+	(*AssignRoleResponse)(nil),  // 14: parlance.v1.AssignRoleResponse
+	(*Role)(nil),                // 15: parlance.v1.Role
+	(*PaginationRequest)(nil),   // 16: parlance.v1.PaginationRequest
+	(*FilterRequest)(nil),       // 17: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),  // 18: parlance.v1.PaginationResponse
 }
 var file_parlance_v1_user_proto_depIdxs = []int32{
-	13, // 0: parlance.v1.User.roles:type_name -> parlance.v1.Role
-	14, // 1: parlance.v1.ListUsersRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	15, // 2: parlance.v1.ListUsersRequest.filter:type_name -> parlance.v1.FilterRequest
+	15, // 0: parlance.v1.User.roles:type_name -> parlance.v1.Role
+	16, // 1: parlance.v1.ListUsersRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	17, // 2: parlance.v1.ListUsersRequest.filter:type_name -> parlance.v1.FilterRequest
 	0,  // 3: parlance.v1.ListUsersResponse.users:type_name -> parlance.v1.User
-	16, // 4: parlance.v1.ListUsersResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	18, // 4: parlance.v1.ListUsersResponse.pagination:type_name -> parlance.v1.PaginationResponse
 	0,  // 5: parlance.v1.GetUserResponse.user:type_name -> parlance.v1.User
 	0,  // 6: parlance.v1.CreateUserResponse.user:type_name -> parlance.v1.User
 	0,  // 7: parlance.v1.UpdateUserResponse.user:type_name -> parlance.v1.User
-	0,  // 8: parlance.v1.AssignRoleResponse.user:type_name -> parlance.v1.User
-	1,  // 9: parlance.v1.UserService.ListUsers:input_type -> parlance.v1.ListUsersRequest
-	3,  // 10: parlance.v1.UserService.GetUser:input_type -> parlance.v1.GetUserRequest
-	5,  // 11: parlance.v1.UserService.CreateUser:input_type -> parlance.v1.CreateUserRequest
-	7,  // 12: parlance.v1.UserService.UpdateUser:input_type -> parlance.v1.UpdateUserRequest
-	9,  // 13: parlance.v1.UserService.DeleteUser:input_type -> parlance.v1.DeleteUserRequest
-	11, // 14: parlance.v1.UserService.AssignRole:input_type -> parlance.v1.AssignRoleRequest
-	2,  // 15: parlance.v1.UserService.ListUsers:output_type -> parlance.v1.ListUsersResponse
-	4,  // 16: parlance.v1.UserService.GetUser:output_type -> parlance.v1.GetUserResponse
-	6,  // 17: parlance.v1.UserService.CreateUser:output_type -> parlance.v1.CreateUserResponse
-	8,  // 18: parlance.v1.UserService.UpdateUser:output_type -> parlance.v1.UpdateUserResponse
-	10, // 19: parlance.v1.UserService.DeleteUser:output_type -> parlance.v1.DeleteUserResponse
-	12, // 20: parlance.v1.UserService.AssignRole:output_type -> parlance.v1.AssignRoleResponse
-	15, // [15:21] is the sub-list for method output_type
-	9,  // [9:15] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	0,  // 8: parlance.v1.RestoreUserResponse.user:type_name -> parlance.v1.User
+	0,  // 9: parlance.v1.AssignRoleResponse.user:type_name -> parlance.v1.User
+	1,  // 10: parlance.v1.UserService.ListUsers:input_type -> parlance.v1.ListUsersRequest
+	3,  // 11: parlance.v1.UserService.GetUser:input_type -> parlance.v1.GetUserRequest
+	5,  // 12: parlance.v1.UserService.CreateUser:input_type -> parlance.v1.CreateUserRequest
+	7,  // 13: parlance.v1.UserService.UpdateUser:input_type -> parlance.v1.UpdateUserRequest
+	9,  // 14: parlance.v1.UserService.DeleteUser:input_type -> parlance.v1.DeleteUserRequest
+	11, // 15: parlance.v1.UserService.RestoreUser:input_type -> parlance.v1.RestoreUserRequest
+	13, // 16: parlance.v1.UserService.AssignRole:input_type -> parlance.v1.AssignRoleRequest
+	2,  // 17: parlance.v1.UserService.ListUsers:output_type -> parlance.v1.ListUsersResponse
+	4,  // 18: parlance.v1.UserService.GetUser:output_type -> parlance.v1.GetUserResponse
+	6,  // 19: parlance.v1.UserService.CreateUser:output_type -> parlance.v1.CreateUserResponse
+	8,  // 20: parlance.v1.UserService.UpdateUser:output_type -> parlance.v1.UpdateUserResponse
+	10, // 21: parlance.v1.UserService.DeleteUser:output_type -> parlance.v1.DeleteUserResponse
+	12, // 22: parlance.v1.UserService.RestoreUser:output_type -> parlance.v1.RestoreUserResponse
+	14, // 23: parlance.v1.UserService.AssignRole:output_type -> parlance.v1.AssignRoleResponse
+	17, // [17:24] is the sub-list for method output_type
+	10, // [10:17] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_user_proto_init() }
@@ -826,7 +924,7 @@ func file_parlance_v1_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_user_proto_rawDesc), len(file_parlance_v1_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

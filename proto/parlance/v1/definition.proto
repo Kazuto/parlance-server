@@ -7,15 +7,17 @@ option go_package = "parlance/v1;parlance";
 
 service DefinitionService {
   rpc ListDefinitions(ListDefinitionsRequest) returns (ListDefinitionsResponse);
+  rpc GetDefinition(GetDefinitionRequest) returns (GetDefinitionResponse);
   rpc CreateDefinition(CreateDefinitionRequest) returns (CreateDefinitionResponse);
   rpc UpdateDefinition(UpdateDefinitionRequest) returns (UpdateDefinitionResponse);
   rpc DeleteDefinition(DeleteDefinitionRequest) returns (DeleteDefinitionResponse);
+  rpc RestoreDefinition(RestoreDefinitionRequest) returns (RestoreDefinitionResponse);
 }
 
 message Definition {
   string id = 1;
   string terminology_id = 2;
-  string locale_id = 3;
+  string definition_id = 3;
   string translation = 4;
   string created_at = 5;
   string updated_at = 6;
@@ -35,9 +37,17 @@ message ListDefinitionsResponse {
   PaginationResponse pagination = 2;
 }
 
+message GetDefinitionRequest {
+  string id = 1;
+}
+
+message GetDefinitionResponse {
+  Definition definition = 1;
+}
+
 message CreateDefinitionRequest {
   string terminology_id = 1;
-  string locale_id = 2;
+  string definition_id = 2;
   string translation = 3;
 }
 
@@ -59,3 +69,11 @@ message DeleteDefinitionRequest {
 }
 
 message DeleteDefinitionResponse {}
+
+message RestoreDefinitionRequest {
+  string id = 1;
+}
+
+message RestoreDefinitionResponse {
+  Definition definition = 1;
+}

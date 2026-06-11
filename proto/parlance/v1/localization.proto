@@ -11,6 +11,7 @@ service LocalizationService {
   rpc CreateLocalization(CreateLocalizationRequest) returns (CreateLocalizationResponse);
   rpc UpdateLocalization(UpdateLocalizationRequest) returns (UpdateLocalizationResponse);
   rpc DeleteLocalization(DeleteLocalizationRequest) returns (DeleteLocalizationResponse);
+  rpc RestoreLocalization(RestoreLocalizationRequest) returns (RestoreLocalizationResponse);
   rpc TranslateLocalization(TranslateLocalizationRequest) returns (TranslateLocalizationResponse);
   rpc BatchTranslate(BatchTranslateRequest) returns (BatchTranslateResponse);
 }
@@ -67,6 +68,14 @@ message UpdateLocalizationResponse {
 
 message DeleteLocalizationRequest {
   string id = 1;
+}
+
+message RestoreLocalizationRequest {
+  string id = 1;
+}
+
+message RestoreLocalizationResponse {
+  Localization localization = 1;
 }
 
 message DeleteLocalizationResponse {}

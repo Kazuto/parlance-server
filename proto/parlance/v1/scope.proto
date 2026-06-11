@@ -11,6 +11,7 @@ service ScopeService {
   rpc CreateScope(CreateScopeRequest) returns (CreateScopeResponse);
   rpc UpdateScope(UpdateScopeRequest) returns (UpdateScopeResponse);
   rpc DeleteScope(DeleteScopeRequest) returns (DeleteScopeResponse);
+  rpc RestoreScope(RestoreScopeRequest) returns (RestoreScopeResponse);
 
   // Entry-Scope relationship management
   rpc AddScopeToEntry(AddScopeToEntryRequest) returns (AddScopeToEntryResponse);
@@ -75,6 +76,14 @@ message DeleteScopeRequest {
 }
 
 message DeleteScopeResponse {}
+
+message RestoreScopeRequest {
+  string id = 1;
+}
+
+message RestoreScopeResponse {
+  Scope scope = 1;
+}
 
 // Entry-Scope relationship management
 message AddScopeToEntryRequest {

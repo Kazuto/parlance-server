@@ -47,6 +47,9 @@ const (
 	// EntryServiceDeleteEntryProcedure is the fully-qualified name of the EntryService's DeleteEntry
 	// RPC.
 	EntryServiceDeleteEntryProcedure = "/parlance.v1.EntryService/DeleteEntry"
+	// EntryServiceRestoreEntryProcedure is the fully-qualified name of the EntryService's RestoreEntry
+	// RPC.
+	EntryServiceRestoreEntryProcedure = "/parlance.v1.EntryService/RestoreEntry"
 	// EntryServiceSearchEntriesProcedure is the fully-qualified name of the EntryService's
 	// SearchEntries RPC.
 	EntryServiceSearchEntriesProcedure = "/parlance.v1.EntryService/SearchEntries"
@@ -62,6 +65,7 @@ type EntryServiceClient interface {
 	CreateEntry(context.Context, *connect.Request[v1.CreateEntryRequest]) (*connect.Response[v1.CreateEntryResponse], error)
 	UpdateEntry(context.Context, *connect.Request[v1.UpdateEntryRequest]) (*connect.Response[v1.UpdateEntryResponse], error)
 	DeleteEntry(context.Context, *connect.Request[v1.DeleteEntryRequest]) (*connect.Response[v1.DeleteEntryResponse], error)
+	RestoreEntry(context.Context, *connect.Request[v1.RestoreEntryRequest]) (*connect.Response[v1.RestoreEntryResponse], error)
 	SearchEntries(context.Context, *connect.Request[v1.SearchEntriesRequest]) (*connect.Response[v1.SearchEntriesResponse], error)
 	GetEntryHistory(context.Context, *connect.Request[v1.GetEntryHistoryRequest]) (*connect.Response[v1.GetEntryHistoryResponse], error)
 }
@@ -107,6 +111,12 @@ func NewEntryServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(entryServiceMethods.ByName("DeleteEntry")),
 			connect.WithClientOptions(opts...),
 		),
+		restoreEntry: connect.NewClient[v1.RestoreEntryRequest, v1.RestoreEntryResponse](
+			httpClient,
+			baseURL+EntryServiceRestoreEntryProcedure,
+			connect.WithSchema(entryServiceMethods.ByName("RestoreEntry")),
+			connect.WithClientOptions(opts...),
+		),
 		searchEntries: connect.NewClient[v1.SearchEntriesRequest, v1.SearchEntriesResponse](
 			httpClient,
 			baseURL+EntryServiceSearchEntriesProcedure,
@@ -129,6 +139,7 @@ type entryServiceClient struct {
 	createEntry     *connect.Client[v1.CreateEntryRequest, v1.CreateEntryResponse]
 	updateEntry     *connect.Client[v1.UpdateEntryRequest, v1.UpdateEntryResponse]
 	deleteEntry     *connect.Client[v1.DeleteEntryRequest, v1.DeleteEntryResponse]
+	restoreEntry    *connect.Client[v1.RestoreEntryRequest, v1.RestoreEntryResponse]
 	searchEntries   *connect.Client[v1.SearchEntriesRequest, v1.SearchEntriesResponse]
 	getEntryHistory *connect.Client[v1.GetEntryHistoryRequest, v1.GetEntryHistoryResponse]
 }
@@ -158,6 +169,11 @@ func (c *entryServiceClient) DeleteEntry(ctx context.Context, req *connect.Reque
 	return c.deleteEntry.CallUnary(ctx, req)
 }
 
+// RestoreEntry calls parlance.v1.EntryService.RestoreEntry.
+func (c *entryServiceClient) RestoreEntry(ctx context.Context, req *connect.Request[v1.RestoreEntryRequest]) (*connect.Response[v1.RestoreEntryResponse], error) {
+	return c.restoreEntry.CallUnary(ctx, req)
+}
+
 // SearchEntries calls parlance.v1.EntryService.SearchEntries.
 func (c *entryServiceClient) SearchEntries(ctx context.Context, req *connect.Request[v1.SearchEntriesRequest]) (*connect.Response[v1.SearchEntriesResponse], error) {
 	return c.searchEntries.CallUnary(ctx, req)
@@ -175,6 +191,7 @@ type EntryServiceHandler interface {
 	CreateEntry(context.Context, *connect.Request[v1.CreateEntryRequest]) (*connect.Response[v1.CreateEntryResponse], error)
 	UpdateEntry(context.Context, *connect.Request[v1.UpdateEntryRequest]) (*connect.Response[v1.UpdateEntryResponse], error)
 	DeleteEntry(context.Context, *connect.Request[v1.DeleteEntryRequest]) (*connect.Response[v1.DeleteEntryResponse], error)
+	RestoreEntry(context.Context, *connect.Request[v1.RestoreEntryRequest]) (*connect.Response[v1.RestoreEntryResponse], error)
 	SearchEntries(context.Context, *connect.Request[v1.SearchEntriesRequest]) (*connect.Response[v1.SearchEntriesResponse], error)
 	GetEntryHistory(context.Context, *connect.Request[v1.GetEntryHistoryRequest]) (*connect.Response[v1.GetEntryHistoryResponse], error)
 }
@@ -216,6 +233,12 @@ func NewEntryServiceHandler(svc EntryServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(entryServiceMethods.ByName("DeleteEntry")),
 		connect.WithHandlerOptions(opts...),
 	)
+	entryServiceRestoreEntryHandler := connect.NewUnaryHandler(
+		EntryServiceRestoreEntryProcedure,
+		svc.RestoreEntry,
+		connect.WithSchema(entryServiceMethods.ByName("RestoreEntry")),
+		connect.WithHandlerOptions(opts...),
+	)
 	entryServiceSearchEntriesHandler := connect.NewUnaryHandler(
 		EntryServiceSearchEntriesProcedure,
 		svc.SearchEntries,
@@ -240,6 +263,8 @@ func NewEntryServiceHandler(svc EntryServiceHandler, opts ...connect.HandlerOpti
 			entryServiceUpdateEntryHandler.ServeHTTP(w, r)
 		case EntryServiceDeleteEntryProcedure:
 			entryServiceDeleteEntryHandler.ServeHTTP(w, r)
+		case EntryServiceRestoreEntryProcedure:
+			entryServiceRestoreEntryHandler.ServeHTTP(w, r)
 		case EntryServiceSearchEntriesProcedure:
 			entryServiceSearchEntriesHandler.ServeHTTP(w, r)
 		case EntryServiceGetEntryHistoryProcedure:
@@ -271,6 +296,10 @@ func (UnimplementedEntryServiceHandler) UpdateEntry(context.Context, *connect.Re
 
 func (UnimplementedEntryServiceHandler) DeleteEntry(context.Context, *connect.Request[v1.DeleteEntryRequest]) (*connect.Response[v1.DeleteEntryResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.EntryService.DeleteEntry is not implemented"))
+}
+
+func (UnimplementedEntryServiceHandler) RestoreEntry(context.Context, *connect.Request[v1.RestoreEntryRequest]) (*connect.Response[v1.RestoreEntryResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.EntryService.RestoreEntry is not implemented"))
 }
 
 func (UnimplementedEntryServiceHandler) SearchEntries(context.Context, *connect.Request[v1.SearchEntriesRequest]) (*connect.Response[v1.SearchEntriesResponse], error) {

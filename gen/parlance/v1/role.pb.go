@@ -601,6 +601,94 @@ func (*DeleteRoleResponse) Descriptor() ([]byte, []int) {
 	return file_parlance_v1_role_proto_rawDescGZIP(), []int{10}
 }
 
+type RestoreRoleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestoreRoleRequest) Reset() {
+	*x = RestoreRoleRequest{}
+	mi := &file_parlance_v1_role_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestoreRoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestoreRoleRequest) ProtoMessage() {}
+
+func (x *RestoreRoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_role_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestoreRoleRequest.ProtoReflect.Descriptor instead.
+func (*RestoreRoleRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_role_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *RestoreRoleRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type RestoreRoleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Role          *Role                  `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestoreRoleResponse) Reset() {
+	*x = RestoreRoleResponse{}
+	mi := &file_parlance_v1_role_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestoreRoleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestoreRoleResponse) ProtoMessage() {}
+
+func (x *RestoreRoleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_role_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestoreRoleResponse.ProtoReflect.Descriptor instead.
+func (*RestoreRoleResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_role_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *RestoreRoleResponse) GetRole() *Role {
+	if x != nil {
+		return x.Role
+	}
+	return nil
+}
+
 var File_parlance_v1_role_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_role_proto_rawDesc = "" +
@@ -646,7 +734,11 @@ const file_parlance_v1_role_proto_rawDesc = "" +
 	"\x04role\x18\x01 \x01(\v2\x11.parlance.v1.RoleR\x04role\"#\n" +
 	"\x11DeleteRoleRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x14\n" +
-	"\x12DeleteRoleResponse2\x8c\x03\n" +
+	"\x12DeleteRoleResponse\"$\n" +
+	"\x12RestoreRoleRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"<\n" +
+	"\x13RestoreRoleResponse\x12%\n" +
+	"\x04role\x18\x01 \x01(\v2\x11.parlance.v1.RoleR\x04role2\xde\x03\n" +
 	"\vRoleService\x12J\n" +
 	"\tListRoles\x12\x1d.parlance.v1.ListRolesRequest\x1a\x1e.parlance.v1.ListRolesResponse\x12D\n" +
 	"\aGetRole\x12\x1b.parlance.v1.GetRoleRequest\x1a\x1c.parlance.v1.GetRoleResponse\x12M\n" +
@@ -655,7 +747,8 @@ const file_parlance_v1_role_proto_rawDesc = "" +
 	"\n" +
 	"UpdateRole\x12\x1e.parlance.v1.UpdateRoleRequest\x1a\x1f.parlance.v1.UpdateRoleResponse\x12M\n" +
 	"\n" +
-	"DeleteRole\x12\x1e.parlance.v1.DeleteRoleRequest\x1a\x1f.parlance.v1.DeleteRoleResponseB\xa7\x01\n" +
+	"DeleteRole\x12\x1e.parlance.v1.DeleteRoleRequest\x1a\x1f.parlance.v1.DeleteRoleResponse\x12P\n" +
+	"\vRestoreRole\x12\x1f.parlance.v1.RestoreRoleRequest\x1a .parlance.v1.RestoreRoleResponseB\xa7\x01\n" +
 	"\x0fcom.parlance.v1B\tRoleProtoP\x01Z<github.com/kazuto/parlance-server/gen/parlance/v1;parlancev1\xa2\x02\x03PXX\xaa\x02\vParlance.V1\xca\x02\vParlance\\V1\xe2\x02\x17Parlance\\V1\\GPBMetadata\xea\x02\fParlance::V1b\x06proto3"
 
 var (
@@ -670,50 +763,55 @@ func file_parlance_v1_role_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_role_proto_rawDescData
 }
 
-var file_parlance_v1_role_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_parlance_v1_role_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_parlance_v1_role_proto_goTypes = []any{
-	(*Role)(nil),               // 0: parlance.v1.Role
-	(*ListRolesRequest)(nil),   // 1: parlance.v1.ListRolesRequest
-	(*ListRolesResponse)(nil),  // 2: parlance.v1.ListRolesResponse
-	(*GetRoleRequest)(nil),     // 3: parlance.v1.GetRoleRequest
-	(*GetRoleResponse)(nil),    // 4: parlance.v1.GetRoleResponse
-	(*CreateRoleRequest)(nil),  // 5: parlance.v1.CreateRoleRequest
-	(*CreateRoleResponse)(nil), // 6: parlance.v1.CreateRoleResponse
-	(*UpdateRoleRequest)(nil),  // 7: parlance.v1.UpdateRoleRequest
-	(*UpdateRoleResponse)(nil), // 8: parlance.v1.UpdateRoleResponse
-	(*DeleteRoleRequest)(nil),  // 9: parlance.v1.DeleteRoleRequest
-	(*DeleteRoleResponse)(nil), // 10: parlance.v1.DeleteRoleResponse
-	(*Permission)(nil),         // 11: parlance.v1.Permission
-	(*PaginationRequest)(nil),  // 12: parlance.v1.PaginationRequest
-	(*FilterRequest)(nil),      // 13: parlance.v1.FilterRequest
-	(*PaginationResponse)(nil), // 14: parlance.v1.PaginationResponse
+	(*Role)(nil),                // 0: parlance.v1.Role
+	(*ListRolesRequest)(nil),    // 1: parlance.v1.ListRolesRequest
+	(*ListRolesResponse)(nil),   // 2: parlance.v1.ListRolesResponse
+	(*GetRoleRequest)(nil),      // 3: parlance.v1.GetRoleRequest
+	(*GetRoleResponse)(nil),     // 4: parlance.v1.GetRoleResponse
+	(*CreateRoleRequest)(nil),   // 5: parlance.v1.CreateRoleRequest
+	(*CreateRoleResponse)(nil),  // 6: parlance.v1.CreateRoleResponse
+	(*UpdateRoleRequest)(nil),   // 7: parlance.v1.UpdateRoleRequest
+	(*UpdateRoleResponse)(nil),  // 8: parlance.v1.UpdateRoleResponse
+	(*DeleteRoleRequest)(nil),   // 9: parlance.v1.DeleteRoleRequest
+	(*DeleteRoleResponse)(nil),  // 10: parlance.v1.DeleteRoleResponse
+	(*RestoreRoleRequest)(nil),  // 11: parlance.v1.RestoreRoleRequest
+	(*RestoreRoleResponse)(nil), // 12: parlance.v1.RestoreRoleResponse
+	(*Permission)(nil),          // 13: parlance.v1.Permission
+	(*PaginationRequest)(nil),   // 14: parlance.v1.PaginationRequest
+	(*FilterRequest)(nil),       // 15: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),  // 16: parlance.v1.PaginationResponse
 }
 var file_parlance_v1_role_proto_depIdxs = []int32{
-	11, // 0: parlance.v1.Role.permissions:type_name -> parlance.v1.Permission
-	12, // 1: parlance.v1.ListRolesRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	13, // 2: parlance.v1.ListRolesRequest.filter:type_name -> parlance.v1.FilterRequest
+	13, // 0: parlance.v1.Role.permissions:type_name -> parlance.v1.Permission
+	14, // 1: parlance.v1.ListRolesRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	15, // 2: parlance.v1.ListRolesRequest.filter:type_name -> parlance.v1.FilterRequest
 	0,  // 3: parlance.v1.ListRolesResponse.roles:type_name -> parlance.v1.Role
-	14, // 4: parlance.v1.ListRolesResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	16, // 4: parlance.v1.ListRolesResponse.pagination:type_name -> parlance.v1.PaginationResponse
 	0,  // 5: parlance.v1.GetRoleResponse.role:type_name -> parlance.v1.Role
-	11, // 6: parlance.v1.CreateRoleRequest.permissions:type_name -> parlance.v1.Permission
+	13, // 6: parlance.v1.CreateRoleRequest.permissions:type_name -> parlance.v1.Permission
 	0,  // 7: parlance.v1.CreateRoleResponse.role:type_name -> parlance.v1.Role
-	11, // 8: parlance.v1.UpdateRoleRequest.permissions:type_name -> parlance.v1.Permission
+	13, // 8: parlance.v1.UpdateRoleRequest.permissions:type_name -> parlance.v1.Permission
 	0,  // 9: parlance.v1.UpdateRoleResponse.role:type_name -> parlance.v1.Role
-	1,  // 10: parlance.v1.RoleService.ListRoles:input_type -> parlance.v1.ListRolesRequest
-	3,  // 11: parlance.v1.RoleService.GetRole:input_type -> parlance.v1.GetRoleRequest
-	5,  // 12: parlance.v1.RoleService.CreateRole:input_type -> parlance.v1.CreateRoleRequest
-	7,  // 13: parlance.v1.RoleService.UpdateRole:input_type -> parlance.v1.UpdateRoleRequest
-	9,  // 14: parlance.v1.RoleService.DeleteRole:input_type -> parlance.v1.DeleteRoleRequest
-	2,  // 15: parlance.v1.RoleService.ListRoles:output_type -> parlance.v1.ListRolesResponse
-	4,  // 16: parlance.v1.RoleService.GetRole:output_type -> parlance.v1.GetRoleResponse
-	6,  // 17: parlance.v1.RoleService.CreateRole:output_type -> parlance.v1.CreateRoleResponse
-	8,  // 18: parlance.v1.RoleService.UpdateRole:output_type -> parlance.v1.UpdateRoleResponse
-	10, // 19: parlance.v1.RoleService.DeleteRole:output_type -> parlance.v1.DeleteRoleResponse
-	15, // [15:20] is the sub-list for method output_type
-	10, // [10:15] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	0,  // 10: parlance.v1.RestoreRoleResponse.role:type_name -> parlance.v1.Role
+	1,  // 11: parlance.v1.RoleService.ListRoles:input_type -> parlance.v1.ListRolesRequest
+	3,  // 12: parlance.v1.RoleService.GetRole:input_type -> parlance.v1.GetRoleRequest
+	5,  // 13: parlance.v1.RoleService.CreateRole:input_type -> parlance.v1.CreateRoleRequest
+	7,  // 14: parlance.v1.RoleService.UpdateRole:input_type -> parlance.v1.UpdateRoleRequest
+	9,  // 15: parlance.v1.RoleService.DeleteRole:input_type -> parlance.v1.DeleteRoleRequest
+	11, // 16: parlance.v1.RoleService.RestoreRole:input_type -> parlance.v1.RestoreRoleRequest
+	2,  // 17: parlance.v1.RoleService.ListRoles:output_type -> parlance.v1.ListRolesResponse
+	4,  // 18: parlance.v1.RoleService.GetRole:output_type -> parlance.v1.GetRoleResponse
+	6,  // 19: parlance.v1.RoleService.CreateRole:output_type -> parlance.v1.CreateRoleResponse
+	8,  // 20: parlance.v1.RoleService.UpdateRole:output_type -> parlance.v1.UpdateRoleResponse
+	10, // 21: parlance.v1.RoleService.DeleteRole:output_type -> parlance.v1.DeleteRoleResponse
+	12, // 22: parlance.v1.RoleService.RestoreRole:output_type -> parlance.v1.RestoreRoleResponse
+	17, // [17:23] is the sub-list for method output_type
+	11, // [11:17] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_role_proto_init() }
@@ -729,7 +827,7 @@ func file_parlance_v1_role_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_role_proto_rawDesc), len(file_parlance_v1_role_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -12,6 +12,7 @@ service RoleService {
   rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse);
   rpc UpdateRole(UpdateRoleRequest) returns (UpdateRoleResponse);
   rpc DeleteRole(DeleteRoleRequest) returns (DeleteRoleResponse);
+  rpc RestoreRole(RestoreRoleRequest) returns (RestoreRoleResponse);
 }
 
 message Role {
@@ -68,3 +69,11 @@ message DeleteRoleRequest {
 }
 
 message DeleteRoleResponse {}
+
+message RestoreRoleRequest {
+  string id = 1;
+}
+
+message RestoreRoleResponse {
+  Role role = 1;
+}

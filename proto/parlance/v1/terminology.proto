@@ -13,6 +13,7 @@ service TerminologyService {
   rpc CreateTerminology(CreateTerminologyRequest) returns (CreateTerminologyResponse);
   rpc UpdateTerminology(UpdateTerminologyRequest) returns (UpdateTerminologyResponse);
   rpc DeleteTerminology(DeleteTerminologyRequest) returns (DeleteTerminologyResponse);
+  rpc RestoreTerminology(RestoreTerminologyRequest) returns (RestoreTerminologyResponse);
   rpc GetDefinitionHistory(GetDefinitionHistoryRequest) returns (GetDefinitionHistoryResponse);
   rpc SuggestTerminologies(SuggestTerminologiesRequest) returns (SuggestTerminologiesResponse);
 }
@@ -71,6 +72,14 @@ message DeleteTerminologyRequest {
 }
 
 message DeleteTerminologyResponse {}
+
+message RestoreTerminologyRequest {
+  string id = 1;
+}
+
+message RestoreTerminologyResponse {
+  Terminology terminology = 1;
+}
 
 message GetDefinitionHistoryRequest {
   string terminology_id = 1;

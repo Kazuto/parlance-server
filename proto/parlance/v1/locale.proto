@@ -11,6 +11,7 @@ service LocaleService {
   rpc CreateLocale(CreateLocaleRequest) returns (CreateLocaleResponse);
   rpc UpdateLocale(UpdateLocaleRequest) returns (UpdateLocaleResponse);
   rpc DeleteLocale(DeleteLocaleRequest) returns (DeleteLocaleResponse);
+  rpc RestoreLocale(RestoreLocaleRequest) returns (RestoreLocaleResponse);
   rpc GetDefaultLocale(GetDefaultLocaleRequest) returns (GetDefaultLocaleResponse);
   rpc SetDefaultLocale(SetDefaultLocaleRequest) returns (SetDefaultLocaleResponse);
 }
@@ -34,6 +35,14 @@ message ListLocalesRequest {
 message ListLocalesResponse {
   repeated Locale locales = 1;
   PaginationResponse pagination = 2;
+}
+
+message GetLocaleRequest {
+  string id = 1;
+}
+
+message GetLocaleResponse {
+  Locale locale = 1;
 }
 
 message CreateLocaleRequest {
@@ -63,14 +72,13 @@ message DeleteLocaleRequest {
 
 message DeleteLocaleResponse {}
 
-message GetLocaleRequest {
+message RestoreLocaleRequest {
   string id = 1;
 }
 
-message GetLocaleResponse {
+message RestoreLocaleResponse {
   Locale locale = 1;
 }
-
 
 message GetDefaultLocaleRequest {}
 

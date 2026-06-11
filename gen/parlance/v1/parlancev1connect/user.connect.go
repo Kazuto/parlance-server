@@ -43,6 +43,8 @@ const (
 	UserServiceUpdateUserProcedure = "/parlance.v1.UserService/UpdateUser"
 	// UserServiceDeleteUserProcedure is the fully-qualified name of the UserService's DeleteUser RPC.
 	UserServiceDeleteUserProcedure = "/parlance.v1.UserService/DeleteUser"
+	// UserServiceRestoreUserProcedure is the fully-qualified name of the UserService's RestoreUser RPC.
+	UserServiceRestoreUserProcedure = "/parlance.v1.UserService/RestoreUser"
 	// UserServiceAssignRoleProcedure is the fully-qualified name of the UserService's AssignRole RPC.
 	UserServiceAssignRoleProcedure = "/parlance.v1.UserService/AssignRole"
 )
@@ -54,6 +56,7 @@ type UserServiceClient interface {
 	CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.CreateUserResponse], error)
 	UpdateUser(context.Context, *connect.Request[v1.UpdateUserRequest]) (*connect.Response[v1.UpdateUserResponse], error)
 	DeleteUser(context.Context, *connect.Request[v1.DeleteUserRequest]) (*connect.Response[v1.DeleteUserResponse], error)
+	RestoreUser(context.Context, *connect.Request[v1.RestoreUserRequest]) (*connect.Response[v1.RestoreUserResponse], error)
 	AssignRole(context.Context, *connect.Request[v1.AssignRoleRequest]) (*connect.Response[v1.AssignRoleResponse], error)
 }
 
@@ -98,6 +101,12 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(userServiceMethods.ByName("DeleteUser")),
 			connect.WithClientOptions(opts...),
 		),
+		restoreUser: connect.NewClient[v1.RestoreUserRequest, v1.RestoreUserResponse](
+			httpClient,
+			baseURL+UserServiceRestoreUserProcedure,
+			connect.WithSchema(userServiceMethods.ByName("RestoreUser")),
+			connect.WithClientOptions(opts...),
+		),
 		assignRole: connect.NewClient[v1.AssignRoleRequest, v1.AssignRoleResponse](
 			httpClient,
 			baseURL+UserServiceAssignRoleProcedure,
@@ -109,12 +118,13 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // userServiceClient implements UserServiceClient.
 type userServiceClient struct {
-	listUsers  *connect.Client[v1.ListUsersRequest, v1.ListUsersResponse]
-	getUser    *connect.Client[v1.GetUserRequest, v1.GetUserResponse]
-	createUser *connect.Client[v1.CreateUserRequest, v1.CreateUserResponse]
-	updateUser *connect.Client[v1.UpdateUserRequest, v1.UpdateUserResponse]
-	deleteUser *connect.Client[v1.DeleteUserRequest, v1.DeleteUserResponse]
-	assignRole *connect.Client[v1.AssignRoleRequest, v1.AssignRoleResponse]
+	listUsers   *connect.Client[v1.ListUsersRequest, v1.ListUsersResponse]
+	getUser     *connect.Client[v1.GetUserRequest, v1.GetUserResponse]
+	createUser  *connect.Client[v1.CreateUserRequest, v1.CreateUserResponse]
+	updateUser  *connect.Client[v1.UpdateUserRequest, v1.UpdateUserResponse]
+	deleteUser  *connect.Client[v1.DeleteUserRequest, v1.DeleteUserResponse]
+	restoreUser *connect.Client[v1.RestoreUserRequest, v1.RestoreUserResponse]
+	assignRole  *connect.Client[v1.AssignRoleRequest, v1.AssignRoleResponse]
 }
 
 // ListUsers calls parlance.v1.UserService.ListUsers.
@@ -142,6 +152,11 @@ func (c *userServiceClient) DeleteUser(ctx context.Context, req *connect.Request
 	return c.deleteUser.CallUnary(ctx, req)
 }
 
+// RestoreUser calls parlance.v1.UserService.RestoreUser.
+func (c *userServiceClient) RestoreUser(ctx context.Context, req *connect.Request[v1.RestoreUserRequest]) (*connect.Response[v1.RestoreUserResponse], error) {
+	return c.restoreUser.CallUnary(ctx, req)
+}
+
 // AssignRole calls parlance.v1.UserService.AssignRole.
 func (c *userServiceClient) AssignRole(ctx context.Context, req *connect.Request[v1.AssignRoleRequest]) (*connect.Response[v1.AssignRoleResponse], error) {
 	return c.assignRole.CallUnary(ctx, req)
@@ -154,6 +169,7 @@ type UserServiceHandler interface {
 	CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.CreateUserResponse], error)
 	UpdateUser(context.Context, *connect.Request[v1.UpdateUserRequest]) (*connect.Response[v1.UpdateUserResponse], error)
 	DeleteUser(context.Context, *connect.Request[v1.DeleteUserRequest]) (*connect.Response[v1.DeleteUserResponse], error)
+	RestoreUser(context.Context, *connect.Request[v1.RestoreUserRequest]) (*connect.Response[v1.RestoreUserResponse], error)
 	AssignRole(context.Context, *connect.Request[v1.AssignRoleRequest]) (*connect.Response[v1.AssignRoleResponse], error)
 }
 
@@ -194,6 +210,12 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(userServiceMethods.ByName("DeleteUser")),
 		connect.WithHandlerOptions(opts...),
 	)
+	userServiceRestoreUserHandler := connect.NewUnaryHandler(
+		UserServiceRestoreUserProcedure,
+		svc.RestoreUser,
+		connect.WithSchema(userServiceMethods.ByName("RestoreUser")),
+		connect.WithHandlerOptions(opts...),
+	)
 	userServiceAssignRoleHandler := connect.NewUnaryHandler(
 		UserServiceAssignRoleProcedure,
 		svc.AssignRole,
@@ -212,6 +234,8 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 			userServiceUpdateUserHandler.ServeHTTP(w, r)
 		case UserServiceDeleteUserProcedure:
 			userServiceDeleteUserHandler.ServeHTTP(w, r)
+		case UserServiceRestoreUserProcedure:
+			userServiceRestoreUserHandler.ServeHTTP(w, r)
 		case UserServiceAssignRoleProcedure:
 			userServiceAssignRoleHandler.ServeHTTP(w, r)
 		default:
@@ -241,6 +265,10 @@ func (UnimplementedUserServiceHandler) UpdateUser(context.Context, *connect.Requ
 
 func (UnimplementedUserServiceHandler) DeleteUser(context.Context, *connect.Request[v1.DeleteUserRequest]) (*connect.Response[v1.DeleteUserResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.UserService.DeleteUser is not implemented"))
+}
+
+func (UnimplementedUserServiceHandler) RestoreUser(context.Context, *connect.Request[v1.RestoreUserRequest]) (*connect.Response[v1.RestoreUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.UserService.RestoreUser is not implemented"))
 }
 
 func (UnimplementedUserServiceHandler) AssignRole(context.Context, *connect.Request[v1.AssignRoleRequest]) (*connect.Response[v1.AssignRoleResponse], error) {
