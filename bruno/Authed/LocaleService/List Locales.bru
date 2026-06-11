@@ -1,0 +1,97 @@
+meta {
+  name: List Locales
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.LocaleService/ListLocales
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "pagination": {
+      "page": 1,
+      "perPage": 20
+    },
+    "filter": {
+      // "search": "en",
+      "sort": "created_at",
+      "order": "ASC",
+      "include_deleted": true
+    }
+  }
+}
+
+script:post-response {
+  const data = res?.body?.locales;
+  
+  if (data) {
+    const ids = data.map((el) => el.id);
+  
+    bru.setVar("localeIds", ids);
+    bru.setVar("localeId", ids.shift());
+  }
+}
+
+docs {
+  # List Locales
+  
+  Retrieves a paginated list of all locales in the system.
+
+  ## Authentication
+  Requires valid access token.
+  
+  ## Request
+  - `pagination.page` (optional): Page number, defaults to 1
+  - `pagination.perPage` (optional): Items per page, defaults to 20, max 100
+  
+  ## Response
+  Returns an array of locales with pagination metadata.
+  
+  ## Headers
+  - `Accept-Language` (optional): Preferred locale for the `name` field (e.g., "en", "de", "ja")
+    Defaults to "en" if not provided.
+  
+  ## Example Response
+  ```json
+  {
+    "locales": [
+      {
+        "id": "uuid",
+        "code": "en",
+        "name": "English",
+        "names": {
+          "en": "English",
+          "de": "Englisch",
+          "fr": "Anglais",
+          "es": "Inglés",
+          "it": "Inglese",
+          "pt": "Inglês",
+          "ja": "英語",
+          "zh": "英语"
+        },
+        "isDefault": true,
+        "createdAt": "2026-03-27T18:12:31+01:00",
+        "updatedAt": "2026-03-27T18:12:31+01:00"
+      }
+    ],
+    "pagination": {
+      "total": 8,
+      "page": 1,
+      "perPage": 20,
+      "totalPages": 1
+    }
+  }
+  ```
+  
+  **Note**: The `name` field returns the localized name based on `Accept-Language` header.
+  The `names` object contains all available translations.
+}

@@ -1,0 +1,58 @@
+meta {
+  name: Update Terminology
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.TerminologyService/UpdateTerminology
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "id": "{{terminologyId}}",
+    "term": "REST API",
+    "description": "REpresentational State Transfer API - keep 'REST' capitalized, 'API' may be translated per locale guidelines"
+  }
+}
+
+script:pre-request {
+  const terminologyId = bru.getVar('terminologyId');
+  
+  if (!terminologyId) {
+      await bru.runRequest('Authed/TerminologyService/ListTerminologies');
+  
+      return;
+  }
+}
+
+docs {
+  # Update Terminology
+  
+  Updates an existing terminology entry's term or description.
+  
+  ## Request
+  - `id` (required): UUID of the terminology to update
+  - `term` (optional): New term text
+  - `description` (optional): Updated translation guidelines
+  
+  ## Response
+  - `terminology`: The updated terminology with all definitions
+  
+  ## User Tracking
+  The authenticated user is automatically recorded as `updated_by`.
+  
+  ## Error Codes
+  - `INVALID_ARGUMENT`: Missing terminology ID
+  - `NOT_FOUND`: Terminology does not exist
+  
+  ## Example Use Case
+  Refine translation guidelines when translators need clarification or rules change.
+}

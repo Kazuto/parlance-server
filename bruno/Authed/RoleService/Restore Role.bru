@@ -1,11 +1,11 @@
 meta {
-  name: Get Role
+  name: Restore Role
   type: http
   seq: 2
 }
 
 post {
-  url: {{baseUrl}}/parlance.v1.RoleService/GetRole
+  url: {{baseUrl}}/parlance.v1.RoleService/RestoreRole
   body: json
   auth: inherit
 }
@@ -32,9 +32,9 @@ script:pre-request {
 }
 
 docs {
-  # Get Role
+  # Restore Role
   
-  Retrieves a single role with permissions by their ID.
+  Restores a role by its ID.
   
   ## Authentication
   Requires valid access token.

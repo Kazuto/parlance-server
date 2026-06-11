@@ -1,0 +1,73 @@
+meta {
+  name: Create Entry
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.EntryService/CreateEntry
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "key": "button.cancel",
+    "scopeIds": ["{{scopeId1}}", "{{scopeId2}}"],
+    "description": "Cancel button label"
+  }
+}
+
+docs {
+  # Create Entry
+
+  Creates a new translation entry.
+
+  ## Authentication
+  Requires valid access token. User ID is automatically tracked as creator.
+
+  ## Request
+  - `key` (required): Unique key for the entry (e.g., "button.save")
+  - `scopeIds` (optional): Array of scope UUIDs to associate with this entry
+  - `description` (optional): Human-readable description
+
+  ## Behavior
+  - Key must be unique across all entries
+  - CreatedBy is automatically set from authenticated user
+  - Multiple scopes can be associated at creation
+  - Only valid scope IDs are associated (invalid IDs are silently ignored)
+
+  ## Response
+  Returns the newly created entry.
+
+  ## Example Response
+  ```json
+  {
+    "entry": {
+      "id": "uuid",
+      "key": "button.cancel",
+      "description": "Cancel button label",
+      "createdAt": "2026-03-27T19:05:00+01:00",
+      "updatedAt": "2026-03-27T19:05:00+01:00",
+      "createdBy": "user-uuid",
+      "localizations": [],
+      "scopes": [
+        {
+          "id": "uuid",
+          "name": "Frontend",
+          "slug": "frontend"
+        }
+      ]
+    }
+  }
+  ```
+
+  ## Errors
+  - `INVALID_ARGUMENT`: entry key is required
+  - `INTERNAL`: failed to create entry (e.g., duplicate key)
+}

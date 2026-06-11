@@ -1,0 +1,80 @@
+meta {
+  name: Create Locale
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.LocaleService/CreateLocale
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "code": "de",
+    "names": {
+      "en": "German",
+      "de": "Deutsch",
+      "fr": "Allemand",
+      "es": "Alemán",
+      "it": "Tedesco",
+      "pt": "Alemão",
+      "ja": "ドイツ語",
+      "zh": "德语"
+    },
+    "isDefault": false
+  }
+}
+
+docs {
+  # Create Locale
+
+  Creates a new locale in the system.
+
+  ## Authentication
+  Requires valid access token.
+
+  ## Request
+  - `code` (required): Locale code (e.g., "en", "de", "fr")
+  - `names` (required): Object with translations for the locale name (key: locale code, value: localized name)
+  - `isDefault` (optional): Whether this should be the default locale, defaults to false
+
+  ## Behavior
+  - If `isDefault` is true, all other locales will have their `isDefault` flag set to false
+  - Only one locale can be the default at any time
+
+  ## Response
+  Returns the newly created locale.
+
+  ## Example Response
+  ```json
+  {
+    "locale": {
+      "id": "uuid",
+      "code": "de",
+      "name": "German",
+      "names": {
+        "en": "German",
+        "de": "Deutsch",
+        "fr": "Allemand"
+      },
+      "isDefault": false,
+      "createdAt": "2026-03-27T18:12:31+01:00",
+      "updatedAt": "2026-03-27T18:12:31+01:00"
+    }
+  }
+  ```
+
+  **Note**: The `name` field is localized based on the `Accept-Language` header.
+
+  ## Errors
+  - `INVALID_ARGUMENT`: locale code is required
+  - `INVALID_ARGUMENT`: locale names are required
+  - `INTERNAL`: failed to create locale (e.g., duplicate code)
+}

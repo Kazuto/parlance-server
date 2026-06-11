@@ -1,0 +1,83 @@
+meta {
+  name: Search Entries
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.EntryService/SearchEntries
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "query": "button",
+    "pagination": {
+      "page": 1,
+      "perPage": 20
+    },
+    "scopeId": ""
+  }
+}
+
+docs {
+  # Search Entries
+
+  Searches translation entries by key or description.
+
+  ## Authentication
+  Requires valid access token.
+
+  ## Request
+  - `query` (required): Search term to match against key and description
+  - `pagination.page` (optional): Page number, defaults to 1
+  - `pagination.perPage` (optional): Items per page, defaults to 20, max 100
+  - `scopeId` (optional): Filter results by scope UUID
+
+  ## Behavior
+  - Case-insensitive search (ILIKE)
+  - Searches both `key` and `description` fields
+  - Results include full entry details with localizations and scopes
+
+  ## Response
+  Returns matching entries with pagination.
+
+  ## Example Response
+  ```json
+  {
+    "entries": [
+      {
+        "id": "uuid",
+        "key": "button.save",
+        "description": "Save button label",
+        "localizations": [...],
+        "scopes": [...]
+      },
+      {
+        "id": "uuid",
+        "key": "button.cancel",
+        "description": "Cancel button label",
+        "localizations": [...],
+        "scopes": [...]
+      }
+    ],
+    "pagination": {
+      "total": 5,
+      "page": 1,
+      "perPage": 20,
+      "totalPages": 1
+    }
+  }
+  ```
+
+  ## Use Cases
+  - Quick search for translation keys
+  - Find entries by description keywords
+  - Locate entries within a specific scope
+}

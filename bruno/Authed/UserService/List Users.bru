@@ -1,0 +1,93 @@
+meta {
+  name: List Users
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.UserService/ListUsers
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "pagination": {
+      "page": 1,
+      "perPage": 20
+    },
+    "filter": {
+      // "search": "en",
+      "sort": "created_at",
+      "order": "ASC",
+      "include_deleted": true
+    }
+  }
+}
+
+script:post-response {
+  const data = res?.body?.users;
+  
+  if (data) {
+    const ids = data.map((el) => el.id);
+  
+    bru.setVar("userIds", ids);
+    bru.setVar("userId", ids.shift());
+  }
+}
+
+docs {
+  # List Users
+  
+  Retrieves a paginated list of all users in the system.
+  
+  ## Authentication
+  Requires valid access token.
+  
+  ## Request
+  - `pagination.page` (optional): Page number, defaults to 1
+  - `pagination.perPage` (optional): Items per page, defaults to 20, max 100
+  
+  ## Response
+  Returns an array of users with their roles and permissions.
+  
+  ## Example Response
+  ```json
+  {
+    "users": [
+      {
+        "id": "uuid",
+        "email": "user@example.com",
+        "name": "John Doe",
+        "roles": [
+          {
+            "id": "uuid",
+            "name": "viewer",
+            "permissions": [
+              {
+                "id": "uuid",
+                "name": "entry.read",
+                "resource": "entry",
+                "action": "read"
+              }
+            ]
+          }
+        ],
+        "createdAt": "2026-03-27T18:40:15+01:00",
+        "updatedAt": "2026-03-27T18:40:15+01:00"
+      }
+    ],
+    "pagination": {
+      "total": 1,
+      "page": 1,
+      "perPage": 20,
+      "totalPages": 1
+    }
+  }
+  ```
+}

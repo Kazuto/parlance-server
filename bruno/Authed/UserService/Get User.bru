@@ -1,0 +1,71 @@
+meta {
+  name: Get User
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.UserService/GetUser
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "id": "{{userId}}"
+  }
+}
+
+script:pre-request {
+  const userId = bru.getVar('userId');
+
+  if (!userId) {
+      await bru.runRequest('Authed/UserService/ListUsers');
+
+      return;
+  }
+}
+
+docs {
+  # Get User
+
+  Retrieves a single user by their ID.
+
+  ## Authentication
+  Requires valid access token.
+
+  ## Request
+  - `id` (required): The UUID of the user to retrieve
+
+  ## Response
+  Returns the user details with roles and permissions.
+
+  ## Example Response
+  ```json
+  {
+    "user": {
+      "id": "uuid",
+      "email": "user@example.com",
+      "name": "John Doe",
+      "roles": [
+        {
+          "id": "uuid",
+          "name": "viewer",
+          "permissions": [...]
+        }
+      ],
+      "createdAt": "2026-03-27T18:40:15+01:00",
+      "updatedAt": "2026-03-27T18:40:15+01:00"
+    }
+  }
+  ```
+
+  ## Errors
+  - `INVALID_ARGUMENT`: user id is required
+  - `NOT_FOUND`: user not found
+}

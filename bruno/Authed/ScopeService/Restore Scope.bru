@@ -1,0 +1,66 @@
+meta {
+  name: Restore Scope
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.ScopeService/RestoreScope
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "id": "{{scopeId}}"
+  }
+}
+
+script:pre-request {
+  const scopeId = bru.getVar('scopeId');
+
+  if (!scopeId) {
+      await bru.runRequest('Authed/ScopeService/ListScopes');
+
+      return;
+  }
+}
+
+docs {
+  # Restore Scope
+
+  Restores a scope by its ID.
+  
+  ## Authentication
+  Requires valid access token.
+
+  ## Request
+  - `id` (required): The UUID of the scope to retrieve
+
+  ## Response
+  Returns the scope details.
+
+  ## Example Response
+  ```json
+  {
+    "scope": {
+      "id": "uuid",
+      "name": "Frontend",
+      "slug": "frontend",
+      "description": "Frontend UI translations",
+      "color": "#3B82F6",
+      "createdAt": "2026-03-27T18:27:04+01:00",
+      "updatedAt": "2026-03-27T18:27:04+01:00"
+    }
+  }
+  ```
+
+  ## Errors
+  - `INVALID_ARGUMENT`: scope id is required
+  - `NOT_FOUND`: scope not found
+}
