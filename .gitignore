@@ -14,6 +14,9 @@
 # Go workspace file
 go.work
 
+# Temporary files
+tmp/
+
 # Build artifacts
 /api
 /cmd/api/api
