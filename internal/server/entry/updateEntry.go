@@ -31,10 +31,6 @@ func (s *Server) UpdateEntry(
 		entry.UpdatedBy = &userID
 	}
 
-	if req.Msg.Key != "" {
-		entry.Key = req.Msg.Key
-	}
-
 	if req.Msg.Description != "" {
 		entry.Description = req.Msg.Description
 	}
