@@ -452,8 +452,7 @@ func (x *CreateEntryResponse) GetEntry() *Entry {
 type UpdateEntryRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
-	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -491,13 +490,6 @@ func (*UpdateEntryRequest) Descriptor() ([]byte, []int) {
 func (x *UpdateEntryRequest) GetId() string {
 	if x != nil {
 		return x.Id
-	}
-	return ""
-}
-
-func (x *UpdateEntryRequest) GetKey() string {
-	if x != nil {
-		return x.Key
 	}
 	return ""
 }
@@ -1080,11 +1072,10 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\tscope_ids\x18\x02 \x03(\tR\bscopeIds\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\"?\n" +
 	"\x13CreateEntryResponse\x12(\n" +
-	"\x05entry\x18\x01 \x01(\v2\x12.parlance.v1.EntryR\x05entry\"X\n" +
+	"\x05entry\x18\x01 \x01(\v2\x12.parlance.v1.EntryR\x05entry\"F\n" +
 	"\x12UpdateEntryRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x10\n" +
-	"\x03key\x18\x02 \x01(\tR\x03key\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\"?\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\"?\n" +
 	"\x13UpdateEntryResponse\x12(\n" +
 	"\x05entry\x18\x01 \x01(\v2\x12.parlance.v1.EntryR\x05entry\"$\n" +
 	"\x12DeleteEntryRequest\x12\x0e\n" +
