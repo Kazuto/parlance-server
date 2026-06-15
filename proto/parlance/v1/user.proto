@@ -61,9 +61,11 @@ message UpdateUserRequest {
   string id = 1;
   string email = 2;
   string name = 3;
-  string locale = 4;
-  bytes avatar = 5;
-  string avatar_mime = 6;
+  string password = 4;
+  repeated string role_ids = 5;
+  string locale = 6;
+  bytes avatar = 7;
+  string avatar_mime = 8;
 }
 
 message UpdateUserResponse {

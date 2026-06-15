@@ -438,9 +438,11 @@ type UpdateUserRequest struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Locale        string                 `protobuf:"bytes,4,opt,name=locale,proto3" json:"locale,omitempty"`
-	Avatar        []byte                 `protobuf:"bytes,5,opt,name=avatar,proto3" json:"avatar,omitempty"`
-	AvatarMime    string                 `protobuf:"bytes,6,opt,name=avatar_mime,json=avatarMime,proto3" json:"avatar_mime,omitempty"`
+	Password      string                 `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"`
+	RoleIds       []string               `protobuf:"bytes,5,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	Locale        string                 `protobuf:"bytes,6,opt,name=locale,proto3" json:"locale,omitempty"`
+	Avatar        []byte                 `protobuf:"bytes,7,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	AvatarMime    string                 `protobuf:"bytes,8,opt,name=avatar_mime,json=avatarMime,proto3" json:"avatar_mime,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -494,6 +496,20 @@ func (x *UpdateUserRequest) GetName() string {
 		return x.Name
 	}
 	return ""
+}
+
+func (x *UpdateUserRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+func (x *UpdateUserRequest) GetRoleIds() []string {
+	if x != nil {
+		return x.RoleIds
+	}
+	return nil
 }
 
 func (x *UpdateUserRequest) GetLocale() string {
@@ -863,14 +879,16 @@ const file_parlance_v1_user_proto_rawDesc = "" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
 	"\x06locale\x18\x04 \x01(\tR\x06locale\";\n" +
 	"\x12CreateUserResponse\x12%\n" +
-	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"\x9e\x01\n" +
+	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"\xd5\x01\n" +
 	"\x11UpdateUserRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
-	"\x06locale\x18\x04 \x01(\tR\x06locale\x12\x16\n" +
-	"\x06avatar\x18\x05 \x01(\fR\x06avatar\x12\x1f\n" +
-	"\vavatar_mime\x18\x06 \x01(\tR\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1a\n" +
+	"\bpassword\x18\x04 \x01(\tR\bpassword\x12\x19\n" +
+	"\brole_ids\x18\x05 \x03(\tR\aroleIds\x12\x16\n" +
+	"\x06locale\x18\x06 \x01(\tR\x06locale\x12\x16\n" +
+	"\x06avatar\x18\a \x01(\fR\x06avatar\x12\x1f\n" +
+	"\vavatar_mime\x18\b \x01(\tR\n" +
 	"avatarMime\";\n" +
 	"\x12UpdateUserResponse\x12%\n" +
 	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"#\n" +

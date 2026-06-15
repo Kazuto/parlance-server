@@ -3,11 +3,13 @@ package user
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/kazuto/parlance-server/internal/auth"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/models"
 
@@ -40,6 +42,15 @@ func (s *Server) UpdateUser(
 		user.Locale = &req.Msg.Locale
 	}
 
+	if req.Msg.Password != "" {
+		hashedPassword, err := auth.HashPassword(req.Msg.Password)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to hash password: %w", err))
+		}
+
+		user.PasswordHash = hashedPassword
+	}
+
 	if req.Msg.Avatar != nil && req.Msg.AvatarMime != "" {
 		url, err := s.uploadAvatar(ctx, user.ID, req.Msg.Avatar, req.Msg.AvatarMime)
 		if err != nil {
@@ -47,6 +58,15 @@ func (s *Server) UpdateUser(
 		}
 
 		user.Avatar = &url
+	}
+
+	if req.Msg.RoleIds != nil {
+		roles, err := s.getRoles(req.Msg.RoleIds)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to get roles: %w", err))
+		}
+
+		user.Roles = roles
 	}
 
 	if err := s.db.Save(&user).Error; err != nil {
@@ -76,4 +96,15 @@ func (s *Server) uploadAvatar(ctx context.Context, userID string, data []byte, c
 	}
 
 	return fmt.Sprintf("http://%s/%s/%s", s.endpoint, s.bucket, key), nil
+}
+
+func (s *Server) getRoles(roleIDs []string) ([]models.Role, error) {
+	var roles []models.Role
+	s.db.Where("id IN ?", roleIDs).Find(&roles)
+
+	if len(roles) != len(roleIDs) {
+		return nil, errors.New("one or more role IDs are invalid")
+	}
+
+	return roles, nil
 }
