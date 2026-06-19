@@ -47,6 +47,15 @@ func (s *Server) CreateUser(
 		Name:         req.Msg.Name,
 	}
 
+	if req.Msg.RoleIds != nil {
+		roles, err := s.GetRoles(req.Msg.RoleIds)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to get roles: %w", err))
+		}
+
+		user.Roles = roles
+	}
+
 	if err := s.db.Create(user).Error; err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create user: %w", err))
 	}

@@ -3,7 +3,6 @@ package user
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 
 	"connectrpc.com/connect"
@@ -61,7 +60,7 @@ func (s *Server) UpdateUser(
 	}
 
 	if req.Msg.RoleIds != nil {
-		roles, err := s.getRoles(req.Msg.RoleIds)
+		roles, err := s.GetRoles(req.Msg.RoleIds)
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to get roles: %w", err))
 		}
@@ -96,15 +95,4 @@ func (s *Server) uploadAvatar(ctx context.Context, userID string, data []byte, c
 	}
 
 	return fmt.Sprintf("http://%s/%s/%s", s.endpoint, s.bucket, key), nil
-}
-
-func (s *Server) getRoles(roleIDs []string) ([]models.Role, error) {
-	var roles []models.Role
-	s.db.Where("id IN ?", roleIDs).Find(&roles)
-
-	if len(roles) != len(roleIDs) {
-		return nil, errors.New("one or more role IDs are invalid")
-	}
-
-	return roles, nil
 }

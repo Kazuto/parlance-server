@@ -327,6 +327,7 @@ type CreateUserRequest struct {
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	Locale        string                 `protobuf:"bytes,4,opt,name=locale,proto3" json:"locale,omitempty"`
+	RoleIds       []string               `protobuf:"bytes,5,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -387,6 +388,13 @@ func (x *CreateUserRequest) GetLocale() string {
 		return x.Locale
 	}
 	return ""
+}
+
+func (x *CreateUserRequest) GetRoleIds() []string {
+	if x != nil {
+		return x.RoleIds
+	}
+	return nil
 }
 
 type CreateUserResponse struct {
@@ -872,12 +880,13 @@ const file_parlance_v1_user_proto_rawDesc = "" +
 	"\x0eGetUserRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"8\n" +
 	"\x0fGetUserResponse\x12%\n" +
-	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"q\n" +
+	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"\x8c\x01\n" +
 	"\x11CreateUserRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
-	"\x06locale\x18\x04 \x01(\tR\x06locale\";\n" +
+	"\x06locale\x18\x04 \x01(\tR\x06locale\x12\x19\n" +
+	"\brole_ids\x18\x05 \x03(\tR\aroleIds\";\n" +
 	"\x12CreateUserResponse\x12%\n" +
 	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"\xd5\x01\n" +
 	"\x11UpdateUserRequest\x12\x0e\n" +

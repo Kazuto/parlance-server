@@ -51,6 +51,7 @@ message CreateUserRequest {
   string password = 2;
   string name = 3;
   string locale = 4;
+  repeated string role_ids = 5;
 }
 
 message CreateUserResponse {
