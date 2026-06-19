@@ -33,6 +33,15 @@ func (s *Server) UpdateRole(
 		role.Description = req.Msg.Description
 	}
 
+	if req.Msg.PermissionIds != nil {
+		permissions, err := s.GetPermissions(req.Msg.PermissionIds)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to get permissions: %w", err))
+		}
+
+		role.Permissions = permissions
+	}
+
 	if err := s.db.Save(&role).Error; err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update Role: %w", err))
 	}
