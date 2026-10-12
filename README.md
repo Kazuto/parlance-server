@@ -130,6 +130,22 @@ make proto-lint
 
 ## Usage
 
+### Frontend schema generation
+
+With the Nuxt frontend checked out at `../web` and its npm dependencies installed:
+
+```bash
+make proto-gen-web  # Generate Zod schemas and TS types in the frontend
+make proto-gen-all  # Generate Go/Connect code and frontend schemas
+```
+
+The local `cmd/protoc-gen-zod` Buf plugin reads compiled protobuf descriptors and
+generates schemas for the Connect JSON wire format. Configuration is in
+`buf.gen.web.yaml`. Generated files are isolated in
+`../web/app/lib/api/schemas/parlance/v1/`; regeneration removes stale files in
+`schemas/parlance/`. API endpoints use these generated schemas by default.
+See the frontend README for migration examples and wire-format conventions.
+
 ### API Endpoints
 
 The server exposes Connect RPC endpoints at:
@@ -585,4 +601,3 @@ This project is licensed under the GNU General Public License - see the [LICENSE
 ---
 
 Made with ❤️ by developers, for developers
-

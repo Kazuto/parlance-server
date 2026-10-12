@@ -1,4 +1,4 @@
-.PHONY: dev dev-stop dev-down dev-logs build test test-coverage migrate-up migrate-down migrate-create proto-gen proto-lint proto-breaking install-tools run lint fmt fmt-check vet ci seed seed-fresh clean
+.PHONY: dev dev-stop dev-down dev-logs build test test-coverage migrate-up migrate-down migrate-create proto-gen proto-gen-web proto-gen-all proto-lint proto-breaking install-tools run lint fmt fmt-check vet ci seed seed-fresh clean
 
 # Development
 dev:
@@ -31,6 +31,11 @@ test-coverage: test
 # Proto
 proto-gen:
 	buf generate
+
+proto-gen-web:
+	npm --prefix ../web run schemas:generate
+
+proto-gen-all: proto-gen proto-gen-web
 
 proto-lint:
 	buf lint
