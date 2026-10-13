@@ -3,6 +3,7 @@ package entry
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
@@ -19,6 +20,9 @@ func (s *Server) UpdateEntry(
 	if req.Msg.Id == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("entry id is required"))
 	}
+	if req.Msg.Key != nil && strings.TrimSpace(req.Msg.GetKey()) == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("entry key is required"))
+	}
 
 	var entry models.Entry
 	if err := s.db.First(&entry, "id = ?", req.Msg.Id).Error; err != nil {
@@ -31,8 +35,19 @@ func (s *Server) UpdateEntry(
 		entry.UpdatedBy = &userID
 	}
 
-	if req.Msg.Description != "" {
-		entry.Description = req.Msg.Description
+	if req.Msg.Key != nil {
+		key := strings.TrimSpace(req.Msg.GetKey())
+		var count int64
+		if err := s.db.WithContext(ctx).Model(&models.Entry{}).Where("key = ? AND id <> ?", key, entry.ID).Count(&count).Error; err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to check entry key: %w", err))
+		}
+		if count > 0 {
+			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("entry key already exists"))
+		}
+		entry.Key = key
+	}
+	if req.Msg.Description != nil {
+		entry.Description = req.Msg.GetDescription()
 	}
 
 	if err := s.db.Save(&entry).Error; err != nil {

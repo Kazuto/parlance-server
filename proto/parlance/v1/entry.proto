@@ -63,7 +63,8 @@ message CreateEntryResponse {
 
 message UpdateEntryRequest {
   string id = 1;
-  string description = 2;
+  optional string description = 2;
+  optional string key = 3;
 }
 
 message UpdateEntryResponse {
