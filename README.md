@@ -130,6 +130,46 @@ make proto-lint
 
 ## Usage
 
+### Gettext PO import/export
+
+The backend supports singular, key-based UTF-8 `.po` files through the protected
+Connect RPC endpoints:
+
+- `POST /parlance.v1.ImportService/ImportPo`
+- `POST /parlance.v1.ExportService/ExportPo`
+
+`msgid` maps to the entry key (for example `button.save`), and `msgstr` maps to the
+selected locale's translation. Import accepts `localeId`, optional `scopeIds`,
+`filename`, `mode`, and `fileContent` (base64-encoded bytes in JSON requests), just
+like the JSON/PHP import endpoints. An unspecified mode defaults to create-or-update.
+
+```json
+{
+  "localeCode": "de",
+  "scopeId": "optional-scope-id"
+}
+```
+
+The export request above returns `format: "po"`, the PO text in `content`, and a
+suggested `.po` `filename`. Omit `scopeId` to export all active entries. Entries
+without a translation are included with empty `msgstr`. Exports are sorted by key,
+include UTF-8/language metadata, and include entry descriptions as `#.` comments.
+
+```po
+msgid "button.save"
+msgstr "Speichern"
+```
+
+Import understands multiline strings, escaping, comments, and an optional UTF-8
+BOM. Malformed syntax and non-UTF-8 files are rejected before database changes.
+Contextual (`msgctxt`), plural, fuzzy, and duplicate records are reported in
+`result.errors` and counted as failed. Obsolete records and empty/untranslated
+`msgstr` values are counted as skipped, preserving existing translations.
+Metadata and comments are not imported into the data model. Replace-all mode
+rejects files containing unsupported or duplicate records before removing any
+existing translations. Language selection is determined by `localeId`, rather
+than the PO file's Language header.
+
 ### Frontend schema generation
 
 With the Nuxt frontend checked out at `../web` and its npm dependencies installed:

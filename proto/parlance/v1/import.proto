@@ -6,6 +6,7 @@ option go_package = "parlance/v1;parlance";
 service ImportService {
   rpc ImportPhp(ImportPhpRequest) returns (ImportPhpResponse);
   rpc ImportJson(ImportJsonRequest) returns (ImportJsonResponse);
+  rpc ImportPo(ImportPoRequest) returns (ImportPoResponse);
 }
 
 // PHP array import
@@ -31,6 +32,19 @@ message ImportJsonRequest {
 }
 
 message ImportJsonResponse {
+  ImportResult result = 1;
+}
+
+// UTF-8, singular key-based gettext PO import. msgid is the entry key.
+message ImportPoRequest {
+  string locale_id = 1;
+  repeated string scope_ids = 2;
+  bytes file_content = 3;
+  string filename = 4;
+  ImportMode mode = 5;
+}
+
+message ImportPoResponse {
   ImportResult result = 1;
 }
 

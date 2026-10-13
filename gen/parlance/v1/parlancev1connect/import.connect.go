@@ -38,12 +38,15 @@ const (
 	// ImportServiceImportJsonProcedure is the fully-qualified name of the ImportService's ImportJson
 	// RPC.
 	ImportServiceImportJsonProcedure = "/parlance.v1.ImportService/ImportJson"
+	// ImportServiceImportPoProcedure is the fully-qualified name of the ImportService's ImportPo RPC.
+	ImportServiceImportPoProcedure = "/parlance.v1.ImportService/ImportPo"
 )
 
 // ImportServiceClient is a client for the parlance.v1.ImportService service.
 type ImportServiceClient interface {
 	ImportPhp(context.Context, *connect.Request[v1.ImportPhpRequest]) (*connect.Response[v1.ImportPhpResponse], error)
 	ImportJson(context.Context, *connect.Request[v1.ImportJsonRequest]) (*connect.Response[v1.ImportJsonResponse], error)
+	ImportPo(context.Context, *connect.Request[v1.ImportPoRequest]) (*connect.Response[v1.ImportPoResponse], error)
 }
 
 // NewImportServiceClient constructs a client for the parlance.v1.ImportService service. By default,
@@ -69,6 +72,12 @@ func NewImportServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(importServiceMethods.ByName("ImportJson")),
 			connect.WithClientOptions(opts...),
 		),
+		importPo: connect.NewClient[v1.ImportPoRequest, v1.ImportPoResponse](
+			httpClient,
+			baseURL+ImportServiceImportPoProcedure,
+			connect.WithSchema(importServiceMethods.ByName("ImportPo")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -76,6 +85,7 @@ func NewImportServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 type importServiceClient struct {
 	importPhp  *connect.Client[v1.ImportPhpRequest, v1.ImportPhpResponse]
 	importJson *connect.Client[v1.ImportJsonRequest, v1.ImportJsonResponse]
+	importPo   *connect.Client[v1.ImportPoRequest, v1.ImportPoResponse]
 }
 
 // ImportPhp calls parlance.v1.ImportService.ImportPhp.
@@ -88,10 +98,16 @@ func (c *importServiceClient) ImportJson(ctx context.Context, req *connect.Reque
 	return c.importJson.CallUnary(ctx, req)
 }
 
+// ImportPo calls parlance.v1.ImportService.ImportPo.
+func (c *importServiceClient) ImportPo(ctx context.Context, req *connect.Request[v1.ImportPoRequest]) (*connect.Response[v1.ImportPoResponse], error) {
+	return c.importPo.CallUnary(ctx, req)
+}
+
 // ImportServiceHandler is an implementation of the parlance.v1.ImportService service.
 type ImportServiceHandler interface {
 	ImportPhp(context.Context, *connect.Request[v1.ImportPhpRequest]) (*connect.Response[v1.ImportPhpResponse], error)
 	ImportJson(context.Context, *connect.Request[v1.ImportJsonRequest]) (*connect.Response[v1.ImportJsonResponse], error)
+	ImportPo(context.Context, *connect.Request[v1.ImportPoRequest]) (*connect.Response[v1.ImportPoResponse], error)
 }
 
 // NewImportServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -113,12 +129,20 @@ func NewImportServiceHandler(svc ImportServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(importServiceMethods.ByName("ImportJson")),
 		connect.WithHandlerOptions(opts...),
 	)
+	importServiceImportPoHandler := connect.NewUnaryHandler(
+		ImportServiceImportPoProcedure,
+		svc.ImportPo,
+		connect.WithSchema(importServiceMethods.ByName("ImportPo")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/parlance.v1.ImportService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ImportServiceImportPhpProcedure:
 			importServiceImportPhpHandler.ServeHTTP(w, r)
 		case ImportServiceImportJsonProcedure:
 			importServiceImportJsonHandler.ServeHTTP(w, r)
+		case ImportServiceImportPoProcedure:
+			importServiceImportPoHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -134,4 +158,8 @@ func (UnimplementedImportServiceHandler) ImportPhp(context.Context, *connect.Req
 
 func (UnimplementedImportServiceHandler) ImportJson(context.Context, *connect.Request[v1.ImportJsonRequest]) (*connect.Response[v1.ImportJsonResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ImportService.ImportJson is not implemented"))
+}
+
+func (UnimplementedImportServiceHandler) ImportPo(context.Context, *connect.Request[v1.ImportPoRequest]) (*connect.Response[v1.ImportPoResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ImportService.ImportPo is not implemented"))
 }

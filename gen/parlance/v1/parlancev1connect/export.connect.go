@@ -38,12 +38,15 @@ const (
 	// ExportServiceExportJsonProcedure is the fully-qualified name of the ExportService's ExportJson
 	// RPC.
 	ExportServiceExportJsonProcedure = "/parlance.v1.ExportService/ExportJson"
+	// ExportServiceExportPoProcedure is the fully-qualified name of the ExportService's ExportPo RPC.
+	ExportServiceExportPoProcedure = "/parlance.v1.ExportService/ExportPo"
 )
 
 // ExportServiceClient is a client for the parlance.v1.ExportService service.
 type ExportServiceClient interface {
 	ExportPhp(context.Context, *connect.Request[v1.ExportPhpRequest]) (*connect.Response[v1.ExportPhpResponse], error)
 	ExportJson(context.Context, *connect.Request[v1.ExportJsonRequest]) (*connect.Response[v1.ExportJsonResponse], error)
+	ExportPo(context.Context, *connect.Request[v1.ExportPoRequest]) (*connect.Response[v1.ExportPoResponse], error)
 }
 
 // NewExportServiceClient constructs a client for the parlance.v1.ExportService service. By default,
@@ -69,6 +72,12 @@ func NewExportServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(exportServiceMethods.ByName("ExportJson")),
 			connect.WithClientOptions(opts...),
 		),
+		exportPo: connect.NewClient[v1.ExportPoRequest, v1.ExportPoResponse](
+			httpClient,
+			baseURL+ExportServiceExportPoProcedure,
+			connect.WithSchema(exportServiceMethods.ByName("ExportPo")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -76,6 +85,7 @@ func NewExportServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 type exportServiceClient struct {
 	exportPhp  *connect.Client[v1.ExportPhpRequest, v1.ExportPhpResponse]
 	exportJson *connect.Client[v1.ExportJsonRequest, v1.ExportJsonResponse]
+	exportPo   *connect.Client[v1.ExportPoRequest, v1.ExportPoResponse]
 }
 
 // ExportPhp calls parlance.v1.ExportService.ExportPhp.
@@ -88,10 +98,16 @@ func (c *exportServiceClient) ExportJson(ctx context.Context, req *connect.Reque
 	return c.exportJson.CallUnary(ctx, req)
 }
 
+// ExportPo calls parlance.v1.ExportService.ExportPo.
+func (c *exportServiceClient) ExportPo(ctx context.Context, req *connect.Request[v1.ExportPoRequest]) (*connect.Response[v1.ExportPoResponse], error) {
+	return c.exportPo.CallUnary(ctx, req)
+}
+
 // ExportServiceHandler is an implementation of the parlance.v1.ExportService service.
 type ExportServiceHandler interface {
 	ExportPhp(context.Context, *connect.Request[v1.ExportPhpRequest]) (*connect.Response[v1.ExportPhpResponse], error)
 	ExportJson(context.Context, *connect.Request[v1.ExportJsonRequest]) (*connect.Response[v1.ExportJsonResponse], error)
+	ExportPo(context.Context, *connect.Request[v1.ExportPoRequest]) (*connect.Response[v1.ExportPoResponse], error)
 }
 
 // NewExportServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -113,12 +129,20 @@ func NewExportServiceHandler(svc ExportServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(exportServiceMethods.ByName("ExportJson")),
 		connect.WithHandlerOptions(opts...),
 	)
+	exportServiceExportPoHandler := connect.NewUnaryHandler(
+		ExportServiceExportPoProcedure,
+		svc.ExportPo,
+		connect.WithSchema(exportServiceMethods.ByName("ExportPo")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/parlance.v1.ExportService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ExportServiceExportPhpProcedure:
 			exportServiceExportPhpHandler.ServeHTTP(w, r)
 		case ExportServiceExportJsonProcedure:
 			exportServiceExportJsonHandler.ServeHTTP(w, r)
+		case ExportServiceExportPoProcedure:
+			exportServiceExportPoHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -134,4 +158,8 @@ func (UnimplementedExportServiceHandler) ExportPhp(context.Context, *connect.Req
 
 func (UnimplementedExportServiceHandler) ExportJson(context.Context, *connect.Request[v1.ExportJsonRequest]) (*connect.Response[v1.ExportJsonResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ExportService.ExportJson is not implemented"))
+}
+
+func (UnimplementedExportServiceHandler) ExportPo(context.Context, *connect.Request[v1.ExportPoRequest]) (*connect.Response[v1.ExportPoResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ExportService.ExportPo is not implemented"))
 }

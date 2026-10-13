@@ -7,12 +7,11 @@
 package parlancev1
 
 import (
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -1141,35 +1140,32 @@ func file_parlance_v1_entry_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_entry_proto_rawDescData
 }
 
-var (
-	file_parlance_v1_entry_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
-	file_parlance_v1_entry_proto_goTypes  = []any{
-		(*Entry)(nil),                   // 0: parlance.v1.Entry
-		(*ListEntriesRequest)(nil),      // 1: parlance.v1.ListEntriesRequest
-		(*ListEntriesResponse)(nil),     // 2: parlance.v1.ListEntriesResponse
-		(*GetEntryRequest)(nil),         // 3: parlance.v1.GetEntryRequest
-		(*GetEntryResponse)(nil),        // 4: parlance.v1.GetEntryResponse
-		(*CreateEntryRequest)(nil),      // 5: parlance.v1.CreateEntryRequest
-		(*CreateEntryResponse)(nil),     // 6: parlance.v1.CreateEntryResponse
-		(*UpdateEntryRequest)(nil),      // 7: parlance.v1.UpdateEntryRequest
-		(*UpdateEntryResponse)(nil),     // 8: parlance.v1.UpdateEntryResponse
-		(*DeleteEntryRequest)(nil),      // 9: parlance.v1.DeleteEntryRequest
-		(*DeleteEntryResponse)(nil),     // 10: parlance.v1.DeleteEntryResponse
-		(*RestoreEntryRequest)(nil),     // 11: parlance.v1.RestoreEntryRequest
-		(*RestoreEntryResponse)(nil),    // 12: parlance.v1.RestoreEntryResponse
-		(*SearchEntriesRequest)(nil),    // 13: parlance.v1.SearchEntriesRequest
-		(*SearchEntriesResponse)(nil),   // 14: parlance.v1.SearchEntriesResponse
-		(*GetEntryHistoryRequest)(nil),  // 15: parlance.v1.GetEntryHistoryRequest
-		(*GetEntryHistoryResponse)(nil), // 16: parlance.v1.GetEntryHistoryResponse
-		(*LocalizationHistory)(nil),     // 17: parlance.v1.LocalizationHistory
-		(*Localization)(nil),            // 18: parlance.v1.Localization
-		(*Scope)(nil),                   // 19: parlance.v1.Scope
-		(*PaginationRequest)(nil),       // 20: parlance.v1.PaginationRequest
-		(*FilterRequest)(nil),           // 21: parlance.v1.FilterRequest
-		(*PaginationResponse)(nil),      // 22: parlance.v1.PaginationResponse
-	}
-)
-
+var file_parlance_v1_entry_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_parlance_v1_entry_proto_goTypes = []any{
+	(*Entry)(nil),                   // 0: parlance.v1.Entry
+	(*ListEntriesRequest)(nil),      // 1: parlance.v1.ListEntriesRequest
+	(*ListEntriesResponse)(nil),     // 2: parlance.v1.ListEntriesResponse
+	(*GetEntryRequest)(nil),         // 3: parlance.v1.GetEntryRequest
+	(*GetEntryResponse)(nil),        // 4: parlance.v1.GetEntryResponse
+	(*CreateEntryRequest)(nil),      // 5: parlance.v1.CreateEntryRequest
+	(*CreateEntryResponse)(nil),     // 6: parlance.v1.CreateEntryResponse
+	(*UpdateEntryRequest)(nil),      // 7: parlance.v1.UpdateEntryRequest
+	(*UpdateEntryResponse)(nil),     // 8: parlance.v1.UpdateEntryResponse
+	(*DeleteEntryRequest)(nil),      // 9: parlance.v1.DeleteEntryRequest
+	(*DeleteEntryResponse)(nil),     // 10: parlance.v1.DeleteEntryResponse
+	(*RestoreEntryRequest)(nil),     // 11: parlance.v1.RestoreEntryRequest
+	(*RestoreEntryResponse)(nil),    // 12: parlance.v1.RestoreEntryResponse
+	(*SearchEntriesRequest)(nil),    // 13: parlance.v1.SearchEntriesRequest
+	(*SearchEntriesResponse)(nil),   // 14: parlance.v1.SearchEntriesResponse
+	(*GetEntryHistoryRequest)(nil),  // 15: parlance.v1.GetEntryHistoryRequest
+	(*GetEntryHistoryResponse)(nil), // 16: parlance.v1.GetEntryHistoryResponse
+	(*LocalizationHistory)(nil),     // 17: parlance.v1.LocalizationHistory
+	(*Localization)(nil),            // 18: parlance.v1.Localization
+	(*Scope)(nil),                   // 19: parlance.v1.Scope
+	(*PaginationRequest)(nil),       // 20: parlance.v1.PaginationRequest
+	(*FilterRequest)(nil),           // 21: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),      // 22: parlance.v1.PaginationResponse
+}
 var file_parlance_v1_entry_proto_depIdxs = []int32{
 	18, // 0: parlance.v1.Entry.localizations:type_name -> parlance.v1.Localization
 	19, // 1: parlance.v1.Entry.scopes:type_name -> parlance.v1.Scope
