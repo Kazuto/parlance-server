@@ -56,3 +56,27 @@ func TestInvalidTranslationStatus(t *testing.T) {
 		t.Fatalf("expected invalid argument, got %v", err)
 	}
 }
+
+func TestCursorRoundTrip(t *testing.T) {
+	for _, key := range []string{"actions.deleteEntry", "ümlaut.key", "a/b+c=d"} {
+		cursor := encodeCursor(key)
+		got, err := decodeCursor(cursor)
+		if err != nil || got != key {
+			t.Errorf("round trip %q: got %q, %v", key, got, err)
+		}
+	}
+}
+
+func TestCursorValidation(t *testing.T) {
+	cases := map[string]*pb.ListEntriesRequest{
+		"malformed cursor": {Cursor: "%%%"},
+		"non-key sort":     {Cursor: encodeCursor("a"), Filter: &pb.FilterRequest{Sort: "created_at"}},
+		"descending key":   {Cursor: encodeCursor("a"), Filter: &pb.FilterRequest{Sort: "key", Order: "desc"}},
+	}
+	for name, msg := range cases {
+		_, err := (&Server{}).ListEntries(context.Background(), connect.NewRequest(msg))
+		if connect.CodeOf(err) != connect.CodeInvalidArgument {
+			t.Errorf("%s: expected invalid argument, got %v", name, err)
+		}
+	}
+}

@@ -33,8 +33,10 @@ type Entry struct {
 	UpdatedBy     string                 `protobuf:"bytes,8,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
 	Localizations []*Localization        `protobuf:"bytes,9,rep,name=localizations,proto3" json:"localizations,omitempty"`
 	Scopes        []*Scope               `protobuf:"bytes,10,rep,name=scopes,proto3" json:"scopes,omitempty"` // Many-to-many relationship
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// Target locales without a saved translation; only set by ListEntries with summary.
+	MissingLocaleIds []string `protobuf:"bytes,11,rep,name=missing_locale_ids,json=missingLocaleIds,proto3" json:"missing_locale_ids,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Entry) Reset() {
@@ -137,6 +139,13 @@ func (x *Entry) GetScopes() []*Scope {
 	return nil
 }
 
+func (x *Entry) GetMissingLocaleIds() []string {
+	if x != nil {
+		return x.MissingLocaleIds
+	}
+	return nil
+}
+
 type ListEntriesRequest struct {
 	state      protoimpl.MessageState `protogen:"open.v1"`
 	ScopeId    string                 `protobuf:"bytes,1,opt,name=scope_id,json=scopeId,proto3" json:"scope_id,omitempty"`
@@ -147,7 +156,12 @@ type ListEntriesRequest struct {
 	TranslationStatus string   `protobuf:"bytes,5,opt,name=translation_status,json=translationStatus,proto3" json:"translation_status,omitempty"`
 	TargetLocaleIds   []string `protobuf:"bytes,6,rep,name=target_locale_ids,json=targetLocaleIds,proto3" json:"target_locale_ids,omitempty"`
 	// Entries in any of these scopes; combined with scope_id when both are set.
-	ScopeIds      []string `protobuf:"bytes,7,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`
+	ScopeIds []string `protobuf:"bytes,7,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`
+	// Keyset paging: pass the previous response's next_cursor to continue after it.
+	// Requires the default key ordering; page and the total count are skipped.
+	Cursor string `protobuf:"bytes,8,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	// Return only id, key and missing_locale_ids instead of localizations and scopes.
+	Summary       bool `protobuf:"varint,9,opt,name=summary,proto3" json:"summary,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -231,10 +245,26 @@ func (x *ListEntriesRequest) GetScopeIds() []string {
 	return nil
 }
 
+func (x *ListEntriesRequest) GetCursor() string {
+	if x != nil {
+		return x.Cursor
+	}
+	return ""
+}
+
+func (x *ListEntriesRequest) GetSummary() bool {
+	if x != nil {
+		return x.Summary
+	}
+	return false
+}
+
 type ListEntriesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Entries       []*Entry               `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
-	Pagination    *PaginationResponse    `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Entries    []*Entry               `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
+	Pagination *PaginationResponse    `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	// Set when more entries follow in key order; empty on the last page.
+	NextCursor    string `protobuf:"bytes,3,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -281,6 +311,13 @@ func (x *ListEntriesResponse) GetPagination() *PaginationResponse {
 		return x.Pagination
 	}
 	return nil
+}
+
+func (x *ListEntriesResponse) GetNextCursor() string {
+	if x != nil {
+		return x.NextCursor
+	}
+	return ""
 }
 
 type GetEntryRequest struct {
@@ -1128,7 +1165,7 @@ var File_parlance_v1_entry_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\n" +
-	"\x17parlance/v1/entry.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x17parlance/v1/scope.proto\x1a\x1eparlance/v1/localization.proto\x1a\x16parlance/v1/user.proto\"\xd3\x02\n" +
+	"\x17parlance/v1/entry.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x17parlance/v1/scope.proto\x1a\x1eparlance/v1/localization.proto\x1a\x16parlance/v1/user.proto\"\x81\x03\n" +
 	"\x05Entry\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x10\n" +
 	"\x03key\x18\x02 \x01(\tR\x03key\x12 \n" +
@@ -1145,7 +1182,8 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"updated_by\x18\b \x01(\tR\tupdatedBy\x12?\n" +
 	"\rlocalizations\x18\t \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations\x12*\n" +
 	"\x06scopes\x18\n" +
-	" \x03(\v2\x12.parlance.v1.ScopeR\x06scopes\"\xb8\x02\n" +
+	" \x03(\v2\x12.parlance.v1.ScopeR\x06scopes\x12,\n" +
+	"\x12missing_locale_ids\x18\v \x03(\tR\x10missingLocaleIds\"\xea\x02\n" +
 	"\x12ListEntriesRequest\x12\x19\n" +
 	"\bscope_id\x18\x01 \x01(\tR\ascopeId\x12\x1b\n" +
 	"\tlocale_id\x18\x02 \x01(\tR\blocaleId\x12>\n" +
@@ -1155,12 +1193,16 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\x06filter\x18\x04 \x01(\v2\x1a.parlance.v1.FilterRequestR\x06filter\x12-\n" +
 	"\x12translation_status\x18\x05 \x01(\tR\x11translationStatus\x12*\n" +
 	"\x11target_locale_ids\x18\x06 \x03(\tR\x0ftargetLocaleIds\x12\x1b\n" +
-	"\tscope_ids\x18\a \x03(\tR\bscopeIds\"\x84\x01\n" +
+	"\tscope_ids\x18\a \x03(\tR\bscopeIds\x12\x16\n" +
+	"\x06cursor\x18\b \x01(\tR\x06cursor\x12\x18\n" +
+	"\asummary\x18\t \x01(\bR\asummary\"\xa5\x01\n" +
 	"\x13ListEntriesResponse\x12,\n" +
 	"\aentries\x18\x01 \x03(\v2\x12.parlance.v1.EntryR\aentries\x12?\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1f.parlance.v1.PaginationResponseR\n" +
-	"pagination\"!\n" +
+	"pagination\x12\x1f\n" +
+	"\vnext_cursor\x18\x03 \x01(\tR\n" +
+	"nextCursor\"!\n" +
 	"\x0fGetEntryRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"<\n" +
 	"\x10GetEntryResponse\x12(\n" +
