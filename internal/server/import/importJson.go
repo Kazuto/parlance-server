@@ -2,7 +2,6 @@ package importservice
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"connectrpc.com/connect"
@@ -22,8 +21,8 @@ func (s *Server) ImportJson(
 	}
 
 	// Parse JSON content from uploaded file
-	var translations map[string]string
-	if err := json.Unmarshal(req.Msg.FileContent, &translations); err != nil {
+	translations, err := parseJSONTranslations(req.Msg.FileContent)
+	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid JSON format: %w", err))
 	}
 
