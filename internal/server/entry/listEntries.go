@@ -18,6 +18,9 @@ func (s *Server) ListEntries(
 	ctx context.Context,
 	req *connect.Request[pb.ListEntriesRequest],
 ) (*connect.Response[pb.ListEntriesResponse], error) {
+	if req.Msg.TranslationStatus != "" && req.Msg.TranslationStatus != "missing" && req.Msg.TranslationStatus != "complete" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid translation status"))
+	}
 	page, perPage := converter.GetPaginationParams(req.Msg.Pagination)
 
 	var entries []models.Entry
@@ -39,16 +42,22 @@ func (s *Server) ListEntries(
 		return nil, err
 	}
 
-	// Filter by scope if provided
+	// Filter by scopes if provided; an entry matches when it is in any of them.
+	scopeIDs := req.Msg.ScopeIds
 	if req.Msg.ScopeId != "" {
-		query = query.Joins("JOIN entry_scopes ON entry_scopes.entry_id = entries.id").
-			Where("entry_scopes.scope_id = ?", req.Msg.ScopeId)
+		scopeIDs = append(scopeIDs, req.Msg.ScopeId)
+	}
+	if len(scopeIDs) > 0 {
+		query = filterScopes(query, scopeIDs)
 	}
 
 	// Filter by locale if provided
 	if req.Msg.LocaleId != "" {
 		query = query.Joins("JOIN localizations ON localizations.entry_id = entries.id").
 			Where("localizations.locale_id = ?", req.Msg.LocaleId)
+	}
+	if req.Msg.TranslationStatus != "" {
+		query = filterTranslationStatus(query, req.Msg.TranslationStatus, req.Msg.TargetLocaleIds)
 	}
 
 	if err := query.Count(&total).Error; err != nil {
@@ -64,4 +73,23 @@ func (s *Server) ListEntries(
 		Entries:    converter.EntriesToProto(entries, "en"),
 		Pagination: converter.PaginationToProto(total, page, perPage),
 	}), nil
+}
+
+// filterScopes keeps entries in any of the given scopes. A subquery instead of a
+// join keeps entries that belong to several selected scopes from repeating.
+func filterScopes(query *gorm.DB, scopeIDs []string) *gorm.DB {
+	return query.Where("entries.id IN (SELECT entry_id FROM entry_scopes WHERE scope_id IN ?)", scopeIDs)
+}
+
+func filterTranslationStatus(query *gorm.DB, status string, localeIDs []string) *gorm.DB {
+	// Start a separate statement so the correlated subquery doesn't inherit entry filters.
+	targets := query.Session(&gorm.Session{NewDB: true}).Model(&models.Locale{}).Select("1")
+	if len(localeIDs) > 0 {
+		targets = targets.Where("locales.id IN ?", localeIDs)
+	}
+	targets = targets.Where("NOT EXISTS (SELECT 1 FROM localizations WHERE localizations.entry_id = entries.id AND localizations.locale_id = locales.id AND localizations.deleted_at IS NULL AND TRIM(localizations.translation) <> '')")
+	if status == "missing" {
+		return query.Where("EXISTS (?)", targets)
+	}
+	return query.Where("NOT EXISTS (?)", targets)
 }

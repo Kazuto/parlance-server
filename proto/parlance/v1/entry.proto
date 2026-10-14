@@ -4,6 +4,7 @@ package parlance.v1;
 import "parlance/v1/common.proto";
 import "parlance/v1/scope.proto";
 import "parlance/v1/localization.proto";
+import "parlance/v1/user.proto";
 
 option go_package = "parlance/v1;parlance";
 
@@ -36,6 +37,11 @@ message ListEntriesRequest {
   string locale_id = 2;
   PaginationRequest pagination = 3;
   FilterRequest filter = 4;
+  // "", "missing", or "complete" for the selected locales (all active locales if empty).
+  string translation_status = 5;
+  repeated string target_locale_ids = 6;
+  // Entries in any of these scopes; combined with scope_id when both are set.
+  repeated string scope_ids = 7;
 }
 
 message ListEntriesResponse {
@@ -65,6 +71,12 @@ message UpdateEntryRequest {
   string id = 1;
   optional string description = 2;
   optional string key = 3;
+  // Omit to preserve scopes; an empty selection removes all assignments.
+  EntryScopeSelection scopes = 4;
+}
+
+message EntryScopeSelection {
+  repeated string ids = 1;
 }
 
 message UpdateEntryResponse {
@@ -115,4 +127,5 @@ message LocalizationHistory {
   string translation = 6;
   string action = 7;  // "created", "updated", "deleted"
   string changed_at = 8;
+  User user = 9;
 }

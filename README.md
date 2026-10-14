@@ -130,6 +130,29 @@ make proto-lint
 
 ## Usage
 
+### Entry scopes and translation filters
+
+Create entries with `scopeIds`. To replace an entry's scope assignments on update,
+send `scopes: { "ids": ["scope-id"] }`; send `scopes: { "ids": [] }` to remove
+all assignments, or omit `scopes` to preserve them. Scope IDs are validated and
+entry/scope changes are persisted in one transaction.
+
+`ListEntries` accepts `scopeId`, `translationStatus` (`missing` or `complete`),
+and `targetLocaleIds`. Status is evaluated before pagination against active,
+non-empty saved translations. Missing means at least one target language lacks a
+translation; complete means none do. An empty target list checks all active
+locales. Omit `translationStatus` to include entries regardless of status.
+
+### JSON translation import
+
+`ImportService/ImportJson` accepts both flat dotted keys and nested JSON objects.
+For example, `{"entries": {"create": "Create Entry"}}` is flattened into
+`{"entries.create": "Create Entry"}` before applying the selected import mode.
+Mixed flat/nested files are supported. Leaves must be strings (including empty
+strings); arrays, numbers, booleans, null values, empty keys, duplicate keys, and
+flattened-key collisions are rejected before any database changes. JSON export
+continues to produce flat key/value pairs.
+
 ### Gettext PO import/export
 
 The backend supports singular, key-based UTF-8 `.po` files through the protected
