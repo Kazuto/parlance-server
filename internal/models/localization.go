@@ -42,11 +42,15 @@ func (l *Localization) AfterDelete(tx *gorm.DB) error {
 }
 
 func recordLocalizationHistory(tx *gorm.DB, l *Localization, action string) error {
+	userID := l.UpdatedBy
+	if action == "created" {
+		userID = l.CreatedBy
+	}
 	history := LocalizationHistory{
 		LocalizationID: l.ID,
 		LocaleID:       l.LocaleID,
 		EntryID:        l.EntryID,
-		UserID:         l.UpdatedBy,
+		UserID:         userID,
 		Translation:    l.Translation,
 		Action:         action,
 		ChangedAt:      time.Now(),

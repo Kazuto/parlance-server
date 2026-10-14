@@ -7,6 +7,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/models"
+	"gorm.io/gorm"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -32,18 +33,20 @@ func (s *Server) CreateEntry(
 		entry.CreatedBy = &userID
 	}
 
-	if err := s.db.Create(entry).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create entry: %w", err))
+	scopes, err := resolveScopes(s.db.WithContext(ctx), req.Msg.ScopeIds)
+	if err != nil {
+		return nil, err
 	}
-
-	// Associate scopes if provided
-	if len(req.Msg.ScopeIds) > 0 {
-		var scopes []models.Scope
-		if err := s.db.Where("id IN ?", req.Msg.ScopeIds).Find(&scopes).Error; err == nil {
-			if len(scopes) > 0 {
-				s.db.Model(entry).Association("Scopes").Append(&scopes)
-			}
+	if err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(entry).Error; err != nil {
+			return err
 		}
+		if len(scopes) > 0 {
+			return tx.Model(entry).Association("Scopes").Append(scopes)
+		}
+		return nil
+	}); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create entry: %w", err))
 	}
 
 	// Load relationships for response

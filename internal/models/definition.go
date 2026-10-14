@@ -42,11 +42,15 @@ func (d *Definition) AfterDelete(tx *gorm.DB) error {
 }
 
 func recordDefinitionHistory(tx *gorm.DB, d *Definition, action string) error {
+	userID := d.UpdatedBy
+	if action == "created" {
+		userID = d.CreatedBy
+	}
 	history := DefinitionHistory{
 		DefinitionID:  d.ID,
 		LocaleID:      d.LocaleID,
 		TerminologyID: d.TerminologyID,
-		UserID:        d.UpdatedBy,
+		UserID:        userID,
 		Translation:   d.Translation,
 		Action:        action,
 		ChangedAt:     time.Now(),

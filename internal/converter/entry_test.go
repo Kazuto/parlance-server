@@ -119,6 +119,23 @@ func TestEntryToProto(t *testing.T) {
 	}
 }
 
+func TestLocalizationHistoryIncludesUser(t *testing.T) {
+	userID := "user-123"
+	history := &models.LocalizationHistory{
+		UserID: &userID,
+		User:   &models.User{ID: userID, Name: "Translator", Email: "translator@example.com"},
+	}
+	result := LocalizationHistoryToProto(history)
+	if result.User == nil || result.User.Id != userID || result.User.Name != "Translator" {
+		t.Fatalf("expected history author, got %+v", result.User)
+	}
+	history.User = nil
+	result = LocalizationHistoryToProto(history)
+	if result.User != nil || result.UserId != userID {
+		t.Fatal("missing user relationship must preserve user ID")
+	}
+}
+
 func TestLocalizationToProto(t *testing.T) {
 	now := time.Now()
 	userID := "user-123"

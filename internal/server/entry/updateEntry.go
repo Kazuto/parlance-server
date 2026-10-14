@@ -10,6 +10,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/models"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"gorm.io/gorm"
 )
 
 // UpdateEntry updates an existing entry
@@ -50,7 +51,23 @@ func (s *Server) UpdateEntry(
 		entry.Description = req.Msg.GetDescription()
 	}
 
-	if err := s.db.Save(&entry).Error; err != nil {
+	var scopes []models.Scope
+	if req.Msg.Scopes != nil {
+		var err error
+		scopes, err = resolveScopes(s.db.WithContext(ctx), req.Msg.Scopes.Ids)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(&entry).Error; err != nil {
+			return err
+		}
+		if req.Msg.Scopes != nil {
+			return tx.Model(&entry).Association("Scopes").Replace(scopes)
+		}
+		return nil
+	}); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update entry: %w", err))
 	}
 

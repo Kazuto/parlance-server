@@ -26,6 +26,7 @@ func (s *Server) GetEntryHistory(
 	var total int64
 
 	query := s.db.Model(&models.LocalizationHistory{}).
+		Preload("User").
 		Where("entry_id = ?", req.Msg.EntryId)
 
 	if err := query.Count(&total).Error; err != nil {
