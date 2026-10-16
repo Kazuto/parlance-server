@@ -28,11 +28,8 @@ func (s *Server) ExportJson(
 	// Build query for entries
 	query := s.db.Model(&models.Entry{}).Preload("Localizations", "locale_id = ?", locale.ID)
 
-	// Filter by scope if provided
-	if req.Msg.ScopeId != "" {
-		query = query.Joins("JOIN entry_scopes ON entry_scopes.entry_id = entries.id").
-			Where("entry_scopes.scope_id = ?", req.Msg.ScopeId)
-	}
+	scopeIDs := requestedScopeIDs(req.Msg.ScopeId, req.Msg.ScopeIds)
+	query = filterByScopes(s.db.WithContext(ctx), query, scopeIDs)
 
 	var entries []models.Entry
 	if err := query.Find(&entries).Error; err != nil {
@@ -57,13 +54,7 @@ func (s *Server) ExportJson(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to marshal JSON: %w", err))
 	}
 
-	filename := fmt.Sprintf("%s.json", req.Msg.LocaleCode)
-	if req.Msg.ScopeId != "" {
-		var scope models.Scope
-		if err := s.db.First(&scope, "id = ?", req.Msg.ScopeId).Error; err == nil {
-			filename = fmt.Sprintf("%s_%s.json", scope.Name, req.Msg.LocaleCode)
-		}
-	}
+	filename := exportFilename(s.db.WithContext(ctx), scopeIDs, req.Msg.LocaleCode, "json")
 
 	return connect.NewResponse(&pb.ExportJsonResponse{
 		Format:   "json",

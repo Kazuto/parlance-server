@@ -19,9 +19,8 @@ func (s *Server) ExportPo(ctx context.Context, req *connect.Request[pb.ExportPoR
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("locale not found"))
 	}
 	query := s.db.WithContext(ctx).Model(&models.Entry{}).Preload("Localizations", "locale_id = ?", locale.ID)
-	if req.Msg.ScopeId != "" {
-		query = query.Joins("JOIN entry_scopes ON entry_scopes.entry_id = entries.id").Where("entry_scopes.scope_id = ?", req.Msg.ScopeId)
-	}
+	scopeIDs := requestedScopeIDs(req.Msg.ScopeId, req.Msg.ScopeIds)
+	query = filterByScopes(s.db.WithContext(ctx), query, scopeIDs)
 	var entries []models.Entry
 	if err := query.Find(&entries).Error; err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to query entries: %w", err))
@@ -37,13 +36,7 @@ func (s *Server) ExportPo(ctx context.Context, req *connect.Request[pb.ExportPoR
 		}
 		messages = append(messages, message)
 	}
-	filename := locale.Code + ".po"
-	if req.Msg.ScopeId != "" {
-		var scope models.Scope
-		if err := s.db.WithContext(ctx).First(&scope, "id = ?", req.Msg.ScopeId).Error; err == nil {
-			filename = fmt.Sprintf("%s_%s.po", scope.Name, locale.Code)
-		}
-	}
+	filename := exportFilename(s.db.WithContext(ctx), scopeIDs, locale.Code, "po")
 	return connect.NewResponse(&pb.ExportPoResponse{
 		Format: "po", Content: gettext.Marshal(locale.Code, messages), Filename: filename,
 	}), nil

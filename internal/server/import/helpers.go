@@ -57,7 +57,7 @@ func (s *Server) processImport(
 
 	// Process each translation
 	for key, value := range translations {
-		if err := s.processTranslation(ctx, key, value, localeID, scopeIDs, userID, mode, result); err != nil {
+		if err := s.processTranslation(ctx, key, value, localeID, scopes, userID, mode, result); err != nil {
 			result.EntriesFailed++
 			result.Errors = append(result.Errors, &pb.ImportError{
 				Key:     key,
@@ -75,7 +75,7 @@ func (s *Server) processTranslation(
 	key string,
 	value string,
 	localeID string,
-	scopeIDs []string,
+	scopes []models.Scope,
 	userID string,
 	mode pb.ImportMode,
 	result *pb.ImportResult,
@@ -107,12 +107,12 @@ func (s *Server) processTranslation(
 		if err := s.db.Create(&entry).Error; err != nil {
 			return fmt.Errorf("failed to create entry: %w", err)
 		}
+	}
 
-		// Associate with scopes
-		if len(scopeIDs) > 0 {
-			var scopes []models.Scope
-			s.db.Where("id IN ?", scopeIDs).Find(&scopes)
-			s.db.Model(&entry).Association("Scopes").Append(&scopes)
+	// Add the selected scopes to new and existing entries alike; scopes an entry already has are kept.
+	if len(scopes) > 0 {
+		if err := s.db.Model(&entry).Association("Scopes").Append(&scopes); err != nil {
+			return fmt.Errorf("failed to assign scopes: %w", err)
 		}
 	}
 
