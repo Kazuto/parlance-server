@@ -1,6 +1,11 @@
 package export
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/kazuto/parlance-server/internal/models"
+	"gorm.io/gorm"
+)
 
 // setNestedKey sets a value in a nested map using dot notation
 // e.g., "user.profile.name" -> {"user": {"profile": {"name": value}}}
@@ -34,4 +39,40 @@ func setNestedKey(m map[string]interface{}, key string, value string) {
 
 	// Set the final value
 	current[parts[len(parts)-1]] = value
+}
+
+// requestedScopeIDs merges the deprecated single scope_id with scope_ids, dropping blanks and duplicates.
+func requestedScopeIDs(scopeID string, scopeIDs []string) []string {
+	seen := make(map[string]bool)
+	ids := make([]string, 0, len(scopeIDs)+1)
+	for _, id := range append([]string{scopeID}, scopeIDs...) {
+		if id != "" && !seen[id] {
+			seen[id] = true
+			ids = append(ids, id)
+		}
+	}
+	return ids
+}
+
+// filterByScopes limits entries to those in any of the scopes. A subquery
+// keeps entries in several matching scopes from being returned twice.
+func filterByScopes(db *gorm.DB, query *gorm.DB, scopeIDs []string) *gorm.DB {
+	if len(scopeIDs) == 0 {
+		return query
+	}
+	return query.Where("entries.id IN (?)",
+		db.Table("entry_scopes").Select("entry_id").Where("scope_id IN ?", scopeIDs))
+}
+
+// exportFilename prefixes the locale with the sorted scope names, e.g. "backend-shared_de.json".
+func exportFilename(db *gorm.DB, scopeIDs []string, localeCode, extension string) string {
+	filename := localeCode + "." + extension
+	if len(scopeIDs) == 0 {
+		return filename
+	}
+	var names []string
+	if err := db.Model(&models.Scope{}).Where("id IN ?", scopeIDs).Order("name").Pluck("name", &names).Error; err != nil || len(names) == 0 {
+		return filename
+	}
+	return strings.Join(names, "-") + "_" + filename
 }

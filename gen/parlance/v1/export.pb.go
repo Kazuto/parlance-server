@@ -22,9 +22,11 @@ const (
 )
 
 type ExportPhpRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	LocaleCode    string                 `protobuf:"bytes,1,opt,name=locale_code,json=localeCode,proto3" json:"locale_code,omitempty"`
-	ScopeId       string                 `protobuf:"bytes,2,opt,name=scope_id,json=scopeId,proto3" json:"scope_id,omitempty"`
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	LocaleCode string                 `protobuf:"bytes,1,opt,name=locale_code,json=localeCode,proto3" json:"locale_code,omitempty"`
+	// Deprecated: Marked as deprecated in parlance/v1/export.proto.
+	ScopeId       string   `protobuf:"bytes,2,opt,name=scope_id,json=scopeId,proto3" json:"scope_id,omitempty"`    // Use scope_ids
+	ScopeIds      []string `protobuf:"bytes,3,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"` // Export entries in any of these scopes; empty exports all
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -66,11 +68,19 @@ func (x *ExportPhpRequest) GetLocaleCode() string {
 	return ""
 }
 
+// Deprecated: Marked as deprecated in parlance/v1/export.proto.
 func (x *ExportPhpRequest) GetScopeId() string {
 	if x != nil {
 		return x.ScopeId
 	}
 	return ""
+}
+
+func (x *ExportPhpRequest) GetScopeIds() []string {
+	if x != nil {
+		return x.ScopeIds
+	}
+	return nil
 }
 
 type ExportPhpResponse struct {
@@ -134,9 +144,11 @@ func (x *ExportPhpResponse) GetFilename() string {
 }
 
 type ExportJsonRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	LocaleCode    string                 `protobuf:"bytes,1,opt,name=locale_code,json=localeCode,proto3" json:"locale_code,omitempty"`
-	ScopeId       string                 `protobuf:"bytes,2,opt,name=scope_id,json=scopeId,proto3" json:"scope_id,omitempty"`
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	LocaleCode string                 `protobuf:"bytes,1,opt,name=locale_code,json=localeCode,proto3" json:"locale_code,omitempty"`
+	// Deprecated: Marked as deprecated in parlance/v1/export.proto.
+	ScopeId       string   `protobuf:"bytes,2,opt,name=scope_id,json=scopeId,proto3" json:"scope_id,omitempty"`    // Use scope_ids
+	ScopeIds      []string `protobuf:"bytes,3,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"` // Export entries in any of these scopes; empty exports all
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -178,11 +190,19 @@ func (x *ExportJsonRequest) GetLocaleCode() string {
 	return ""
 }
 
+// Deprecated: Marked as deprecated in parlance/v1/export.proto.
 func (x *ExportJsonRequest) GetScopeId() string {
 	if x != nil {
 		return x.ScopeId
 	}
 	return ""
+}
+
+func (x *ExportJsonRequest) GetScopeIds() []string {
+	if x != nil {
+		return x.ScopeIds
+	}
+	return nil
 }
 
 type ExportJsonResponse struct {
@@ -247,9 +267,11 @@ func (x *ExportJsonResponse) GetFilename() string {
 
 // UTF-8, singular key-based gettext PO export. msgid is the entry key.
 type ExportPoRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	LocaleCode    string                 `protobuf:"bytes,1,opt,name=locale_code,json=localeCode,proto3" json:"locale_code,omitempty"`
-	ScopeId       string                 `protobuf:"bytes,2,opt,name=scope_id,json=scopeId,proto3" json:"scope_id,omitempty"`
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	LocaleCode string                 `protobuf:"bytes,1,opt,name=locale_code,json=localeCode,proto3" json:"locale_code,omitempty"`
+	// Deprecated: Marked as deprecated in parlance/v1/export.proto.
+	ScopeId       string   `protobuf:"bytes,2,opt,name=scope_id,json=scopeId,proto3" json:"scope_id,omitempty"`    // Use scope_ids
+	ScopeIds      []string `protobuf:"bytes,3,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"` // Export entries in any of these scopes; empty exports all
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -291,11 +313,19 @@ func (x *ExportPoRequest) GetLocaleCode() string {
 	return ""
 }
 
+// Deprecated: Marked as deprecated in parlance/v1/export.proto.
 func (x *ExportPoRequest) GetScopeId() string {
 	if x != nil {
 		return x.ScopeId
 	}
 	return ""
+}
+
+func (x *ExportPoRequest) GetScopeIds() []string {
+	if x != nil {
+		return x.ScopeIds
+	}
+	return nil
 }
 
 type ExportPoResponse struct {
@@ -362,27 +392,30 @@ var File_parlance_v1_export_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_export_proto_rawDesc = "" +
 	"\n" +
-	"\x18parlance/v1/export.proto\x12\vparlance.v1\"N\n" +
+	"\x18parlance/v1/export.proto\x12\vparlance.v1\"o\n" +
 	"\x10ExportPhpRequest\x12\x1f\n" +
 	"\vlocale_code\x18\x01 \x01(\tR\n" +
-	"localeCode\x12\x19\n" +
-	"\bscope_id\x18\x02 \x01(\tR\ascopeId\"a\n" +
+	"localeCode\x12\x1d\n" +
+	"\bscope_id\x18\x02 \x01(\tB\x02\x18\x01R\ascopeId\x12\x1b\n" +
+	"\tscope_ids\x18\x03 \x03(\tR\bscopeIds\"a\n" +
 	"\x11ExportPhpResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1a\n" +
-	"\bfilename\x18\x03 \x01(\tR\bfilename\"O\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\"p\n" +
 	"\x11ExportJsonRequest\x12\x1f\n" +
 	"\vlocale_code\x18\x01 \x01(\tR\n" +
-	"localeCode\x12\x19\n" +
-	"\bscope_id\x18\x02 \x01(\tR\ascopeId\"b\n" +
+	"localeCode\x12\x1d\n" +
+	"\bscope_id\x18\x02 \x01(\tB\x02\x18\x01R\ascopeId\x12\x1b\n" +
+	"\tscope_ids\x18\x03 \x03(\tR\bscopeIds\"b\n" +
 	"\x12ExportJsonResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1a\n" +
-	"\bfilename\x18\x03 \x01(\tR\bfilename\"M\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\"n\n" +
 	"\x0fExportPoRequest\x12\x1f\n" +
 	"\vlocale_code\x18\x01 \x01(\tR\n" +
-	"localeCode\x12\x19\n" +
-	"\bscope_id\x18\x02 \x01(\tR\ascopeId\"`\n" +
+	"localeCode\x12\x1d\n" +
+	"\bscope_id\x18\x02 \x01(\tB\x02\x18\x01R\ascopeId\x12\x1b\n" +
+	"\tscope_ids\x18\x03 \x03(\tR\bscopeIds\"`\n" +
 	"\x10ExportPoResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1a\n" +
