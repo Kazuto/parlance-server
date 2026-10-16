@@ -30,7 +30,7 @@ func (s *Server) ListScopes(
 		AllowedSorts(allowedSorts).
 		DefaultSort("name ASC").
 		Search(func(query *gorm.DB, search string) *gorm.DB {
-			return query.Where("name LIKE ?", "%"+search+"%").Where("slug LIKE ?", "%"+search+"%")
+			return query.Where("name ILIKE ? OR slug ILIKE ?", "%"+search+"%", "%"+search+"%")
 		}).
 		Apply()
 	if err != nil {

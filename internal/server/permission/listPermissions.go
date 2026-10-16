@@ -25,20 +25,21 @@ func (s *Server) ListPermissions(
 
 	query := s.db.Model(&models.Permission{})
 
-	if err := query.Count(&total).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to count Permissions: %w", err))
-	}
-
-	allowedSorts := map[string]bool{"name": true, "slug": true, "created_at": true, "updated_at": true}
+	allowedSorts := map[string]bool{"name": true, "resource": true, "action": true, "created_at": true, "updated_at": true}
 	query, err := common.NewFilter(query, req.Msg.Filter).
 		AllowedSorts(allowedSorts).
 		DefaultSort("name ASC").
 		Search(func(query *gorm.DB, search string) *gorm.DB {
-			return query.Where("name LIKE ?", "%"+search+"%").Where("resource LIKE ?", "%"+search+"%")
+			return query.Where("name ILIKE ? OR resource ILIKE ?", "%"+search+"%", "%"+search+"%")
 		}).
 		Apply()
 	if err != nil {
 		return nil, err
+	}
+
+	// Count after filtering so the total and page count match the search.
+	if err := query.Count(&total).Error; err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to count Permissions: %w", err))
 	}
 
 	offset := (page - 1) * perPage

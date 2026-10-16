@@ -33,12 +33,12 @@ func (s *Server) ListTerminologies(
 
 	query := s.db.Model(&models.Terminology{})
 
-	allowedSorts := map[string]bool{"name": true, "slug": true, "created_at": true, "updated_at": true}
+	allowedSorts := map[string]bool{"term": true, "created_at": true, "updated_at": true}
 	query, err := common.NewFilter(query, req.Msg.Filter).
 		AllowedSorts(allowedSorts).
 		DefaultSort("term ASC").
 		Search(func(query *gorm.DB, search string) *gorm.DB {
-			return query.Where("name LIKE ?", "%"+search+"%").Where("slug LIKE ?", "%"+search+"%")
+			return query.Where("term ILIKE ? OR description ILIKE ?", "%"+search+"%", "%"+search+"%")
 		}).
 		Apply()
 	if err != nil {
