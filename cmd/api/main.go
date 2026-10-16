@@ -21,6 +21,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/config"
 	"github.com/kazuto/parlance-server/internal/database"
 	"github.com/kazuto/parlance-server/internal/middleware"
+	"github.com/kazuto/parlance-server/internal/server/activity"
 	"github.com/kazuto/parlance-server/internal/server/auth"
 	"github.com/kazuto/parlance-server/internal/server/definition"
 	"github.com/kazuto/parlance-server/internal/server/entry"
@@ -101,6 +102,12 @@ func main() {
 	mux.Handle(entryPath, middleware.RequireAuth(cfg.JWT.Secret)(entryHandler))
 
 	log.Println("✓ Registered EntryService (protected)")
+
+	activityServer := activity.NewServer(db)
+	activityPath, activityHandler := parlancev1connect.NewActivityServiceHandler(activityServer)
+	mux.Handle(activityPath, middleware.RequireAuth(cfg.JWT.Secret)(activityHandler))
+
+	log.Println("✓ Registered ActivityService (protected)")
 
 	localizationServer := localization.NewServer(db, cfg)
 	localizationPath, localizationHandler := parlancev1connect.NewLocalizationServiceHandler(localizationServer)

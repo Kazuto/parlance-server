@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package parlance.v1;
+
+option go_package = "parlance/v1;parlance";
+
+// Recent translation and glossary changes across all entries, for the dashboard.
+service ActivityService {
+  rpc ListRecentActivity(ListRecentActivityRequest) returns (ListRecentActivityResponse);
+}
+
+message ListRecentActivityRequest {
+  int32 limit = 1;     // Number of activity items; defaults to 10, at most 50
+  bool only_mine = 2;  // Only changes made by the signed-in user
+}
+
+message ListRecentActivityResponse {
+  repeated ActivityItem items = 1;
+}
+
+enum ActivityKind {
+  ACTIVITY_KIND_UNSPECIFIED = 0;
+  ACTIVITY_KIND_TRANSLATION = 1;  // An entry's translation (localization)
+  ACTIVITY_KIND_DEFINITION = 2;   // A terminology's definition
+}
+
+// Consecutive changes of the same kind by the same user, a few minutes apart at most, are
+// grouped into one item so imports and "save all" don't flood the feed.
+message ActivityItem {
+  string id = 1;  // Id of the newest change in the group
+  ActivityKind kind = 2;
+  int32 created_count = 3;
+  int32 updated_count = 4;
+  int32 deleted_count = 5;
+  int32 subject_count = 6;   // Distinct entries or terminologies changed
+  string subject_id = 7;     // Entry or terminology id when subject_count is 1
+  string subject_label = 8;  // Entry key or term when subject_count is 1
+  string locale_id = 9;      // Set when locale_count is 1
+  string locale_code = 10;   // Set when locale_count is 1
+  string locale_name = 11;   // Set when locale_count is 1
+  string user_id = 12;       // Empty for changes without a user, e.g. system jobs
+  string user_name = 13;
+  string started_at = 14;    // Oldest change in the group (RFC 3339)
+  string changed_at = 15;    // Newest change in the group (RFC 3339)
+  int32 locale_count = 16;   // Distinct locales changed
+  // The group reaches past the scanned history, so its counts are a lower bound.
+  bool partial = 17;
+}
