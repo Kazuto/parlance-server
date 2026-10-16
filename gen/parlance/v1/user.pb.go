@@ -327,7 +327,7 @@ type CreateUserRequest struct {
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	Locale        string                 `protobuf:"bytes,4,opt,name=locale,proto3" json:"locale,omitempty"`
-	RoleIds       []string               `protobuf:"bytes,5,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
+	Roles         *IdSelection           `protobuf:"bytes,6,opt,name=roles,proto3" json:"roles,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -390,9 +390,9 @@ func (x *CreateUserRequest) GetLocale() string {
 	return ""
 }
 
-func (x *CreateUserRequest) GetRoleIds() []string {
+func (x *CreateUserRequest) GetRoles() *IdSelection {
 	if x != nil {
-		return x.RoleIds
+		return x.Roles
 	}
 	return nil
 }
@@ -444,13 +444,13 @@ func (x *CreateUserResponse) GetUser() *User {
 type UpdateUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Password      string                 `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"`
-	RoleIds       []string               `protobuf:"bytes,5,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
-	Locale        string                 `protobuf:"bytes,6,opt,name=locale,proto3" json:"locale,omitempty"`
-	Avatar        []byte                 `protobuf:"bytes,7,opt,name=avatar,proto3" json:"avatar,omitempty"`
-	AvatarMime    string                 `protobuf:"bytes,8,opt,name=avatar_mime,json=avatarMime,proto3" json:"avatar_mime,omitempty"`
+	Email         *string                `protobuf:"bytes,2,opt,name=email,proto3,oneof" json:"email,omitempty"`
+	Name          *string                `protobuf:"bytes,3,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	Password      *string                `protobuf:"bytes,4,opt,name=password,proto3,oneof" json:"password,omitempty"`
+	Locale        *string                `protobuf:"bytes,6,opt,name=locale,proto3,oneof" json:"locale,omitempty"`
+	Avatar        []byte                 `protobuf:"bytes,7,opt,name=avatar,proto3,oneof" json:"avatar,omitempty"` // Send empty to remove the avatar
+	AvatarMime    *string                `protobuf:"bytes,8,opt,name=avatar_mime,json=avatarMime,proto3,oneof" json:"avatar_mime,omitempty"`
+	Roles         *IdSelection           `protobuf:"bytes,9,opt,name=roles,proto3" json:"roles,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -493,36 +493,29 @@ func (x *UpdateUserRequest) GetId() string {
 }
 
 func (x *UpdateUserRequest) GetEmail() string {
-	if x != nil {
-		return x.Email
+	if x != nil && x.Email != nil {
+		return *x.Email
 	}
 	return ""
 }
 
 func (x *UpdateUserRequest) GetName() string {
-	if x != nil {
-		return x.Name
+	if x != nil && x.Name != nil {
+		return *x.Name
 	}
 	return ""
 }
 
 func (x *UpdateUserRequest) GetPassword() string {
-	if x != nil {
-		return x.Password
+	if x != nil && x.Password != nil {
+		return *x.Password
 	}
 	return ""
 }
 
-func (x *UpdateUserRequest) GetRoleIds() []string {
-	if x != nil {
-		return x.RoleIds
-	}
-	return nil
-}
-
 func (x *UpdateUserRequest) GetLocale() string {
-	if x != nil {
-		return x.Locale
+	if x != nil && x.Locale != nil {
+		return *x.Locale
 	}
 	return ""
 }
@@ -535,10 +528,17 @@ func (x *UpdateUserRequest) GetAvatar() []byte {
 }
 
 func (x *UpdateUserRequest) GetAvatarMime() string {
-	if x != nil {
-		return x.AvatarMime
+	if x != nil && x.AvatarMime != nil {
+		return *x.AvatarMime
 	}
 	return ""
+}
+
+func (x *UpdateUserRequest) GetRoles() *IdSelection {
+	if x != nil {
+		return x.Roles
+	}
+	return nil
 }
 
 type UpdateUserResponse struct {
@@ -880,25 +880,31 @@ const file_parlance_v1_user_proto_rawDesc = "" +
 	"\x0eGetUserRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"8\n" +
 	"\x0fGetUserResponse\x12%\n" +
-	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"\x8c\x01\n" +
+	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"\xb1\x01\n" +
 	"\x11CreateUserRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x16\n" +
-	"\x06locale\x18\x04 \x01(\tR\x06locale\x12\x19\n" +
-	"\brole_ids\x18\x05 \x03(\tR\aroleIds\";\n" +
+	"\x06locale\x18\x04 \x01(\tR\x06locale\x12.\n" +
+	"\x05roles\x18\x06 \x01(\v2\x18.parlance.v1.IdSelectionR\x05rolesJ\x04\b\x05\x10\x06R\brole_ids\";\n" +
 	"\x12CreateUserResponse\x12%\n" +
-	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"\xd5\x01\n" +
+	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"\xde\x02\n" +
 	"\x11UpdateUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
-	"\x05email\x18\x02 \x01(\tR\x05email\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1a\n" +
-	"\bpassword\x18\x04 \x01(\tR\bpassword\x12\x19\n" +
-	"\brole_ids\x18\x05 \x03(\tR\aroleIds\x12\x16\n" +
-	"\x06locale\x18\x06 \x01(\tR\x06locale\x12\x16\n" +
-	"\x06avatar\x18\a \x01(\fR\x06avatar\x12\x1f\n" +
-	"\vavatar_mime\x18\b \x01(\tR\n" +
-	"avatarMime\";\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\x05email\x18\x02 \x01(\tH\x00R\x05email\x88\x01\x01\x12\x17\n" +
+	"\x04name\x18\x03 \x01(\tH\x01R\x04name\x88\x01\x01\x12\x1f\n" +
+	"\bpassword\x18\x04 \x01(\tH\x02R\bpassword\x88\x01\x01\x12\x1b\n" +
+	"\x06locale\x18\x06 \x01(\tH\x03R\x06locale\x88\x01\x01\x12\x1b\n" +
+	"\x06avatar\x18\a \x01(\fH\x04R\x06avatar\x88\x01\x01\x12$\n" +
+	"\vavatar_mime\x18\b \x01(\tH\x05R\n" +
+	"avatarMime\x88\x01\x01\x12.\n" +
+	"\x05roles\x18\t \x01(\v2\x18.parlance.v1.IdSelectionR\x05rolesB\b\n" +
+	"\x06_emailB\a\n" +
+	"\x05_nameB\v\n" +
+	"\t_passwordB\t\n" +
+	"\a_localeB\t\n" +
+	"\a_avatarB\x0e\n" +
+	"\f_avatar_mimeJ\x04\b\x05\x10\x06R\brole_ids\";\n" +
 	"\x12UpdateUserResponse\x12%\n" +
 	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"#\n" +
 	"\x11DeleteUserRequest\x12\x0e\n" +
@@ -960,6 +966,7 @@ var file_parlance_v1_user_proto_goTypes = []any{
 	(*PaginationRequest)(nil),   // 16: parlance.v1.PaginationRequest
 	(*FilterRequest)(nil),       // 17: parlance.v1.FilterRequest
 	(*PaginationResponse)(nil),  // 18: parlance.v1.PaginationResponse
+	(*IdSelection)(nil),         // 19: parlance.v1.IdSelection
 }
 var file_parlance_v1_user_proto_depIdxs = []int32{
 	15, // 0: parlance.v1.User.roles:type_name -> parlance.v1.Role
@@ -968,29 +975,31 @@ var file_parlance_v1_user_proto_depIdxs = []int32{
 	0,  // 3: parlance.v1.ListUsersResponse.users:type_name -> parlance.v1.User
 	18, // 4: parlance.v1.ListUsersResponse.pagination:type_name -> parlance.v1.PaginationResponse
 	0,  // 5: parlance.v1.GetUserResponse.user:type_name -> parlance.v1.User
-	0,  // 6: parlance.v1.CreateUserResponse.user:type_name -> parlance.v1.User
-	0,  // 7: parlance.v1.UpdateUserResponse.user:type_name -> parlance.v1.User
-	0,  // 8: parlance.v1.RestoreUserResponse.user:type_name -> parlance.v1.User
-	0,  // 9: parlance.v1.AssignRoleResponse.user:type_name -> parlance.v1.User
-	1,  // 10: parlance.v1.UserService.ListUsers:input_type -> parlance.v1.ListUsersRequest
-	3,  // 11: parlance.v1.UserService.GetUser:input_type -> parlance.v1.GetUserRequest
-	5,  // 12: parlance.v1.UserService.CreateUser:input_type -> parlance.v1.CreateUserRequest
-	7,  // 13: parlance.v1.UserService.UpdateUser:input_type -> parlance.v1.UpdateUserRequest
-	9,  // 14: parlance.v1.UserService.DeleteUser:input_type -> parlance.v1.DeleteUserRequest
-	11, // 15: parlance.v1.UserService.RestoreUser:input_type -> parlance.v1.RestoreUserRequest
-	13, // 16: parlance.v1.UserService.AssignRole:input_type -> parlance.v1.AssignRoleRequest
-	2,  // 17: parlance.v1.UserService.ListUsers:output_type -> parlance.v1.ListUsersResponse
-	4,  // 18: parlance.v1.UserService.GetUser:output_type -> parlance.v1.GetUserResponse
-	6,  // 19: parlance.v1.UserService.CreateUser:output_type -> parlance.v1.CreateUserResponse
-	8,  // 20: parlance.v1.UserService.UpdateUser:output_type -> parlance.v1.UpdateUserResponse
-	10, // 21: parlance.v1.UserService.DeleteUser:output_type -> parlance.v1.DeleteUserResponse
-	12, // 22: parlance.v1.UserService.RestoreUser:output_type -> parlance.v1.RestoreUserResponse
-	14, // 23: parlance.v1.UserService.AssignRole:output_type -> parlance.v1.AssignRoleResponse
-	17, // [17:24] is the sub-list for method output_type
-	10, // [10:17] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	19, // 6: parlance.v1.CreateUserRequest.roles:type_name -> parlance.v1.IdSelection
+	0,  // 7: parlance.v1.CreateUserResponse.user:type_name -> parlance.v1.User
+	19, // 8: parlance.v1.UpdateUserRequest.roles:type_name -> parlance.v1.IdSelection
+	0,  // 9: parlance.v1.UpdateUserResponse.user:type_name -> parlance.v1.User
+	0,  // 10: parlance.v1.RestoreUserResponse.user:type_name -> parlance.v1.User
+	0,  // 11: parlance.v1.AssignRoleResponse.user:type_name -> parlance.v1.User
+	1,  // 12: parlance.v1.UserService.ListUsers:input_type -> parlance.v1.ListUsersRequest
+	3,  // 13: parlance.v1.UserService.GetUser:input_type -> parlance.v1.GetUserRequest
+	5,  // 14: parlance.v1.UserService.CreateUser:input_type -> parlance.v1.CreateUserRequest
+	7,  // 15: parlance.v1.UserService.UpdateUser:input_type -> parlance.v1.UpdateUserRequest
+	9,  // 16: parlance.v1.UserService.DeleteUser:input_type -> parlance.v1.DeleteUserRequest
+	11, // 17: parlance.v1.UserService.RestoreUser:input_type -> parlance.v1.RestoreUserRequest
+	13, // 18: parlance.v1.UserService.AssignRole:input_type -> parlance.v1.AssignRoleRequest
+	2,  // 19: parlance.v1.UserService.ListUsers:output_type -> parlance.v1.ListUsersResponse
+	4,  // 20: parlance.v1.UserService.GetUser:output_type -> parlance.v1.GetUserResponse
+	6,  // 21: parlance.v1.UserService.CreateUser:output_type -> parlance.v1.CreateUserResponse
+	8,  // 22: parlance.v1.UserService.UpdateUser:output_type -> parlance.v1.UpdateUserResponse
+	10, // 23: parlance.v1.UserService.DeleteUser:output_type -> parlance.v1.DeleteUserResponse
+	12, // 24: parlance.v1.UserService.RestoreUser:output_type -> parlance.v1.RestoreUserResponse
+	14, // 25: parlance.v1.UserService.AssignRole:output_type -> parlance.v1.AssignRoleResponse
+	19, // [19:26] is the sub-list for method output_type
+	12, // [12:19] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_user_proto_init() }
@@ -1000,6 +1009,7 @@ func file_parlance_v1_user_proto_init() {
 	}
 	file_parlance_v1_common_proto_init()
 	file_parlance_v1_role_proto_init()
+	file_parlance_v1_user_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

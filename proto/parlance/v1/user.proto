@@ -51,7 +51,9 @@ message CreateUserRequest {
   string password = 2;
   string name = 3;
   string locale = 4;
-  repeated string role_ids = 5;
+  reserved 5;
+  reserved "role_ids";
+  IdSelection roles = 6;
 }
 
 message CreateUserResponse {
@@ -60,13 +62,15 @@ message CreateUserResponse {
 
 message UpdateUserRequest {
   string id = 1;
-  string email = 2;
-  string name = 3;
-  string password = 4;
-  repeated string role_ids = 5;
-  string locale = 6;
-  bytes avatar = 7;
-  string avatar_mime = 8;
+  optional string email = 2;
+  optional string name = 3;
+  optional string password = 4;
+  reserved 5;
+  reserved "role_ids";
+  optional string locale = 6;
+  optional bytes avatar = 7;  // Send empty to remove the avatar
+  optional string avatar_mime = 8;
+  IdSelection roles = 9;
 }
 
 message UpdateUserResponse {

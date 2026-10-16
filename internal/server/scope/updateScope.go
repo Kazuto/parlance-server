@@ -19,26 +19,32 @@ func (s *Server) UpdateScope(
 	if req.Msg.Id == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("scope id is required"))
 	}
+	if req.Msg.Name != nil && req.Msg.GetName() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("scope name is required"))
+	}
+	if req.Msg.Slug != nil && req.Msg.GetSlug() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("scope slug is required"))
+	}
 
 	var scope models.Scope
 	if err := s.db.First(&scope, "id = ?", req.Msg.Id).Error; err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("scope not found"))
 	}
 
-	if req.Msg.Name != "" {
-		scope.Name = req.Msg.Name
+	if req.Msg.Name != nil {
+		scope.Name = req.Msg.GetName()
 	}
 
-	if req.Msg.Slug != "" {
-		scope.Slug = req.Msg.Slug
+	if req.Msg.Slug != nil {
+		scope.Slug = req.Msg.GetSlug()
 	}
 
-	if req.Msg.Description != "" {
-		scope.Description = req.Msg.Description
+	if req.Msg.Description != nil {
+		scope.Description = req.Msg.GetDescription()
 	}
 
-	if req.Msg.Color != "" {
-		scope.Color = req.Msg.Color
+	if req.Msg.Color != nil {
+		scope.Color = req.Msg.GetColor()
 	}
 
 	if err := s.db.Save(&scope).Error; err != nil {

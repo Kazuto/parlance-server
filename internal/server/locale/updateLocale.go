@@ -20,6 +20,12 @@ func (s *Server) UpdateLocale(
 	if req.Msg.Id == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale id is required"))
 	}
+	if req.Msg.Code != nil && req.Msg.GetCode() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale code is required"))
+	}
+	if req.Msg.Names != nil && len(req.Msg.Names.GetValues()) == 0 {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale names are required"))
+	}
 
 	var locale models.Locale
 	if err := s.db.First(&locale, "id = ?", req.Msg.Id).Error; err != nil {
@@ -27,18 +33,18 @@ func (s *Server) UpdateLocale(
 	}
 
 	// If setting as default, unset other defaults
-	if req.Msg.IsDefault && !locale.IsDefault {
+	if req.Msg.GetIsDefault() && !locale.IsDefault {
 		if err := s.db.Model(&models.Locale{}).Where("is_default = ?", true).Update("is_default", false).Error; err != nil {
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update default locale: %w", err))
 		}
 	}
 
-	if req.Msg.Code != "" {
-		locale.Code = req.Msg.Code
+	if req.Msg.Code != nil {
+		locale.Code = req.Msg.GetCode()
 	}
 
-	if len(req.Msg.Names) > 0 {
-		names, err := converter.NamesMapToJSON(req.Msg.Names)
+	if req.Msg.Names != nil {
+		names, err := converter.NamesMapToJSON(req.Msg.Names.GetValues())
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to encode names: %w", err))
 		}
@@ -46,7 +52,9 @@ func (s *Server) UpdateLocale(
 		locale.Names = names
 	}
 
-	locale.IsDefault = req.Msg.IsDefault
+	if req.Msg.IsDefault != nil {
+		locale.IsDefault = req.Msg.GetIsDefault()
+	}
 
 	if err := s.db.Save(&locale).Error; err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update locale: %w", err))

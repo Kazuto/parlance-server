@@ -35,8 +35,8 @@ func (s *Server) CreateRole(
 		Description: req.Msg.Description,
 	}
 
-	if req.Msg.PermissionIds != nil {
-		permissions, err := s.GetPermissions(req.Msg.PermissionIds)
+	if ids := req.Msg.GetPermissions().GetIds(); len(ids) > 0 {
+		permissions, err := s.GetPermissions(ids)
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to get permissions: %w", err))
 		}

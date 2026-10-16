@@ -21,11 +21,11 @@ func (s *Server) CreateLocale(
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale code is required"))
 	}
 
-	if len(req.Msg.Names) == 0 {
+	if len(req.Msg.GetNames().GetValues()) == 0 {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale names are required"))
 	}
 
-	names, err := converter.NamesMapToJSON(req.Msg.Names)
+	names, err := converter.NamesMapToJSON(req.Msg.GetNames().GetValues())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to encode names: %w", err))
 	}

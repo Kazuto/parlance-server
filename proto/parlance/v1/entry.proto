@@ -68,8 +68,10 @@ message GetEntryResponse {
 
 message CreateEntryRequest {
   string key = 1;
-  repeated string scope_ids = 2;
+  reserved 2;
+  reserved "scope_ids";
   string description = 3;
+  IdSelection scopes = 4;
 }
 
 message CreateEntryResponse {
@@ -80,12 +82,7 @@ message UpdateEntryRequest {
   string id = 1;
   optional string description = 2;
   optional string key = 3;
-  // Omit to preserve scopes; an empty selection removes all assignments.
-  EntryScopeSelection scopes = 4;
-}
-
-message EntryScopeSelection {
-  repeated string ids = 1;
+  IdSelection scopes = 4;
 }
 
 message UpdateEntryResponse {

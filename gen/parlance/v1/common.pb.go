@@ -245,6 +245,98 @@ func (*Empty) Descriptor() ([]byte, []int) {
 	return file_parlance_v1_common_proto_rawDescGZIP(), []int{3}
 }
 
+// A set of related ids. In an update, omit the field to keep the current set;
+// send it (even with no ids) to replace the set.
+type IdSelection struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ids           []string               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IdSelection) Reset() {
+	*x = IdSelection{}
+	mi := &file_parlance_v1_common_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IdSelection) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IdSelection) ProtoMessage() {}
+
+func (x *IdSelection) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_common_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IdSelection.ProtoReflect.Descriptor instead.
+func (*IdSelection) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_common_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *IdSelection) GetIds() []string {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
+// A string map with presence. In an update, omit the field to keep the current
+// values; send it (even empty) to replace them.
+type StringMap struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Values        map[string]string      `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StringMap) Reset() {
+	*x = StringMap{}
+	mi := &file_parlance_v1_common_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StringMap) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StringMap) ProtoMessage() {}
+
+func (x *StringMap) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_common_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StringMap.ProtoReflect.Descriptor instead.
+func (*StringMap) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_common_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *StringMap) GetValues() map[string]string {
+	if x != nil {
+		return x.Values
+	}
+	return nil
+}
+
 var File_parlance_v1_common_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_common_proto_rawDesc = "" +
@@ -264,7 +356,14 @@ const file_parlance_v1_common_proto_rawDesc = "" +
 	"\x04sort\x18\x02 \x01(\tR\x04sort\x12\x14\n" +
 	"\x05order\x18\x03 \x01(\tR\x05order\x12'\n" +
 	"\x0finclude_deleted\x18\x04 \x01(\bR\x0eincludeDeleted\"\a\n" +
-	"\x05EmptyB\xa9\x01\n" +
+	"\x05Empty\"\x1f\n" +
+	"\vIdSelection\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\tR\x03ids\"\x82\x01\n" +
+	"\tStringMap\x12:\n" +
+	"\x06values\x18\x01 \x03(\v2\".parlance.v1.StringMap.ValuesEntryR\x06values\x1a9\n" +
+	"\vValuesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\xa9\x01\n" +
 	"\x0fcom.parlance.v1B\vCommonProtoP\x01Z<github.com/kazuto/parlance-server/gen/parlance/v1;parlancev1\xa2\x02\x03PXX\xaa\x02\vParlance.V1\xca\x02\vParlance\\V1\xe2\x02\x17Parlance\\V1\\GPBMetadata\xea\x02\fParlance::V1b\x06proto3"
 
 var (
@@ -279,19 +378,23 @@ func file_parlance_v1_common_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_common_proto_rawDescData
 }
 
-var file_parlance_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_parlance_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_parlance_v1_common_proto_goTypes = []any{
 	(*PaginationRequest)(nil),  // 0: parlance.v1.PaginationRequest
 	(*PaginationResponse)(nil), // 1: parlance.v1.PaginationResponse
 	(*FilterRequest)(nil),      // 2: parlance.v1.FilterRequest
 	(*Empty)(nil),              // 3: parlance.v1.Empty
+	(*IdSelection)(nil),        // 4: parlance.v1.IdSelection
+	(*StringMap)(nil),          // 5: parlance.v1.StringMap
+	nil,                        // 6: parlance.v1.StringMap.ValuesEntry
 }
 var file_parlance_v1_common_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	6, // 0: parlance.v1.StringMap.values:type_name -> parlance.v1.StringMap.ValuesEntry
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_common_proto_init() }
@@ -305,7 +408,7 @@ func file_parlance_v1_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_common_proto_rawDesc), len(file_parlance_v1_common_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

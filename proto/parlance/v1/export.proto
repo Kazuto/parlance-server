@@ -11,8 +11,9 @@ service ExportService {
 
 message ExportPhpRequest {
   string locale_code = 1;
-  string scope_id = 2 [deprecated = true]; // Use scope_ids
-  repeated string scope_ids = 3;          // Export entries in any of these scopes; empty exports all
+  reserved 2;
+  reserved "scope_id";
+  repeated string scope_ids = 3;  // Export entries in any of these scopes; empty exports all
 }
 
 message ExportPhpResponse {
@@ -23,8 +24,9 @@ message ExportPhpResponse {
 
 message ExportJsonRequest {
   string locale_code = 1;
-  string scope_id = 2 [deprecated = true]; // Use scope_ids
-  repeated string scope_ids = 3;          // Export entries in any of these scopes; empty exports all
+  reserved 2;
+  reserved "scope_id";
+  repeated string scope_ids = 3;  // Export entries in any of these scopes; empty exports all
 }
 
 message ExportJsonResponse {
@@ -36,8 +38,9 @@ message ExportJsonResponse {
 // UTF-8, singular key-based gettext PO export. msgid is the entry key.
 message ExportPoRequest {
   string locale_code = 1;
-  string scope_id = 2 [deprecated = true]; // Use scope_ids
-  repeated string scope_ids = 3;          // Export entries in any of these scopes; empty exports all
+  reserved 2;
+  reserved "scope_id";
+  repeated string scope_ids = 3;  // Export entries in any of these scopes; empty exports all
 }
 
 message ExportPoResponse {

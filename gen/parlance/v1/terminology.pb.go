@@ -420,8 +420,8 @@ func (x *CreateTerminologyResponse) GetTerminology() *Terminology {
 type UpdateTerminologyRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Term          string                 `protobuf:"bytes,2,opt,name=term,proto3" json:"term,omitempty"`
-	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Term          *string                `protobuf:"bytes,2,opt,name=term,proto3,oneof" json:"term,omitempty"`
+	Description   *string                `protobuf:"bytes,3,opt,name=description,proto3,oneof" json:"description,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -464,15 +464,15 @@ func (x *UpdateTerminologyRequest) GetId() string {
 }
 
 func (x *UpdateTerminologyRequest) GetTerm() string {
-	if x != nil {
-		return x.Term
+	if x != nil && x.Term != nil {
+		return *x.Term
 	}
 	return ""
 }
 
 func (x *UpdateTerminologyRequest) GetDescription() string {
-	if x != nil {
-		return x.Description
+	if x != nil && x.Description != nil {
+		return *x.Description
 	}
 	return ""
 }
@@ -1096,11 +1096,13 @@ const file_parlance_v1_terminology_proto_rawDesc = "" +
 	"\x04term\x18\x01 \x01(\tR\x04term\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\"W\n" +
 	"\x19CreateTerminologyResponse\x12:\n" +
-	"\vterminology\x18\x01 \x01(\v2\x18.parlance.v1.TerminologyR\vterminology\"`\n" +
+	"\vterminology\x18\x01 \x01(\v2\x18.parlance.v1.TerminologyR\vterminology\"\x83\x01\n" +
 	"\x18UpdateTerminologyRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04term\x18\x02 \x01(\tR\x04term\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\"W\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
+	"\x04term\x18\x02 \x01(\tH\x00R\x04term\x88\x01\x01\x12%\n" +
+	"\vdescription\x18\x03 \x01(\tH\x01R\vdescription\x88\x01\x01B\a\n" +
+	"\x05_termB\x0e\n" +
+	"\f_description\"W\n" +
 	"\x19UpdateTerminologyResponse\x12:\n" +
 	"\vterminology\x18\x01 \x01(\v2\x18.parlance.v1.TerminologyR\vterminology\"*\n" +
 	"\x18DeleteTerminologyRequest\x12\x0e\n" +
@@ -1238,6 +1240,7 @@ func file_parlance_v1_terminology_proto_init() {
 	file_parlance_v1_common_proto_init()
 	file_parlance_v1_user_proto_init()
 	file_parlance_v1_definition_proto_init()
+	file_parlance_v1_terminology_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

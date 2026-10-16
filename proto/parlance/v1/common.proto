@@ -23,3 +23,15 @@ message FilterRequest {
 }
 
 message Empty {}
+
+// A set of related ids. In an update, omit the field to keep the current set;
+// send it (even with no ids) to replace the set.
+message IdSelection {
+  repeated string ids = 1;
+}
+
+// A string map with presence. In an update, omit the field to keep the current
+// values; send it (even empty) to replace them.
+message StringMap {
+  map<string, string> values = 1;
+}

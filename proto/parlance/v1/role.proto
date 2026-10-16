@@ -46,7 +46,9 @@ message GetRoleResponse {
 message CreateRoleRequest {
   string name = 1;
   string description = 2;
-  repeated string permission_ids = 3;
+  reserved 3;
+  reserved "permission_ids";
+  IdSelection permissions = 4;
 }
 
 message CreateRoleResponse {
@@ -55,9 +57,11 @@ message CreateRoleResponse {
 
 message UpdateRoleRequest {
   string id = 1;
-  string name = 2;
-  string description = 3;
-  repeated string permission_ids = 4;
+  optional string name = 2;
+  optional string description = 3;
+  reserved 4;
+  reserved "permission_ids";
+  IdSelection permissions = 5;
 }
 
 message UpdateRoleResponse {

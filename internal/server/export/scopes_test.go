@@ -12,17 +12,15 @@ import (
 
 func TestRequestedScopeIDs(t *testing.T) {
 	for _, tc := range []struct {
-		single string
-		many   []string
-		want   []string
+		ids  []string
+		want []string
 	}{
-		{"", nil, []string{}},
-		{"a", nil, []string{"a"}},
-		{"", []string{"a", "b"}, []string{"a", "b"}},
-		{"a", []string{"b", "a", "", "b"}, []string{"a", "b"}},
+		{nil, []string{}},
+		{[]string{"a", "b"}, []string{"a", "b"}},
+		{[]string{"b", "a", "", "b"}, []string{"b", "a"}},
 	} {
-		if got := requestedScopeIDs(tc.single, tc.many); !reflect.DeepEqual(got, tc.want) {
-			t.Errorf("requestedScopeIDs(%q, %v) = %v, want %v", tc.single, tc.many, got, tc.want)
+		if got := requestedScopeIDs(tc.ids); !reflect.DeepEqual(got, tc.want) {
+			t.Errorf("requestedScopeIDs(%v) = %v, want %v", tc.ids, got, tc.want)
 		}
 	}
 }

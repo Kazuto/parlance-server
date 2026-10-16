@@ -436,7 +436,7 @@ func (x *CreateDefinitionResponse) GetDefinition() *Definition {
 type UpdateDefinitionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Translation   string                 `protobuf:"bytes,2,opt,name=translation,proto3" json:"translation,omitempty"`
+	Translation   *string                `protobuf:"bytes,2,opt,name=translation,proto3,oneof" json:"translation,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -479,8 +479,8 @@ func (x *UpdateDefinitionRequest) GetId() string {
 }
 
 func (x *UpdateDefinitionRequest) GetTranslation() string {
-	if x != nil {
-		return x.Translation
+	if x != nil && x.Translation != nil {
+		return *x.Translation
 	}
 	return ""
 }
@@ -742,10 +742,11 @@ const file_parlance_v1_definition_proto_rawDesc = "" +
 	"\x18CreateDefinitionResponse\x127\n" +
 	"\n" +
 	"definition\x18\x01 \x01(\v2\x17.parlance.v1.DefinitionR\n" +
-	"definition\"K\n" +
+	"definition\"`\n" +
 	"\x17UpdateDefinitionRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12 \n" +
-	"\vtranslation\x18\x02 \x01(\tR\vtranslation\"S\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
+	"\vtranslation\x18\x02 \x01(\tH\x00R\vtranslation\x88\x01\x01B\x0e\n" +
+	"\f_translation\"S\n" +
 	"\x18UpdateDefinitionResponse\x127\n" +
 	"\n" +
 	"definition\x18\x01 \x01(\v2\x17.parlance.v1.DefinitionR\n" +
@@ -833,6 +834,7 @@ func file_parlance_v1_definition_proto_init() {
 		return
 	}
 	file_parlance_v1_common_proto_init()
+	file_parlance_v1_definition_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

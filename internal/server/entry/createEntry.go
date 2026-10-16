@@ -33,7 +33,7 @@ func (s *Server) CreateEntry(
 		entry.CreatedBy = &userID
 	}
 
-	scopes, err := resolveScopes(s.db.WithContext(ctx), req.Msg.ScopeIds)
+	scopes, err := resolveScopes(s.db.WithContext(ctx), req.Msg.GetScopes().GetIds())
 	if err != nil {
 		return nil, err
 	}

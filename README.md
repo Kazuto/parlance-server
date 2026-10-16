@@ -130,12 +130,24 @@ make proto-lint
 
 ## Usage
 
-### Entry scopes and translation filters
+### Create and update requests
 
-Create entries with `scopeIds`. To replace an entry's scope assignments on update,
-send `scopes: { "ids": ["scope-id"] }`; send `scopes: { "ids": [] }` to remove
-all assignments, or omit `scopes` to preserve them. Scope IDs are validated and
-entry/scope changes are persisted in one transaction.
+Create and update requests share the same shape. Every `Update…` request is a
+partial update:
+
+- **Omitted field:** the current value is kept.
+- **Sent field:** the value is set. An empty value clears it; required fields
+  (e.g. `key`, `name`, `email`) reject an empty value with `InvalidArgument`.
+- **Related ids** (`scopes`, `permissions`, `roles`) are sent as
+  `{ "ids": [...] }`. Omit the field to keep the current set, send
+  `{ "ids": [] }` to remove all, or send ids to replace the set.
+- **Locale names** are sent as `names: { "values": { "en": "German" } }`.
+
+Lists and maps are wrapped because protobuf cannot tell an empty list or map
+from one that was not sent. Ids are validated, and changes to the record and its
+relations are persisted in one transaction.
+
+### Entry translation filters
 
 `ListEntries` accepts `scopeId`, `translationStatus` (`missing` or `complete`),
 and `targetLocaleIds`. Status is evaluated before pagination against active,
@@ -169,12 +181,13 @@ like the JSON/PHP import endpoints. An unspecified mode defaults to create-or-up
 ```json
 {
   "localeCode": "de",
-  "scopeId": "optional-scope-id"
+  "scopeIds": ["optional-scope-id"]
 }
 ```
 
 The export request above returns `format: "po"`, the PO text in `content`, and a
-suggested `.po` `filename`. Omit `scopeId` to export all active entries. Entries
+suggested `.po` `filename`. Omit `scopeIds` to export all active entries; with several
+scopes, entries in any of them are exported once. Entries
 without a translation are included with empty `msgstr`. Exports are sorted by key,
 include UTF-8/language metadata, and include entry descriptions as `#.` comments.
 

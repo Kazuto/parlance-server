@@ -19,7 +19,7 @@ func (s *Server) UpdateDefinition(
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("definition id is required"))
 	}
 
-	if req.Msg.Translation == "" {
+	if req.Msg.Translation != nil && req.Msg.GetTranslation() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("translation is required"))
 	}
 
@@ -34,7 +34,9 @@ func (s *Server) UpdateDefinition(
 		definition.UpdatedBy = &userID
 	}
 
-	definition.Translation = req.Msg.Translation
+	if req.Msg.Translation != nil {
+		definition.Translation = req.Msg.GetTranslation()
+	}
 
 	if err := s.db.Save(&definition).Error; err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update definition: %w", err))

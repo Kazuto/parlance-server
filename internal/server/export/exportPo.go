@@ -19,7 +19,7 @@ func (s *Server) ExportPo(ctx context.Context, req *connect.Request[pb.ExportPoR
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("locale not found"))
 	}
 	query := s.db.WithContext(ctx).Model(&models.Entry{}).Preload("Localizations", "locale_id = ?", locale.ID)
-	scopeIDs := requestedScopeIDs(req.Msg.ScopeId, req.Msg.ScopeIds)
+	scopeIDs := requestedScopeIDs(req.Msg.ScopeIds)
 	query = filterByScopes(s.db.WithContext(ctx), query, scopeIDs)
 	var entries []models.Entry
 	if err := query.Find(&entries).Error; err != nil {

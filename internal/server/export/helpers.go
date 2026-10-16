@@ -41,11 +41,11 @@ func setNestedKey(m map[string]interface{}, key string, value string) {
 	current[parts[len(parts)-1]] = value
 }
 
-// requestedScopeIDs merges the deprecated single scope_id with scope_ids, dropping blanks and duplicates.
-func requestedScopeIDs(scopeID string, scopeIDs []string) []string {
+// requestedScopeIDs drops blank and duplicate scope ids.
+func requestedScopeIDs(scopeIDs []string) []string {
 	seen := make(map[string]bool)
-	ids := make([]string, 0, len(scopeIDs)+1)
-	for _, id := range append([]string{scopeID}, scopeIDs...) {
+	ids := make([]string, 0, len(scopeIDs))
+	for _, id := range scopeIDs {
 		if id != "" && !seen[id] {
 			seen[id] = true
 			ids = append(ids, id)

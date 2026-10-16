@@ -57,7 +57,7 @@ message CreateDefinitionResponse {
 
 message UpdateDefinitionRequest {
   string id = 1;
-  string translation = 2;
+  optional string translation = 2;
 }
 
 message UpdateDefinitionResponse {

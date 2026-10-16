@@ -28,7 +28,7 @@ func (s *Server) ExportPhp(
 	// Build query for entries
 	query := s.db.Model(&models.Entry{}).Preload("Localizations", "locale_id = ?", locale.ID)
 
-	scopeIDs := requestedScopeIDs(req.Msg.ScopeId, req.Msg.ScopeIds)
+	scopeIDs := requestedScopeIDs(req.Msg.ScopeIds)
 	query = filterByScopes(s.db.WithContext(ctx), query, scopeIDs)
 
 	var entries []models.Entry

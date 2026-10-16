@@ -436,7 +436,7 @@ func (x *CreateLocalizationResponse) GetLocalization() *Localization {
 type UpdateLocalizationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Translation   string                 `protobuf:"bytes,2,opt,name=translation,proto3" json:"translation,omitempty"`
+	Translation   *string                `protobuf:"bytes,2,opt,name=translation,proto3,oneof" json:"translation,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -479,8 +479,8 @@ func (x *UpdateLocalizationRequest) GetId() string {
 }
 
 func (x *UpdateLocalizationRequest) GetTranslation() string {
-	if x != nil {
-		return x.Translation
+	if x != nil && x.Translation != nil {
+		return *x.Translation
 	}
 	return ""
 }
@@ -977,10 +977,11 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\tlocale_id\x18\x02 \x01(\tR\blocaleId\x12 \n" +
 	"\vtranslation\x18\x03 \x01(\tR\vtranslation\"[\n" +
 	"\x1aCreateLocalizationResponse\x12=\n" +
-	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"M\n" +
+	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"b\n" +
 	"\x19UpdateLocalizationRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12 \n" +
-	"\vtranslation\x18\x02 \x01(\tR\vtranslation\"[\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
+	"\vtranslation\x18\x02 \x01(\tH\x00R\vtranslation\x88\x01\x01B\x0e\n" +
+	"\f_translation\"[\n" +
 	"\x1aUpdateLocalizationResponse\x12=\n" +
 	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"+\n" +
 	"\x19DeleteLocalizationRequest\x12\x0e\n" +
@@ -1092,6 +1093,7 @@ func file_parlance_v1_localization_proto_init() {
 		return
 	}
 	file_parlance_v1_common_proto_init()
+	file_parlance_v1_localization_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

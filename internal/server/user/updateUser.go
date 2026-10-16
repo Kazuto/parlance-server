@@ -13,6 +13,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/models"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"gorm.io/gorm"
 )
 
 // UpdateUser updates an existing user
@@ -23,26 +24,42 @@ func (s *Server) UpdateUser(
 	if req.Msg.Id == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("user id is required"))
 	}
+	if req.Msg.Email != nil && req.Msg.GetEmail() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("email is required"))
+	}
+	if req.Msg.Name != nil && req.Msg.GetName() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name is required"))
+	}
+	if req.Msg.Password != nil && req.Msg.GetPassword() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("password must not be empty"))
+	}
+	if len(req.Msg.GetAvatar()) > 0 && req.Msg.GetAvatarMime() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("avatar mime type is required"))
+	}
 
 	var user models.User
 	if err := s.db.First(&user, "id = ?", req.Msg.Id).Error; err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("user not found"))
 	}
 
-	if req.Msg.Email != "" {
-		user.Email = req.Msg.Email
+	if req.Msg.Email != nil {
+		user.Email = req.Msg.GetEmail()
 	}
 
-	if req.Msg.Name != "" {
-		user.Name = req.Msg.Name
+	if req.Msg.Name != nil {
+		user.Name = req.Msg.GetName()
 	}
 
-	if req.Msg.Locale != "" {
-		user.Locale = &req.Msg.Locale
+	if req.Msg.Locale != nil {
+		if locale := req.Msg.GetLocale(); locale != "" {
+			user.Locale = &locale
+		} else {
+			user.Locale = nil
+		}
 	}
 
-	if req.Msg.Password != "" {
-		hashedPassword, err := auth.HashPassword(req.Msg.Password)
+	if req.Msg.Password != nil {
+		hashedPassword, err := auth.HashPassword(req.Msg.GetPassword())
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to hash password: %w", err))
 		}
@@ -50,25 +67,38 @@ func (s *Server) UpdateUser(
 		user.PasswordHash = hashedPassword
 	}
 
-	if req.Msg.Avatar != nil && req.Msg.AvatarMime != "" {
-		url, err := s.uploadAvatar(ctx, user.ID, req.Msg.Avatar, req.Msg.AvatarMime)
-		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to upload avatar: %w", err))
-		}
+	if req.Msg.Avatar != nil {
+		if len(req.Msg.Avatar) == 0 {
+			user.Avatar = nil
+		} else {
+			url, err := s.uploadAvatar(ctx, user.ID, req.Msg.Avatar, req.Msg.GetAvatarMime())
+			if err != nil {
+				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to upload avatar: %w", err))
+			}
 
-		user.Avatar = &url
+			user.Avatar = &url
+		}
 	}
 
-	if req.Msg.RoleIds != nil {
-		roles, err := s.GetRoles(req.Msg.RoleIds)
+	var roles []models.Role
+	if req.Msg.Roles != nil {
+		var err error
+		roles, err = s.GetRoles(req.Msg.Roles.GetIds())
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to get roles: %w", err))
 		}
-
-		user.Roles = roles
 	}
 
-	if err := s.db.Save(&user).Error; err != nil {
+	// Save only adds many2many links, so a sent selection replaces them explicitly.
+	if err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Omit("Roles").Save(&user).Error; err != nil {
+			return err
+		}
+		if req.Msg.Roles != nil {
+			return tx.Model(&user).Association("Roles").Replace(roles)
+		}
+		return nil
+	}); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update user: %w", err))
 	}
 

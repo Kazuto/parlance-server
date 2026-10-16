@@ -428,10 +428,10 @@ func (x *CreateScopeResponse) GetScope() *Scope {
 type UpdateScopeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Slug          string                 `protobuf:"bytes,3,opt,name=slug,proto3" json:"slug,omitempty"`
-	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
-	Color         string                 `protobuf:"bytes,5,opt,name=color,proto3" json:"color,omitempty"`
+	Name          *string                `protobuf:"bytes,2,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	Slug          *string                `protobuf:"bytes,3,opt,name=slug,proto3,oneof" json:"slug,omitempty"`
+	Description   *string                `protobuf:"bytes,4,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	Color         *string                `protobuf:"bytes,5,opt,name=color,proto3,oneof" json:"color,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -474,29 +474,29 @@ func (x *UpdateScopeRequest) GetId() string {
 }
 
 func (x *UpdateScopeRequest) GetName() string {
-	if x != nil {
-		return x.Name
+	if x != nil && x.Name != nil {
+		return *x.Name
 	}
 	return ""
 }
 
 func (x *UpdateScopeRequest) GetSlug() string {
-	if x != nil {
-		return x.Slug
+	if x != nil && x.Slug != nil {
+		return *x.Slug
 	}
 	return ""
 }
 
 func (x *UpdateScopeRequest) GetDescription() string {
-	if x != nil {
-		return x.Description
+	if x != nil && x.Description != nil {
+		return *x.Description
 	}
 	return ""
 }
 
 func (x *UpdateScopeRequest) GetColor() string {
-	if x != nil {
-		return x.Color
+	if x != nil && x.Color != nil {
+		return *x.Color
 	}
 	return ""
 }
@@ -1015,13 +1015,17 @@ const file_parlance_v1_scope_proto_rawDesc = "" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x14\n" +
 	"\x05color\x18\x04 \x01(\tR\x05color\"?\n" +
 	"\x13CreateScopeResponse\x12(\n" +
-	"\x05scope\x18\x01 \x01(\v2\x12.parlance.v1.ScopeR\x05scope\"\x84\x01\n" +
+	"\x05scope\x18\x01 \x01(\v2\x12.parlance.v1.ScopeR\x05scope\"\xc4\x01\n" +
 	"\x12UpdateScopeRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
-	"\x04slug\x18\x03 \x01(\tR\x04slug\x12 \n" +
-	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x14\n" +
-	"\x05color\x18\x05 \x01(\tR\x05color\"?\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
+	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x17\n" +
+	"\x04slug\x18\x03 \x01(\tH\x01R\x04slug\x88\x01\x01\x12%\n" +
+	"\vdescription\x18\x04 \x01(\tH\x02R\vdescription\x88\x01\x01\x12\x19\n" +
+	"\x05color\x18\x05 \x01(\tH\x03R\x05color\x88\x01\x01B\a\n" +
+	"\x05_nameB\a\n" +
+	"\x05_slugB\x0e\n" +
+	"\f_descriptionB\b\n" +
+	"\x06_color\"?\n" +
 	"\x13UpdateScopeResponse\x12(\n" +
 	"\x05scope\x18\x01 \x01(\v2\x12.parlance.v1.ScopeR\x05scope\"$\n" +
 	"\x12DeleteScopeRequest\x12\x0e\n" +
@@ -1135,6 +1139,7 @@ func file_parlance_v1_scope_proto_init() {
 		return
 	}
 	file_parlance_v1_common_proto_init()
+	file_parlance_v1_scope_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

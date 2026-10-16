@@ -20,7 +20,7 @@ func (s *Server) UpdateLocalization(
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("localization id is required"))
 	}
 
-	if req.Msg.Translation == "" {
+	if req.Msg.Translation != nil && req.Msg.GetTranslation() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("translation is required"))
 	}
 
@@ -35,7 +35,9 @@ func (s *Server) UpdateLocalization(
 		localization.UpdatedBy = &userID
 	}
 
-	localization.Translation = req.Msg.Translation
+	if req.Msg.Translation != nil {
+		localization.Translation = req.Msg.GetTranslation()
+	}
 
 	if err := s.db.Save(&localization).Error; err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update localization: %w", err))

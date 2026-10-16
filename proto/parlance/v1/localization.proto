@@ -59,7 +59,7 @@ message CreateLocalizationResponse {
 
 message UpdateLocalizationRequest {
   string id = 1;
-  string translation = 2;
+  optional string translation = 2;
 }
 
 message UpdateLocalizationResponse {

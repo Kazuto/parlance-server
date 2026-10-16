@@ -18,6 +18,9 @@ func (s *Server) UpdateTerminology(
 	if req.Msg.Id == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("terminology id is required"))
 	}
+	if req.Msg.Term != nil && req.Msg.GetTerm() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("term is required"))
+	}
 
 	var terminology models.Terminology
 	if err := s.db.First(&terminology, "id = ?", req.Msg.Id).Error; err != nil {
@@ -30,12 +33,12 @@ func (s *Server) UpdateTerminology(
 		terminology.UpdatedBy = &userID
 	}
 
-	if req.Msg.Term != "" {
-		terminology.Term = req.Msg.Term
+	if req.Msg.Term != nil {
+		terminology.Term = req.Msg.GetTerm()
 	}
 
-	if req.Msg.Description != "" {
-		terminology.Description = req.Msg.Description
+	if req.Msg.Description != nil {
+		terminology.Description = req.Msg.GetDescription()
 	}
 
 	if err := s.db.Save(&terminology).Error; err != nil {
