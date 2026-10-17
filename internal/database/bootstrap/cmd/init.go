@@ -9,7 +9,8 @@ import (
 func Execute(db *gorm.DB) error {
 	factory := bootstrap.NewInitializerFactory()
 
-	// Register initializers
+	// Register initializers - only the minimum required for setup
+	// Permissions and admin role are necessary for the first admin user
 	permissionInit := models.NewPermissionInitializer()
 	if err := factory.Register(permissionInit); err != nil {
 		return err
@@ -20,10 +21,7 @@ func Execute(db *gorm.DB) error {
 		return err
 	}
 
-	localeInit := models.NewLocaleInitializer()
-	if err := factory.Register(localeInit); err != nil {
-		return err
-	}
+	// Note: Locales are NOT seeded during setup - users create them as needed
 
 	// Run all initializers
 	if err := factory.RunAll(db); err != nil {

@@ -24,6 +24,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/activity"
 	"github.com/kazuto/parlance-server/internal/server/auth"
 	"github.com/kazuto/parlance-server/internal/server/definition"
+	"github.com/kazuto/parlance-server/internal/server/setup"
 	"github.com/kazuto/parlance-server/internal/server/entry"
 	"github.com/kazuto/parlance-server/internal/server/export"
 	importservice "github.com/kazuto/parlance-server/internal/server/import"
@@ -57,9 +58,8 @@ func main() {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
-	if err := db.Bootstrap(); err != nil {
-		log.Fatalf("Failed to bootstrap database: %v", err)
-	}
+	// Note: Bootstrap is now handled by the setup wizard on first run
+	// If you need to run it manually, use: ./api bootstrap
 
 	// After db.Bootstrap()
 	s3Client, err := newS3Client(cfg.S3)
@@ -80,6 +80,13 @@ func main() {
 	authMiddleware := middleware.AuthMiddleware(cfg.JWT.Secret)
 
 	// Register Connect RPC services
+	// Setup service (public - no auth required)
+	setupServer := setup.NewServer(db, cfg)
+	setupPath, setupHandler := parlancev1connect.NewSetupServiceHandler(setupServer)
+	mux.Handle(setupPath, setupHandler)
+
+	log.Println("✓ Registered SetupService (public)")
+
 	localeServer := locale.NewServer(db)
 	localePath, localeHandler := parlancev1connect.NewLocaleServiceHandler(localeServer)
 	mux.Handle(localePath, localeHandler)
