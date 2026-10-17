@@ -51,9 +51,6 @@ WORKDIR /root/
 # Copy binary from builder
 COPY --from=builder /app/api .
 
-# Copy migrations (if needed at runtime)
-COPY --from=builder /app/internal/database/migrations ./migrations
-
 EXPOSE 8080
 
 # Run the application
