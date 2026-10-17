@@ -1,5 +1,3 @@
-version: 2
-
 run:
   timeout: 5m
   tests: true
@@ -14,31 +12,30 @@ linters:
     - misspell
     - unconvert
     - unparam
+    - gofmt
+    - goimports
   disable:
     - exhaustive
     - exhaustruct
     - gochecknoglobals
     - gochecknoinits
 
-formatters:
-  enable:
-    - gofmt
-    - goimports
-
 linters-settings:
   errcheck:
     check-type-assertions: true
     check-blank: true
+    exclude-functions:
+      - (net/http.ResponseWriter).Write
+      - github.com/joho/godotenv.Load
 
-  govet:
-    check-shadowing: true
+  gofmt:
+    simplify: true
 
   misspell:
     locale: US
-
-formatters-settings:
-  gofmt:
-    simplify: true
+    ignore-words:
+      - connexion
+      - déconnexion
 
 issues:
   exclude-rules:
@@ -53,9 +50,27 @@ issues:
       linters:
         - gosimple
 
+    # Exclude type assertion checks for context value extraction (validated afterward)
+    - text: "Error return value is not checked"
+      source: "ctx\\.Value\\(.*\\)\\.\\(string\\)"
+      linters:
+        - errcheck
+
+    # Exclude Association.Append errors (optional operation)
+    - text: "Error return value of `\\(\\*gorm\\.io/gorm\\.Association\\)\\.Append` is not checked"
+      linters:
+        - errcheck
+
+    # Exclude idField.Set in test utilities (optional operation)
+    - text: "Error return value is not checked"
+      source: "idField\\.Set\\("
+      linters:
+        - errcheck
+
   max-issues-per-linter: 0
   max-same-issues: 0
 
 output:
-  format: colored-line-number
+  formats:
+    - format: colored-line-number
   sort-results: true

@@ -32,8 +32,9 @@ func setNestedKey(m map[string]interface{}, key string, value string) {
 			current = nested
 		} else {
 			// If the key already exists as a non-map value, override it
-			current[part] = make(map[string]interface{})
-			current = current[part].(map[string]interface{})
+			newMap := make(map[string]interface{})
+			current[part] = newMap
+			current = newMap
 		}
 	}
 

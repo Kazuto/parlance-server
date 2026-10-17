@@ -57,7 +57,12 @@ func Load() *Config {
 	_ = godotenv.Load()
 
 	port := getEnv("PORT", "8080")
-	dbPort, _ := strconv.Atoi(getEnv("DB_PORT", "5432"))
+	dbPort := 5432
+	if dbPortStr := getEnv("DB_PORT", "5432"); dbPortStr != "" {
+		if parsed, err := strconv.Atoi(dbPortStr); err == nil {
+			dbPort = parsed
+		}
+	}
 
 	return &Config{
 		Server: ServerConfig{

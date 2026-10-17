@@ -38,7 +38,10 @@ func (s *Server) Login(
 	}
 
 	// Generate tokens
-	accessExpiry, _ := time.ParseDuration(s.config.JWT.Expiry)
+	accessExpiry, err := time.ParseDuration(s.config.JWT.Expiry)
+	if err != nil {
+		accessExpiry = 24 * time.Hour // Default to 24 hours
+	}
 	refreshExpiry := accessExpiry * 7
 
 	tokens, err := authpkg.GenerateTokenPair(user.ID, user.Email, s.config.JWT.Secret, accessExpiry, refreshExpiry)

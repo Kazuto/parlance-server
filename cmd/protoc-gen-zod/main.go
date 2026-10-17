@@ -99,7 +99,10 @@ func main() {
 				}
 				g.P("export const ", name, "Schema = z.object({")
 				for _, field := range message.Fields {
-					schema, typ, _ := fieldType(field)
+					schema, typ, err := fieldType(field)
+					if err != nil {
+						continue
+					}
 					// Lazy getters support forward references and recursive messages.
 					g.P("get ", strconv.Quote(field.Desc.JSONName()), "(): z.ZodOptional<z.ZodNullable<z.ZodType<", typ, ">>> { return ", schema, ".nullish(); },")
 				}

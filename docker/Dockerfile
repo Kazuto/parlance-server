@@ -43,7 +43,7 @@ COPY --from=proto /workspace/gen ./gen
 CMD ["air", "-c", ".air.toml"]
 
 # Runtime stage
-FROM alpine:latest
+FROM alpine:latest AS runtime
 RUN apk --no-cache add ca-certificates tzdata
 
 WORKDIR /root/

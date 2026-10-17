@@ -1,6 +1,8 @@
 package models
 
 import (
+	"log"
+
 	"github.com/kazuto/parlance-server/internal/auth"
 	"github.com/kazuto/parlance-server/internal/models"
 	"gorm.io/gorm"
@@ -33,7 +35,11 @@ func (i *UserSeeder) Run(db *gorm.DB) error {
 	}
 
 	for _, userData := range users {
-		hashedPassword, _ := auth.HashPassword(userData.password)
+		hashedPassword, err := auth.HashPassword(userData.password)
+		if err != nil {
+			log.Printf("Failed to hash password for %s: %v", userData.email, err)
+			continue
+		}
 		user := models.User{
 			Email:        userData.email,
 			PasswordHash: hashedPassword,
