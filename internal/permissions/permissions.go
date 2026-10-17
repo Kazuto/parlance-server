@@ -1,0 +1,86 @@
+package permissions
+
+// Permission name constants - single source of truth for all permission strings
+const (
+	// Locale permissions
+	CreateLocale          = "create_locale"
+	ReadLocale            = "read_locale"
+	UpdateLocale          = "update_locale"
+	DeleteLocale          = "delete_locale"
+	PermanentDeleteLocale = "permanent_delete_locale"
+
+	// Entry permissions
+	CreateEntry = "create_entry"
+	ReadEntry   = "read_entry"
+	UpdateEntry = "update_entry"
+	DeleteEntry = "delete_entry"
+
+	// User permissions
+	CreateUser = "create_user"
+	ReadUser   = "read_user"
+	UpdateUser = "update_user"
+	DeleteUser = "delete_user"
+
+	// Role permissions
+	CreateRole = "create_role"
+	ReadRole   = "read_role"
+	UpdateRole = "update_role"
+	DeleteRole = "delete_role"
+
+	// Permission permissions
+	ReadPermission = "read_permission"
+
+	// Terminology permissions
+	CreateTerminology = "create_terminology"
+	ReadTerminology   = "read_terminology"
+	UpdateTerminology = "update_terminology"
+	DeleteTerminology = "delete_terminology"
+
+	// Scope permissions
+	CreateScope = "create_scope"
+	ReadScope   = "read_scope"
+	UpdateScope = "update_scope"
+	DeleteScope = "delete_scope"
+
+	// Definition permissions
+	CreateDefinition = "create_definition"
+	ReadDefinition   = "read_definition"
+	UpdateDefinition = "update_definition"
+	DeleteDefinition = "delete_definition"
+)
+
+// AllPermissions returns all defined permissions
+func AllPermissions() []string {
+	return []string{
+		CreateLocale,
+		ReadLocale,
+		UpdateLocale,
+		DeleteLocale,
+		PermanentDeleteLocale,
+		CreateEntry,
+		ReadEntry,
+		UpdateEntry,
+		DeleteEntry,
+		CreateUser,
+		ReadUser,
+		UpdateUser,
+		DeleteUser,
+		CreateRole,
+		ReadRole,
+		UpdateRole,
+		DeleteRole,
+		ReadPermission,
+		CreateTerminology,
+		ReadTerminology,
+		UpdateTerminology,
+		DeleteTerminology,
+		CreateScope,
+		ReadScope,
+		UpdateScope,
+		DeleteScope,
+		CreateDefinition,
+		ReadDefinition,
+		UpdateDefinition,
+		DeleteDefinition,
+	}
+}

@@ -3,8 +3,10 @@ package models
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/permissions"
 	"gorm.io/gorm"
 )
 
@@ -20,31 +22,37 @@ func (i *PermissionInitializer) Description() string {
 func (i *PermissionInitializer) Run(db *gorm.DB) error {
 	log.Println("Initializing permissions")
 
-	actions := []string{"create", "read", "update", "delete"}
-	resources := []string{"definition", "entry", "locale", "permission", "scope", "terminology", "user"}
-	var permissions []models.Permission
+	var perms []models.Permission
 
-	for _, r := range resources {
-		for _, a := range actions {
-			permissions = append(permissions, models.Permission{
-				Name:        fmt.Sprintf("%s_%s", a, r),
-				Resource:    r,
-				Action:      a,
-				Description: fmt.Sprintf("Allows the user to %s %s resources", a, r),
-			})
+	// Use all permissions from the constants
+	for _, permName := range permissions.AllPermissions() {
+		// Parse permission name to extract resource and action
+		// Format: action_resource (e.g., "create_locale")
+		parts := strings.SplitN(permName, "_", 2)
+		if len(parts) != 2 {
+			log.Printf("Warning: Invalid permission name format: %s", permName)
+			continue
 		}
+
+		action := parts[0]
+		resource := parts[1]
+
+		// Handle multi-word actions like "permanent_delete_locale"
+		if strings.HasPrefix(permName, "permanent_delete_") {
+			action = "permanent_delete"
+			resource = strings.TrimPrefix(permName, "permanent_delete_")
+		}
+
+		perms = append(perms, models.Permission{
+			Name:        permName,
+			Resource:    resource,
+			Action:      action,
+			Description: fmt.Sprintf("Allows the user to %s %s resources", action, resource),
+		})
 	}
 
-	// Add hard_delete permission for locale
-	permissions = append(permissions, models.Permission{
-		Name:        "hard_delete_locale",
-		Resource:    "locale",
-		Action:      "hard_delete",
-		Description: "Allows the user to permanently destroy soft-deleted locale resources",
-	})
-
-	for i := range permissions {
-		db.Where("name = ?", permissions[i].Name).FirstOrCreate(&permissions[i])
+	for i := range perms {
+		db.Where("name = ?", perms[i].Name).FirstOrCreate(&perms[i])
 	}
 
 	return nil

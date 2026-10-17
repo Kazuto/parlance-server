@@ -6,6 +6,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"gorm.io/gorm"
 
@@ -16,6 +18,10 @@ func (s *Server) RestoreRole(
 	ctx context.Context,
 	req *connect.Request[pb.RestoreRoleRequest],
 ) (*connect.Response[pb.RestoreRoleResponse], error) {
+	if err := middleware.RequirePermission(ctx, s.db, permissions.DeleteRole); err != nil {
+		return nil, err
+	}
+
 	if req.Msg.Id == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("Role id is required"))
 	}

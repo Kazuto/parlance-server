@@ -6,6 +6,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/middleware"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -15,6 +17,10 @@ func (s *Server) RemoveScopeFromEntry(
 	ctx context.Context,
 	req *connect.Request[pb.RemoveScopeFromEntryRequest],
 ) (*connect.Response[pb.RemoveScopeFromEntryResponse], error) {
+	if err := middleware.RequirePermission(ctx, s.db, permissions.UpdateEntry); err != nil {
+		return nil, err
+	}
+
 	if req.Msg.EntryId == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("entry id is required"))
 	}

@@ -6,6 +6,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
 	"gorm.io/gorm"
@@ -18,6 +20,10 @@ func (s *Server) ListRoles(
 	ctx context.Context,
 	req *connect.Request[pb.ListRolesRequest],
 ) (*connect.Response[pb.ListRolesResponse], error) {
+	if err := middleware.RequirePermission(ctx, s.db, permissions.ReadRole); err != nil {
+		return nil, err
+	}
+
 	page, perPage := converter.GetPaginationParams(req.Msg.Pagination)
 
 	var roles []models.Role

@@ -6,6 +6,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
@@ -16,6 +18,10 @@ func (s *Server) GetPermission(
 	ctx context.Context,
 	req *connect.Request[pb.GetPermissionRequest],
 ) (*connect.Response[pb.GetPermissionResponse], error) {
+	if err := middleware.RequirePermission(ctx, s.db, permissions.ReadPermission); err != nil {
+		return nil, err
+	}
+
 	if req.Msg.Id == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("Permission id is required"))
 	}

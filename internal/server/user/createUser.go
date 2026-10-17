@@ -6,6 +6,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/auth"
+	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/models"
 
@@ -17,6 +19,10 @@ func (s *Server) CreateUser(
 	ctx context.Context,
 	req *connect.Request[pb.CreateUserRequest],
 ) (*connect.Response[pb.CreateUserResponse], error) {
+	if err := middleware.RequirePermission(ctx, s.db, permissions.CreateUser); err != nil {
+		return nil, err
+	}
+
 	if req.Msg.Email == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("email is required"))
 	}

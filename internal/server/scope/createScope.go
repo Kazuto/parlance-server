@@ -6,6 +6,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
@@ -16,6 +18,10 @@ func (s *Server) CreateScope(
 	ctx context.Context,
 	req *connect.Request[pb.CreateScopeRequest],
 ) (*connect.Response[pb.CreateScopeResponse], error) {
+	if err := middleware.RequirePermission(ctx, s.db, permissions.CreateScope); err != nil {
+		return nil, err
+	}
+
 	if req.Msg.Name == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("scope name is required"))
 	}

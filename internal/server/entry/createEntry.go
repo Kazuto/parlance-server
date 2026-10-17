@@ -6,6 +6,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"gorm.io/gorm"
 
@@ -17,6 +19,10 @@ func (s *Server) CreateEntry(
 	ctx context.Context,
 	req *connect.Request[pb.CreateEntryRequest],
 ) (*connect.Response[pb.CreateEntryResponse], error) {
+	if err := middleware.RequirePermission(ctx, s.db, permissions.CreateEntry); err != nil {
+		return nil, err
+	}
+
 	if req.Msg.Key == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("entry key is required"))
 	}

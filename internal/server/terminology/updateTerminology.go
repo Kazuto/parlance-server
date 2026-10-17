@@ -6,6 +6,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
@@ -15,6 +17,10 @@ func (s *Server) UpdateTerminology(
 	ctx context.Context,
 	req *connect.Request[pb.UpdateTerminologyRequest],
 ) (*connect.Response[pb.UpdateTerminologyResponse], error) {
+	if err := middleware.RequirePermission(ctx, s.db, permissions.UpdateTerminology); err != nil {
+		return nil, err
+	}
+
 	if req.Msg.Id == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("terminology id is required"))
 	}

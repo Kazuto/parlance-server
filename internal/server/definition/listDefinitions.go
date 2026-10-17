@@ -6,6 +6,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
 	"gorm.io/gorm"
@@ -17,6 +19,10 @@ func (s *Server) ListDefinitions(
 	ctx context.Context,
 	req *connect.Request[pb.ListDefinitionsRequest],
 ) (*connect.Response[pb.ListDefinitionsResponse], error) {
+	if err := middleware.RequirePermission(ctx, s.db, permissions.ReadDefinition); err != nil {
+		return nil, err
+	}
+
 	if req.Msg.TerminologyId == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("terminology id is required"))
 	}

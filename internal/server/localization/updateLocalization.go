@@ -6,6 +6,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
@@ -16,6 +18,10 @@ func (s *Server) UpdateLocalization(
 	ctx context.Context,
 	req *connect.Request[pb.UpdateLocalizationRequest],
 ) (*connect.Response[pb.UpdateLocalizationResponse], error) {
+	if err := middleware.RequirePermission(ctx, s.db, permissions.UpdateEntry); err != nil {
+		return nil, err
+	}
+
 	if req.Msg.Id == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("localization id is required"))
 	}

@@ -6,6 +6,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
 
@@ -17,6 +19,10 @@ func (s *Server) CreateLocale(
 	ctx context.Context,
 	req *connect.Request[pb.CreateLocaleRequest],
 ) (*connect.Response[pb.CreateLocaleResponse], error) {
+	if err := middleware.RequirePermission(ctx, s.db, permissions.CreateLocale); err != nil {
+		return nil, err
+	}
+
 	if req.Msg.Code == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale code is required"))
 	}

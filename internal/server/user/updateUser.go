@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/kazuto/parlance-server/internal/auth"
+	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/models"
 
@@ -21,6 +23,10 @@ func (s *Server) UpdateUser(
 	ctx context.Context,
 	req *connect.Request[pb.UpdateUserRequest],
 ) (*connect.Response[pb.UpdateUserResponse], error) {
+	if err := middleware.RequirePermission(ctx, s.db, permissions.UpdateUser); err != nil {
+		return nil, err
+	}
+
 	if req.Msg.Id == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("user id is required"))
 	}

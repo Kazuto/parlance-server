@@ -2,7 +2,9 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 
+	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/database"
 	"github.com/kazuto/parlance-server/internal/models"
 )
@@ -29,4 +31,12 @@ func HasPermission(ctx context.Context, db *database.DB, permissionName string) 
 	}
 
 	return false
+}
+
+// RequirePermission checks permission and returns an error if not authorized
+func RequirePermission(ctx context.Context, db *database.DB, permissionName string) error {
+	if !HasPermission(ctx, db, permissionName) {
+		return connect.NewError(connect.CodePermissionDenied, fmt.Errorf("permission '%s' required", permissionName))
+	}
+	return nil
 }

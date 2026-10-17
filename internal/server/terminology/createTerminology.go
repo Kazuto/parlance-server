@@ -6,6 +6,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
@@ -15,6 +17,10 @@ func (s *Server) CreateTerminology(
 	ctx context.Context,
 	req *connect.Request[pb.CreateTerminologyRequest],
 ) (*connect.Response[pb.CreateTerminologyResponse], error) {
+	if err := middleware.RequirePermission(ctx, s.db, permissions.CreateTerminology); err != nil {
+		return nil, err
+	}
+
 	if req.Msg.Term == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("term is required"))
 	}

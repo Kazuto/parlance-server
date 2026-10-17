@@ -6,6 +6,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/middleware"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -15,6 +17,10 @@ func (s *Server) DeleteLocale(
 	ctx context.Context,
 	req *connect.Request[pb.DeleteLocaleRequest],
 ) (*connect.Response[pb.DeleteLocaleResponse], error) {
+	if err := middleware.RequirePermission(ctx, s.db, permissions.DeleteLocale); err != nil {
+		return nil, err
+	}
+
 	if req.Msg.Id == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale id is required"))
 	}
