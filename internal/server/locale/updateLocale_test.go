@@ -2,14 +2,28 @@ package locale
 
 import (
 	"testing"
+
+	"connectrpc.com/connect"
+	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/server/testutil"
+	"google.golang.org/protobuf/proto"
 )
 
-// TODO: These validation tests require full database setup with users/permissions.
-// Since permission checks happen first (which is correct for security), these validation
-// errors are only reachable by authenticated users with proper permissions.
-// These should be converted to integration tests with a test database.
-
+// A field that is sent but empty must be rejected for required fields, before any database access.
 func TestUpdateLocaleRejectsEmptyRequiredFields(t *testing.T) {
-	t.Skip("Requires database setup with authenticated user - convert to integration test")
-}
+	ctx, db, err := testutil.SetupTestContext()
+	if err != nil {
+		t.Fatalf("Failed to setup test context: %v", err)
+	}
 
+	server := &Server{db: db}
+	for _, msg := range []*pb.UpdateLocaleRequest{
+		{Id: "locale", Code: proto.String("")},
+		{Id: "locale", Names: &pb.StringMap{}},
+	} {
+		_, err := server.UpdateLocale(ctx, connect.NewRequest(msg))
+		if connect.CodeOf(err) != connect.CodeInvalidArgument {
+			t.Errorf("%v: expected invalid argument, got %v", msg, err)
+		}
+	}
+}

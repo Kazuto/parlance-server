@@ -2,13 +2,25 @@ package entry
 
 import (
 	"testing"
+
+	"connectrpc.com/connect"
+	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/server/testutil"
+	"google.golang.org/protobuf/proto"
 )
 
-// TODO: This validation test requires full database setup with users/permissions.
-// Since permission checks happen first (which is correct for security), these validation
-// errors are only reachable by authenticated users with proper permissions.
-// This should be converted to an integration test with a test database.
-
 func TestUpdateEntryRejectsEmptyKey(t *testing.T) {
-	t.Skip("Requires database setup with authenticated user - convert to integration test")
+	ctx, db, err := testutil.SetupTestContext()
+	if err != nil {
+		t.Fatalf("Failed to setup test context: %v", err)
+	}
+
+	server := &Server{db: db}
+
+	for _, key := range []string{"", "   "} {
+		_, err := server.UpdateEntry(ctx, connect.NewRequest(&pb.UpdateEntryRequest{Id: "entry", Key: proto.String(key)}))
+		if connect.CodeOf(err) != connect.CodeInvalidArgument {
+			t.Fatalf("expected invalid argument, got %v", err)
+		}
+	}
 }
