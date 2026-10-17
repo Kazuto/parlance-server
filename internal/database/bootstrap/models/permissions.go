@@ -35,6 +35,14 @@ func (i *PermissionInitializer) Run(db *gorm.DB) error {
 		}
 	}
 
+	// Add hard_delete permission for locale
+	permissions = append(permissions, models.Permission{
+		Name:        "hard_delete_locale",
+		Resource:    "locale",
+		Action:      "hard_delete",
+		Description: "Allows the user to permanently destroy soft-deleted locale resources",
+	})
+
 	for i := range permissions {
 		db.Where("name = ?", permissions[i].Name).FirstOrCreate(&permissions[i])
 	}

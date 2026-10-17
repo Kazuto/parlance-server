@@ -50,6 +50,9 @@ const (
 	// LocaleServiceRestoreLocaleProcedure is the fully-qualified name of the LocaleService's
 	// RestoreLocale RPC.
 	LocaleServiceRestoreLocaleProcedure = "/parlance.v1.LocaleService/RestoreLocale"
+	// LocaleServiceDestroyLocaleProcedure is the fully-qualified name of the LocaleService's
+	// DestroyLocale RPC.
+	LocaleServiceDestroyLocaleProcedure = "/parlance.v1.LocaleService/DestroyLocale"
 	// LocaleServiceGetDefaultLocaleProcedure is the fully-qualified name of the LocaleService's
 	// GetDefaultLocale RPC.
 	LocaleServiceGetDefaultLocaleProcedure = "/parlance.v1.LocaleService/GetDefaultLocale"
@@ -66,6 +69,7 @@ type LocaleServiceClient interface {
 	UpdateLocale(context.Context, *connect.Request[v1.UpdateLocaleRequest]) (*connect.Response[v1.UpdateLocaleResponse], error)
 	DeleteLocale(context.Context, *connect.Request[v1.DeleteLocaleRequest]) (*connect.Response[v1.DeleteLocaleResponse], error)
 	RestoreLocale(context.Context, *connect.Request[v1.RestoreLocaleRequest]) (*connect.Response[v1.RestoreLocaleResponse], error)
+	DestroyLocale(context.Context, *connect.Request[v1.DestroyLocaleRequest]) (*connect.Response[v1.DestroyLocaleResponse], error)
 	GetDefaultLocale(context.Context, *connect.Request[v1.GetDefaultLocaleRequest]) (*connect.Response[v1.GetDefaultLocaleResponse], error)
 	SetDefaultLocale(context.Context, *connect.Request[v1.SetDefaultLocaleRequest]) (*connect.Response[v1.SetDefaultLocaleResponse], error)
 }
@@ -117,6 +121,12 @@ func NewLocaleServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(localeServiceMethods.ByName("RestoreLocale")),
 			connect.WithClientOptions(opts...),
 		),
+		destroyLocale: connect.NewClient[v1.DestroyLocaleRequest, v1.DestroyLocaleResponse](
+			httpClient,
+			baseURL+LocaleServiceDestroyLocaleProcedure,
+			connect.WithSchema(localeServiceMethods.ByName("DestroyLocale")),
+			connect.WithClientOptions(opts...),
+		),
 		getDefaultLocale: connect.NewClient[v1.GetDefaultLocaleRequest, v1.GetDefaultLocaleResponse](
 			httpClient,
 			baseURL+LocaleServiceGetDefaultLocaleProcedure,
@@ -140,6 +150,7 @@ type localeServiceClient struct {
 	updateLocale     *connect.Client[v1.UpdateLocaleRequest, v1.UpdateLocaleResponse]
 	deleteLocale     *connect.Client[v1.DeleteLocaleRequest, v1.DeleteLocaleResponse]
 	restoreLocale    *connect.Client[v1.RestoreLocaleRequest, v1.RestoreLocaleResponse]
+	destroyLocale    *connect.Client[v1.DestroyLocaleRequest, v1.DestroyLocaleResponse]
 	getDefaultLocale *connect.Client[v1.GetDefaultLocaleRequest, v1.GetDefaultLocaleResponse]
 	setDefaultLocale *connect.Client[v1.SetDefaultLocaleRequest, v1.SetDefaultLocaleResponse]
 }
@@ -174,6 +185,11 @@ func (c *localeServiceClient) RestoreLocale(ctx context.Context, req *connect.Re
 	return c.restoreLocale.CallUnary(ctx, req)
 }
 
+// DestroyLocale calls parlance.v1.LocaleService.DestroyLocale.
+func (c *localeServiceClient) DestroyLocale(ctx context.Context, req *connect.Request[v1.DestroyLocaleRequest]) (*connect.Response[v1.DestroyLocaleResponse], error) {
+	return c.destroyLocale.CallUnary(ctx, req)
+}
+
 // GetDefaultLocale calls parlance.v1.LocaleService.GetDefaultLocale.
 func (c *localeServiceClient) GetDefaultLocale(ctx context.Context, req *connect.Request[v1.GetDefaultLocaleRequest]) (*connect.Response[v1.GetDefaultLocaleResponse], error) {
 	return c.getDefaultLocale.CallUnary(ctx, req)
@@ -192,6 +208,7 @@ type LocaleServiceHandler interface {
 	UpdateLocale(context.Context, *connect.Request[v1.UpdateLocaleRequest]) (*connect.Response[v1.UpdateLocaleResponse], error)
 	DeleteLocale(context.Context, *connect.Request[v1.DeleteLocaleRequest]) (*connect.Response[v1.DeleteLocaleResponse], error)
 	RestoreLocale(context.Context, *connect.Request[v1.RestoreLocaleRequest]) (*connect.Response[v1.RestoreLocaleResponse], error)
+	DestroyLocale(context.Context, *connect.Request[v1.DestroyLocaleRequest]) (*connect.Response[v1.DestroyLocaleResponse], error)
 	GetDefaultLocale(context.Context, *connect.Request[v1.GetDefaultLocaleRequest]) (*connect.Response[v1.GetDefaultLocaleResponse], error)
 	SetDefaultLocale(context.Context, *connect.Request[v1.SetDefaultLocaleRequest]) (*connect.Response[v1.SetDefaultLocaleResponse], error)
 }
@@ -239,6 +256,12 @@ func NewLocaleServiceHandler(svc LocaleServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(localeServiceMethods.ByName("RestoreLocale")),
 		connect.WithHandlerOptions(opts...),
 	)
+	localeServiceDestroyLocaleHandler := connect.NewUnaryHandler(
+		LocaleServiceDestroyLocaleProcedure,
+		svc.DestroyLocale,
+		connect.WithSchema(localeServiceMethods.ByName("DestroyLocale")),
+		connect.WithHandlerOptions(opts...),
+	)
 	localeServiceGetDefaultLocaleHandler := connect.NewUnaryHandler(
 		LocaleServiceGetDefaultLocaleProcedure,
 		svc.GetDefaultLocale,
@@ -265,6 +288,8 @@ func NewLocaleServiceHandler(svc LocaleServiceHandler, opts ...connect.HandlerOp
 			localeServiceDeleteLocaleHandler.ServeHTTP(w, r)
 		case LocaleServiceRestoreLocaleProcedure:
 			localeServiceRestoreLocaleHandler.ServeHTTP(w, r)
+		case LocaleServiceDestroyLocaleProcedure:
+			localeServiceDestroyLocaleHandler.ServeHTTP(w, r)
 		case LocaleServiceGetDefaultLocaleProcedure:
 			localeServiceGetDefaultLocaleHandler.ServeHTTP(w, r)
 		case LocaleServiceSetDefaultLocaleProcedure:
@@ -300,6 +325,10 @@ func (UnimplementedLocaleServiceHandler) DeleteLocale(context.Context, *connect.
 
 func (UnimplementedLocaleServiceHandler) RestoreLocale(context.Context, *connect.Request[v1.RestoreLocaleRequest]) (*connect.Response[v1.RestoreLocaleResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.LocaleService.RestoreLocale is not implemented"))
+}
+
+func (UnimplementedLocaleServiceHandler) DestroyLocale(context.Context, *connect.Request[v1.DestroyLocaleRequest]) (*connect.Response[v1.DestroyLocaleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.LocaleService.DestroyLocale is not implemented"))
 }
 
 func (UnimplementedLocaleServiceHandler) GetDefaultLocale(context.Context, *connect.Request[v1.GetDefaultLocaleRequest]) (*connect.Response[v1.GetDefaultLocaleResponse], error) {

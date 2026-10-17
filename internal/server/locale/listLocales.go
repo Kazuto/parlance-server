@@ -6,6 +6,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
 	"gorm.io/gorm"
@@ -25,6 +26,16 @@ func (s *Server) ListLocales(
 	var total int64
 
 	query := s.db.Model(&models.Locale{})
+
+	// Check if user requested to include deleted locales
+	if req.Msg.Filter != nil && req.Msg.Filter.IncludeDeleted {
+		// Verify user has permission to see deleted locales
+		if !middleware.HasPermission(ctx, s.db, "hard_delete_locale") {
+			return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("insufficient permissions to view deleted locales"))
+		}
+		// Include soft-deleted records
+		query = query.Unscoped()
+	}
 
 	allowedSorts := map[string]bool{"code": true, "name": true, "created_at": true}
 	query, err := common.NewFilter(query, req.Msg.Filter).

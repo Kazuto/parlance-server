@@ -12,6 +12,7 @@ service LocaleService {
   rpc UpdateLocale(UpdateLocaleRequest) returns (UpdateLocaleResponse);
   rpc DeleteLocale(DeleteLocaleRequest) returns (DeleteLocaleResponse);
   rpc RestoreLocale(RestoreLocaleRequest) returns (RestoreLocaleResponse);
+  rpc DestroyLocale(DestroyLocaleRequest) returns (DestroyLocaleResponse);
   rpc GetDefaultLocale(GetDefaultLocaleRequest) returns (GetDefaultLocaleResponse);
   rpc SetDefaultLocale(SetDefaultLocaleRequest) returns (SetDefaultLocaleResponse);
 }
@@ -81,6 +82,12 @@ message RestoreLocaleRequest {
 message RestoreLocaleResponse {
   Locale locale = 1;
 }
+
+message DestroyLocaleRequest {
+  string id = 1;
+}
+
+message DestroyLocaleResponse {}
 
 message GetDefaultLocaleRequest {}
 
