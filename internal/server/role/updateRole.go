@@ -24,7 +24,7 @@ func (s *Server) UpdateRole(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("Role id is required"))
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("role id is required"))
 	}
 	if req.Msg.Name != nil && req.Msg.GetName() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name is required"))
@@ -32,7 +32,7 @@ func (s *Server) UpdateRole(
 
 	var role models.Role
 	if err := s.db.Preload("Permissions").First(&role, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("Role not found"))
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("role not found"))
 	}
 
 	if req.Msg.Name != nil {

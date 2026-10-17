@@ -29,7 +29,9 @@ func (i *RoleSeeder) Run(db *gorm.DB) error {
 
 	var allPermissions []models.Permission
 	db.Find(&allPermissions)
-	db.Model(&adminRole).Association("Permissions").Append(&allPermissions)
+	if err := db.Model(&adminRole).Association("Permissions").Append(&allPermissions); err != nil {
+		return err
+	}
 
 	var translatorRole models.Role
 	db.Where("name = ?", "translator").First(&translatorRole)
@@ -42,7 +44,9 @@ func (i *RoleSeeder) Run(db *gorm.DB) error {
 		"scope.read", "export.use",
 	}).Find(&translatorPerms)
 
-	db.Model(&translatorRole).Association("Permissions").Append(&translatorPerms)
+	if err := db.Model(&translatorRole).Association("Permissions").Append(&translatorPerms); err != nil {
+		return err
+	}
 
 	var reviewerRole models.Role
 	db.Where("name = ?", "reviewer").First(&reviewerRole)
@@ -54,7 +58,9 @@ func (i *RoleSeeder) Run(db *gorm.DB) error {
 		"terminology.read", "scope.read", "export.use",
 	}).Find(&reviewerPerms)
 
-	db.Model(&reviewerRole).Association("Permissions").Append(&reviewerPerms)
+	if err := db.Model(&reviewerRole).Association("Permissions").Append(&reviewerPerms); err != nil {
+		return err
+	}
 
 	var viewerRole models.Role
 	db.Where("name = ?", "viewer").First(&viewerRole)
@@ -64,7 +70,9 @@ func (i *RoleSeeder) Run(db *gorm.DB) error {
 		"entry.read", "localization.read", "terminology.read", "scope.read", "export.use",
 	}).Find(&viewerPerms)
 
-	db.Model(&viewerRole).Association("Permissions").Append(&viewerPerms)
+	if err := db.Model(&viewerRole).Association("Permissions").Append(&viewerPerms); err != nil {
+		return err
+	}
 
 	return nil
 }

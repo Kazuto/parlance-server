@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kazuto/parlance-server/internal/database"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -41,7 +42,9 @@ func SetupTestDB() (*database.DB, error) {
 	}
 
 	// Add UUID generation hook for tests (SQLite doesn't support uuid_generate_v4())
-	db.Callback().Create().Before("gorm:create").Register("test:uuid", uuidHook)
+	if err := db.Callback().Create().Before("gorm:create").Register("test:uuid", uuidHook); err != nil {
+		return nil, err
+	}
 
 	// Manually create tables without PostgreSQL-specific features
 	// This is simpler than trying to work around GORM's migrator
@@ -245,7 +248,7 @@ func CreateTestUserWithAllPermissions(db *database.DB) (string, error) {
 
 // ContextWithTestUser creates a context with a test user ID
 func ContextWithTestUser(ctx context.Context, userID string) context.Context {
-	return context.WithValue(ctx, "user_id", userID)
+	return context.WithValue(ctx, middleware.ContextKeyUserID, userID)
 }
 
 // SetupTestContext creates a test database and context with an admin user

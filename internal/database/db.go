@@ -103,14 +103,18 @@ func (db *DB) AutoMigrate() error {
 }
 
 func (db *DB) Bootstrap() error {
-	bootstrap.Execute(db.DB)
+	if err := bootstrap.Execute(db.DB); err != nil {
+		return fmt.Errorf("bootstrap failed: %w", err)
+	}
 
 	return nil
 }
 
 // Seed inserts default data
 func (db *DB) Seed() error {
-	seeder.Execute(db.DB)
+	if err := seeder.Execute(db.DB); err != nil {
+		return fmt.Errorf("seeding failed: %w", err)
+	}
 
 	return nil
 }

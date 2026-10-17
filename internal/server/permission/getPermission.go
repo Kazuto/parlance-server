@@ -23,13 +23,13 @@ func (s *Server) GetPermission(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("Permission id is required"))
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("permission id is required"))
 	}
 
 	var permission models.Permission
 
 	if err := s.db.First(&permission, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("Permission not found"))
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("permission not found"))
 	}
 
 	return connect.NewResponse(&pb.GetPermissionResponse{

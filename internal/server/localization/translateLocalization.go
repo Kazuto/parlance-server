@@ -45,7 +45,7 @@ func (s *Server) TranslateLocalization(
 	translatedText := fmt.Sprintf("[AI-Translated from source] %s", sourceLocalization.Translation)
 
 	// Extract user ID from context
-	userID, _ := ctx.Value("user_id").(string)
+	userID, _ := ctx.Value(middleware.ContextKeyUserID).(string)
 
 	// Check if target localization already exists
 	var targetLocalization models.Localization

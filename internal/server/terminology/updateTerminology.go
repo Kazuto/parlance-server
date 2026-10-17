@@ -34,7 +34,7 @@ func (s *Server) UpdateTerminology(
 	}
 
 	// Extract user ID from context
-	userID, _ := ctx.Value("user_id").(string)
+	userID, _ := ctx.Value(middleware.ContextKeyUserID).(string)
 	if userID != "" {
 		terminology.UpdatedBy = &userID
 	}

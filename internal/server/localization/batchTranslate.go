@@ -35,7 +35,7 @@ func (s *Server) BatchTranslate(
 	}
 
 	// Extract user ID from context
-	userID, _ := ctx.Value("user_id").(string)
+	userID, _ := ctx.Value(middleware.ContextKeyUserID).(string)
 
 	var successCount int32
 	var failureCount int32

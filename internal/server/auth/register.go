@@ -55,7 +55,7 @@ func (s *Server) Register(
 	// Assign default viewer role
 	var viewerRole models.Role
 	if err := s.db.Where("name = ?", "viewer").First(&viewerRole).Error; err == nil {
-		s.db.Model(user).Association("Roles").Append(&viewerRole)
+		_ = s.db.Model(user).Association("Roles").Append(&viewerRole)
 	}
 
 	// Load roles for response

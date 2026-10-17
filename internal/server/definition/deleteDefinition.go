@@ -30,7 +30,7 @@ func (s *Server) DeleteDefinition(
 	}
 
 	// Extract user ID from context for history tracking
-	userID, _ := ctx.Value("user_id").(string)
+	userID, _ := ctx.Value(middleware.ContextKeyUserID).(string)
 	if userID != "" {
 		definition.UpdatedBy = &userID
 	}

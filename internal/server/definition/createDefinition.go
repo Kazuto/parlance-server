@@ -55,7 +55,7 @@ func (s *Server) CreateDefinition(
 	}
 
 	// Extract user ID from context
-	userID, _ := ctx.Value("user_id").(string)
+	userID, _ := ctx.Value(middleware.ContextKeyUserID).(string)
 
 	definition := &models.Definition{
 		TerminologyID: req.Msg.TerminologyId,

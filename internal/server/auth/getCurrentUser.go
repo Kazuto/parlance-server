@@ -6,6 +6,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
@@ -17,7 +18,7 @@ func (s *Server) GetCurrentUser(
 	req *connect.Request[pb.GetCurrentUserRequest],
 ) (*connect.Response[pb.GetCurrentUserResponse], error) {
 	// Extract user ID from context (set by auth middleware)
-	userID, ok := ctx.Value("user_id").(string)
+	userID, ok := ctx.Value(middleware.ContextKeyUserID).(string)
 	if !ok || userID == "" {
 		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("not authenticated"))
 	}

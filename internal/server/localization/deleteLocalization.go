@@ -31,7 +31,7 @@ func (s *Server) DeleteLocalization(
 	}
 
 	// Extract user ID from context for history tracking
-	userID, _ := ctx.Value("user_id").(string)
+	userID, _ := ctx.Value(middleware.ContextKeyUserID).(string)
 	if userID != "" {
 		localization.UpdatedBy = &userID
 	}

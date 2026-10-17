@@ -33,7 +33,7 @@ func (s *Server) CreateRole(
 	// Check if Role already exists
 	var existingRole models.Role
 	if err := s.db.Where("name = ?", req.Msg.Name).First(&existingRole).Error; err == nil {
-		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("Role with this email already exists"))
+		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("role with this email already exists"))
 	}
 
 	role := &models.Role{

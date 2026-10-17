@@ -57,7 +57,9 @@ func (i *EntriesSeeder) Run(db *gorm.DB) error {
 		db.Where("key = ?", entryData.key).FirstOrCreate(&entry)
 
 		if len(entryData.scopes) > 0 {
-			db.Model(&entry).Association("Scopes").Replace(&entryData.scopes)
+			if err := db.Model(&entry).Association("Scopes").Replace(&entryData.scopes); err != nil {
+				return err
+			}
 		}
 	}
 

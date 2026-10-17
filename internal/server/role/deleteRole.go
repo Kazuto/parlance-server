@@ -22,12 +22,12 @@ func (s *Server) DeleteRole(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("Role id is required"))
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("role id is required"))
 	}
 
 	var role models.Role
 	if err := s.db.First(&role, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("Role not found"))
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("role not found"))
 	}
 
 	if err := s.db.Delete(&role).Error; err != nil {

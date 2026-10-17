@@ -23,12 +23,12 @@ func (s *Server) GetRole(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("Role id is required"))
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("role id is required"))
 	}
 
 	var role models.Role
 	if err := s.db.Preload("Permissions").First(&role, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("Role not found"))
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("role not found"))
 	}
 
 	return connect.NewResponse(&pb.GetRoleResponse{

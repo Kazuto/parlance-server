@@ -46,7 +46,7 @@ func (s *Server) ExportPhp(
 			if loc.LocaleID == locale.ID {
 				// Escape single quotes in translation
 				translation := strings.ReplaceAll(loc.Translation, "'", "\\'")
-				content.WriteString(fmt.Sprintf("    '%s' => '%s',\n", entry.Key, translation))
+				fmt.Fprintf(&content, "    '%s' => '%s',\n", entry.Key, translation)
 				break
 			}
 		}

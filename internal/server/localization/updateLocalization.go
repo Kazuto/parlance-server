@@ -36,7 +36,7 @@ func (s *Server) UpdateLocalization(
 	}
 
 	// Extract user ID from context
-	userID, _ := ctx.Value("user_id").(string)
+	userID, _ := ctx.Value(middleware.ContextKeyUserID).(string)
 	if userID != "" {
 		localization.UpdatedBy = &userID
 	}

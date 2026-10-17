@@ -11,7 +11,7 @@ import (
 
 // HasPermission checks if the user in the context has a specific permission
 func HasPermission(ctx context.Context, db *database.DB, permissionName string) bool {
-	userID, ok := ctx.Value("user_id").(string)
+	userID, ok := ctx.Value(ContextKeyUserID).(string)
 	if !ok || userID == "" {
 		return false
 	}

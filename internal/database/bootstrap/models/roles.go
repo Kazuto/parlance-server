@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/kazuto/parlance-server/internal/models"
@@ -27,7 +28,9 @@ func (i *RoleInitializer) Run(db *gorm.DB) error {
 	admin := models.Role{Name: "admin", Permissions: permissions}
 	db.Where("name = ?", "admin").FirstOrCreate(&admin)
 
-	db.Model(&admin).Association("Permissions").Replace(&permissions)
+	if err := db.Model(&admin).Association("Permissions").Replace(&permissions); err != nil {
+		return fmt.Errorf("failed to update admin permissions: %w", err)
+	}
 
 	return nil
 }

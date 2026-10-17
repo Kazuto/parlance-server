@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 )
 
@@ -21,7 +22,7 @@ func (s *Server) processImport(
 	}
 
 	// Get user ID from context
-	userID, _ := ctx.Value("user_id").(string)
+	userID, _ := ctx.Value(middleware.ContextKeyUserID).(string)
 	if userID == "" {
 		return nil, fmt.Errorf("user not authenticated")
 	}
@@ -71,7 +72,7 @@ func (s *Server) processImport(
 
 // processTranslation handles importing a single translation
 func (s *Server) processTranslation(
-	ctx context.Context,
+	_ context.Context,
 	key string,
 	value string,
 	localeID string,

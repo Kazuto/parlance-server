@@ -55,7 +55,7 @@ func TestAuthMiddleware(t *testing.T) {
 			// Create a test handler that checks context
 			var contextUserID string
 			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if uid, ok := r.Context().Value("user_id").(string); ok {
+				if uid, ok := r.Context().Value(ContextKeyUserID).(string); ok {
 					contextUserID = uid
 				}
 				w.WriteHeader(http.StatusOK)
@@ -145,7 +145,7 @@ func TestRequireAuth(t *testing.T) {
 			// Create a test handler
 			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				handlerCalled = true
-				if uid, ok := r.Context().Value("user_id").(string); ok {
+				if uid, ok := r.Context().Value(ContextKeyUserID).(string); ok {
 					contextUserID = uid
 				}
 				w.WriteHeader(http.StatusOK)
@@ -224,8 +224,8 @@ func TestExtractUserIDFromContext(t *testing.T) {
 	userID := "test-user-123"
 
 	// Test with user_id in context
-	ctxWithUser := context.WithValue(ctx, "user_id", userID)
-	extractedID, ok := ctxWithUser.Value("user_id").(string)
+	ctxWithUser := context.WithValue(ctx, ContextKeyUserID, userID)
+	extractedID, ok := ctxWithUser.Value(ContextKeyUserID).(string)
 	if !ok {
 		t.Fatal("Failed to extract user_id from context")
 	}
@@ -234,7 +234,7 @@ func TestExtractUserIDFromContext(t *testing.T) {
 	}
 
 	// Test without user_id in context
-	_, ok = ctx.Value("user_id").(string)
+	_, ok = ctx.Value(ContextKeyUserID).(string)
 	if ok {
 		t.Error("Should not find user_id in empty context")
 	}

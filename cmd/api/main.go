@@ -47,7 +47,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("Failed to close database: %v", err)
+		}
+	}()
 
 	if err := db.AutoMigrate(); err != nil {
 		log.Fatalf("Failed to run migrations: %v", err)
@@ -68,7 +72,9 @@ func main() {
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"ok","service":"parlance-api"}`))
+		if _, err := w.Write([]byte(`{"status":"ok","service":"parlance-api"}`)); err != nil {
+			log.Printf("Failed to write health response: %v", err)
+		}
 	})
 
 	authMiddleware := middleware.AuthMiddleware(cfg.JWT.Secret)

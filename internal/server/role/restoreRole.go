@@ -23,12 +23,12 @@ func (s *Server) RestoreRole(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("Role id is required"))
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("role id is required"))
 	}
 
 	var role models.Role
 	if err := s.db.Unscoped().Preload("Permissions").First(&role, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("Role not found"))
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("role not found"))
 	}
 
 	role.DeletedAt = gorm.DeletedAt{Valid: false}

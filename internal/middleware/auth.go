@@ -8,6 +8,16 @@ import (
 	"github.com/kazuto/parlance-server/internal/auth"
 )
 
+// ContextKey is a custom type for context keys to avoid collisions
+type ContextKey string
+
+const (
+	// ContextKeyUserID is the context key for user ID
+	ContextKeyUserID ContextKey = "user_id"
+	// ContextKeyUserEmail is the context key for user email
+	ContextKeyUserEmail ContextKey = "user_email"
+)
+
 // AuthMiddleware validates JWT tokens and adds user info to context
 func AuthMiddleware(secret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -24,8 +34,8 @@ func AuthMiddleware(secret string) func(http.Handler) http.Handler {
 					claims, err := auth.ValidateToken(token, secret)
 					if err == nil {
 						// Add user info to context
-						ctx := context.WithValue(r.Context(), "user_id", claims.UserID)
-						ctx = context.WithValue(ctx, "user_email", claims.Email)
+						ctx := context.WithValue(r.Context(), ContextKeyUserID, claims.UserID)
+						ctx = context.WithValue(ctx, ContextKeyUserEmail, claims.Email)
 						r = r.WithContext(ctx)
 					}
 				}
@@ -45,7 +55,7 @@ func RequireAuth(secret string) func(http.Handler) http.Handler {
 			if authHeader == "" {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte(`{"code":"unauthenticated","message":"authorization header required"}`))
+				_, _ = w.Write([]byte(`{"code":"unauthenticated","message":"authorization header required"}`))
 
 				return
 			}
@@ -54,7 +64,7 @@ func RequireAuth(secret string) func(http.Handler) http.Handler {
 			if len(parts) != 2 || parts[0] != "Bearer" {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte(`{"code":"unauthenticated","message":"invalid authorization header format"}`))
+				_, _ = w.Write([]byte(`{"code":"unauthenticated","message":"invalid authorization header format"}`))
 
 				return
 			}
@@ -64,13 +74,13 @@ func RequireAuth(secret string) func(http.Handler) http.Handler {
 			if err != nil {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte(`{"code":"unauthenticated","message":"invalid or expired token"}`))
+				_, _ = w.Write([]byte(`{"code":"unauthenticated","message":"invalid or expired token"}`))
 
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), "user_id", claims.UserID)
-			ctx = context.WithValue(ctx, "user_email", claims.Email)
+			ctx := context.WithValue(r.Context(), ContextKeyUserID, claims.UserID)
+			ctx = context.WithValue(ctx, ContextKeyUserEmail, claims.Email)
 			r = r.WithContext(ctx)
 
 			next.ServeHTTP(w, r)
