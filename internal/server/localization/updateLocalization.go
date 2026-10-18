@@ -26,13 +26,20 @@ func (s *Server) UpdateLocalization(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "localization id is required")
 	}
 
-	if req.Msg.Translation != nil && req.Msg.GetTranslation() == "" {
-		return nil, errors.InvalidInput(errors.ErrInvalidInput, "translation is required")
-	}
-
 	var localization models.Localization
 	if err := s.db.First(&localization, "id = ?", req.Msg.Id).Error; err != nil {
 		return nil, errors.NotFound(errors.ErrLocalizationNotFound, "localization not found")
+	}
+
+	// If translation is being set to empty, delete the localization instead
+	if req.Msg.Translation != nil && req.Msg.GetTranslation() == "" {
+		if err := s.db.Delete(&localization).Error; err != nil {
+			return nil, errors.Internal(errors.ErrInternal, "failed to delete localization")
+		}
+
+		return connect.NewResponse(&pb.UpdateLocalizationResponse{
+			Localization: nil,
+		}), nil
 	}
 
 	// Extract user ID from context
