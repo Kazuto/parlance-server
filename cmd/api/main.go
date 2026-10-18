@@ -176,8 +176,8 @@ func main() {
 	srv := &http.Server{
 		Addr:         addr,
 		Handler:      h2c.NewHandler(corsMiddleware(authMiddleware(mux), cfg.CORS.AllowedOrigins), &http2.Server{}),
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 120 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
 
