@@ -7,6 +7,7 @@ import (
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
+	"gorm.io/gorm"
 )
 
 // processImport handles the common import logic for all formats
@@ -56,95 +57,153 @@ func (s *Server) processImport(
 		}
 	}
 
-	// Process each translation
-	for key, value := range translations {
-		if err := s.processTranslation(ctx, key, value, localeID, scopes, userID, mode, result); err != nil {
-			result.EntriesFailed++
-			result.Errors = append(result.Errors, &pb.ImportError{
-				Key:     key,
-				Message: err.Error(),
-			})
+	// Batch fetch existing entries for all keys
+	keys := make([]string, 0, len(translations))
+	for key := range translations {
+		keys = append(keys, key)
+	}
+
+	var existingEntries []models.Entry
+	if err := s.db.Where("key IN ?", keys).Find(&existingEntries).Error; err != nil {
+		return nil, fmt.Errorf("failed to fetch existing entries: %w", err)
+	}
+
+	// Create a map of existing entries by key
+	entryMap := make(map[string]*models.Entry)
+	entryIDs := make([]string, 0, len(existingEntries))
+	for i := range existingEntries {
+		entryMap[existingEntries[i].Key] = &existingEntries[i]
+		entryIDs = append(entryIDs, existingEntries[i].ID)
+	}
+
+	// Batch fetch existing localizations
+	var existingLocalizations []models.Localization
+	if len(entryIDs) > 0 {
+		if err := s.db.Where("entry_id IN ? AND locale_id = ?", entryIDs, localeID).
+			Find(&existingLocalizations).Error; err != nil {
+			return nil, fmt.Errorf("failed to fetch existing localizations: %w", err)
 		}
+	}
+
+	// Create a map of existing localizations by entry_id
+	localizationMap := make(map[string]*models.Localization)
+	for i := range existingLocalizations {
+		localizationMap[existingLocalizations[i].EntryID] = &existingLocalizations[i]
+	}
+
+	// Process translations in batches
+	entriesToCreate := []models.Entry{}
+	localizationsToCreate := []models.Localization{}
+	localizationsToUpdate := []models.Localization{}
+	entriesToAddScopes := []*models.Entry{}
+
+	for key, value := range translations {
+		entry, entryExists := entryMap[key]
+
+		// Handle mode-based skipping
+		if mode == pb.ImportMode_IMPORT_MODE_CREATE_ONLY && entryExists {
+			result.EntriesSkipped++
+			continue
+		}
+		if mode == pb.ImportMode_IMPORT_MODE_UPDATE_ONLY && !entryExists {
+			result.EntriesSkipped++
+			continue
+		}
+
+		// Create entry if it doesn't exist
+		if !entryExists {
+			newEntry := models.Entry{
+				Key:       key,
+				CreatedBy: &userID,
+			}
+			entriesToCreate = append(entriesToCreate, newEntry)
+			// We'll need to handle localization after entry is created
+			continue
+		}
+
+		// Add scopes if needed
+		if len(scopes) > 0 {
+			entriesToAddScopes = append(entriesToAddScopes, entry)
+		}
+
+		// Check if localization exists
+		localization, localizationExists := localizationMap[entry.ID]
+
+		if localizationExists {
+			// Update existing localization
+			localization.Translation = value
+			localization.UpdatedBy = &userID
+			localizationsToUpdate = append(localizationsToUpdate, *localization)
+			result.EntriesUpdated++
+		} else {
+			// Create new localization
+			newLocalization := models.Localization{
+				EntryID:     entry.ID,
+				LocaleID:    localeID,
+				Translation: value,
+				CreatedBy:   &userID,
+			}
+			localizationsToCreate = append(localizationsToCreate, newLocalization)
+			result.EntriesCreated++
+		}
+	}
+
+	// Execute batch operations in a transaction
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		// Batch create entries
+		if len(entriesToCreate) > 0 {
+			if err := tx.Create(&entriesToCreate).Error; err != nil {
+				return fmt.Errorf("failed to create entries: %w", err)
+			}
+
+			// Now create localizations for the new entries
+			for i := range entriesToCreate {
+				entry := &entriesToCreate[i]
+				value := translations[entry.Key]
+
+				// Add scopes if needed
+				if len(scopes) > 0 {
+					if err := tx.Model(entry).Association("Scopes").Append(&scopes); err != nil {
+						return fmt.Errorf("failed to assign scopes to new entry: %w", err)
+					}
+				}
+
+				newLocalization := models.Localization{
+					EntryID:     entry.ID,
+					LocaleID:    localeID,
+					Translation: value,
+					CreatedBy:   &userID,
+				}
+				localizationsToCreate = append(localizationsToCreate, newLocalization)
+				result.EntriesCreated++
+			}
+		}
+
+		// Batch add scopes to existing entries
+		for _, entry := range entriesToAddScopes {
+			if err := tx.Model(entry).Association("Scopes").Append(&scopes); err != nil {
+				return fmt.Errorf("failed to assign scopes: %w", err)
+			}
+		}
+
+		// Batch create localizations
+		if len(localizationsToCreate) > 0 {
+			if err := tx.Create(&localizationsToCreate).Error; err != nil {
+				return fmt.Errorf("failed to create localizations: %w", err)
+			}
+		}
+
+		// Batch update localizations
+		for i := range localizationsToUpdate {
+			if err := tx.Save(&localizationsToUpdate[i]).Error; err != nil {
+				return fmt.Errorf("failed to update localization: %w", err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 
 	return result, nil
-}
-
-// processTranslation handles importing a single translation
-func (s *Server) processTranslation(
-	_ context.Context,
-	key string,
-	value string,
-	localeID string,
-	scopes []models.Scope,
-	userID string,
-	mode pb.ImportMode,
-	result *pb.ImportResult,
-) error {
-	// Find or create entry
-	var entry models.Entry
-	err := s.db.Where("key = ?", key).First(&entry).Error
-
-	entryExists := err == nil
-
-	// Handle CREATE_ONLY mode
-	if mode == pb.ImportMode_IMPORT_MODE_CREATE_ONLY && entryExists {
-		result.EntriesSkipped++
-		return nil
-	}
-
-	// Handle UPDATE_ONLY mode
-	if mode == pb.ImportMode_IMPORT_MODE_UPDATE_ONLY && !entryExists {
-		result.EntriesSkipped++
-		return nil
-	}
-
-	// Create entry if it doesn't exist
-	if !entryExists {
-		entry = models.Entry{
-			Key:       key,
-			CreatedBy: &userID,
-		}
-		if err := s.db.Create(&entry).Error; err != nil {
-			return fmt.Errorf("failed to create entry: %w", err)
-		}
-	}
-
-	// Add the selected scopes to new and existing entries alike; scopes an entry already has are kept.
-	if len(scopes) > 0 {
-		if err := s.db.Model(&entry).Association("Scopes").Append(&scopes); err != nil {
-			return fmt.Errorf("failed to assign scopes: %w", err)
-		}
-	}
-
-	// Find or create localization
-	var localization models.Localization
-	err = s.db.Where("entry_id = ? AND locale_id = ?", entry.ID, localeID).
-		First(&localization).Error
-
-	localizationExists := err == nil
-
-	if localizationExists {
-		// Update existing localization
-		localization.Translation = value
-		localization.UpdatedBy = &userID
-		if err := s.db.Save(&localization).Error; err != nil {
-			return fmt.Errorf("failed to update localization: %w", err)
-		}
-		result.EntriesUpdated++
-	} else {
-		// Create new localization
-		localization = models.Localization{
-			EntryID:     entry.ID,
-			LocaleID:    localeID,
-			Translation: value,
-			CreatedBy:   &userID,
-		}
-		if err := s.db.Create(&localization).Error; err != nil {
-			return fmt.Errorf("failed to create localization: %w", err)
-		}
-		result.EntriesCreated++
-	}
-
-	return nil
 }
