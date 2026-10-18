@@ -40,6 +40,8 @@ const (
 	ExportServiceExportJsonProcedure = "/parlance.v1.ExportService/ExportJson"
 	// ExportServiceExportPoProcedure is the fully-qualified name of the ExportService's ExportPo RPC.
 	ExportServiceExportPoProcedure = "/parlance.v1.ExportService/ExportPo"
+	// ExportServiceExportZipProcedure is the fully-qualified name of the ExportService's ExportZip RPC.
+	ExportServiceExportZipProcedure = "/parlance.v1.ExportService/ExportZip"
 )
 
 // ExportServiceClient is a client for the parlance.v1.ExportService service.
@@ -47,6 +49,7 @@ type ExportServiceClient interface {
 	ExportPhp(context.Context, *connect.Request[v1.ExportPhpRequest]) (*connect.Response[v1.ExportPhpResponse], error)
 	ExportJson(context.Context, *connect.Request[v1.ExportJsonRequest]) (*connect.Response[v1.ExportJsonResponse], error)
 	ExportPo(context.Context, *connect.Request[v1.ExportPoRequest]) (*connect.Response[v1.ExportPoResponse], error)
+	ExportZip(context.Context, *connect.Request[v1.ExportZipRequest]) (*connect.Response[v1.ExportZipResponse], error)
 }
 
 // NewExportServiceClient constructs a client for the parlance.v1.ExportService service. By default,
@@ -78,6 +81,12 @@ func NewExportServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(exportServiceMethods.ByName("ExportPo")),
 			connect.WithClientOptions(opts...),
 		),
+		exportZip: connect.NewClient[v1.ExportZipRequest, v1.ExportZipResponse](
+			httpClient,
+			baseURL+ExportServiceExportZipProcedure,
+			connect.WithSchema(exportServiceMethods.ByName("ExportZip")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -86,6 +95,7 @@ type exportServiceClient struct {
 	exportPhp  *connect.Client[v1.ExportPhpRequest, v1.ExportPhpResponse]
 	exportJson *connect.Client[v1.ExportJsonRequest, v1.ExportJsonResponse]
 	exportPo   *connect.Client[v1.ExportPoRequest, v1.ExportPoResponse]
+	exportZip  *connect.Client[v1.ExportZipRequest, v1.ExportZipResponse]
 }
 
 // ExportPhp calls parlance.v1.ExportService.ExportPhp.
@@ -103,11 +113,17 @@ func (c *exportServiceClient) ExportPo(ctx context.Context, req *connect.Request
 	return c.exportPo.CallUnary(ctx, req)
 }
 
+// ExportZip calls parlance.v1.ExportService.ExportZip.
+func (c *exportServiceClient) ExportZip(ctx context.Context, req *connect.Request[v1.ExportZipRequest]) (*connect.Response[v1.ExportZipResponse], error) {
+	return c.exportZip.CallUnary(ctx, req)
+}
+
 // ExportServiceHandler is an implementation of the parlance.v1.ExportService service.
 type ExportServiceHandler interface {
 	ExportPhp(context.Context, *connect.Request[v1.ExportPhpRequest]) (*connect.Response[v1.ExportPhpResponse], error)
 	ExportJson(context.Context, *connect.Request[v1.ExportJsonRequest]) (*connect.Response[v1.ExportJsonResponse], error)
 	ExportPo(context.Context, *connect.Request[v1.ExportPoRequest]) (*connect.Response[v1.ExportPoResponse], error)
+	ExportZip(context.Context, *connect.Request[v1.ExportZipRequest]) (*connect.Response[v1.ExportZipResponse], error)
 }
 
 // NewExportServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -135,6 +151,12 @@ func NewExportServiceHandler(svc ExportServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(exportServiceMethods.ByName("ExportPo")),
 		connect.WithHandlerOptions(opts...),
 	)
+	exportServiceExportZipHandler := connect.NewUnaryHandler(
+		ExportServiceExportZipProcedure,
+		svc.ExportZip,
+		connect.WithSchema(exportServiceMethods.ByName("ExportZip")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/parlance.v1.ExportService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ExportServiceExportPhpProcedure:
@@ -143,6 +165,8 @@ func NewExportServiceHandler(svc ExportServiceHandler, opts ...connect.HandlerOp
 			exportServiceExportJsonHandler.ServeHTTP(w, r)
 		case ExportServiceExportPoProcedure:
 			exportServiceExportPoHandler.ServeHTTP(w, r)
+		case ExportServiceExportZipProcedure:
+			exportServiceExportZipHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -162,4 +186,8 @@ func (UnimplementedExportServiceHandler) ExportJson(context.Context, *connect.Re
 
 func (UnimplementedExportServiceHandler) ExportPo(context.Context, *connect.Request[v1.ExportPoRequest]) (*connect.Response[v1.ExportPoResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ExportService.ExportPo is not implemented"))
+}
+
+func (UnimplementedExportServiceHandler) ExportZip(context.Context, *connect.Request[v1.ExportZipRequest]) (*connect.Response[v1.ExportZipResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ExportService.ExportZip is not implemented"))
 }

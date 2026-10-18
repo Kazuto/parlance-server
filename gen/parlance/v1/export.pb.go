@@ -358,6 +358,111 @@ func (x *ExportPoResponse) GetFilename() string {
 	return ""
 }
 
+// Export all locales as a ZIP archive containing JSON files
+type ExportZipRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ScopeIds      []string               `protobuf:"bytes,1,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"` // Export entries in any of these scopes; empty exports all
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExportZipRequest) Reset() {
+	*x = ExportZipRequest{}
+	mi := &file_parlance_v1_export_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExportZipRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExportZipRequest) ProtoMessage() {}
+
+func (x *ExportZipRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_export_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExportZipRequest.ProtoReflect.Descriptor instead.
+func (*ExportZipRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_export_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ExportZipRequest) GetScopeIds() []string {
+	if x != nil {
+		return x.ScopeIds
+	}
+	return nil
+}
+
+type ExportZipResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Format        string                 `protobuf:"bytes,1,opt,name=format,proto3" json:"format,omitempty"`     // "zip"
+	Content       []byte                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`   // ZIP file content as bytes
+	Filename      string                 `protobuf:"bytes,3,opt,name=filename,proto3" json:"filename,omitempty"` // Suggested filename (e.g., "translations-2024-10-18.zip")
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExportZipResponse) Reset() {
+	*x = ExportZipResponse{}
+	mi := &file_parlance_v1_export_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExportZipResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExportZipResponse) ProtoMessage() {}
+
+func (x *ExportZipResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_export_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExportZipResponse.ProtoReflect.Descriptor instead.
+func (*ExportZipResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_export_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ExportZipResponse) GetFormat() string {
+	if x != nil {
+		return x.Format
+	}
+	return ""
+}
+
+func (x *ExportZipResponse) GetContent() []byte {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+func (x *ExportZipResponse) GetFilename() string {
+	if x != nil {
+		return x.Filename
+	}
+	return ""
+}
+
 var File_parlance_v1_export_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_export_proto_rawDesc = "" +
@@ -386,12 +491,19 @@ const file_parlance_v1_export_proto_rawDesc = "" +
 	"\x10ExportPoResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1a\n" +
-	"\bfilename\x18\x03 \x01(\tR\bfilename2\xf3\x01\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\"/\n" +
+	"\x10ExportZipRequest\x12\x1b\n" +
+	"\tscope_ids\x18\x01 \x03(\tR\bscopeIds\"a\n" +
+	"\x11ExportZipResponse\x12\x16\n" +
+	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
+	"\acontent\x18\x02 \x01(\fR\acontent\x12\x1a\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename2\xbf\x02\n" +
 	"\rExportService\x12J\n" +
 	"\tExportPhp\x12\x1d.parlance.v1.ExportPhpRequest\x1a\x1e.parlance.v1.ExportPhpResponse\x12M\n" +
 	"\n" +
 	"ExportJson\x12\x1e.parlance.v1.ExportJsonRequest\x1a\x1f.parlance.v1.ExportJsonResponse\x12G\n" +
-	"\bExportPo\x12\x1c.parlance.v1.ExportPoRequest\x1a\x1d.parlance.v1.ExportPoResponseB\xa9\x01\n" +
+	"\bExportPo\x12\x1c.parlance.v1.ExportPoRequest\x1a\x1d.parlance.v1.ExportPoResponse\x12J\n" +
+	"\tExportZip\x12\x1d.parlance.v1.ExportZipRequest\x1a\x1e.parlance.v1.ExportZipResponseB\xa9\x01\n" +
 	"\x0fcom.parlance.v1B\vExportProtoP\x01Z<github.com/kazuto/parlance-server/gen/parlance/v1;parlancev1\xa2\x02\x03PXX\xaa\x02\vParlance.V1\xca\x02\vParlance\\V1\xe2\x02\x17Parlance\\V1\\GPBMetadata\xea\x02\fParlance::V1b\x06proto3"
 
 var (
@@ -406,7 +518,7 @@ func file_parlance_v1_export_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_export_proto_rawDescData
 }
 
-var file_parlance_v1_export_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_parlance_v1_export_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_parlance_v1_export_proto_goTypes = []any{
 	(*ExportPhpRequest)(nil),   // 0: parlance.v1.ExportPhpRequest
 	(*ExportPhpResponse)(nil),  // 1: parlance.v1.ExportPhpResponse
@@ -414,16 +526,20 @@ var file_parlance_v1_export_proto_goTypes = []any{
 	(*ExportJsonResponse)(nil), // 3: parlance.v1.ExportJsonResponse
 	(*ExportPoRequest)(nil),    // 4: parlance.v1.ExportPoRequest
 	(*ExportPoResponse)(nil),   // 5: parlance.v1.ExportPoResponse
+	(*ExportZipRequest)(nil),   // 6: parlance.v1.ExportZipRequest
+	(*ExportZipResponse)(nil),  // 7: parlance.v1.ExportZipResponse
 }
 var file_parlance_v1_export_proto_depIdxs = []int32{
 	0, // 0: parlance.v1.ExportService.ExportPhp:input_type -> parlance.v1.ExportPhpRequest
 	2, // 1: parlance.v1.ExportService.ExportJson:input_type -> parlance.v1.ExportJsonRequest
 	4, // 2: parlance.v1.ExportService.ExportPo:input_type -> parlance.v1.ExportPoRequest
-	1, // 3: parlance.v1.ExportService.ExportPhp:output_type -> parlance.v1.ExportPhpResponse
-	3, // 4: parlance.v1.ExportService.ExportJson:output_type -> parlance.v1.ExportJsonResponse
-	5, // 5: parlance.v1.ExportService.ExportPo:output_type -> parlance.v1.ExportPoResponse
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	6, // 3: parlance.v1.ExportService.ExportZip:input_type -> parlance.v1.ExportZipRequest
+	1, // 4: parlance.v1.ExportService.ExportPhp:output_type -> parlance.v1.ExportPhpResponse
+	3, // 5: parlance.v1.ExportService.ExportJson:output_type -> parlance.v1.ExportJsonResponse
+	5, // 6: parlance.v1.ExportService.ExportPo:output_type -> parlance.v1.ExportPoResponse
+	7, // 7: parlance.v1.ExportService.ExportZip:output_type -> parlance.v1.ExportZipResponse
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -440,7 +556,7 @@ func file_parlance_v1_export_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_export_proto_rawDesc), len(file_parlance_v1_export_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

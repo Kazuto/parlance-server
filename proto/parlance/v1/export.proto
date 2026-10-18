@@ -7,6 +7,7 @@ service ExportService {
   rpc ExportPhp(ExportPhpRequest) returns (ExportPhpResponse);
   rpc ExportJson(ExportJsonRequest) returns (ExportJsonResponse);
   rpc ExportPo(ExportPoRequest) returns (ExportPoResponse);
+  rpc ExportZip(ExportZipRequest) returns (ExportZipResponse);
 }
 
 message ExportPhpRequest {
@@ -47,4 +48,15 @@ message ExportPoResponse {
   string format = 1;  // "po"
   string content = 2;
   string filename = 3;
+}
+
+// Export all locales as a ZIP archive containing JSON files
+message ExportZipRequest {
+  repeated string scope_ids = 1;  // Export entries in any of these scopes; empty exports all
+}
+
+message ExportZipResponse {
+  string format = 1;          // "zip"
+  bytes content = 2;          // ZIP file content as bytes
+  string filename = 3;        // Suggested filename (e.g., "translations-2024-10-18.zip")
 }

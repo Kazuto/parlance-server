@@ -7,6 +7,7 @@ service ImportService {
   rpc ImportPhp(ImportPhpRequest) returns (ImportPhpResponse);
   rpc ImportJson(ImportJsonRequest) returns (ImportJsonResponse);
   rpc ImportPo(ImportPoRequest) returns (ImportPoResponse);
+  rpc ImportZip(ImportZipRequest) returns (ImportZipResponse);
 }
 
 // PHP array import
@@ -69,4 +70,25 @@ message ImportResult {
 message ImportError {
   string key = 1;
   string message = 2;
+}
+
+// Import multiple locales from a ZIP archive containing JSON files
+message ImportZipRequest {
+  bytes file_content = 1;         // ZIP file content as bytes
+  repeated string scope_ids = 2;  // Scopes to assign to all imported entries
+  ImportMode mode = 3;            // How to handle conflicts
+}
+
+message ImportZipResponse {
+  repeated LocaleImportResult results = 1;  // Results per locale file
+  int32 total_created = 2;                  // Sum of all entries created
+  int32 total_updated = 3;                  // Sum of all entries updated
+  int32 total_skipped = 4;                  // Sum of all entries skipped
+  int32 total_failed = 5;                   // Sum of all entries failed
+}
+
+message LocaleImportResult {
+  string locale_code = 1;         // Which locale file was processed
+  ImportResult result = 2;        // Result for this locale
+  string error = 3;               // Error message if the whole file failed
 }
