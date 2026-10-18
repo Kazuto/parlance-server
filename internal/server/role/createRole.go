@@ -26,10 +26,6 @@ func (s *Server) CreateRole(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "name is required")
 	}
 
-	if req.Msg.Description == "" {
-		return nil, errors.InvalidInput(errors.ErrInvalidInput, "action is required")
-	}
-
 	// Check if Role already exists
 	var existingRole models.Role
 	if err := s.db.Where("name = ?", req.Msg.Name).First(&existingRole).Error; err == nil {
