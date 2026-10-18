@@ -2,10 +2,10 @@ package entry
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -23,17 +23,17 @@ func (s *Server) RestoreEntry(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("entry id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "entry id is required")
 	}
 
 	var entry models.Entry
 	if err := s.db.Unscoped().Preload("Localizations").Preload("Scopes").First(&entry, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("entry not found"))
+		return nil, errors.NotFound(errors.ErrEntryNotFound, "entry not found")
 	}
 
 	entry.DeletedAt = gorm.DeletedAt{Valid: false}
 	if err := s.db.Save(&entry).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to restore entry: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to restore entry")
 	}
 
 	return connect.NewResponse(&pb.RestoreEntryResponse{

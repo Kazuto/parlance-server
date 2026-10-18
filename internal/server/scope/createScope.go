@@ -2,10 +2,10 @@ package scope
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -23,11 +23,11 @@ func (s *Server) CreateScope(
 	}
 
 	if req.Msg.Name == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("scope name is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "scope name is required")
 	}
 
 	if req.Msg.Slug == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("scope slug is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "scope slug is required")
 	}
 
 	scope := &models.Scope{
@@ -38,7 +38,7 @@ func (s *Server) CreateScope(
 	}
 
 	if err := s.db.Create(scope).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create scope: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to create scope")
 	}
 
 	return connect.NewResponse(&pb.CreateScopeResponse{

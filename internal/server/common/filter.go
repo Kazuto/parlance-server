@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"connectrpc.com/connect"
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"gorm.io/gorm"
 )
 
@@ -69,11 +69,11 @@ func (f *Filter) applySort() (*gorm.DB, error) {
 		order := strings.ToLower(f.filter.Order)
 
 		if !f.allowedSorts[sort] {
-			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid sort field: %s", sort))
+			return nil, errors.InvalidInput(errors.ErrInvalidInput, fmt.Sprintf("invalid sort field: %s", sort))
 		}
 
 		if order != "" && !allowedOrders[order] {
-			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid order direction: %s", order))
+			return nil, errors.InvalidInput(errors.ErrInvalidInput, fmt.Sprintf("invalid order direction: %s", order))
 		}
 
 		if order == "" {

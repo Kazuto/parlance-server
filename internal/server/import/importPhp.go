@@ -8,6 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/errors"
 )
 
 func (s *Server) ImportPhp(
@@ -15,18 +16,18 @@ func (s *Server) ImportPhp(
 	req *connect.Request[pb.ImportPhpRequest],
 ) (*connect.Response[pb.ImportPhpResponse], error) {
 	if req.Msg.LocaleId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale_id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale_id is required")
 	}
 
 	if len(req.Msg.FileContent) == 0 {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("file_content is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "file_content is required")
 	}
 
 	// Parse PHP array content
 	content := string(req.Msg.FileContent)
 	translations, err := parsePHPArray(content)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid PHP array format: %w", err))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "invalid PHP array format")
 	}
 
 	// Set default mode if not specified
@@ -38,7 +39,7 @@ func (s *Server) ImportPhp(
 	// Process import
 	result, err := s.processImport(ctx, req.Msg.LocaleId, req.Msg.ScopeIds, translations, mode)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, errors.Internal(errors.ErrInternal, err.Error())
 	}
 
 	return connect.NewResponse(&pb.ImportPhpResponse{

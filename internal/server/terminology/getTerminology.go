@@ -2,10 +2,10 @@ package terminology
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -22,12 +22,12 @@ func (s *Server) GetTerminology(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("terminology id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "terminology id is required")
 	}
 
 	var terminology models.Terminology
 	if err := s.db.Preload("Definitions").First(&terminology, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("terminology not found"))
+		return nil, errors.NotFound(errors.ErrTerminologyNotFound, "terminology not found")
 	}
 
 	return connect.NewResponse(&pb.GetTerminologyResponse{

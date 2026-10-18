@@ -2,10 +2,10 @@ package permission
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -23,13 +23,13 @@ func (s *Server) GetPermission(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("permission id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "permission id is required")
 	}
 
 	var permission models.Permission
 
 	if err := s.db.First(&permission, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("permission not found"))
+		return nil, errors.NotFound(errors.ErrPermissionNotFound, "permission not found")
 	}
 
 	return connect.NewResponse(&pb.GetPermissionResponse{

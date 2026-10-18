@@ -2,10 +2,10 @@ package scope
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -44,12 +44,12 @@ func (s *Server) ListScopes(
 	}
 
 	if err := query.Count(&total).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to count scopes: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to count scopes")
 	}
 
 	offset := (page - 1) * perPage
 	if err := query.Offset(int(offset)).Limit(int(perPage)).Find(&scopes).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to fetch scopes: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to fetch scopes")
 	}
 
 	return connect.NewResponse(&pb.ListScopesResponse{

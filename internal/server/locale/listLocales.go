@@ -2,12 +2,13 @@ package locale
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/permissions"
 	"github.com/kazuto/parlance-server/internal/server/common"
 	"gorm.io/gorm"
 
@@ -30,8 +31,8 @@ func (s *Server) ListLocales(
 	// Check if user requested to include deleted locales
 	if req.Msg.Filter != nil && req.Msg.Filter.IncludeDeleted {
 		// Verify user has permission to see deleted locales
-		if !middleware.HasPermission(ctx, s.db, "hard_delete_locale") {
-			return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("insufficient permissions to view deleted locales"))
+		if err := middleware.RequirePermission(ctx, s.db, permissions.PermanentDeleteLocale); err != nil {
+			return nil, err
 		}
 		// Include soft-deleted records
 		query = query.Unscoped()
@@ -50,12 +51,12 @@ func (s *Server) ListLocales(
 	}
 
 	if err := query.Count(&total).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to count locales: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to count locales")
 	}
 
 	offset := (page - 1) * perPage
 	if err := query.Offset(int(offset)).Limit(int(perPage)).Find(&locales).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to fetch locales: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to fetch locales")
 	}
 
 	return connect.NewResponse(&pb.ListLocalesResponse{

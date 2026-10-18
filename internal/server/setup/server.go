@@ -1,9 +1,9 @@
 package setup
 
 import (
+	pb "github.com/kazuto/parlance-server/gen/parlance/v1/parlancev1connect"
 	"github.com/kazuto/parlance-server/internal/config"
 	"github.com/kazuto/parlance-server/internal/database"
-	pb "github.com/kazuto/parlance-server/gen/parlance/v1/parlancev1connect"
 )
 
 type Server struct {

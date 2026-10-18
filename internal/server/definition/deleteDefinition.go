@@ -2,9 +2,9 @@ package definition
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -21,12 +21,12 @@ func (s *Server) DeleteDefinition(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("definition id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "definition id is required")
 	}
 
 	var definition models.Definition
 	if err := s.db.First(&definition, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("definition not found"))
+		return nil, errors.NotFound(errors.ErrDefinitionNotFound, "definition not found")
 	}
 
 	// Extract user ID from context for history tracking
@@ -36,7 +36,7 @@ func (s *Server) DeleteDefinition(
 	}
 
 	if err := s.db.Delete(&definition).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete definition: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to delete definition")
 	}
 
 	return connect.NewResponse(&pb.DeleteDefinitionResponse{}), nil

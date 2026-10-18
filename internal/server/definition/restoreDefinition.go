@@ -2,10 +2,10 @@ package definition
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -23,17 +23,17 @@ func (s *Server) RestoreDefinition(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("definition id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "definition id is required")
 	}
 
 	var definition models.Definition
 	if err := s.db.Unscoped().First(&definition, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("definition not found"))
+		return nil, errors.NotFound(errors.ErrDefinitionNotFound, "definition not found")
 	}
 
 	definition.DeletedAt = gorm.DeletedAt{Valid: false}
 	if err := s.db.Save(&definition).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to restore definition: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to restore definition")
 	}
 
 	return connect.NewResponse(&pb.RestoreDefinitionResponse{

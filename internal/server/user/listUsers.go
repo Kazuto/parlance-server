@@ -2,10 +2,10 @@ package user
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -30,12 +30,12 @@ func (s *Server) ListUsers(
 	query := s.db.Model(&models.User{})
 
 	if err := query.Count(&total).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to count users: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to count users")
 	}
 
 	offset := (page - 1) * perPage
 	if err := query.Preload("Roles.Permissions").Offset(int(offset)).Limit(int(perPage)).Order("name ASC").Find(&users).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to fetch users: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to fetch users")
 	}
 
 	usersProto := make([]*pb.User, len(users))

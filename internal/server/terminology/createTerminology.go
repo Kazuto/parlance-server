@@ -2,10 +2,10 @@ package terminology
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -22,7 +22,7 @@ func (s *Server) CreateTerminology(
 	}
 
 	if req.Msg.Term == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("term is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "term is required")
 	}
 
 	// Extract user ID from context
@@ -38,7 +38,7 @@ func (s *Server) CreateTerminology(
 	}
 
 	if err := s.db.Create(terminology).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create terminology: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to create terminology")
 	}
 
 	return connect.NewResponse(&pb.CreateTerminologyResponse{

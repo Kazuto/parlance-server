@@ -2,10 +2,10 @@ package locale
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -24,22 +24,22 @@ func (s *Server) CreateLocale(
 	}
 
 	if req.Msg.Code == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale code is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale code is required")
 	}
 
 	if len(req.Msg.GetNames().GetValues()) == 0 {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale names are required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale names are required")
 	}
 
 	names, err := converter.NamesMapToJSON(req.Msg.GetNames().GetValues())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to encode names: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to encode names")
 	}
 
 	// If setting as default, unset other defaults
 	if req.Msg.IsDefault {
 		if err := s.db.Model(&models.Locale{}).Where("is_default = ?", true).Update("is_default", false).Error; err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update default locale: %w", err))
+			return nil, errors.Internal(errors.ErrInternal, "failed to update default locale")
 		}
 	}
 
@@ -50,7 +50,7 @@ func (s *Server) CreateLocale(
 	}
 
 	if err := s.db.Create(locale).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create locale: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to create locale")
 	}
 
 	requestLocale := common.GetLocaleFromRequest(req)

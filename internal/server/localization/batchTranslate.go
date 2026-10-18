@@ -6,6 +6,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -23,15 +24,15 @@ func (s *Server) BatchTranslate(
 	}
 
 	if len(req.Msg.EntryIds) == 0 {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("entry ids are required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "entry ids are required")
 	}
 
 	if req.Msg.TargetLocaleId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("target locale id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "target locale id is required")
 	}
 
 	if req.Msg.SourceLocaleId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("source locale id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "source locale id is required")
 	}
 
 	// Extract user ID from context

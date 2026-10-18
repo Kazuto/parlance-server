@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/kazuto/parlance-server/internal/auth"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -28,24 +29,24 @@ func (s *Server) UpdateUser(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("user id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "user id is required")
 	}
 	if req.Msg.Email != nil && req.Msg.GetEmail() == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("email is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "email is required")
 	}
 	if req.Msg.Name != nil && req.Msg.GetName() == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "name is required")
 	}
 	if req.Msg.Password != nil && req.Msg.GetPassword() == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("password must not be empty"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "password must not be empty")
 	}
 	if len(req.Msg.GetAvatar()) > 0 && req.Msg.GetAvatarMime() == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("avatar mime type is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "avatar mime type is required")
 	}
 
 	var user models.User
 	if err := s.db.First(&user, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("user not found"))
+		return nil, errors.NotFound(errors.ErrUserNotFound, "user not found")
 	}
 
 	if req.Msg.Email != nil {
@@ -67,7 +68,7 @@ func (s *Server) UpdateUser(
 	if req.Msg.Password != nil {
 		hashedPassword, err := auth.HashPassword(req.Msg.GetPassword())
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to hash password: %w", err))
+			return nil, errors.Internal(errors.ErrInternal, "failed to hash password")
 		}
 
 		user.PasswordHash = hashedPassword
@@ -79,7 +80,7 @@ func (s *Server) UpdateUser(
 		} else {
 			url, err := s.uploadAvatar(ctx, user.ID, req.Msg.Avatar, req.Msg.GetAvatarMime())
 			if err != nil {
-				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to upload avatar: %w", err))
+				return nil, errors.Internal(errors.ErrInternal, "failed to upload avatar")
 			}
 
 			user.Avatar = &url
@@ -91,7 +92,7 @@ func (s *Server) UpdateUser(
 		var err error
 		roles, err = s.GetRoles(req.Msg.Roles.GetIds())
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to get roles: %w", err))
+			return nil, errors.Internal(errors.ErrInternal, "failed to get roles")
 		}
 	}
 
@@ -105,7 +106,7 @@ func (s *Server) UpdateUser(
 		}
 		return nil
 	}); err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update user: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to update user")
 	}
 
 	// Load roles for response

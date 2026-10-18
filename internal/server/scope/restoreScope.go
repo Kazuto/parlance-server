@@ -2,10 +2,10 @@ package scope
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -23,17 +23,17 @@ func (s *Server) RestoreScope(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("scope id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "scope id is required")
 	}
 
 	var scope models.Scope
 	if err := s.db.Unscoped().First(&scope, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("scope not found"))
+		return nil, errors.NotFound(errors.ErrScopeNotFound, "scope not found")
 	}
 
 	scope.DeletedAt = gorm.DeletedAt{Valid: false}
 	if err := s.db.Save(&scope).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to restore scope: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to restore scope")
 	}
 
 	return connect.NewResponse(&pb.RestoreScopeResponse{

@@ -2,12 +2,12 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"connectrpc.com/connect"
 	authpkg "github.com/kazuto/parlance-server/internal/auth"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
@@ -19,27 +19,27 @@ func (s *Server) Register(
 	req *connect.Request[pb.RegisterRequest],
 ) (*connect.Response[pb.RegisterResponse], error) {
 	if req.Msg.Email == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("email is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "email is required")
 	}
 
 	if req.Msg.Password == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("password is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "password is required")
 	}
 
 	if req.Msg.Name == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "name is required")
 	}
 
 	// Check if user already exists
 	var existingUser models.User
 	if err := s.db.Where("email = ?", req.Msg.Email).First(&existingUser).Error; err == nil {
-		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("user with this email already exists"))
+		return nil, errors.AlreadyExists(errors.ErrUserAlreadyExists, "user with this email already exists")
 	}
 
 	// Hash password
 	hashedPassword, err := authpkg.HashPassword(req.Msg.Password)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to hash password: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to hash password")
 	}
 
 	user := &models.User{
@@ -49,7 +49,7 @@ func (s *Server) Register(
 	}
 
 	if err := s.db.Create(user).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create user: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to create user")
 	}
 
 	// Assign default viewer role
@@ -70,7 +70,7 @@ func (s *Server) Register(
 
 	tokens, err := authpkg.GenerateTokenPair(user.ID, user.Email, s.config.JWT.Secret, accessExpiry, refreshExpiry)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to generate tokens: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to generate tokens")
 	}
 
 	return connect.NewResponse(&pb.RegisterResponse{

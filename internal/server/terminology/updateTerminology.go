@@ -2,10 +2,10 @@ package terminology
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -22,15 +22,15 @@ func (s *Server) UpdateTerminology(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("terminology id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "terminology id is required")
 	}
 	if req.Msg.Term != nil && req.Msg.GetTerm() == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("term is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "term is required")
 	}
 
 	var terminology models.Terminology
 	if err := s.db.First(&terminology, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("terminology not found"))
+		return nil, errors.NotFound(errors.ErrTerminologyNotFound, "terminology not found")
 	}
 
 	// Extract user ID from context
@@ -48,12 +48,12 @@ func (s *Server) UpdateTerminology(
 	}
 
 	if err := s.db.Save(&terminology).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update terminology: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to update terminology")
 	}
 
 	// Reload with definitions
 	if err := s.db.Preload("Definitions").First(&terminology, "id = ?", terminology.ID).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to reload terminology: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to reload terminology")
 	}
 
 	return connect.NewResponse(&pb.UpdateTerminologyResponse{

@@ -2,10 +2,10 @@ package localization
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -23,15 +23,15 @@ func (s *Server) CreateLocalization(
 	}
 
 	if req.Msg.EntryId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("entry id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "entry id is required")
 	}
 
 	if req.Msg.LocaleId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale id is required")
 	}
 
 	if req.Msg.Translation == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("translation is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "translation is required")
 	}
 
 	// Extract user ID from context
@@ -48,7 +48,7 @@ func (s *Server) CreateLocalization(
 	}
 
 	if err := s.db.Create(localization).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create localization: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to create localization")
 	}
 
 	return connect.NewResponse(&pb.CreateLocalizationResponse{

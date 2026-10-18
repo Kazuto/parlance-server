@@ -2,10 +2,10 @@ package permission
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -45,12 +45,12 @@ func (s *Server) ListPermissions(
 
 	// Count after filtering so the total and page count match the search.
 	if err := query.Count(&total).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to count Permissions: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to count Permissions")
 	}
 
 	offset := (page - 1) * perPage
 	if err := query.Offset(int(offset)).Limit(int(perPage)).Find(&permissions).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to fetch Permissions: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to fetch Permissions")
 	}
 
 	permissionsProto := make([]*pb.Permission, len(permissions))

@@ -8,6 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
@@ -48,7 +49,7 @@ func (s *Server) ListRecentActivity(
 	if req.Msg.OnlyMine {
 		userID, _ = ctx.Value(middleware.ContextKeyUserID).(string)
 		if userID == "" {
-			return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("user not authenticated"))
+			return nil, errors.Unauthenticated(errors.ErrUnauthenticated, "user not authenticated")
 		}
 	}
 
@@ -96,7 +97,7 @@ func recentRows(db *gorm.DB, table, subjectColumn, userID string) ([]historyRow,
 		query = query.Where("user_id = ?", userID)
 	}
 	if err := query.Scan(&rows).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to load %s: %w", table, err))
+		return nil, errors.Internal(errors.ErrInternal, fmt.Sprintf("failed to load %s", table))
 	}
 	return rows, nil
 }
@@ -157,7 +158,7 @@ func (s *Server) toItems(
 			continue
 		}
 		if err := db.Unscoped().Where("id IN ?", keys(lookup.ids)).Find(lookup.dest).Error; err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to load activity details: %w", err))
+			return nil, errors.Internal(errors.ErrInternal, "failed to load activity details")
 		}
 	}
 

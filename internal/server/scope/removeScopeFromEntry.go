@@ -2,9 +2,9 @@ package scope
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -22,25 +22,25 @@ func (s *Server) RemoveScopeFromEntry(
 	}
 
 	if req.Msg.EntryId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("entry id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "entry id is required")
 	}
 
 	if req.Msg.ScopeId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("scope id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "scope id is required")
 	}
 
 	var entry models.Entry
 	if err := s.db.First(&entry, "id = ?", req.Msg.EntryId).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("entry not found"))
+		return nil, errors.NotFound(errors.ErrEntryNotFound, "entry not found")
 	}
 
 	var scope models.Scope
 	if err := s.db.First(&scope, "id = ?", req.Msg.ScopeId).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("scope not found"))
+		return nil, errors.NotFound(errors.ErrScopeNotFound, "scope not found")
 	}
 
 	if err := s.db.Model(&entry).Association("Scopes").Delete(&scope); err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to remove scope from entry: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to remove scope from entry")
 	}
 
 	return connect.NewResponse(&pb.RemoveScopeFromEntryResponse{}), nil

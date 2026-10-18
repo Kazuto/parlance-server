@@ -2,28 +2,28 @@ package export
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/gettext"
 	"github.com/kazuto/parlance-server/internal/models"
 )
 
 func (s *Server) ExportPo(ctx context.Context, req *connect.Request[pb.ExportPoRequest]) (*connect.Response[pb.ExportPoResponse], error) {
 	if req.Msg.LocaleCode == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale code is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale code is required")
 	}
 	var locale models.Locale
 	if err := s.db.WithContext(ctx).Where("code = ?", req.Msg.LocaleCode).First(&locale).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("locale not found"))
+		return nil, errors.NotFound(errors.ErrLocaleNotFound, "locale not found")
 	}
 	query := s.db.WithContext(ctx).Model(&models.Entry{}).Preload("Localizations", "locale_id = ?", locale.ID)
 	scopeIDs := requestedScopeIDs(req.Msg.ScopeIds)
 	query = filterByScopes(s.db.WithContext(ctx), query, scopeIDs)
 	var entries []models.Entry
 	if err := query.Find(&entries).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to query entries: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to query entries")
 	}
 	messages := make([]gettext.Entry, 0, len(entries))
 	for _, entry := range entries {

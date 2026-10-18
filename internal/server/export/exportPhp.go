@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
@@ -16,13 +17,13 @@ func (s *Server) ExportPhp(
 	req *connect.Request[pb.ExportPhpRequest],
 ) (*connect.Response[pb.ExportPhpResponse], error) {
 	if req.Msg.LocaleCode == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale code is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale code is required")
 	}
 
 	// Get locale by code
 	var locale models.Locale
 	if err := s.db.Where("code = ?", req.Msg.LocaleCode).First(&locale).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("locale not found"))
+		return nil, errors.NotFound(errors.ErrLocaleNotFound, "locale not found")
 	}
 
 	// Build query for entries
@@ -33,7 +34,7 @@ func (s *Server) ExportPhp(
 
 	var entries []models.Entry
 	if err := query.Find(&entries).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to query entries: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to query entries")
 	}
 
 	// Build Laravel PHP array format

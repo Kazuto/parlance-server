@@ -2,9 +2,9 @@ package scope
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -22,16 +22,16 @@ func (s *Server) DeleteScope(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("scope id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "scope id is required")
 	}
 
 	var scope models.Scope
 	if err := s.db.First(&scope, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("scope not found"))
+		return nil, errors.NotFound(errors.ErrScopeNotFound, "scope not found")
 	}
 
 	if err := s.db.Delete(&scope).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete scope: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to delete scope")
 	}
 
 	return connect.NewResponse(&pb.DeleteScopeResponse{}), nil

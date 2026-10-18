@@ -2,9 +2,9 @@ package locale
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -22,21 +22,21 @@ func (s *Server) DeleteLocale(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale id is required")
 	}
 
 	var locale models.Locale
 	if err := s.db.First(&locale, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("locale not found"))
+		return nil, errors.NotFound(errors.ErrLocaleNotFound, "locale not found")
 	}
 
 	// Prevent deleting the default locale
 	if locale.IsDefault {
-		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("cannot delete the default locale"))
+		return nil, errors.FailedPrecondition(errors.ErrLocaleDefaultDelete, "cannot delete the default locale")
 	}
 
 	if err := s.db.Delete(&locale).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete locale: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to delete locale")
 	}
 
 	return connect.NewResponse(&pb.DeleteLocaleResponse{}), nil

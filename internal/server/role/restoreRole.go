@@ -2,10 +2,10 @@ package role
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -23,17 +23,17 @@ func (s *Server) RestoreRole(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("role id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "role id is required")
 	}
 
 	var role models.Role
 	if err := s.db.Unscoped().Preload("Permissions").First(&role, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("role not found"))
+		return nil, errors.NotFound(errors.ErrRoleNotFound, "role not found")
 	}
 
 	role.DeletedAt = gorm.DeletedAt{Valid: false}
 	if err := s.db.Save(&role).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to restore Role: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to restore Role")
 	}
 
 	return connect.NewResponse(&pb.RestoreRoleResponse{

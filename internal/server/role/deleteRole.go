@@ -2,9 +2,9 @@ package role
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -22,16 +22,16 @@ func (s *Server) DeleteRole(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("role id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "role id is required")
 	}
 
 	var role models.Role
 	if err := s.db.First(&role, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("role not found"))
+		return nil, errors.NotFound(errors.ErrRoleNotFound, "role not found")
 	}
 
 	if err := s.db.Delete(&role).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete Role: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to delete Role")
 	}
 
 	return connect.NewResponse(&pb.DeleteRoleResponse{}), nil

@@ -2,11 +2,11 @@ package entry
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -25,15 +25,15 @@ func (s *Server) UpdateEntry(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("entry id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "entry id is required")
 	}
 	if req.Msg.Key != nil && strings.TrimSpace(req.Msg.GetKey()) == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("entry key is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "entry key is required")
 	}
 
 	var entry models.Entry
 	if err := s.db.First(&entry, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("entry not found"))
+		return nil, errors.NotFound(errors.ErrEntryNotFound, "entry not found")
 	}
 
 	// Extract user ID from context
@@ -46,10 +46,10 @@ func (s *Server) UpdateEntry(
 		key := strings.TrimSpace(req.Msg.GetKey())
 		var count int64
 		if err := s.db.WithContext(ctx).Model(&models.Entry{}).Where("key = ? AND id <> ?", key, entry.ID).Count(&count).Error; err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to check entry key: %w", err))
+			return nil, errors.Internal(errors.ErrInternal, "failed to check entry key")
 		}
 		if count > 0 {
-			return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("entry key already exists"))
+			return nil, errors.AlreadyExists(errors.ErrEntryAlreadyExists, "entry key already exists")
 		}
 		entry.Key = key
 	}
@@ -74,7 +74,7 @@ func (s *Server) UpdateEntry(
 		}
 		return nil
 	}); err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update entry: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to update entry")
 	}
 
 	// Load relationships for response

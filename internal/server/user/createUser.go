@@ -2,11 +2,11 @@ package user
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/auth"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -24,27 +24,27 @@ func (s *Server) CreateUser(
 	}
 
 	if req.Msg.Email == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("email is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "email is required")
 	}
 
 	if req.Msg.Password == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("password is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "password is required")
 	}
 
 	if req.Msg.Name == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "name is required")
 	}
 
 	// Check if user already exists
 	var existingUser models.User
 	if err := s.db.Where("email = ?", req.Msg.Email).First(&existingUser).Error; err == nil {
-		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("user with this email already exists"))
+		return nil, errors.AlreadyExists(errors.ErrUserAlreadyExists, "user with this email already exists")
 	}
 
 	// Hash password
 	hashedPassword, err := auth.HashPassword(req.Msg.Password)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to hash password: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to hash password")
 	}
 
 	user := &models.User{
@@ -56,14 +56,14 @@ func (s *Server) CreateUser(
 	if ids := req.Msg.GetRoles().GetIds(); len(ids) > 0 {
 		roles, err := s.GetRoles(ids)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to get roles: %w", err))
+			return nil, errors.Internal(errors.ErrInternal, "failed to get roles")
 		}
 
 		user.Roles = roles
 	}
 
 	if err := s.db.Create(user).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create user: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to create user")
 	}
 
 	// Assign default viewer role

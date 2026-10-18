@@ -2,10 +2,10 @@ package entry
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -24,7 +24,7 @@ func (s *Server) CreateEntry(
 	}
 
 	if req.Msg.Key == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("entry key is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "entry key is required")
 	}
 
 	// Extract user ID from context
@@ -52,7 +52,7 @@ func (s *Server) CreateEntry(
 		}
 		return nil
 	}); err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create entry: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to create entry")
 	}
 
 	// Load relationships for response

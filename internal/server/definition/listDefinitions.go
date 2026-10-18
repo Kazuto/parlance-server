@@ -2,10 +2,10 @@ package definition
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -24,7 +24,7 @@ func (s *Server) ListDefinitions(
 	}
 
 	if req.Msg.TerminologyId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("terminology id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "terminology id is required")
 	}
 
 	var definitions []models.Definition
@@ -43,7 +43,7 @@ func (s *Server) ListDefinitions(
 	}
 
 	if err := query.Find(&definitions).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, errors.Internal(errors.ErrInternal, err.Error())
 	}
 
 	protoDefinitions := make([]*pb.Definition, len(definitions))

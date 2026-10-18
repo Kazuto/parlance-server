@@ -2,9 +2,9 @@ package user
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -22,16 +22,16 @@ func (s *Server) DeleteUser(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("user id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "user id is required")
 	}
 
 	var user models.User
 	if err := s.db.First(&user, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("user not found"))
+		return nil, errors.NotFound(errors.ErrUserNotFound, "user not found")
 	}
 
 	if err := s.db.Delete(&user).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete user: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to delete user")
 	}
 
 	return connect.NewResponse(&pb.DeleteUserResponse{}), nil

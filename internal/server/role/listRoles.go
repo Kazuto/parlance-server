@@ -2,10 +2,10 @@ package role
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -44,12 +44,12 @@ func (s *Server) ListRoles(
 	}
 
 	if err := query.Count(&total).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to count Roles: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to count Roles")
 	}
 
 	offset := (page - 1) * perPage
 	if err := query.Preload("Permissions").Offset(int(offset)).Limit(int(perPage)).Find(&roles).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to fetch Roles: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to fetch Roles")
 	}
 
 	rolesProto := make([]*pb.Role, len(roles))

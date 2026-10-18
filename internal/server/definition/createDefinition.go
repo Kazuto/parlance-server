@@ -2,10 +2,10 @@ package definition
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -22,27 +22,27 @@ func (s *Server) CreateDefinition(
 	}
 
 	if req.Msg.TerminologyId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("terminology id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "terminology id is required")
 	}
 
 	if req.Msg.LocaleId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale id is required")
 	}
 
 	if req.Msg.Translation == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("translation is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "translation is required")
 	}
 
 	// Verify terminology exists
 	var terminology models.Terminology
 	if err := s.db.First(&terminology, "id = ?", req.Msg.TerminologyId).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("terminology not found"))
+		return nil, errors.NotFound(errors.ErrTerminologyNotFound, "terminology not found")
 	}
 
 	// Verify locale exists
 	var locale models.Locale
 	if err := s.db.First(&locale, "id = ?", req.Msg.LocaleId).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("locale not found"))
+		return nil, errors.NotFound(errors.ErrLocaleNotFound, "locale not found")
 	}
 
 	// Check if definition already exists for this terminology/locale combination
@@ -51,7 +51,7 @@ func (s *Server) CreateDefinition(
 		First(&existing).Error
 
 	if err == nil {
-		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("definition already exists for this terminology and locale"))
+		return nil, errors.AlreadyExists(errors.ErrDefinitionAlreadyExists, "definition already exists for this terminology and locale")
 	}
 
 	// Extract user ID from context
@@ -68,7 +68,7 @@ func (s *Server) CreateDefinition(
 	}
 
 	if err := s.db.Create(definition).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create definition: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to create definition")
 	}
 
 	return connect.NewResponse(&pb.CreateDefinitionResponse{

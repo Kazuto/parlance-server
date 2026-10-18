@@ -2,11 +2,11 @@ package terminology
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
@@ -17,23 +17,23 @@ func (s *Server) SuggestTerminologies(
 	req *connect.Request[pb.SuggestTerminologiesRequest],
 ) (*connect.Response[pb.SuggestTerminologiesResponse], error) {
 	if req.Msg.SourceText == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("source text is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "source text is required")
 	}
 
 	if req.Msg.TargetLocaleId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("target locale id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "target locale id is required")
 	}
 
 	// Verify target locale exists
 	var locale models.Locale
 	if err := s.db.First(&locale, "id = ?", req.Msg.TargetLocaleId).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("target locale not found"))
+		return nil, errors.NotFound(errors.ErrLocaleNotFound, "target locale not found")
 	}
 
 	// Get all terminologies with their definitions
 	var terminologies []models.Terminology
 	if err := s.db.Preload("Definitions", "locale_id = ?", req.Msg.TargetLocaleId).Find(&terminologies).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, errors.Internal(errors.ErrInternal, err.Error())
 	}
 
 	// Tokenize source text (simple word-based tokenization)

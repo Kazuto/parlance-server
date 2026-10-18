@@ -3,11 +3,11 @@ package entry
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -31,18 +31,18 @@ func (s *Server) ListEntries(
 	}
 
 	if req.Msg.TranslationStatus != "" && req.Msg.TranslationStatus != "missing" && req.Msg.TranslationStatus != "complete" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid translation status"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "invalid translation status")
 	}
 	keyOrdered := req.Msg.Filter == nil || req.Msg.Filter.Sort == "" ||
 		(strings.EqualFold(req.Msg.Filter.Sort, "key") && !strings.EqualFold(req.Msg.Filter.Order, "desc"))
 	var afterKey string
 	if req.Msg.Cursor != "" {
 		if !keyOrdered {
-			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("cursor requires key ordering"))
+			return nil, errors.InvalidInput(errors.ErrInvalidInput, "cursor requires key ordering")
 		}
 		key, err := decodeCursor(req.Msg.Cursor)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid cursor"))
+			return nil, errors.InvalidInput(errors.ErrInvalidInput, "invalid cursor")
 		}
 		afterKey = key
 	}
@@ -89,7 +89,7 @@ func (s *Server) ListEntries(
 	var pagination *pb.PaginationResponse
 	if req.Msg.Cursor == "" {
 		if err := query.Count(&total).Error; err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to count entries: %w", err))
+			return nil, errors.Internal(errors.ErrInternal, "failed to count entries")
 		}
 		pagination = converter.PaginationToProto(total, page, perPage)
 		query = query.Offset(int((page - 1) * perPage))
@@ -102,7 +102,7 @@ func (s *Server) ListEntries(
 
 	// One extra row tells whether another page follows without a second count.
 	if err := query.Limit(int(perPage) + 1).Find(&entries).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to fetch entries: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to fetch entries")
 	}
 	nextCursor := ""
 	if len(entries) > int(perPage) {
@@ -144,7 +144,7 @@ func (s *Server) fillMissingLocales(entries []*pb.Entry, targetLocaleIDs []strin
 	targets := targetLocaleIDs
 	if len(targets) == 0 {
 		if err := s.db.Model(&models.Locale{}).Pluck("id", &targets).Error; err != nil {
-			return connect.NewError(connect.CodeInternal, fmt.Errorf("failed to load locales: %w", err))
+			return errors.Internal(errors.ErrInternal, "failed to load locales")
 		}
 	}
 	entryIDs := make([]string, len(entries))
@@ -161,7 +161,7 @@ func (s *Server) fillMissingLocales(entries []*pb.Entry, targetLocaleIDs []strin
 			Where("entry_id IN ? AND locale_id IN ? AND TRIM(translation) <> ''", entryIDs, targets).
 			Scan(&present).Error
 		if err != nil {
-			return connect.NewError(connect.CodeInternal, fmt.Errorf("failed to load translations: %w", err))
+			return errors.Internal(errors.ErrInternal, "failed to load translations")
 		}
 	}
 	translated := make(map[string]map[string]bool, len(entries))

@@ -2,10 +2,10 @@ package entry
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -44,12 +44,12 @@ func (s *Server) SearchEntries(
 	}
 
 	if err := query.Count(&total).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to count entries: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to count entries")
 	}
 
 	offset := (page - 1) * perPage
 	if err := query.Offset(int(offset)).Limit(int(perPage)).Order("key ASC").Find(&entries).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to search entries: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to search entries")
 	}
 
 	return connect.NewResponse(&pb.SearchEntriesResponse{

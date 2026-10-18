@@ -2,10 +2,10 @@ package locale
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -25,7 +25,7 @@ func (s *Server) GetDefaultLocale(
 
 	var locale models.Locale
 	if err := s.db.Where("is_default = ?", true).First(&locale).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("default locale not found"))
+		return nil, errors.NotFound(errors.ErrLocaleNotFound, "default locale not found")
 	}
 
 	requestLocale := common.GetLocaleFromRequest(req)

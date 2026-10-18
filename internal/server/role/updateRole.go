@@ -2,10 +2,10 @@ package role
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -24,15 +24,15 @@ func (s *Server) UpdateRole(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("role id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "role id is required")
 	}
 	if req.Msg.Name != nil && req.Msg.GetName() == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("name is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "name is required")
 	}
 
 	var role models.Role
 	if err := s.db.Preload("Permissions").First(&role, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("role not found"))
+		return nil, errors.NotFound(errors.ErrRoleNotFound, "role not found")
 	}
 
 	if req.Msg.Name != nil {
@@ -48,7 +48,7 @@ func (s *Server) UpdateRole(
 		var err error
 		permissions, err = s.GetPermissions(req.Msg.Permissions.GetIds())
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to get permissions: %w", err))
+			return nil, errors.Internal(errors.ErrInternal, "failed to get permissions")
 		}
 	}
 
@@ -62,7 +62,7 @@ func (s *Server) UpdateRole(
 		}
 		return nil
 	}); err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update Role: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to update Role")
 	}
 
 	return connect.NewResponse(&pb.UpdateRoleResponse{

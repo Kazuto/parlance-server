@@ -3,9 +3,9 @@ package export
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
@@ -16,13 +16,13 @@ func (s *Server) ExportJson(
 	req *connect.Request[pb.ExportJsonRequest],
 ) (*connect.Response[pb.ExportJsonResponse], error) {
 	if req.Msg.LocaleCode == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale code is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale code is required")
 	}
 
 	// Get locale by code
 	var locale models.Locale
 	if err := s.db.Where("code = ?", req.Msg.LocaleCode).First(&locale).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("locale not found"))
+		return nil, errors.NotFound(errors.ErrLocaleNotFound, "locale not found")
 	}
 
 	// Build query for entries
@@ -33,7 +33,7 @@ func (s *Server) ExportJson(
 
 	var entries []models.Entry
 	if err := query.Find(&entries).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to query entries: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to query entries")
 	}
 
 	// Build flat JSON structure
@@ -51,7 +51,7 @@ func (s *Server) ExportJson(
 	// Marshal to JSON with indentation
 	contentBytes, err := json.MarshalIndent(translations, "", "  ")
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to marshal JSON: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to marshal JSON")
 	}
 
 	filename := exportFilename(s.db.WithContext(ctx), scopeIDs, req.Msg.LocaleCode, "json")

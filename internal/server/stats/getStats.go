@@ -5,6 +5,7 @@ import (
 
 	"connectrpc.com/connect"
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
 )
 
@@ -16,13 +17,13 @@ func (s *Server) GetStats(
 	// Count total entries
 	var totalEntries int64
 	if err := s.db.Model(&models.Entry{}).Count(&totalEntries).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, errors.Internal(errors.ErrInternal, err.Error())
 	}
 
 	// Count total locales
 	var totalLocales int64
 	if err := s.db.Model(&models.Locale{}).Count(&totalLocales).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, errors.Internal(errors.ErrInternal, err.Error())
 	}
 
 	// Calculate total possible translations
@@ -34,7 +35,7 @@ func (s *Server) GetStats(
 		Joins("JOIN entries ON entries.id = localizations.entry_id AND entries.deleted_at IS NULL").
 		Joins("JOIN locales ON locales.id = localizations.locale_id AND locales.deleted_at IS NULL").
 		Count(&completedTranslations).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, errors.Internal(errors.ErrInternal, err.Error())
 	}
 
 	// Calculate missing translations
@@ -57,7 +58,7 @@ func (s *Server) GetStats(
 				HAVING COUNT(DISTINCT l.locale_id) = ?
 			) AS fully_translated
 		`, totalLocales).Scan(&result).Error; err != nil {
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, errors.Internal(errors.ErrInternal, err.Error())
 		}
 		fullyTranslatedEntries = result.Count
 	}
@@ -65,7 +66,7 @@ func (s *Server) GetStats(
 	// Get all locales for per-locale stats
 	var locales []models.Locale
 	if err := s.db.Find(&locales).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, errors.Internal(errors.ErrInternal, err.Error())
 	}
 
 	// Build per-locale stats
@@ -77,7 +78,7 @@ func (s *Server) GetStats(
 			Joins("JOIN entries ON entries.id = localizations.entry_id AND entries.deleted_at IS NULL").
 			Where("localizations.locale_id = ?", locale.ID).
 			Count(&completed).Error; err != nil {
-			return nil, connect.NewError(connect.CodeInternal, err)
+			return nil, errors.Internal(errors.ErrInternal, err.Error())
 		}
 
 		missing := totalEntries - completed

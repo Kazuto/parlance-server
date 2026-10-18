@@ -2,10 +2,10 @@ package user
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -23,25 +23,25 @@ func (s *Server) AssignRole(
 	}
 
 	if req.Msg.UserId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("user id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "user id is required")
 	}
 
 	if req.Msg.RoleId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("role id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "role id is required")
 	}
 
 	var user models.User
 	if err := s.db.First(&user, "id = ?", req.Msg.UserId).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("user not found"))
+		return nil, errors.NotFound(errors.ErrUserNotFound, "user not found")
 	}
 
 	var role models.Role
 	if err := s.db.First(&role, "id = ?", req.Msg.RoleId).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("role not found"))
+		return nil, errors.NotFound(errors.ErrRoleNotFound, "role not found")
 	}
 
 	if err := s.db.Model(&user).Association("Roles").Append(&role); err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to assign role: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to assign role")
 	}
 
 	// Load updated roles for response

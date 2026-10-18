@@ -2,9 +2,9 @@ package terminology
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -21,12 +21,12 @@ func (s *Server) DeleteTerminology(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("terminology id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "terminology id is required")
 	}
 
 	var terminology models.Terminology
 	if err := s.db.First(&terminology, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("terminology not found"))
+		return nil, errors.NotFound(errors.ErrTerminologyNotFound, "terminology not found")
 	}
 
 	// Extract user ID from context for history tracking
@@ -36,7 +36,7 @@ func (s *Server) DeleteTerminology(
 	}
 
 	if err := s.db.Delete(&terminology).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete terminology: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to delete terminology")
 	}
 
 	return connect.NewResponse(&pb.DeleteTerminologyResponse{}), nil

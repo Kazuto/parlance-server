@@ -2,23 +2,23 @@ package importservice
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/gettext"
 )
 
 func (s *Server) ImportPo(ctx context.Context, req *connect.Request[pb.ImportPoRequest]) (*connect.Response[pb.ImportPoResponse], error) {
 	if req.Msg.LocaleId == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("locale_id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale_id is required")
 	}
 	if len(req.Msg.FileContent) == 0 {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("file_content is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "file_content is required")
 	}
 	entries, err := gettext.Parse(req.Msg.FileContent)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid PO format: %w", err))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "invalid PO format")
 	}
 	translations := map[string]string{}
 	seen := map[string]bool{}
@@ -56,11 +56,11 @@ func (s *Server) ImportPo(ctx context.Context, req *connect.Request[pb.ImportPoR
 		mode = pb.ImportMode_IMPORT_MODE_CREATE_OR_UPDATE
 	}
 	if mode == pb.ImportMode_IMPORT_MODE_REPLACE_ALL && len(failures) > 0 {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("replace-all requires a PO file without unsupported or duplicate entries"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "replace-all requires a PO file without unsupported or duplicate entries")
 	}
 	result, err := s.processImport(ctx, req.Msg.LocaleId, req.Msg.ScopeIds, translations, mode)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, errors.Internal(errors.ErrInternal, err.Error())
 	}
 	result.EntriesSkipped += skipped
 	result.EntriesFailed += int32(len(failures))

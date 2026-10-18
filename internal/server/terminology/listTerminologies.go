@@ -5,6 +5,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -52,7 +53,7 @@ func (s *Server) ListTerminologies(
 	}
 
 	if err := query.Count(&total).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, errors.Internal(errors.ErrInternal, err.Error())
 	}
 
 	offset := (page - 1) * perPage
@@ -60,7 +61,7 @@ func (s *Server) ListTerminologies(
 		Limit(int(perPage)).
 		Offset(int(offset)).
 		Find(&terminologies).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+		return nil, errors.Internal(errors.ErrInternal, err.Error())
 	}
 
 	return connect.NewResponse(&pb.ListTerminologiesResponse{

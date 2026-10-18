@@ -2,12 +2,12 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"connectrpc.com/connect"
 	authpkg "github.com/kazuto/parlance-server/internal/auth"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
@@ -19,19 +19,19 @@ func (s *Server) RefreshToken(
 	req *connect.Request[pb.RefreshTokenRequest],
 ) (*connect.Response[pb.RefreshTokenResponse], error) {
 	if req.Msg.RefreshToken == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("refresh token is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "refresh token is required")
 	}
 
 	// Validate refresh token
 	claims, err := authpkg.ValidateToken(req.Msg.RefreshToken, s.config.JWT.Secret)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("invalid refresh token"))
+		return nil, errors.Unauthenticated(errors.ErrUnauthenticated, "invalid refresh token")
 	}
 
 	// Get user
 	var user models.User
 	if err := s.db.Preload("Roles.Permissions").First(&user, "id = ?", claims.UserID).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("user not found"))
+		return nil, errors.NotFound(errors.ErrUserNotFound, "user not found")
 	}
 
 	// Generate new tokens
@@ -43,7 +43,7 @@ func (s *Server) RefreshToken(
 
 	tokens, err := authpkg.GenerateTokenPair(user.ID, user.Email, s.config.JWT.Secret, accessExpiry, refreshExpiry)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to generate tokens: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to generate tokens")
 	}
 
 	return connect.NewResponse(&pb.RefreshTokenResponse{

@@ -2,10 +2,10 @@ package user
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -24,17 +24,17 @@ func (s *Server) RestoreUser(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("user id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "user id is required")
 	}
 
 	var user models.User
 	if err := s.db.Unscoped().Preload("Roles.Permissions").First(&user, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("user not found"))
+		return nil, errors.NotFound(errors.ErrUserNotFound, "user not found")
 	}
 
 	user.DeletedAt = gorm.DeletedAt{Valid: false}
 	if err := s.db.Save(&user).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to restore user: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to restore user")
 	}
 
 	return connect.NewResponse(&pb.RestoreUserResponse{

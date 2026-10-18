@@ -1,9 +1,7 @@
 package entry
 
 import (
-	"fmt"
-
-	"connectrpc.com/connect"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
 	"gorm.io/gorm"
 )
@@ -18,10 +16,10 @@ func resolveScopes(db *gorm.DB, ids []string) ([]models.Scope, error) {
 		return scopes, nil
 	}
 	if err := db.Where("id IN ?", ids).Find(&scopes).Error; err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to find scopes: %w", err))
+		return nil, errors.Internal(errors.ErrInternal, "failed to find scopes")
 	}
 	if len(scopes) != len(unique) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("one or more scopes do not exist"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "one or more scopes do not exist")
 	}
 	return scopes, nil
 }

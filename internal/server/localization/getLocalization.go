@@ -2,10 +2,10 @@ package localization
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
@@ -23,12 +23,12 @@ func (s *Server) GetLocalization(
 	}
 
 	if req.Msg.Id == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("localization id is required"))
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "localization id is required")
 	}
 
 	var localization models.Localization
 	if err := s.db.First(&localization, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("localization not found"))
+		return nil, errors.NotFound(errors.ErrLocalizationNotFound, "localization not found")
 	}
 
 	return connect.NewResponse(&pb.GetLocalizationResponse{
