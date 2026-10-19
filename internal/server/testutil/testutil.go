@@ -151,8 +151,11 @@ func SetupTestDB() (*database.DB, error) {
 	db.Exec(`CREATE TABLE IF NOT EXISTS entry_scopes (
 		id TEXT PRIMARY KEY,
 		entry_id TEXT,
-		scope_id TEXT
+		scope_id TEXT,
+		created_at DATETIME,
+		created_by TEXT
 	)`)
+	db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_entry_scopes_unique ON entry_scopes (entry_id, scope_id)`)
 
 	db.Exec(`CREATE TABLE IF NOT EXISTS terminologies (
 		id TEXT PRIMARY KEY,

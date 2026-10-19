@@ -17,6 +17,7 @@ service EntryService {
   rpc RestoreEntry(RestoreEntryRequest) returns (RestoreEntryResponse);
   rpc SearchEntries(SearchEntriesRequest) returns (SearchEntriesResponse);
   rpc GetEntryHistory(GetEntryHistoryRequest) returns (GetEntryHistoryResponse);
+  rpc UpdateEntriesScopes(UpdateEntriesScopesRequest) returns (UpdateEntriesScopesResponse);
 }
 
 message Entry {
@@ -88,6 +89,15 @@ message UpdateEntryRequest {
 message UpdateEntryResponse {
   Entry entry = 1;
 }
+
+// Adds and removes scopes on several entries at once. Scopes not listed are kept.
+message UpdateEntriesScopesRequest {
+  repeated string entry_ids = 1;
+  repeated string add_scope_ids = 2;
+  repeated string remove_scope_ids = 3;
+}
+
+message UpdateEntriesScopesResponse {}
 
 message DeleteEntryRequest {
   string id = 1;

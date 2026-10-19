@@ -1,0 +1,47 @@
+meta {
+  name: Update Entries Scopes
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.EntryService/UpdateEntriesScopes
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "entryIds": ["{{entryId}}"],
+    "addScopeIds": ["{{scopeId}}"],
+    "removeScopeIds": []
+  }
+}
+
+docs {
+  # Update Entries Scopes
+
+  Adds and removes scopes on several entries at once.
+
+  ## Authentication
+  Requires the `update_entry` permission. User ID is tracked as updater on every entry.
+
+  ## Request
+  - `entryIds` (required): UUIDs of the entries to update, at most 1000
+  - `addScopeIds` (optional): scopes to add; scopes an entry already has are kept
+  - `removeScopeIds` (optional): scopes to remove; ignored where an entry doesn't have them
+
+  ## Behavior
+  - Scopes not listed are left unchanged
+  - All entries are updated in one transaction
+
+  ## Errors
+  - `INVALID_ARGUMENT`: no entries, no scopes, too many entries, a scope in both lists, or an unknown scope to add
+  - `NOT_FOUND`: one or more entries do not exist
+  - `INTERNAL`: failed to update entry scopes
+}
