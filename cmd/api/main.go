@@ -58,10 +58,12 @@ func main() {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
-	// Note: Bootstrap is now handled by the setup wizard on first run
-	// If you need to run it manually, use: ./api bootstrap
+	// Bootstrap is idempotent: it adds permissions introduced since the database was
+	// set up and gives the admin role all of them again.
+	if err := db.Bootstrap(); err != nil {
+		log.Fatalf("Failed to bootstrap database: %v", err)
+	}
 
-	// After db.Bootstrap()
 	s3Client, err := newS3Client(cfg.S3)
 	if err != nil {
 		log.Fatalf("Failed to connect to S3: %v", err)
