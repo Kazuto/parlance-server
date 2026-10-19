@@ -1,7 +1,10 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/permissions"
 	"gorm.io/gorm"
 )
 
@@ -33,45 +36,50 @@ func (i *RoleSeeder) Run(db *gorm.DB) error {
 		return err
 	}
 
-	var translatorRole models.Role
-	db.Where("name = ?", "translator").First(&translatorRole)
-
-	var translatorPerms []models.Permission
-	db.Where("name IN ?", []string{
-		"entry.read", "entry.create", "entry.update",
-		"localization.read", "localization.create", "localization.update", "localization.translate",
-		"terminology.read", "terminology.create", "terminology.update",
-		"scope.read", "export.use",
-	}).Find(&translatorPerms)
-
-	if err := db.Model(&translatorRole).Association("Permissions").Append(&translatorPerms); err != nil {
-		return err
+	// Translations (localizations) are covered by the entry permissions; import and
+	// export need none.
+	rolePermissions := map[string][]string{
+		"translator": {
+			permissions.ReadLocale,
+			permissions.ReadEntry, permissions.CreateEntry, permissions.UpdateEntry,
+			permissions.ReadTerminology, permissions.CreateTerminology, permissions.UpdateTerminology,
+			permissions.ReadDefinition, permissions.CreateDefinition, permissions.UpdateDefinition,
+			permissions.ReadScope,
+		},
+		"reviewer": {
+			permissions.ReadLocale,
+			permissions.ReadEntry, permissions.UpdateEntry,
+			permissions.ReadTerminology,
+			permissions.ReadDefinition, permissions.UpdateDefinition,
+			permissions.ReadScope,
+		},
+		"viewer": {
+			permissions.ReadLocale,
+			permissions.ReadEntry,
+			permissions.ReadTerminology,
+			permissions.ReadDefinition,
+			permissions.ReadScope,
+		},
 	}
 
-	var reviewerRole models.Role
-	db.Where("name = ?", "reviewer").First(&reviewerRole)
+	for roleName, names := range rolePermissions {
+		var role models.Role
+		if err := db.Where("name = ?", roleName).First(&role).Error; err != nil {
+			return err
+		}
 
-	var reviewerPerms []models.Permission
-	db.Where("name IN ?", []string{
-		"entry.read", "entry.update",
-		"localization.read", "localization.update",
-		"terminology.read", "scope.read", "export.use",
-	}).Find(&reviewerPerms)
+		var perms []models.Permission
+		if err := db.Where("name IN ?", names).Find(&perms).Error; err != nil {
+			return err
+		}
+		if len(perms) != len(names) {
+			return fmt.Errorf("role %s: found %d of %d permissions", roleName, len(perms), len(names))
+		}
 
-	if err := db.Model(&reviewerRole).Association("Permissions").Append(&reviewerPerms); err != nil {
-		return err
-	}
-
-	var viewerRole models.Role
-	db.Where("name = ?", "viewer").First(&viewerRole)
-
-	var viewerPerms []models.Permission
-	db.Where("name IN ?", []string{
-		"entry.read", "localization.read", "terminology.read", "scope.read", "export.use",
-	}).Find(&viewerPerms)
-
-	if err := db.Model(&viewerRole).Association("Permissions").Append(&viewerPerms); err != nil {
-		return err
+		// Replace so reseeding resets the role to exactly this set.
+		if err := db.Model(&role).Association("Permissions").Replace(&perms); err != nil {
+			return err
+		}
 	}
 
 	return nil
