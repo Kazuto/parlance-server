@@ -61,7 +61,7 @@ func (s *Server) ListEntries(
 		AllowedSorts(allowedSorts).
 		DefaultSort("key ASC").
 		Search(func(query *gorm.DB, search string) *gorm.DB {
-			return query.Where("key LIKE ?", "%"+search+"%")
+			return searchEntries(query, search, req.Msg.TargetLocaleIds)
 		}).
 		Apply()
 	if err != nil {
@@ -243,6 +243,20 @@ func (s *Server) fillMissingLocales(entries []*pb.Entry, targetLocaleIDs []strin
 // join keeps entries that belong to several selected scopes from repeating.
 func filterScopes(query *gorm.DB, scopeIDs []string) *gorm.DB {
 	return query.Where("entries.id IN (SELECT entry_id FROM entry_scopes WHERE scope_id IN ?)", scopeIDs)
+}
+
+// searchEntries keeps entries whose key, or whose translation in one of the given
+// locales (any locale when none are given), contains search, ignoring case. The
+// locales are the ones the editor shows, so a match is visible once opened.
+func searchEntries(query *gorm.DB, search string, localeIDs []string) *gorm.DB {
+	pattern := "%" + strings.ToLower(search) + "%"
+	// Start a separate statement so the correlated subquery doesn't inherit entry filters.
+	translations := query.Session(&gorm.Session{NewDB: true}).Table("localizations").Select("1").
+		Where("localizations.entry_id = entries.id AND localizations.deleted_at IS NULL AND LOWER(localizations.translation) LIKE ?", pattern)
+	if len(localeIDs) > 0 {
+		translations = translations.Where("localizations.locale_id IN ?", localeIDs)
+	}
+	return query.Where("(LOWER(entries.key) LIKE ? OR EXISTS (?))", pattern, translations)
 }
 
 func filterTranslationStatus(query *gorm.DB, status string, localeIDs []string) *gorm.DB {

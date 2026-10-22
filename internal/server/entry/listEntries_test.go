@@ -139,3 +139,75 @@ func TestSummaryDefaultTranslation(t *testing.T) {
 		t.Errorf("without a default locale: got %q, want empty", text)
 	}
 }
+
+func TestSearchEntries(t *testing.T) {
+	ctx, db, err := testutil.SetupTestContext()
+	if err != nil {
+		t.Fatalf("Failed to setup test context: %v", err)
+	}
+	server := &Server{db: db}
+
+	exec := func(query string, args ...any) {
+		t.Helper()
+		if err := db.Exec(query, args...).Error; err != nil {
+			t.Fatalf("%s: %v", query, err)
+		}
+	}
+	exec(`INSERT INTO locales (id, code, is_default) VALUES ('se-en', 'se-en', 0), ('se-de', 'se-de', 0)`)
+	exec(`INSERT INTO entries (id, key) VALUES
+		('se-1', 'zebra.title'), ('se-2', 'other.greeting'), ('se-3', 'other.farewell'),
+		('se-4', 'other.removed')`)
+	exec(`INSERT INTO localizations (id, entry_id, locale_id, translation, deleted_at) VALUES
+		('se-l1', 'se-1', 'se-en', 'Title', NULL),
+		('se-l2', 'se-2', 'se-en', 'Hello Zebra', NULL),
+		('se-l3', 'se-2', 'se-de', 'Hallo Welt', NULL),
+		('se-l4', 'se-3', 'se-de', 'Auf Wiedersehen, Zebra', NULL),
+		('se-l5', 'se-4', 'se-en', 'Zebra crossing', '2026-01-01 00:00:00')`)
+	t.Cleanup(func() {
+		db.Exec(`DELETE FROM localizations WHERE id LIKE 'se-%'`)
+		db.Exec(`DELETE FROM entries WHERE id LIKE 'se-%'`)
+		db.Exec(`DELETE FROM locales WHERE id LIKE 'se-%'`)
+	})
+
+	search := func(term string, localeIDs ...string) []string {
+		t.Helper()
+		res, err := server.ListEntries(ctx, connect.NewRequest(&pb.ListEntriesRequest{
+			Summary:         true,
+			Filter:          &pb.FilterRequest{Search: term},
+			TargetLocaleIds: localeIDs,
+		}))
+		if err != nil {
+			t.Fatalf("ListEntries: %v", err)
+		}
+		keys := []string{}
+		for _, entry := range res.Msg.Entries {
+			if strings.HasPrefix(entry.Id, "se-") {
+				keys = append(keys, entry.Key)
+			}
+		}
+		return keys
+	}
+
+	cases := []struct {
+		name      string
+		term      string
+		localeIDs []string
+		want      []string
+	}{
+		{"matches the key ignoring case", "ZEBRA.TI", []string{"se-en"}, []string{"zebra.title"}},
+		{"matches translations in the selected locales", "zebra", []string{"se-en"}, []string{"other.greeting", "zebra.title"}},
+		{"ignores translations in other locales", "welt", []string{"se-en"}, []string{}},
+		{"matches each selected locale", "zebra", []string{"se-en", "se-de"}, []string{"other.farewell", "other.greeting", "zebra.title"}},
+		{"matches translations ignoring case", "HALLO", []string{"se-de"}, []string{"other.greeting"}},
+		{"searches every locale when none are selected", "wiedersehen", nil, []string{"other.farewell"}},
+		{"ignores deleted translations", "crossing", nil, []string{}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := search(tc.term, tc.localeIDs...)
+			if strings.Join(got, ",") != strings.Join(tc.want, ",") {
+				t.Errorf("search %q in %v: got %v, want %v", tc.term, tc.localeIDs, got, tc.want)
+			}
+		})
+	}
+}
