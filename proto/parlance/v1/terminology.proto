@@ -33,6 +33,8 @@ message Terminology {
 message ListTerminologiesRequest {
   PaginationRequest pagination = 1;
   FilterRequest filter = 2;
+  // Definitions in these locales match the search too; any locale when empty.
+  repeated string target_locale_ids = 3;
 }
 
 message ListTerminologiesResponse {

@@ -106,7 +106,7 @@ func SetupTestDB() (*database.DB, error) {
 
 	db.Exec(`CREATE TABLE IF NOT EXISTS definitions (
 		id TEXT PRIMARY KEY,
-		entry_id TEXT,
+		terminology_id TEXT,
 		locale_id TEXT,
 		translation TEXT NOT NULL,
 		created_at DATETIME,
