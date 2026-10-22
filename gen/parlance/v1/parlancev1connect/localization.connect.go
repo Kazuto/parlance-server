@@ -51,9 +51,9 @@ const (
 	// LocalizationServiceRestoreLocalizationProcedure is the fully-qualified name of the
 	// LocalizationService's RestoreLocalization RPC.
 	LocalizationServiceRestoreLocalizationProcedure = "/parlance.v1.LocalizationService/RestoreLocalization"
-	// LocalizationServiceTranslateLocalizationProcedure is the fully-qualified name of the
-	// LocalizationService's TranslateLocalization RPC.
-	LocalizationServiceTranslateLocalizationProcedure = "/parlance.v1.LocalizationService/TranslateLocalization"
+	// LocalizationServiceSuggestTranslationsProcedure is the fully-qualified name of the
+	// LocalizationService's SuggestTranslations RPC.
+	LocalizationServiceSuggestTranslationsProcedure = "/parlance.v1.LocalizationService/SuggestTranslations"
 	// LocalizationServiceBatchTranslateProcedure is the fully-qualified name of the
 	// LocalizationService's BatchTranslate RPC.
 	LocalizationServiceBatchTranslateProcedure = "/parlance.v1.LocalizationService/BatchTranslate"
@@ -67,7 +67,8 @@ type LocalizationServiceClient interface {
 	UpdateLocalization(context.Context, *connect.Request[v1.UpdateLocalizationRequest]) (*connect.Response[v1.UpdateLocalizationResponse], error)
 	DeleteLocalization(context.Context, *connect.Request[v1.DeleteLocalizationRequest]) (*connect.Response[v1.DeleteLocalizationResponse], error)
 	RestoreLocalization(context.Context, *connect.Request[v1.RestoreLocalizationRequest]) (*connect.Response[v1.RestoreLocalizationResponse], error)
-	TranslateLocalization(context.Context, *connect.Request[v1.TranslateLocalizationRequest]) (*connect.Response[v1.TranslateLocalizationResponse], error)
+	// Suggests machine translations of an entry's source text, without saving them.
+	SuggestTranslations(context.Context, *connect.Request[v1.SuggestTranslationsRequest]) (*connect.Response[v1.SuggestTranslationsResponse], error)
 	BatchTranslate(context.Context, *connect.Request[v1.BatchTranslateRequest]) (*connect.Response[v1.BatchTranslateResponse], error)
 }
 
@@ -118,10 +119,10 @@ func NewLocalizationServiceClient(httpClient connect.HTTPClient, baseURL string,
 			connect.WithSchema(localizationServiceMethods.ByName("RestoreLocalization")),
 			connect.WithClientOptions(opts...),
 		),
-		translateLocalization: connect.NewClient[v1.TranslateLocalizationRequest, v1.TranslateLocalizationResponse](
+		suggestTranslations: connect.NewClient[v1.SuggestTranslationsRequest, v1.SuggestTranslationsResponse](
 			httpClient,
-			baseURL+LocalizationServiceTranslateLocalizationProcedure,
-			connect.WithSchema(localizationServiceMethods.ByName("TranslateLocalization")),
+			baseURL+LocalizationServiceSuggestTranslationsProcedure,
+			connect.WithSchema(localizationServiceMethods.ByName("SuggestTranslations")),
 			connect.WithClientOptions(opts...),
 		),
 		batchTranslate: connect.NewClient[v1.BatchTranslateRequest, v1.BatchTranslateResponse](
@@ -135,14 +136,14 @@ func NewLocalizationServiceClient(httpClient connect.HTTPClient, baseURL string,
 
 // localizationServiceClient implements LocalizationServiceClient.
 type localizationServiceClient struct {
-	listLocalizations     *connect.Client[v1.ListLocalizationsRequest, v1.ListLocalizationsResponse]
-	getLocalization       *connect.Client[v1.GetLocalizationRequest, v1.GetLocalizationResponse]
-	createLocalization    *connect.Client[v1.CreateLocalizationRequest, v1.CreateLocalizationResponse]
-	updateLocalization    *connect.Client[v1.UpdateLocalizationRequest, v1.UpdateLocalizationResponse]
-	deleteLocalization    *connect.Client[v1.DeleteLocalizationRequest, v1.DeleteLocalizationResponse]
-	restoreLocalization   *connect.Client[v1.RestoreLocalizationRequest, v1.RestoreLocalizationResponse]
-	translateLocalization *connect.Client[v1.TranslateLocalizationRequest, v1.TranslateLocalizationResponse]
-	batchTranslate        *connect.Client[v1.BatchTranslateRequest, v1.BatchTranslateResponse]
+	listLocalizations   *connect.Client[v1.ListLocalizationsRequest, v1.ListLocalizationsResponse]
+	getLocalization     *connect.Client[v1.GetLocalizationRequest, v1.GetLocalizationResponse]
+	createLocalization  *connect.Client[v1.CreateLocalizationRequest, v1.CreateLocalizationResponse]
+	updateLocalization  *connect.Client[v1.UpdateLocalizationRequest, v1.UpdateLocalizationResponse]
+	deleteLocalization  *connect.Client[v1.DeleteLocalizationRequest, v1.DeleteLocalizationResponse]
+	restoreLocalization *connect.Client[v1.RestoreLocalizationRequest, v1.RestoreLocalizationResponse]
+	suggestTranslations *connect.Client[v1.SuggestTranslationsRequest, v1.SuggestTranslationsResponse]
+	batchTranslate      *connect.Client[v1.BatchTranslateRequest, v1.BatchTranslateResponse]
 }
 
 // ListLocalizations calls parlance.v1.LocalizationService.ListLocalizations.
@@ -175,9 +176,9 @@ func (c *localizationServiceClient) RestoreLocalization(ctx context.Context, req
 	return c.restoreLocalization.CallUnary(ctx, req)
 }
 
-// TranslateLocalization calls parlance.v1.LocalizationService.TranslateLocalization.
-func (c *localizationServiceClient) TranslateLocalization(ctx context.Context, req *connect.Request[v1.TranslateLocalizationRequest]) (*connect.Response[v1.TranslateLocalizationResponse], error) {
-	return c.translateLocalization.CallUnary(ctx, req)
+// SuggestTranslations calls parlance.v1.LocalizationService.SuggestTranslations.
+func (c *localizationServiceClient) SuggestTranslations(ctx context.Context, req *connect.Request[v1.SuggestTranslationsRequest]) (*connect.Response[v1.SuggestTranslationsResponse], error) {
+	return c.suggestTranslations.CallUnary(ctx, req)
 }
 
 // BatchTranslate calls parlance.v1.LocalizationService.BatchTranslate.
@@ -193,7 +194,8 @@ type LocalizationServiceHandler interface {
 	UpdateLocalization(context.Context, *connect.Request[v1.UpdateLocalizationRequest]) (*connect.Response[v1.UpdateLocalizationResponse], error)
 	DeleteLocalization(context.Context, *connect.Request[v1.DeleteLocalizationRequest]) (*connect.Response[v1.DeleteLocalizationResponse], error)
 	RestoreLocalization(context.Context, *connect.Request[v1.RestoreLocalizationRequest]) (*connect.Response[v1.RestoreLocalizationResponse], error)
-	TranslateLocalization(context.Context, *connect.Request[v1.TranslateLocalizationRequest]) (*connect.Response[v1.TranslateLocalizationResponse], error)
+	// Suggests machine translations of an entry's source text, without saving them.
+	SuggestTranslations(context.Context, *connect.Request[v1.SuggestTranslationsRequest]) (*connect.Response[v1.SuggestTranslationsResponse], error)
 	BatchTranslate(context.Context, *connect.Request[v1.BatchTranslateRequest]) (*connect.Response[v1.BatchTranslateResponse], error)
 }
 
@@ -240,10 +242,10 @@ func NewLocalizationServiceHandler(svc LocalizationServiceHandler, opts ...conne
 		connect.WithSchema(localizationServiceMethods.ByName("RestoreLocalization")),
 		connect.WithHandlerOptions(opts...),
 	)
-	localizationServiceTranslateLocalizationHandler := connect.NewUnaryHandler(
-		LocalizationServiceTranslateLocalizationProcedure,
-		svc.TranslateLocalization,
-		connect.WithSchema(localizationServiceMethods.ByName("TranslateLocalization")),
+	localizationServiceSuggestTranslationsHandler := connect.NewUnaryHandler(
+		LocalizationServiceSuggestTranslationsProcedure,
+		svc.SuggestTranslations,
+		connect.WithSchema(localizationServiceMethods.ByName("SuggestTranslations")),
 		connect.WithHandlerOptions(opts...),
 	)
 	localizationServiceBatchTranslateHandler := connect.NewUnaryHandler(
@@ -266,8 +268,8 @@ func NewLocalizationServiceHandler(svc LocalizationServiceHandler, opts ...conne
 			localizationServiceDeleteLocalizationHandler.ServeHTTP(w, r)
 		case LocalizationServiceRestoreLocalizationProcedure:
 			localizationServiceRestoreLocalizationHandler.ServeHTTP(w, r)
-		case LocalizationServiceTranslateLocalizationProcedure:
-			localizationServiceTranslateLocalizationHandler.ServeHTTP(w, r)
+		case LocalizationServiceSuggestTranslationsProcedure:
+			localizationServiceSuggestTranslationsHandler.ServeHTTP(w, r)
 		case LocalizationServiceBatchTranslateProcedure:
 			localizationServiceBatchTranslateHandler.ServeHTTP(w, r)
 		default:
@@ -303,8 +305,8 @@ func (UnimplementedLocalizationServiceHandler) RestoreLocalization(context.Conte
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.LocalizationService.RestoreLocalization is not implemented"))
 }
 
-func (UnimplementedLocalizationServiceHandler) TranslateLocalization(context.Context, *connect.Request[v1.TranslateLocalizationRequest]) (*connect.Response[v1.TranslateLocalizationResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.LocalizationService.TranslateLocalization is not implemented"))
+func (UnimplementedLocalizationServiceHandler) SuggestTranslations(context.Context, *connect.Request[v1.SuggestTranslationsRequest]) (*connect.Response[v1.SuggestTranslationsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.LocalizationService.SuggestTranslations is not implemented"))
 }
 
 func (UnimplementedLocalizationServiceHandler) BatchTranslate(context.Context, *connect.Request[v1.BatchTranslateRequest]) (*connect.Response[v1.BatchTranslateResponse], error) {

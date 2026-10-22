@@ -32,7 +32,7 @@ func TestRoleSeederAssignsExistingPermissions(t *testing.T) {
 		}
 	}
 
-	want := map[string]int{"translator": 11, "reviewer": 7, "viewer": 5}
+	want := map[string]int{"translator": 12, "reviewer": 7, "viewer": 5}
 	for role, count := range want {
 		var names []string
 		db.Raw(`SELECT p.name FROM permissions p

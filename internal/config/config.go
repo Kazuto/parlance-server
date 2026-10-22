@@ -12,7 +12,7 @@ type Config struct {
 	Database DatabaseConfig
 	S3       S3Config
 	JWT      JWTConfig
-	DeepL    DeepLConfig
+	Secrets  SecretsConfig
 	CORS     CORSConfig
 }
 
@@ -43,9 +43,10 @@ type JWTConfig struct {
 	Expiry string
 }
 
-type DeepLConfig struct {
-	APIKey string
-	APIURL string
+// SecretsConfig holds the key that encrypts stored secrets, such as the API keys
+// of translation servers. Without it, such secrets can't be saved.
+type SecretsConfig struct {
+	EncryptionKey string
 }
 
 type CORSConfig struct {
@@ -88,9 +89,8 @@ func Load() *Config {
 			Secret: getEnv("JWT_SECRET", "change-this-secret"),
 			Expiry: getEnv("JWT_EXPIRY", "24h"),
 		},
-		DeepL: DeepLConfig{
-			APIKey: getEnv("DEEPL_API_KEY", ""),
-			APIURL: getEnv("DEEPL_API_URL", "https://api.deepl.com/v2"),
+		Secrets: SecretsConfig{
+			EncryptionKey: getEnv("ENCRYPTION_KEY", ""),
 		},
 		CORS: CORSConfig{
 			AllowedOrigins: parseCommaSeparated(getEnv("CORS_ALLOWED_ORIGINS", "http://localhost:3000")),

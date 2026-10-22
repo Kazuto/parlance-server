@@ -12,7 +12,8 @@ service LocalizationService {
   rpc UpdateLocalization(UpdateLocalizationRequest) returns (UpdateLocalizationResponse);
   rpc DeleteLocalization(DeleteLocalizationRequest) returns (DeleteLocalizationResponse);
   rpc RestoreLocalization(RestoreLocalizationRequest) returns (RestoreLocalizationResponse);
-  rpc TranslateLocalization(TranslateLocalizationRequest) returns (TranslateLocalizationResponse);
+  // Suggests machine translations of an entry's source text, without saving them.
+  rpc SuggestTranslations(SuggestTranslationsRequest) returns (SuggestTranslationsResponse);
   rpc BatchTranslate(BatchTranslateRequest) returns (BatchTranslateResponse);
 }
 
@@ -80,15 +81,31 @@ message RestoreLocalizationResponse {
 
 message DeleteLocalizationResponse {}
 
-message TranslateLocalizationRequest {
+message SuggestTranslationsRequest {
   string entry_id = 1;
-  string target_locale_id = 2;
-  string source_locale_id = 3;
-  bool apply_terminology = 4;
+  repeated string target_locale_ids = 2;
 }
 
-message TranslateLocalizationResponse {
-  Localization localization = 1;
+// A part of a suggestion a reviewer should check.
+message TranslationWarning {
+  // PLACEHOLDER_MISSING, PLACEHOLDER_UNEXPECTED, PLURAL_FORMS or LINE_BREAKS.
+  string code = 1;
+  // What is affected, e.g. the placeholder "{count}".
+  string detail = 2;
+}
+
+message TranslationSuggestion {
+  string locale_id = 1;
+  // Empty when error_code is set.
+  string translation = 2;
+  repeated TranslationWarning warnings = 3;
+  // UNSUPPORTED_LANGUAGE, EMPTY_ANSWER, ANSWER_TOO_LONG or FAILED.
+  string error_code = 4;
+}
+
+message SuggestTranslationsResponse {
+  // One per requested locale, in the requested order.
+  repeated TranslationSuggestion suggestions = 1;
 }
 
 message BatchTranslateRequest {
@@ -102,4 +119,6 @@ message BatchTranslateResponse {
   repeated Localization localizations = 1;
   int32 success_count = 2;
   int32 failure_count = 3;
+  // Entries that already had a translation, which is kept.
+  int32 skipped_count = 4;
 }

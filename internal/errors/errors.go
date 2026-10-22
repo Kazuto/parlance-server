@@ -59,6 +59,11 @@ const (
 
 	// Localization-specific errors
 	ErrLocalizationNotFound = "LOCALIZATION_NOT_FOUND"
+
+	// Translation server errors
+	ErrTranslationServerNotFound = "TRANSLATION_SERVER_NOT_FOUND"
+	// Saving an API key needs ENCRYPTION_KEY.
+	ErrEncryptionKeyMissing = "ENCRYPTION_KEY_MISSING"
 )
 
 // ErrorWithCode creates a Connect error with an error code in the message

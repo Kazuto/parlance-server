@@ -47,6 +47,15 @@ const (
 	ReadDefinition   = "read_definition"
 	UpdateDefinition = "update_definition"
 	DeleteDefinition = "delete_definition"
+
+	// Translation server permissions
+	CreateTranslationServer = "create_translation_server"
+	ReadTranslationServer   = "read_translation_server"
+	UpdateTranslationServer = "update_translation_server"
+	DeleteTranslationServer = "delete_translation_server"
+
+	// Requesting machine translations, which loads the translation servers.
+	UseMachineTranslation = "use_machine_translation"
 )
 
 // AllPermissions returns all defined permissions
@@ -82,5 +91,10 @@ func AllPermissions() []string {
 		ReadDefinition,
 		UpdateDefinition,
 		DeleteDefinition,
+		CreateTranslationServer,
+		ReadTranslationServer,
+		UpdateTranslationServer,
+		DeleteTranslationServer,
+		UseMachineTranslation,
 	}
 }

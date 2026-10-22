@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"context"
+	"reflect"
 
 	"github.com/google/uuid"
 	"github.com/kazuto/parlance-server/internal/database"
@@ -12,20 +13,33 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// uuidHook generates UUIDs for models in tests (SQLite doesn't support uuid_generate_v4)
+// uuidHook generates UUIDs for models in tests (SQLite doesn't support uuid_generate_v4).
+// It covers single records and slices of them.
 func uuidHook(db *gorm.DB) {
-	if db.Statement.Schema != nil {
-		for _, field := range db.Statement.Schema.Fields {
-			if field.Name == "ID" && field.DataType == "string" {
-				if idField := db.Statement.Schema.LookUpField("ID"); idField != nil {
-					if idValue, ok := idField.ValueOf(db.Statement.Context, db.Statement.ReflectValue); ok {
-						if idStr, ok := idValue.(string); ok && idStr == "" {
-							_ = idField.Set(db.Statement.Context, db.Statement.ReflectValue, uuid.New().String())
-						}
-					}
-				}
-			}
+	if db.Statement.Schema == nil {
+		return
+	}
+	// Matches uuid columns too: their DataType is "uuid", not "string".
+	idField := db.Statement.Schema.LookUpField("ID")
+	if idField == nil || idField.FieldType.Kind() != reflect.String {
+		return
+	}
+
+	ctx := db.Statement.Context
+	setID := func(record reflect.Value) {
+		if _, isZero := idField.ValueOf(ctx, record); isZero {
+			_ = idField.Set(ctx, record, uuid.New().String())
 		}
+	}
+
+	value := reflect.Indirect(db.Statement.ReflectValue)
+	switch value.Kind() {
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < value.Len(); i++ {
+			setID(reflect.Indirect(value.Index(i)))
+		}
+	case reflect.Struct:
+		setID(value)
 	}
 }
 
@@ -189,6 +203,20 @@ func SetupTestDB() (*database.DB, error) {
 		deleted_at DATETIME
 	)`)
 
+	db.Exec(`CREATE TABLE IF NOT EXISTS translation_servers (
+		id TEXT PRIMARY KEY,
+		name TEXT NOT NULL,
+		base_url TEXT NOT NULL,
+		model TEXT,
+		api_key TEXT,
+		max_concurrency INTEGER NOT NULL DEFAULT 2,
+		enabled INTEGER NOT NULL DEFAULT 1,
+		created_at DATETIME,
+		updated_at DATETIME,
+		created_by TEXT,
+		updated_by TEXT
+	)`)
+
 	return &database.DB{DB: db}, nil
 }
 
@@ -234,6 +262,11 @@ func CreateTestUserWithAllPermissions(db *database.DB) (string, error) {
 		{Name: "create_user"},
 		{Name: "update_user"},
 		{Name: "delete_user"},
+		{Name: "create_translation_server"},
+		{Name: "read_translation_server"},
+		{Name: "update_translation_server"},
+		{Name: "delete_translation_server"},
+		{Name: "use_machine_translation"},
 	}
 
 	for i := range permissions {
@@ -270,6 +303,33 @@ func CreateTestUserWithAllPermissions(db *database.DB) (string, error) {
 	}
 
 	return user.ID, nil
+}
+
+// ContextWithPermissions creates a user holding only the named permissions, which
+// must exist, e.g. after SetupTestContext, and returns a context signed in as them.
+func ContextWithPermissions(db *database.DB, names ...string) (context.Context, error) {
+	var permissions []models.Permission
+	if err := db.Where("name IN ?", names).Find(&permissions).Error; err != nil {
+		return nil, err
+	}
+
+	id := uuid.New().String()
+	role := models.Role{ID: id, Name: "role-" + id, Permissions: permissions}
+	if err := db.Create(&role).Error; err != nil {
+		return nil, err
+	}
+	user := models.User{
+		ID:           id,
+		Email:        id + "@example.com",
+		Name:         "Limited User",
+		PasswordHash: "not-used-in-tests",
+		Roles:        []models.Role{role},
+	}
+	if err := db.Create(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return ContextWithTestUser(context.Background(), user.ID), nil
 }
 
 // ContextWithTestUser creates a context with a test user ID

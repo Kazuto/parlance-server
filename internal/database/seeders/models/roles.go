@@ -45,6 +45,7 @@ func (i *RoleSeeder) Run(db *gorm.DB) error {
 			permissions.ReadTerminology, permissions.CreateTerminology, permissions.UpdateTerminology,
 			permissions.ReadDefinition, permissions.CreateDefinition, permissions.UpdateDefinition,
 			permissions.ReadScope,
+			permissions.UseMachineTranslation,
 		},
 		"reviewer": {
 			permissions.ReadLocale,

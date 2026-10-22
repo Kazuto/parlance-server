@@ -21,6 +21,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/config"
 	"github.com/kazuto/parlance-server/internal/database"
 	"github.com/kazuto/parlance-server/internal/middleware"
+	"github.com/kazuto/parlance-server/internal/secret"
 	"github.com/kazuto/parlance-server/internal/server/activity"
 	"github.com/kazuto/parlance-server/internal/server/auth"
 	"github.com/kazuto/parlance-server/internal/server/definition"
@@ -35,7 +36,9 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/setup"
 	"github.com/kazuto/parlance-server/internal/server/stats"
 	"github.com/kazuto/parlance-server/internal/server/terminology"
+	"github.com/kazuto/parlance-server/internal/server/translationserver"
 	"github.com/kazuto/parlance-server/internal/server/user"
+	"github.com/kazuto/parlance-server/internal/translators"
 )
 
 func main() {
@@ -125,11 +128,23 @@ func main() {
 
 	log.Println("✓ Registered ActivityService (protected)")
 
-	localizationServer := localization.NewServer(db, cfg)
+	secretBox, err := secret.New(cfg.Secrets.EncryptionKey)
+	if err != nil {
+		log.Fatalf("Failed to set up encryption: %v", err)
+	}
+	translatorSource := translators.NewDBSource(db, secretBox)
+
+	localizationServer := localization.NewServer(db, cfg, translatorSource)
 	localizationPath, localizationHandler := parlancev1connect.NewLocalizationServiceHandler(localizationServer)
 	mux.Handle(localizationPath, middleware.RequireAuth(cfg.JWT.Secret)(localizationHandler))
 
 	log.Println("✓ Registered LocalizationService (protected)")
+
+	translationServerServer := translationserver.NewServer(db, secretBox)
+	translationServerPath, translationServerHandler := parlancev1connect.NewTranslationServerServiceHandler(translationServerServer)
+	mux.Handle(translationServerPath, middleware.RequireAuth(cfg.JWT.Secret)(translationServerHandler))
+
+	log.Println("✓ Registered TranslationServerService (protected)")
 
 	terminologyServer := terminology.NewServer(db)
 	terminologyPath, terminologyHandler := parlancev1connect.NewTerminologyServiceHandler(terminologyServer)

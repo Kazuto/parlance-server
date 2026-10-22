@@ -466,10 +466,12 @@ func (*GetCurrentUserRequest) Descriptor() ([]byte, []int) {
 }
 
 type GetCurrentUserResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	User          *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	User  *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	// Whether a machine translation server is configured.
+	TranslationEnabled bool `protobuf:"varint,2,opt,name=translation_enabled,json=translationEnabled,proto3" json:"translation_enabled,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *GetCurrentUserResponse) Reset() {
@@ -509,6 +511,13 @@ func (x *GetCurrentUserResponse) GetUser() *User {
 	return nil
 }
 
+func (x *GetCurrentUserResponse) GetTranslationEnabled() bool {
+	if x != nil {
+		return x.TranslationEnabled
+	}
+	return false
+}
+
 var File_parlance_v1_auth_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_auth_proto_rawDesc = "" +
@@ -537,9 +546,10 @@ const file_parlance_v1_auth_proto_rawDesc = "" +
 	"\x04user\x18\x03 \x01(\v2\x11.parlance.v1.UserR\x04user\"\x0f\n" +
 	"\rLogoutRequest\"\x10\n" +
 	"\x0eLogoutResponse\"\x17\n" +
-	"\x15GetCurrentUserRequest\"?\n" +
+	"\x15GetCurrentUserRequest\"p\n" +
 	"\x16GetCurrentUserResponse\x12%\n" +
-	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user2\x89\x03\n" +
+	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\x12/\n" +
+	"\x13translation_enabled\x18\x02 \x01(\bR\x12translationEnabled2\x89\x03\n" +
 	"\vAuthService\x12G\n" +
 	"\bRegister\x12\x1c.parlance.v1.RegisterRequest\x1a\x1d.parlance.v1.RegisterResponse\x12>\n" +
 	"\x05Login\x12\x19.parlance.v1.LoginRequest\x1a\x1a.parlance.v1.LoginResponse\x12S\n" +

@@ -8,6 +8,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/translators"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -29,6 +30,7 @@ func (s *Server) GetCurrentUser(
 	}
 
 	return connect.NewResponse(&pb.GetCurrentUserResponse{
-		User: converter.UserToProto(&user),
+		User:               converter.UserToProto(&user),
+		TranslationEnabled: translators.Enabled(ctx, s.db),
 	}), nil
 }

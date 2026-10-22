@@ -1,11 +1,11 @@
-package terminology
+package translate
 
 import (
 	"reflect"
 	"testing"
 )
 
-func TestTokenize(t *testing.T) {
+func TestWords(t *testing.T) {
 	tests := []struct {
 		name     string
 		text     string
@@ -40,15 +40,15 @@ func TestTokenize(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := tokenize(tt.text)
+			result := Words(tt.text)
 			if !reflect.DeepEqual(result, tt.expected) {
-				t.Errorf("tokenize() = %v, want %v", result, tt.expected)
+				t.Errorf("Words() = %v, want %v", result, tt.expected)
 			}
 		})
 	}
 }
 
-func TestFindMatches(t *testing.T) {
+func TestFindTerm(t *testing.T) {
 	tests := []struct {
 		name        string
 		term        string
@@ -95,33 +95,33 @@ func TestFindMatches(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := findMatches(tt.term, tt.sourceWords)
+			result := FindTerm(tt.term, tt.sourceWords)
 			if !reflect.DeepEqual(result, tt.expected) {
-				t.Errorf("findMatches() = %v, want %v", result, tt.expected)
+				t.Errorf("FindTerm() = %v, want %v", result, tt.expected)
 			}
 		})
 	}
 }
 
-func TestFindMatchesWithRealExamples(t *testing.T) {
+func TestFindTermWithRealExamples(t *testing.T) {
 	// Real-world example from the use case
 	sourceText := "Delete logo and return to dashboard"
-	sourceWords := tokenize(sourceText)
+	sourceWords := Words(sourceText)
 
 	// Test "Logo" terminology
-	logoMatches := findMatches("Logo", sourceWords)
+	logoMatches := FindTerm("Logo", sourceWords)
 	if len(logoMatches) != 1 || logoMatches[0] != "logo" {
 		t.Errorf("Expected to find 'logo', got %v", logoMatches)
 	}
 
 	// Test "Dashboard" terminology
-	dashboardMatches := findMatches("Dashboard", sourceWords)
+	dashboardMatches := FindTerm("Dashboard", sourceWords)
 	if len(dashboardMatches) != 1 || dashboardMatches[0] != "dashboard" {
 		t.Errorf("Expected to find 'dashboard', got %v", dashboardMatches)
 	}
 
 	// Test non-existent terminology
-	apiMatches := findMatches("API", sourceWords)
+	apiMatches := FindTerm("API", sourceWords)
 	if len(apiMatches) != 0 {
 		t.Errorf("Expected no matches for 'API', got %v", apiMatches)
 	}

@@ -39,8 +39,8 @@ func (s *Server) ExportZip(
 		"exported_at": time.Now().UTC().Format(time.RFC3339),
 		"format":      "json",
 		"version":     "1.0",
-		"locales":     make([]string, 0, len(locales)),
 	}
+	localeCodes := make([]string, 0, len(locales))
 
 	if len(scopeIDs) > 0 {
 		manifest["scope_ids"] = scopeIDs
@@ -85,8 +85,9 @@ func (s *Server) ExportZip(
 			return nil, errors.Internal(errors.ErrInternal, fmt.Sprintf("failed to write ZIP entry for %s", filename))
 		}
 
-		manifest["locales"] = append(manifest["locales"].([]string), locale.Code)
+		localeCodes = append(localeCodes, locale.Code)
 	}
+	manifest["locales"] = localeCodes
 
 	// Add manifest.json to ZIP
 	manifestBytes, err := json.MarshalIndent(manifest, "", "  ")

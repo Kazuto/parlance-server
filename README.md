@@ -32,7 +32,7 @@ This repository contains the **Go backend server** built with Connect RPC. For t
 - **Connect RPC API** - Type-safe RPC framework with JSON/Protobuf support over HTTP
 - **Key-Based Translation System** - Manage translations with unique identifiers
 - **Multi-Locale Support** - Handle unlimited languages with PostgreSQL backing
-- **AI-Powered Translations** - DeepL API integration for automated translations
+- **Machine Translation** - Suggestions from a self-hosted Hy-MT2 model, reviewed before saving
 - **Custom Terminology** - Glossary system to ensure consistent translations
 - **Scopes & Organization** - Group translations by context (frontend, validation, errors, etc.)
 
@@ -336,7 +336,6 @@ parlance-server/
 │   │   ├── auth_server.go             # AuthService
 │   │   └── ... (8 service files total)
 │   ├── services/                      # Business logic
-│   │   ├── deepl.go                   # DeepL API integration
 │   │   ├── translation.go             # Translation logic
 │   │   ├── export.go                  # Export format generation
 │   │   ├── history.go                 # History tracking
@@ -453,9 +452,8 @@ DB_SSL_MODE=disable
 JWT_SECRET=your-secret-key
 JWT_EXPIRY=24h
 
-# DeepL
-DEEPL_API_KEY=your-deepl-key
-DEEPL_API_URL=https://api.deepl.com/v2
+# Encrypts stored secrets such as translation server API keys
+ENCRYPTION_KEY=generate-with-openssl-rand-base64-32
 
 # CORS
 CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
@@ -482,19 +480,26 @@ See [PLAN.md](PLAN.md) for complete client integration examples.
 
 ## API Integration
 
-### DeepL Translation
+### Machine Translation
 
-The server integrates with DeepL API for AI-powered translations:
+`SuggestTranslations` translates an entry's default-locale text into the given
+locales and returns the results without saving them; the editor shows them as
+drafts to review. `BatchTranslate` saves translations for entries that have none
+yet in a locale.
 
-```go
-// Translate with terminology
-resp := api.localization.translateLocalization({
-  entryId: "entry-123",
-  targetLocaleId: "de",
-  sourceLocaleId: "en",
-  applyTerminology: true  // Apply custom glossary
-})
-```
+Both need at least one OpenAI-compatible server running one of Tencent's
+[Hy-MT2](https://github.com/Tencent-Hunyuan/Hy-MT2) models, added under Settings
+(`TranslationServerService`). Requests are spread over all enabled servers, each
+taking at most its configured number at once, and a request that fails on one
+server is tried on the others. API keys are stored encrypted with
+`ENCRYPTION_KEY` and never returned. llama.cpp's `llama-server` runs the 1.8B or 7B model on a CPU or
+an integrated GPU (Vulkan image `ghcr.io/ggml-org/llama.cpp:server-vulkan`); vLLM
+and SGLang need an NVIDIA GPU. The model translates one text into one language
+per request, so the server sends one request per locale. Every prompt asks for
+user interface style, matching glossary terms are included, and placeholders are
+sent as numbered `{1}`, `{2}` (the models keep those, but translate named ones) and
+restored afterwards. Every answer is checked for lost placeholders and plural
+forms (`internal/translate`).
 
 ### Export Formats
 
@@ -525,7 +530,7 @@ Support for multiple export formats:
 - [ ] Auth middleware and context propagation
 
 ### Phase 4: AI Integration (Week 4)
-- [ ] DeepL API integration
+- [x] Machine translation (Hy-MT2)
 - [ ] Custom terminology application
 - [ ] Batch translation operations
 - [ ] Translation quality validation

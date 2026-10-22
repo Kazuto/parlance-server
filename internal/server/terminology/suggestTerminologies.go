@@ -2,12 +2,12 @@ package terminology
 
 import (
 	"context"
-	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/translate"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -37,14 +37,14 @@ func (s *Server) SuggestTerminologies(
 	}
 
 	// Tokenize source text (simple word-based tokenization)
-	sourceWords := tokenize(req.Msg.SourceText)
+	sourceWords := translate.Words(req.Msg.SourceText)
 
 	// Find matching terminologies
 	var suggestions []*pb.TerminologySuggestion
 
 	for _, term := range terminologies {
 		// Check if terminology term appears in source text (case-insensitive)
-		matchedWords := findMatches(term.Term, sourceWords)
+		matchedWords := translate.FindTerm(term.Term, sourceWords)
 
 		if len(matchedWords) > 0 {
 			// Get the definition for the target locale
@@ -70,70 +70,4 @@ func (s *Server) SuggestTerminologies(
 	return connect.NewResponse(&pb.SuggestTerminologiesResponse{
 		Suggestions: suggestions,
 	}), nil
-}
-
-// tokenize splits text into lowercase words, removing punctuation
-func tokenize(text string) []string {
-	// Convert to lowercase
-	text = strings.ToLower(text)
-
-	// Replace common punctuation with spaces
-	replacer := strings.NewReplacer(
-		".", " ",
-		",", " ",
-		"!", " ",
-		"?", " ",
-		";", " ",
-		":", " ",
-		"-", " ",
-		"_", " ",
-		"(", " ",
-		")", " ",
-		"[", " ",
-		"]", " ",
-		"{", " ",
-		"}", " ",
-		"\"", " ",
-		"'", " ",
-	)
-	text = replacer.Replace(text)
-
-	// Split into words
-	words := strings.Fields(text)
-
-	return words
-}
-
-// findMatches checks if the terminology term appears in the source words
-// Returns the matched words from the source text
-func findMatches(term string, sourceWords []string) []string {
-	termLower := strings.ToLower(term)
-	var matches []string
-
-	// Check for exact word match
-	for _, word := range sourceWords {
-		if word == termLower {
-			matches = append(matches, word)
-		}
-	}
-
-	// Check for partial matches (term contains multiple words)
-	termWords := strings.Fields(termLower)
-	if len(termWords) > 1 {
-		// Check if all words of the term appear in sequence in source
-		for i := 0; i <= len(sourceWords)-len(termWords); i++ {
-			allMatch := true
-			for j, termWord := range termWords {
-				if sourceWords[i+j] != termWord {
-					allMatch = false
-					break
-				}
-			}
-			if allMatch {
-				matches = append(matches, strings.Join(sourceWords[i:i+len(termWords)], " "))
-			}
-		}
-	}
-
-	return matches
 }

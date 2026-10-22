@@ -54,4 +54,6 @@ message GetCurrentUserRequest {}
 
 message GetCurrentUserResponse {
   User user = 1;
+  // Whether a machine translation server is configured.
+  bool translation_enabled = 2;
 }
