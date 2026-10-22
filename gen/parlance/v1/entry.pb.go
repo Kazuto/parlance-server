@@ -35,8 +35,11 @@ type Entry struct {
 	Scopes        []*Scope               `protobuf:"bytes,10,rep,name=scopes,proto3" json:"scopes,omitempty"` // Many-to-many relationship
 	// Target locales without a saved translation; only set by ListEntries with summary.
 	MissingLocaleIds []string `protobuf:"bytes,11,rep,name=missing_locale_ids,json=missingLocaleIds,proto3" json:"missing_locale_ids,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// The text in the default locale, shortened for previews; only set by ListEntries
+	// with summary. Empty when the entry has none.
+	DefaultTranslation string `protobuf:"bytes,12,opt,name=default_translation,json=defaultTranslation,proto3" json:"default_translation,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *Entry) Reset() {
@@ -146,6 +149,13 @@ func (x *Entry) GetMissingLocaleIds() []string {
 	return nil
 }
 
+func (x *Entry) GetDefaultTranslation() string {
+	if x != nil {
+		return x.DefaultTranslation
+	}
+	return ""
+}
+
 type ListEntriesRequest struct {
 	state      protoimpl.MessageState `protogen:"open.v1"`
 	ScopeId    string                 `protobuf:"bytes,1,opt,name=scope_id,json=scopeId,proto3" json:"scope_id,omitempty"`
@@ -160,7 +170,8 @@ type ListEntriesRequest struct {
 	// Keyset paging: pass the previous response's next_cursor to continue after it.
 	// Requires the default key ordering; page and the total count are skipped.
 	Cursor string `protobuf:"bytes,8,opt,name=cursor,proto3" json:"cursor,omitempty"`
-	// Return only id, key and missing_locale_ids instead of localizations and scopes.
+	// Return only id, key, missing_locale_ids and default_translation instead of
+	// localizations and scopes.
 	Summary       bool `protobuf:"varint,9,opt,name=summary,proto3" json:"summary,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1217,7 +1228,7 @@ var File_parlance_v1_entry_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\n" +
-	"\x17parlance/v1/entry.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x17parlance/v1/scope.proto\x1a\x1eparlance/v1/localization.proto\x1a\x16parlance/v1/user.proto\"\x81\x03\n" +
+	"\x17parlance/v1/entry.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x17parlance/v1/scope.proto\x1a\x1eparlance/v1/localization.proto\x1a\x16parlance/v1/user.proto\"\xb2\x03\n" +
 	"\x05Entry\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x10\n" +
 	"\x03key\x18\x02 \x01(\tR\x03key\x12 \n" +
@@ -1235,7 +1246,8 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\rlocalizations\x18\t \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations\x12*\n" +
 	"\x06scopes\x18\n" +
 	" \x03(\v2\x12.parlance.v1.ScopeR\x06scopes\x12,\n" +
-	"\x12missing_locale_ids\x18\v \x03(\tR\x10missingLocaleIds\"\xea\x02\n" +
+	"\x12missing_locale_ids\x18\v \x03(\tR\x10missingLocaleIds\x12/\n" +
+	"\x13default_translation\x18\f \x01(\tR\x12defaultTranslation\"\xea\x02\n" +
 	"\x12ListEntriesRequest\x12\x19\n" +
 	"\bscope_id\x18\x01 \x01(\tR\ascopeId\x12\x1b\n" +
 	"\tlocale_id\x18\x02 \x01(\tR\blocaleId\x12>\n" +

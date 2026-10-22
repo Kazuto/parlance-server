@@ -138,6 +138,29 @@ func SetupTestDB() (*database.DB, error) {
 		updated_by TEXT
 	)`)
 
+	// Saving or deleting a localization or definition records it in these tables.
+	db.Exec(`CREATE TABLE IF NOT EXISTS localization_history (
+		id TEXT PRIMARY KEY,
+		localization_id TEXT NOT NULL,
+		locale_id TEXT NOT NULL,
+		entry_id TEXT NOT NULL,
+		user_id TEXT,
+		translation TEXT NOT NULL,
+		action TEXT NOT NULL,
+		changed_at DATETIME NOT NULL
+	)`)
+
+	db.Exec(`CREATE TABLE IF NOT EXISTS definition_history (
+		id TEXT PRIMARY KEY,
+		definition_id TEXT NOT NULL,
+		locale_id TEXT NOT NULL,
+		terminology_id TEXT NOT NULL,
+		user_id TEXT,
+		translation TEXT NOT NULL,
+		action TEXT NOT NULL,
+		changed_at DATETIME NOT NULL
+	)`)
+
 	db.Exec(`CREATE TABLE IF NOT EXISTS scopes (
 		id TEXT PRIMARY KEY,
 		name TEXT NOT NULL,

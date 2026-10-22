@@ -33,6 +33,9 @@ message Entry {
   repeated Scope scopes = 10;  // Many-to-many relationship
   // Target locales without a saved translation; only set by ListEntries with summary.
   repeated string missing_locale_ids = 11;
+  // The text in the default locale, shortened for previews; only set by ListEntries
+  // with summary. Empty when the entry has none.
+  string default_translation = 12;
 }
 
 message ListEntriesRequest {
@@ -48,7 +51,8 @@ message ListEntriesRequest {
   // Keyset paging: pass the previous response's next_cursor to continue after it.
   // Requires the default key ordering; page and the total count are skipped.
   string cursor = 8;
-  // Return only id, key and missing_locale_ids instead of localizations and scopes.
+  // Return only id, key, missing_locale_ids and default_translation instead of
+  // localizations and scopes.
   bool summary = 9;
 }
 

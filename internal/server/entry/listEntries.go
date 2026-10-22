@@ -117,6 +117,9 @@ func (s *Server) ListEntries(
 		if err := s.fillMissingLocales(result, req.Msg.TargetLocaleIds); err != nil {
 			return nil, err
 		}
+		if err := s.fillDefaultTranslations(result); err != nil {
+			return nil, err
+		}
 	}
 
 	return connect.NewResponse(&pb.ListEntriesResponse{
@@ -124,6 +127,59 @@ func (s *Server) ListEntries(
 		Pagination: pagination,
 		NextCursor: nextCursor,
 	}), nil
+}
+
+// maxDefaultTranslationLength caps default_translation in runes: it is a preview,
+// and a page of long texts would otherwise bloat the summary listing.
+const maxDefaultTranslationLength = 200
+
+// fillDefaultTranslations sets default_translation on each entry: its text in the
+// default locale, shortened to maxDefaultTranslationLength runes.
+func (s *Server) fillDefaultTranslations(entries []*pb.Entry) error {
+	if len(entries) == 0 {
+		return nil
+	}
+	var defaultLocale models.Locale
+	if err := s.db.Where("is_default = ?", true).Limit(1).Find(&defaultLocale).Error; err != nil {
+		return errors.Internal(errors.ErrInternal, "failed to load default locale")
+	}
+	if defaultLocale.ID == "" {
+		return nil
+	}
+
+	entryIDs := make([]string, len(entries))
+	for i, entry := range entries {
+		entryIDs[i] = entry.Id
+	}
+	var rows []struct {
+		EntryID     string
+		Translation string
+	}
+	err := s.db.Model(&models.Localization{}).
+		Select("entry_id, translation").
+		Where("entry_id IN ? AND locale_id = ?", entryIDs, defaultLocale.ID).
+		Scan(&rows).Error
+	if err != nil {
+		return errors.Internal(errors.ErrInternal, "failed to load default translations")
+	}
+
+	translations := make(map[string]string, len(rows))
+	for _, row := range rows {
+		translations[row.EntryID] = shorten(strings.TrimSpace(row.Translation), maxDefaultTranslationLength)
+	}
+	for _, entry := range entries {
+		entry.DefaultTranslation = translations[entry.Id]
+	}
+	return nil
+}
+
+// shorten cuts text to at most limit runes, ending in an ellipsis when cut.
+func shorten(text string, limit int) string {
+	runes := []rune(text)
+	if len(runes) <= limit {
+		return text
+	}
+	return strings.TrimSpace(string(runes[:limit-1])) + "…"
 }
 
 func encodeCursor(key string) string {
