@@ -65,6 +65,31 @@ func (s *Server) GetStats(
 		fullyTranslatedEntries = result.Count
 	}
 
+	// Count translations awaiting review per locale
+	var draftRows []struct {
+		LocaleID string
+		Count    int64
+	}
+
+	if err := s.db.Model(&models.Localization{}).
+		Select("localizations.locale_id, COUNT(*) AS count").
+		Joins("JOIN entries ON entries.id = localizations.entry_id AND entries.deleted_at IS NULL").
+		Joins("JOIN locales ON locales.id = localizations.locale_id AND locales.deleted_at IS NULL").
+		Where("localizations.status = ?", models.StatusDraft).
+		Group("localizations.locale_id").
+		Scan(&draftRows).Error; err != nil {
+		return nil, errors.InternalCause(err, "failed to count drafts")
+	}
+
+	drafts := make(map[string]int64, len(draftRows))
+
+	var draftTranslations int64
+
+	for _, row := range draftRows {
+		drafts[row.LocaleID] = row.Count
+		draftTranslations += row.Count
+	}
+
 	// Get all locales for per-locale stats
 	var locales []models.Locale
 	if err := s.db.Find(&locales).Error; err != nil {
@@ -97,6 +122,7 @@ func (s *Server) GetStats(
 			Completed:  int32(completed),
 			Missing:    int32(missing),
 			Percentage: percentage,
+			Drafts:     int32(drafts[locale.ID]),
 		})
 	}
 
@@ -108,5 +134,6 @@ func (s *Server) GetStats(
 		MissingTranslations:       int32(missingTranslations),
 		ByLocale:                  byLocale,
 		FullyTranslatedEntries:    int32(fullyTranslatedEntries),
+		DraftTranslations:         int32(draftTranslations),
 	}), nil
 }

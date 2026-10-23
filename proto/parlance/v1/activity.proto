@@ -45,4 +45,6 @@ message ActivityItem {
   int32 locale_count = 16;   // Distinct locales changed
   // The group reaches past the scanned history, so its counts are a lower bound.
   bool partial = 17;
+  int32 approved_count = 18;
+  int32 rejected_count = 19;
 }

@@ -102,9 +102,12 @@ message DefinitionHistory {
   string terminology_id = 4;
   string user_id = 5;
   string translation = 6;
-  string action = 7;  // "created", "updated", "deleted"
+  string action = 7;  // "created", "updated", "deleted", "approved", "rejected"
   string changed_at = 8;
   User user = 9;
+  ReviewStatus status = 10;
+  // The reviewer's comment on a rejection.
+  string comment = 11;
 }
 
 // Terminology suggestions for translation assistance
@@ -121,4 +124,5 @@ message TerminologySuggestion {
   Terminology terminology = 1;           // The terminology entry
   string target_translation = 2;         // What to use in target locale (e.g., "Logo" for de)
   repeated string matched_words = 3;     // Words that matched from source text (e.g., ["logo"])
+  ReviewStatus target_status = 4;        // Review status of target_translation
 }

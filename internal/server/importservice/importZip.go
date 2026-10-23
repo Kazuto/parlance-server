@@ -18,7 +18,7 @@ func (s *Server) ImportZip(
 	ctx context.Context,
 	req *connect.Request[pb.ImportZipRequest],
 ) (*connect.Response[pb.ImportZipResponse], error) {
-	mode, err := s.startImport(ctx, req.Msg.Mode, req.Msg.FileContent)
+	options, err := s.startImport(ctx, req.Msg.Mode, req.Msg.Approve, req.Msg.FileContent)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (s *Server) ImportZip(
 		}
 
 		// Process import for this locale
-		result, err := s.processImport(ctx, locale.ID, req.Msg.ScopeIds, translations, mode)
+		result, err := s.processImport(ctx, locale.ID, req.Msg.ScopeIds, translations, options)
 		if err != nil {
 			response.Results = append(response.Results, &pb.LocaleImportResult{
 				LocaleCode: localeCode,

@@ -22,16 +22,21 @@ const (
 )
 
 type Localization struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	EntryId       string                 `protobuf:"bytes,2,opt,name=entry_id,json=entryId,proto3" json:"entry_id,omitempty"`
-	LocaleId      string                 `protobuf:"bytes,3,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
-	Translation   string                 `protobuf:"bytes,4,opt,name=translation,proto3" json:"translation,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	DeletedAt     string                 `protobuf:"bytes,7,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
-	CreatedBy     string                 `protobuf:"bytes,8,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	UpdatedBy     string                 `protobuf:"bytes,9,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	EntryId     string                 `protobuf:"bytes,2,opt,name=entry_id,json=entryId,proto3" json:"entry_id,omitempty"`
+	LocaleId    string                 `protobuf:"bytes,3,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
+	Translation string                 `protobuf:"bytes,4,opt,name=translation,proto3" json:"translation,omitempty"`
+	CreatedAt   string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt   string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DeletedAt   string                 `protobuf:"bytes,7,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
+	CreatedBy   string                 `protobuf:"bytes,8,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	UpdatedBy   string                 `protobuf:"bytes,9,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
+	Status      ReviewStatus           `protobuf:"varint,10,opt,name=status,proto3,enum=parlance.v1.ReviewStatus" json:"status,omitempty"`
+	ReviewedBy  string                 `protobuf:"bytes,11,opt,name=reviewed_by,json=reviewedBy,proto3" json:"reviewed_by,omitempty"`
+	ReviewedAt  string                 `protobuf:"bytes,12,opt,name=reviewed_at,json=reviewedAt,proto3" json:"reviewed_at,omitempty"`
+	// Why a reviewer sent the translation back; cleared once it is approved.
+	ReviewComment string `protobuf:"bytes,13,opt,name=review_comment,json=reviewComment,proto3" json:"review_comment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -125,6 +130,34 @@ func (x *Localization) GetCreatedBy() string {
 func (x *Localization) GetUpdatedBy() string {
 	if x != nil {
 		return x.UpdatedBy
+	}
+	return ""
+}
+
+func (x *Localization) GetStatus() ReviewStatus {
+	if x != nil {
+		return x.Status
+	}
+	return ReviewStatus_REVIEW_STATUS_UNSPECIFIED
+}
+
+func (x *Localization) GetReviewedBy() string {
+	if x != nil {
+		return x.ReviewedBy
+	}
+	return ""
+}
+
+func (x *Localization) GetReviewedAt() string {
+	if x != nil {
+		return x.ReviewedAt
+	}
+	return ""
+}
+
+func (x *Localization) GetReviewComment() string {
+	if x != nil {
+		return x.ReviewComment
 	}
 	return ""
 }
@@ -1056,11 +1089,134 @@ func (x *BatchTranslateResponse) GetSkippedCount() int32 {
 	return 0
 }
 
+type ReviewLocalizationsRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	LocalizationIds []string               `protobuf:"bytes,1,rep,name=localization_ids,json=localizationIds,proto3" json:"localization_ids,omitempty"`
+	// Also the translations of these entries in these locales. Missing ones, and approved
+	// ones when approving, are skipped.
+	EntryIds  []string       `protobuf:"bytes,2,rep,name=entry_ids,json=entryIds,proto3" json:"entry_ids,omitempty"`
+	LocaleIds []string       `protobuf:"bytes,3,rep,name=locale_ids,json=localeIds,proto3" json:"locale_ids,omitempty"`
+	Decision  ReviewDecision `protobuf:"varint,4,opt,name=decision,proto3,enum=parlance.v1.ReviewDecision" json:"decision,omitempty"`
+	// Required when rejecting: what should change.
+	Comment       string `protobuf:"bytes,5,opt,name=comment,proto3" json:"comment,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReviewLocalizationsRequest) Reset() {
+	*x = ReviewLocalizationsRequest{}
+	mi := &file_parlance_v1_localization_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReviewLocalizationsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReviewLocalizationsRequest) ProtoMessage() {}
+
+func (x *ReviewLocalizationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_localization_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReviewLocalizationsRequest.ProtoReflect.Descriptor instead.
+func (*ReviewLocalizationsRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *ReviewLocalizationsRequest) GetLocalizationIds() []string {
+	if x != nil {
+		return x.LocalizationIds
+	}
+	return nil
+}
+
+func (x *ReviewLocalizationsRequest) GetEntryIds() []string {
+	if x != nil {
+		return x.EntryIds
+	}
+	return nil
+}
+
+func (x *ReviewLocalizationsRequest) GetLocaleIds() []string {
+	if x != nil {
+		return x.LocaleIds
+	}
+	return nil
+}
+
+func (x *ReviewLocalizationsRequest) GetDecision() ReviewDecision {
+	if x != nil {
+		return x.Decision
+	}
+	return ReviewDecision_REVIEW_DECISION_UNSPECIFIED
+}
+
+func (x *ReviewLocalizationsRequest) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
+type ReviewLocalizationsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Localizations []*Localization        `protobuf:"bytes,1,rep,name=localizations,proto3" json:"localizations,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReviewLocalizationsResponse) Reset() {
+	*x = ReviewLocalizationsResponse{}
+	mi := &file_parlance_v1_localization_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReviewLocalizationsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReviewLocalizationsResponse) ProtoMessage() {}
+
+func (x *ReviewLocalizationsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_localization_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReviewLocalizationsResponse.ProtoReflect.Descriptor instead.
+func (*ReviewLocalizationsResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_localization_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *ReviewLocalizationsResponse) GetLocalizations() []*Localization {
+	if x != nil {
+		return x.Localizations
+	}
+	return nil
+}
+
 var File_parlance_v1_localization_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\n" +
-	"\x1eparlance/v1/localization.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\x93\x02\n" +
+	"\x1eparlance/v1/localization.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\xaf\x03\n" +
 	"\fLocalization\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bentry_id\x18\x02 \x01(\tR\aentryId\x12\x1b\n" +
@@ -1075,7 +1231,14 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\n" +
 	"created_by\x18\b \x01(\tR\tcreatedBy\x12\x1d\n" +
 	"\n" +
-	"updated_by\x18\t \x01(\tR\tupdatedBy\"\xa9\x01\n" +
+	"updated_by\x18\t \x01(\tR\tupdatedBy\x121\n" +
+	"\x06status\x18\n" +
+	" \x01(\x0e2\x19.parlance.v1.ReviewStatusR\x06status\x12\x1f\n" +
+	"\vreviewed_by\x18\v \x01(\tR\n" +
+	"reviewedBy\x12\x1f\n" +
+	"\vreviewed_at\x18\f \x01(\tR\n" +
+	"reviewedAt\x12%\n" +
+	"\x0ereview_comment\x18\r \x01(\tR\rreviewComment\"\xa9\x01\n" +
 	"\x18ListLocalizationsRequest\x12\x19\n" +
 	"\bentry_id\x18\x01 \x01(\tR\aentryId\x12>\n" +
 	"\n" +
@@ -1133,7 +1296,16 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\rlocalizations\x18\x01 \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations\x12#\n" +
 	"\rsuccess_count\x18\x02 \x01(\x05R\fsuccessCount\x12#\n" +
 	"\rfailure_count\x18\x03 \x01(\x05R\ffailureCount\x12#\n" +
-	"\rskipped_count\x18\x04 \x01(\x05R\fskippedCount2\xbb\x06\n" +
+	"\rskipped_count\x18\x04 \x01(\x05R\fskippedCount\"\xd6\x01\n" +
+	"\x1aReviewLocalizationsRequest\x12)\n" +
+	"\x10localization_ids\x18\x01 \x03(\tR\x0flocalizationIds\x12\x1b\n" +
+	"\tentry_ids\x18\x02 \x03(\tR\bentryIds\x12\x1d\n" +
+	"\n" +
+	"locale_ids\x18\x03 \x03(\tR\tlocaleIds\x127\n" +
+	"\bdecision\x18\x04 \x01(\x0e2\x1b.parlance.v1.ReviewDecisionR\bdecision\x12\x18\n" +
+	"\acomment\x18\x05 \x01(\tR\acomment\"^\n" +
+	"\x1bReviewLocalizationsResponse\x12?\n" +
+	"\rlocalizations\x18\x01 \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations2\xa5\a\n" +
 	"\x13LocalizationService\x12b\n" +
 	"\x11ListLocalizations\x12%.parlance.v1.ListLocalizationsRequest\x1a&.parlance.v1.ListLocalizationsResponse\x12\\\n" +
 	"\x0fGetLocalization\x12#.parlance.v1.GetLocalizationRequest\x1a$.parlance.v1.GetLocalizationResponse\x12e\n" +
@@ -1142,7 +1314,8 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\x12DeleteLocalization\x12&.parlance.v1.DeleteLocalizationRequest\x1a'.parlance.v1.DeleteLocalizationResponse\x12h\n" +
 	"\x13RestoreLocalization\x12'.parlance.v1.RestoreLocalizationRequest\x1a(.parlance.v1.RestoreLocalizationResponse\x12h\n" +
 	"\x13SuggestTranslations\x12'.parlance.v1.SuggestTranslationsRequest\x1a(.parlance.v1.SuggestTranslationsResponse\x12Y\n" +
-	"\x0eBatchTranslate\x12\".parlance.v1.BatchTranslateRequest\x1a#.parlance.v1.BatchTranslateResponseB\xaf\x01\n" +
+	"\x0eBatchTranslate\x12\".parlance.v1.BatchTranslateRequest\x1a#.parlance.v1.BatchTranslateResponse\x12h\n" +
+	"\x13ReviewLocalizations\x12'.parlance.v1.ReviewLocalizationsRequest\x1a(.parlance.v1.ReviewLocalizationsResponseB\xaf\x01\n" +
 	"\x0fcom.parlance.v1B\x11LocalizationProtoP\x01Z<github.com/kazuto/parlance-server/gen/parlance/v1;parlancev1\xa2\x02\x03PXX\xaa\x02\vParlance.V1\xca\x02\vParlance\\V1\xe2\x02\x17Parlance\\V1\\GPBMetadata\xea\x02\fParlance::V1b\x06proto3"
 
 var (
@@ -1157,7 +1330,7 @@ func file_parlance_v1_localization_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_localization_proto_rawDescData
 }
 
-var file_parlance_v1_localization_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_parlance_v1_localization_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_parlance_v1_localization_proto_goTypes = []any{
 	(*Localization)(nil),                // 0: parlance.v1.Localization
 	(*ListLocalizationsRequest)(nil),    // 1: parlance.v1.ListLocalizationsRequest
@@ -1178,43 +1351,52 @@ var file_parlance_v1_localization_proto_goTypes = []any{
 	(*SuggestTranslationsResponse)(nil), // 16: parlance.v1.SuggestTranslationsResponse
 	(*BatchTranslateRequest)(nil),       // 17: parlance.v1.BatchTranslateRequest
 	(*BatchTranslateResponse)(nil),      // 18: parlance.v1.BatchTranslateResponse
-	(*PaginationRequest)(nil),           // 19: parlance.v1.PaginationRequest
-	(*FilterRequest)(nil),               // 20: parlance.v1.FilterRequest
-	(*PaginationResponse)(nil),          // 21: parlance.v1.PaginationResponse
+	(*ReviewLocalizationsRequest)(nil),  // 19: parlance.v1.ReviewLocalizationsRequest
+	(*ReviewLocalizationsResponse)(nil), // 20: parlance.v1.ReviewLocalizationsResponse
+	(ReviewStatus)(0),                   // 21: parlance.v1.ReviewStatus
+	(*PaginationRequest)(nil),           // 22: parlance.v1.PaginationRequest
+	(*FilterRequest)(nil),               // 23: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),          // 24: parlance.v1.PaginationResponse
+	(ReviewDecision)(0),                 // 25: parlance.v1.ReviewDecision
 }
 var file_parlance_v1_localization_proto_depIdxs = []int32{
-	19, // 0: parlance.v1.ListLocalizationsRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	20, // 1: parlance.v1.ListLocalizationsRequest.filter:type_name -> parlance.v1.FilterRequest
-	0,  // 2: parlance.v1.ListLocalizationsResponse.localizations:type_name -> parlance.v1.Localization
-	21, // 3: parlance.v1.ListLocalizationsResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	0,  // 4: parlance.v1.GetLocalizationResponse.localization:type_name -> parlance.v1.Localization
-	0,  // 5: parlance.v1.CreateLocalizationResponse.localization:type_name -> parlance.v1.Localization
-	0,  // 6: parlance.v1.UpdateLocalizationResponse.localization:type_name -> parlance.v1.Localization
-	0,  // 7: parlance.v1.RestoreLocalizationResponse.localization:type_name -> parlance.v1.Localization
-	14, // 8: parlance.v1.TranslationSuggestion.warnings:type_name -> parlance.v1.TranslationWarning
-	15, // 9: parlance.v1.SuggestTranslationsResponse.suggestions:type_name -> parlance.v1.TranslationSuggestion
-	0,  // 10: parlance.v1.BatchTranslateResponse.localizations:type_name -> parlance.v1.Localization
-	1,  // 11: parlance.v1.LocalizationService.ListLocalizations:input_type -> parlance.v1.ListLocalizationsRequest
-	3,  // 12: parlance.v1.LocalizationService.GetLocalization:input_type -> parlance.v1.GetLocalizationRequest
-	5,  // 13: parlance.v1.LocalizationService.CreateLocalization:input_type -> parlance.v1.CreateLocalizationRequest
-	7,  // 14: parlance.v1.LocalizationService.UpdateLocalization:input_type -> parlance.v1.UpdateLocalizationRequest
-	9,  // 15: parlance.v1.LocalizationService.DeleteLocalization:input_type -> parlance.v1.DeleteLocalizationRequest
-	10, // 16: parlance.v1.LocalizationService.RestoreLocalization:input_type -> parlance.v1.RestoreLocalizationRequest
-	13, // 17: parlance.v1.LocalizationService.SuggestTranslations:input_type -> parlance.v1.SuggestTranslationsRequest
-	17, // 18: parlance.v1.LocalizationService.BatchTranslate:input_type -> parlance.v1.BatchTranslateRequest
-	2,  // 19: parlance.v1.LocalizationService.ListLocalizations:output_type -> parlance.v1.ListLocalizationsResponse
-	4,  // 20: parlance.v1.LocalizationService.GetLocalization:output_type -> parlance.v1.GetLocalizationResponse
-	6,  // 21: parlance.v1.LocalizationService.CreateLocalization:output_type -> parlance.v1.CreateLocalizationResponse
-	8,  // 22: parlance.v1.LocalizationService.UpdateLocalization:output_type -> parlance.v1.UpdateLocalizationResponse
-	12, // 23: parlance.v1.LocalizationService.DeleteLocalization:output_type -> parlance.v1.DeleteLocalizationResponse
-	11, // 24: parlance.v1.LocalizationService.RestoreLocalization:output_type -> parlance.v1.RestoreLocalizationResponse
-	16, // 25: parlance.v1.LocalizationService.SuggestTranslations:output_type -> parlance.v1.SuggestTranslationsResponse
-	18, // 26: parlance.v1.LocalizationService.BatchTranslate:output_type -> parlance.v1.BatchTranslateResponse
-	19, // [19:27] is the sub-list for method output_type
-	11, // [11:19] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	21, // 0: parlance.v1.Localization.status:type_name -> parlance.v1.ReviewStatus
+	22, // 1: parlance.v1.ListLocalizationsRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	23, // 2: parlance.v1.ListLocalizationsRequest.filter:type_name -> parlance.v1.FilterRequest
+	0,  // 3: parlance.v1.ListLocalizationsResponse.localizations:type_name -> parlance.v1.Localization
+	24, // 4: parlance.v1.ListLocalizationsResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	0,  // 5: parlance.v1.GetLocalizationResponse.localization:type_name -> parlance.v1.Localization
+	0,  // 6: parlance.v1.CreateLocalizationResponse.localization:type_name -> parlance.v1.Localization
+	0,  // 7: parlance.v1.UpdateLocalizationResponse.localization:type_name -> parlance.v1.Localization
+	0,  // 8: parlance.v1.RestoreLocalizationResponse.localization:type_name -> parlance.v1.Localization
+	14, // 9: parlance.v1.TranslationSuggestion.warnings:type_name -> parlance.v1.TranslationWarning
+	15, // 10: parlance.v1.SuggestTranslationsResponse.suggestions:type_name -> parlance.v1.TranslationSuggestion
+	0,  // 11: parlance.v1.BatchTranslateResponse.localizations:type_name -> parlance.v1.Localization
+	25, // 12: parlance.v1.ReviewLocalizationsRequest.decision:type_name -> parlance.v1.ReviewDecision
+	0,  // 13: parlance.v1.ReviewLocalizationsResponse.localizations:type_name -> parlance.v1.Localization
+	1,  // 14: parlance.v1.LocalizationService.ListLocalizations:input_type -> parlance.v1.ListLocalizationsRequest
+	3,  // 15: parlance.v1.LocalizationService.GetLocalization:input_type -> parlance.v1.GetLocalizationRequest
+	5,  // 16: parlance.v1.LocalizationService.CreateLocalization:input_type -> parlance.v1.CreateLocalizationRequest
+	7,  // 17: parlance.v1.LocalizationService.UpdateLocalization:input_type -> parlance.v1.UpdateLocalizationRequest
+	9,  // 18: parlance.v1.LocalizationService.DeleteLocalization:input_type -> parlance.v1.DeleteLocalizationRequest
+	10, // 19: parlance.v1.LocalizationService.RestoreLocalization:input_type -> parlance.v1.RestoreLocalizationRequest
+	13, // 20: parlance.v1.LocalizationService.SuggestTranslations:input_type -> parlance.v1.SuggestTranslationsRequest
+	17, // 21: parlance.v1.LocalizationService.BatchTranslate:input_type -> parlance.v1.BatchTranslateRequest
+	19, // 22: parlance.v1.LocalizationService.ReviewLocalizations:input_type -> parlance.v1.ReviewLocalizationsRequest
+	2,  // 23: parlance.v1.LocalizationService.ListLocalizations:output_type -> parlance.v1.ListLocalizationsResponse
+	4,  // 24: parlance.v1.LocalizationService.GetLocalization:output_type -> parlance.v1.GetLocalizationResponse
+	6,  // 25: parlance.v1.LocalizationService.CreateLocalization:output_type -> parlance.v1.CreateLocalizationResponse
+	8,  // 26: parlance.v1.LocalizationService.UpdateLocalization:output_type -> parlance.v1.UpdateLocalizationResponse
+	12, // 27: parlance.v1.LocalizationService.DeleteLocalization:output_type -> parlance.v1.DeleteLocalizationResponse
+	11, // 28: parlance.v1.LocalizationService.RestoreLocalization:output_type -> parlance.v1.RestoreLocalizationResponse
+	16, // 29: parlance.v1.LocalizationService.SuggestTranslations:output_type -> parlance.v1.SuggestTranslationsResponse
+	18, // 30: parlance.v1.LocalizationService.BatchTranslate:output_type -> parlance.v1.BatchTranslateResponse
+	20, // 31: parlance.v1.LocalizationService.ReviewLocalizations:output_type -> parlance.v1.ReviewLocalizationsResponse
+	23, // [23:32] is the sub-list for method output_type
+	14, // [14:23] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_localization_proto_init() }
@@ -1230,7 +1412,7 @@ func file_parlance_v1_localization_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_localization_proto_rawDesc), len(file_parlance_v1_localization_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   19,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

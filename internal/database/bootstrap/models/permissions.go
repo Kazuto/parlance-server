@@ -53,7 +53,51 @@ func (i *PermissionInitializer) Run(db *gorm.DB) error {
 	}
 
 	for i := range perms {
-		db.Where("name = ?", perms[i].Name).FirstOrCreate(&perms[i])
+		var existing int64
+		if err := db.Model(&models.Permission{}).Where("name = ?", perms[i].Name).Count(&existing).Error; err != nil {
+			return err
+		}
+
+		if existing > 0 {
+			continue
+		}
+
+		if err := db.Create(&perms[i]).Error; err != nil {
+			return err
+		}
+
+		if err := grantToEquivalentRoles(db, perms[i]); err != nil {
+			return fmt.Errorf("failed to grant %s: %w", perms[i].Name, err)
+		}
+	}
+
+	return nil
+}
+
+// grantToEquivalentRoles gives a new permission to the roles that could already do
+// what it covers (see permissions.GrantedWith), so splitting it off takes nothing away.
+func grantToEquivalentRoles(db *gorm.DB, permission models.Permission) error {
+	required, ok := permissions.GrantedWith[permission.Name]
+	if !ok {
+		return nil
+	}
+
+	var roleIDs []string
+	if err := db.Table("role_permissions").
+		Joins("JOIN permissions ON permissions.id = role_permissions.permission_id").
+		Where("permissions.name IN ?", required).
+		Group("role_permissions.role_id").
+		Having("COUNT(DISTINCT permissions.name) = ?", len(required)).
+		Pluck("role_permissions.role_id", &roleIDs).Error; err != nil {
+		return err
+	}
+
+	for _, roleID := range roleIDs {
+		if err := db.Model(&models.Role{ID: roleID}).Association("Permissions").Append(&permission); err != nil {
+			return err
+		}
+
+		log.Printf("Granted %s to role %s, which held %s", permission.Name, roleID, strings.Join(required, " and "))
 	}
 
 	return nil

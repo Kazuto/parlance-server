@@ -148,10 +148,10 @@ func isTimeout(ctx context.Context, err error) bool {
 }
 
 // glossaryTerms returns, per locale, the glossary terms that occur in source and
-// have a translation in that locale.
+// have an approved translation in that locale, so a draft can't steer translations.
 func (s *Server) glossaryTerms(source string, localeIDs []string) (map[string][]translate.Term, error) {
 	var terminologies []models.Terminology
-	if err := s.db.Preload("Definitions", "locale_id IN ?", localeIDs).Find(&terminologies).Error; err != nil {
+	if err := s.db.Preload("Definitions", "locale_id IN ? AND status = ?", localeIDs, models.StatusApproved).Find(&terminologies).Error; err != nil {
 		return nil, err
 	}
 

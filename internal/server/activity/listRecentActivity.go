@@ -203,17 +203,19 @@ func (s *Server) toItems(
 
 	for _, g := range groups {
 		item := &pb.ActivityItem{
-			Id:           g.Newest.ID,
-			Kind:         g.Newest.Kind,
-			CreatedCount: int32(g.Created),
-			UpdatedCount: int32(g.Updated),
-			DeletedCount: int32(g.Deleted),
-			SubjectCount: int32(len(g.Subjects)),
-			LocaleCount:  int32(len(g.Locales)),
-			UserId:       g.Newest.UserID,
-			UserName:     userNames[g.Newest.UserID],
-			StartedAt:    g.Oldest.Format(time.RFC3339),
-			ChangedAt:    g.Newest.ChangedAt.Format(time.RFC3339),
+			Id:            g.Newest.ID,
+			Kind:          g.Newest.Kind,
+			CreatedCount:  int32(g.Created),
+			UpdatedCount:  int32(g.Updated),
+			DeletedCount:  int32(g.Deleted),
+			ApprovedCount: int32(g.Approved),
+			RejectedCount: int32(g.Rejected),
+			SubjectCount:  int32(len(g.Subjects)),
+			LocaleCount:   int32(len(g.Locales)),
+			UserId:        g.Newest.UserID,
+			UserName:      userNames[g.Newest.UserID],
+			StartedAt:     g.Oldest.Format(time.RFC3339),
+			ChangedAt:     g.Newest.ChangedAt.Format(time.RFC3339),
 		}
 		if edge, ok := edges[g.Newest.Kind]; ok && !g.Oldest.After(edge) {
 			item.Partial = true

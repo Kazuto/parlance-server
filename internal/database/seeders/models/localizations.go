@@ -23,6 +23,11 @@ func (i *LocalizationsSeeder) Run(db *gorm.DB) error {
 
 	db.Where("email = ?", "translator@parlance.dev").First(&translator)
 
+	// The admin approved the demo text.
+	var reviewer models.User
+
+	db.Where("email = ?", "admin@parlance.dev").First(&reviewer)
+
 	var entries []models.Entry
 
 	db.Limit(20).Find(&entries)
@@ -167,6 +172,7 @@ func (i *LocalizationsSeeder) Run(db *gorm.DB) error {
 					LocaleID:    localeID,
 					Translation: translation,
 					CreatedBy:   &translator.ID,
+					Review:      demoReview(localeCode, reviewer.ID),
 				}
 
 				db.Where("entry_id = ? AND locale_id = ?", entry.ID, localeID).FirstOrCreate(&localization)

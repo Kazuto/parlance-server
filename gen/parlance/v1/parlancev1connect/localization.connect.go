@@ -57,6 +57,9 @@ const (
 	// LocalizationServiceBatchTranslateProcedure is the fully-qualified name of the
 	// LocalizationService's BatchTranslate RPC.
 	LocalizationServiceBatchTranslateProcedure = "/parlance.v1.LocalizationService/BatchTranslate"
+	// LocalizationServiceReviewLocalizationsProcedure is the fully-qualified name of the
+	// LocalizationService's ReviewLocalizations RPC.
+	LocalizationServiceReviewLocalizationsProcedure = "/parlance.v1.LocalizationService/ReviewLocalizations"
 )
 
 // LocalizationServiceClient is a client for the parlance.v1.LocalizationService service.
@@ -70,6 +73,8 @@ type LocalizationServiceClient interface {
 	// Suggests machine translations of an entry's source text, without saving them.
 	SuggestTranslations(context.Context, *connect.Request[v1.SuggestTranslationsRequest]) (*connect.Response[v1.SuggestTranslationsResponse], error)
 	BatchTranslate(context.Context, *connect.Request[v1.BatchTranslateRequest]) (*connect.Response[v1.BatchTranslateResponse], error)
+	// Approves or rejects translations, picked by id or by entry and locale.
+	ReviewLocalizations(context.Context, *connect.Request[v1.ReviewLocalizationsRequest]) (*connect.Response[v1.ReviewLocalizationsResponse], error)
 }
 
 // NewLocalizationServiceClient constructs a client for the parlance.v1.LocalizationService service.
@@ -131,6 +136,12 @@ func NewLocalizationServiceClient(httpClient connect.HTTPClient, baseURL string,
 			connect.WithSchema(localizationServiceMethods.ByName("BatchTranslate")),
 			connect.WithClientOptions(opts...),
 		),
+		reviewLocalizations: connect.NewClient[v1.ReviewLocalizationsRequest, v1.ReviewLocalizationsResponse](
+			httpClient,
+			baseURL+LocalizationServiceReviewLocalizationsProcedure,
+			connect.WithSchema(localizationServiceMethods.ByName("ReviewLocalizations")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -144,6 +155,7 @@ type localizationServiceClient struct {
 	restoreLocalization *connect.Client[v1.RestoreLocalizationRequest, v1.RestoreLocalizationResponse]
 	suggestTranslations *connect.Client[v1.SuggestTranslationsRequest, v1.SuggestTranslationsResponse]
 	batchTranslate      *connect.Client[v1.BatchTranslateRequest, v1.BatchTranslateResponse]
+	reviewLocalizations *connect.Client[v1.ReviewLocalizationsRequest, v1.ReviewLocalizationsResponse]
 }
 
 // ListLocalizations calls parlance.v1.LocalizationService.ListLocalizations.
@@ -186,6 +198,11 @@ func (c *localizationServiceClient) BatchTranslate(ctx context.Context, req *con
 	return c.batchTranslate.CallUnary(ctx, req)
 }
 
+// ReviewLocalizations calls parlance.v1.LocalizationService.ReviewLocalizations.
+func (c *localizationServiceClient) ReviewLocalizations(ctx context.Context, req *connect.Request[v1.ReviewLocalizationsRequest]) (*connect.Response[v1.ReviewLocalizationsResponse], error) {
+	return c.reviewLocalizations.CallUnary(ctx, req)
+}
+
 // LocalizationServiceHandler is an implementation of the parlance.v1.LocalizationService service.
 type LocalizationServiceHandler interface {
 	ListLocalizations(context.Context, *connect.Request[v1.ListLocalizationsRequest]) (*connect.Response[v1.ListLocalizationsResponse], error)
@@ -197,6 +214,8 @@ type LocalizationServiceHandler interface {
 	// Suggests machine translations of an entry's source text, without saving them.
 	SuggestTranslations(context.Context, *connect.Request[v1.SuggestTranslationsRequest]) (*connect.Response[v1.SuggestTranslationsResponse], error)
 	BatchTranslate(context.Context, *connect.Request[v1.BatchTranslateRequest]) (*connect.Response[v1.BatchTranslateResponse], error)
+	// Approves or rejects translations, picked by id or by entry and locale.
+	ReviewLocalizations(context.Context, *connect.Request[v1.ReviewLocalizationsRequest]) (*connect.Response[v1.ReviewLocalizationsResponse], error)
 }
 
 // NewLocalizationServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -254,6 +273,12 @@ func NewLocalizationServiceHandler(svc LocalizationServiceHandler, opts ...conne
 		connect.WithSchema(localizationServiceMethods.ByName("BatchTranslate")),
 		connect.WithHandlerOptions(opts...),
 	)
+	localizationServiceReviewLocalizationsHandler := connect.NewUnaryHandler(
+		LocalizationServiceReviewLocalizationsProcedure,
+		svc.ReviewLocalizations,
+		connect.WithSchema(localizationServiceMethods.ByName("ReviewLocalizations")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/parlance.v1.LocalizationService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case LocalizationServiceListLocalizationsProcedure:
@@ -272,6 +297,8 @@ func NewLocalizationServiceHandler(svc LocalizationServiceHandler, opts ...conne
 			localizationServiceSuggestTranslationsHandler.ServeHTTP(w, r)
 		case LocalizationServiceBatchTranslateProcedure:
 			localizationServiceBatchTranslateHandler.ServeHTTP(w, r)
+		case LocalizationServiceReviewLocalizationsProcedure:
+			localizationServiceReviewLocalizationsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -311,4 +338,8 @@ func (UnimplementedLocalizationServiceHandler) SuggestTranslations(context.Conte
 
 func (UnimplementedLocalizationServiceHandler) BatchTranslate(context.Context, *connect.Request[v1.BatchTranslateRequest]) (*connect.Response[v1.BatchTranslateResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.LocalizationService.BatchTranslate is not implemented"))
+}
+
+func (UnimplementedLocalizationServiceHandler) ReviewLocalizations(context.Context, *connect.Request[v1.ReviewLocalizationsRequest]) (*connect.Response[v1.ReviewLocalizationsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.LocalizationService.ReviewLocalizations is not implemented"))
 }

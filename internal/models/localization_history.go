@@ -9,7 +9,9 @@ type LocalizationHistory struct {
 	EntryID        string    `gorm:"type:uuid;not null;index" json:"entry_id"`
 	UserID         *string   `gorm:"type:uuid" json:"user_id,omitempty"`
 	Translation    string    `gorm:"type:text;not null" json:"translation"`
-	Action         string    `gorm:"type:varchar(20);not null" json:"action"` // created, updated, deleted
+	Action         string    `gorm:"type:varchar(20);not null" json:"action"` // created, updated, deleted, approved, rejected
+	Status         string    `gorm:"type:varchar(20);not null;default:''" json:"status"`
+	Comment        string    `gorm:"type:text;not null;default:''" json:"comment"`
 	ChangedAt      time.Time `gorm:"not null;index:idx_changed_at,sort:desc" json:"changed_at"`
 
 	// Relationships

@@ -44,14 +44,18 @@ func LocalizationToProto(l *models.Localization) *pb.Localization {
 	}
 
 	return &pb.Localization{
-		Id:          l.ID,
-		EntryId:     l.EntryID,
-		LocaleId:    l.LocaleID,
-		Translation: l.Translation,
-		CreatedAt:   l.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:   l.UpdatedAt.Format(time.RFC3339),
-		CreatedBy:   derefString(l.CreatedBy),
-		UpdatedBy:   derefString(l.UpdatedBy),
+		Id:            l.ID,
+		EntryId:       l.EntryID,
+		LocaleId:      l.LocaleID,
+		Translation:   l.Translation,
+		CreatedAt:     l.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:     l.UpdatedAt.Format(time.RFC3339),
+		CreatedBy:     derefString(l.CreatedBy),
+		UpdatedBy:     derefString(l.UpdatedBy),
+		Status:        ReviewStatusToProto(l.Status),
+		ReviewedBy:    derefString(l.ReviewedBy),
+		ReviewedAt:    formatTime(l.ReviewedAt),
+		ReviewComment: l.ReviewComment,
 	}
 }
 
@@ -81,6 +85,8 @@ func LocalizationHistoryToProto(h *models.LocalizationHistory) *pb.LocalizationH
 		Action:         h.Action,
 		ChangedAt:      h.ChangedAt.Format(time.RFC3339),
 		User:           UserToProto(h.User),
+		Status:         ReviewStatusToProto(h.Status),
+		Comment:        h.Comment,
 	}
 }
 

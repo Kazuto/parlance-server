@@ -17,6 +17,7 @@ message ImportPhpRequest {
   bytes file_content = 3;         // File content as bytes
   string filename = 4;            // Original filename (optional, for logging)
   ImportMode mode = 5;            // How to handle conflicts
+  bool approve = 6;  // Approve the imported translations; needs review_entry
 }
 
 message ImportPhpResponse {
@@ -30,6 +31,7 @@ message ImportJsonRequest {
   bytes file_content = 3;         // File content as bytes
   string filename = 4;            // Original filename (optional)
   ImportMode mode = 5;
+  bool approve = 6;  // Approve the imported translations; needs review_entry
 }
 
 message ImportJsonResponse {
@@ -43,6 +45,7 @@ message ImportPoRequest {
   bytes file_content = 3;
   string filename = 4;
   ImportMode mode = 5;
+  bool approve = 6;  // Approve the imported translations; needs review_entry
 }
 
 message ImportPoResponse {
@@ -77,6 +80,7 @@ message ImportZipRequest {
   bytes file_content = 1;         // ZIP file content as bytes
   repeated string scope_ids = 2;  // Scopes to assign to all imported entries
   ImportMode mode = 3;            // How to handle conflicts
+  bool approve = 4;              // Approve the imported translations; needs review_entry
 }
 
 message ImportZipResponse {

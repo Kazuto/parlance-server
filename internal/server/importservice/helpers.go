@@ -4,6 +4,7 @@ import (
 	"context"
 	stderrors "errors"
 	"log"
+	"time"
 
 	"connectrpc.com/connect"
 
@@ -31,7 +32,7 @@ func (s *Server) processImport(
 	localeID string,
 	scopeIDs []string,
 	translations map[string]string,
-	mode pb.ImportMode,
+	options importOptions,
 ) (*pb.ImportResult, error) {
 	userID := middleware.UserID(ctx)
 	if userID == "" {
@@ -54,18 +55,18 @@ func (s *Server) processImport(
 			return err
 		}
 
-		if mode == pb.ImportMode_IMPORT_MODE_REPLACE_ALL && len(scopeIDs) > 0 {
+		if options.mode == pb.ImportMode_IMPORT_MODE_REPLACE_ALL && len(scopeIDs) > 0 {
 			if err := deleteScopeLocalizations(tx, userID, localeID, scopeIDs); err != nil {
 				return err
 			}
 		}
 
-		plan, err := planImport(tx, result, userID, localeID, translations, mode, len(scopes) > 0)
+		plan, err := planImport(tx, result, userID, localeID, translations, options, len(scopes) > 0)
 		if err != nil {
 			return err
 		}
 
-		return applyImport(tx, result, plan, scopes, userID, localeID, translations)
+		return applyImport(tx, result, plan, scopes, userID, localeID, translations, options)
 	})
 	if err != nil {
 		if connect.CodeOf(err) != connect.CodeUnknown {
@@ -107,7 +108,7 @@ func planImport(
 	result *pb.ImportResult,
 	userID, localeID string,
 	translations map[string]string,
-	mode pb.ImportMode,
+	options importOptions,
 	hasScopes bool,
 ) (*importPlan, error) {
 	keys := make([]string, 0, len(translations))
@@ -146,13 +147,13 @@ func planImport(
 	for key, value := range translations {
 		entry, entryExists := entryMap[key]
 
-		if mode == pb.ImportMode_IMPORT_MODE_CREATE_ONLY && entryExists {
+		if options.mode == pb.ImportMode_IMPORT_MODE_CREATE_ONLY && entryExists {
 			result.EntriesSkipped++
 
 			continue
 		}
 
-		if mode == pb.ImportMode_IMPORT_MODE_UPDATE_ONLY && !entryExists {
+		if options.mode == pb.ImportMode_IMPORT_MODE_UPDATE_ONLY && !entryExists {
 			result.EntriesSkipped++
 
 			continue
@@ -170,7 +171,16 @@ func planImport(
 		}
 
 		if localization, ok := localizationMap[entry.ID]; ok {
-			localization.Translation = value
+			// Unchanged text keeps its review state, unless the import approves it
+			if localization.Translation != value {
+				localization.Translation = value
+				localization.MarkDraft()
+			}
+
+			if options.approve {
+				localization.Approve(&userID, time.Now())
+			}
+
 			localization.UpdatedBy = &userID
 			plan.localizationsToUpdate = append(plan.localizationsToUpdate, *localization)
 			result.EntriesUpdated++
@@ -180,6 +190,7 @@ func planImport(
 				LocaleID:    localeID,
 				Translation: value,
 				CreatedBy:   &userID,
+				Review:      options.newReview(&userID),
 			})
 			result.EntriesCreated++
 		}
@@ -196,6 +207,7 @@ func applyImport(
 	scopes []models.Scope,
 	userID, localeID string,
 	translations map[string]string,
+	options importOptions,
 ) error {
 	if len(plan.entriesToCreate) > 0 {
 		if err := tx.Create(&plan.entriesToCreate).Error; err != nil {
@@ -215,6 +227,7 @@ func applyImport(
 				LocaleID:    localeID,
 				Translation: translations[entry.Key],
 				CreatedBy:   &userID,
+				Review:      options.newReview(&userID),
 			})
 			result.EntriesCreated++
 		}
@@ -241,25 +254,50 @@ func applyImport(
 	return nil
 }
 
-// startImport authorizes the import and checks its content, returning the mode with
-// CREATE_OR_UPDATE as default. REPLACE_ALL also needs delete_entry on top of the rule for
-// imports, as it removes existing localizations.
-func (s *Server) startImport(ctx context.Context, mode pb.ImportMode, content []byte) (pb.ImportMode, error) {
+// startImport authorizes the import and checks its content, returning its options with
+// CREATE_OR_UPDATE as the default mode. On top of the rule for imports, REPLACE_ALL needs
+// delete_entry, as it removes existing localizations, and approving needs review_entry.
+func (s *Server) startImport(ctx context.Context, mode pb.ImportMode, approve bool, content []byte) (importOptions, error) {
+	options := importOptions{mode: mode, approve: approve}
+
 	if mode == pb.ImportMode_IMPORT_MODE_REPLACE_ALL {
 		if err := middleware.RequirePermission(ctx, s.db, permissions.DeleteEntry); err != nil {
-			return mode, err
+			return options, err
+		}
+	}
+
+	if approve {
+		if err := middleware.RequirePermission(ctx, s.db, permissions.ReviewEntry); err != nil {
+			return options, err
 		}
 	}
 
 	if len(content) == 0 {
-		return mode, errors.InvalidInput(errors.ErrInvalidInput, "file_content is required")
+		return options, errors.InvalidInput(errors.ErrInvalidInput, "file_content is required")
 	}
 
-	if mode == pb.ImportMode_IMPORT_MODE_UNSPECIFIED {
-		mode = pb.ImportMode_IMPORT_MODE_CREATE_OR_UPDATE
+	if options.mode == pb.ImportMode_IMPORT_MODE_UNSPECIFIED {
+		options.mode = pb.ImportMode_IMPORT_MODE_CREATE_OR_UPDATE
 	}
 
-	return mode, nil
+	return options, nil
+}
+
+// importOptions say how an import treats existing entries and the review state
+type importOptions struct {
+	mode pb.ImportMode
+	// Approves every imported translation; otherwise new and changed ones are drafts.
+	approve bool
+}
+
+// newReview is the review state of a translation the import creates
+func (o importOptions) newReview(userID *string) models.Review {
+	review := models.Review{Status: models.StatusDraft}
+	if o.approve {
+		review.Approve(userID, time.Now())
+	}
+
+	return review
 }
 
 // requireLocaleID checks the locale a single-file import goes into

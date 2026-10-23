@@ -70,6 +70,18 @@ func (db *DB) AutoMigrate() error {
 		return fmt.Errorf("failed to create uuid extension: %w", err)
 	}
 
+	// Translations from before review states were added count as approved; new
+	// rows start as drafts.
+	reviewed := []any{&models.Localization{}, &models.Definition{}}
+
+	var unreviewed []any
+
+	for _, model := range reviewed {
+		if !db.Migrator().HasColumn(model, "status") {
+			unreviewed = append(unreviewed, model)
+		}
+	}
+
 	// Run migrations for all models
 	err := db.DB.AutoMigrate(
 		&models.Locale{},
@@ -88,6 +100,13 @@ func (db *DB) AutoMigrate() error {
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
+	}
+
+	for _, model := range unreviewed {
+		if err := db.Session(&gorm.Session{SkipHooks: true, AllowGlobalUpdate: true}).
+			Model(model).Unscoped().Update("status", models.StatusApproved).Error; err != nil {
+			return fmt.Errorf("failed to approve existing translations: %w", err)
+		}
 	}
 
 	// Add unique constraints that GORM doesn't handle well

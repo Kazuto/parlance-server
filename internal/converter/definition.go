@@ -22,6 +22,10 @@ func DefinitionToProto(d *models.Definition) *pb.Definition {
 		DeletedAt:     formatDeletedAt(d.DeletedAt),
 		CreatedBy:     derefString(d.CreatedBy),
 		UpdatedBy:     derefString(d.UpdatedBy),
+		Status:        ReviewStatusToProto(d.Status),
+		ReviewedBy:    derefString(d.ReviewedBy),
+		ReviewedAt:    formatTime(d.ReviewedAt),
+		ReviewComment: d.ReviewComment,
 	}
 }
 
@@ -49,6 +53,8 @@ func DefinitionHistoryToProto(h *models.DefinitionHistory) *pb.DefinitionHistory
 		Action:        h.Action,
 		ChangedAt:     h.ChangedAt.Format(time.RFC3339),
 		User:          UserToProto(h.User),
+		Status:        ReviewStatusToProto(h.Status),
+		Comment:       h.Comment,
 	}
 }
 

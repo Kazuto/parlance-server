@@ -36,7 +36,10 @@ func TestExports(t *testing.T) {
 		}
 	}
 
-	if err := db.Create(&models.Localization{EntryID: translated.ID, LocaleID: locale.ID, Translation: `It's in C:\temp\`}).Error; err != nil {
+	if err := db.Create(&models.Localization{
+		EntryID: translated.ID, LocaleID: locale.ID, Translation: `It's in C:\temp\`,
+		Review: models.Review{Status: models.StatusApproved},
+	}).Error; err != nil {
 		t.Fatal(err)
 	}
 
@@ -75,5 +78,39 @@ func TestExports(t *testing.T) {
 
 	if _, err := server.ExportJson(ctx, connect.NewRequest(&pb.ExportJsonRequest{LocaleCode: "nope"})); connect.CodeOf(err) != connect.CodeNotFound {
 		t.Errorf("unknown locale: got %v, want not found", err)
+	}
+}
+
+func TestExportsLeaveOutDraftsUnlessIncluded(t *testing.T) {
+	ctx, db := testutil.Setup(t)
+	locale := models.Locale{Code: "dr", Names: datatypes.JSON(`{"en":"Drafts"}`)}
+	approved, draft := models.Entry{Key: "dr.approved"}, models.Entry{Key: "dr.draft"}
+
+	for _, row := range []any{&locale, &approved, &draft} {
+		if err := db.Create(row).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	for entryID, status := range map[string]string{approved.ID: models.StatusApproved, draft.ID: models.StatusDraft} {
+		if err := db.Create(&models.Localization{
+			EntryID: entryID, LocaleID: locale.ID, Translation: "text",
+			Review: models.Review{Status: status},
+		}).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	server := &Server{db: db}
+
+	for includeDrafts, wantDraft := range map[bool]bool{false: false, true: true} {
+		res, err := server.ExportJson(ctx, connect.NewRequest(&pb.ExportJsonRequest{LocaleCode: "dr", IncludeDrafts: includeDrafts}))
+		if err != nil {
+			t.Fatalf("ExportJson() error = %v", err)
+		}
+
+		if !strings.Contains(res.Msg.Content, "dr.approved") || strings.Contains(res.Msg.Content, "dr.draft") != wantDraft {
+			t.Errorf("include drafts %v: export = %s", includeDrafts, res.Msg.Content)
+		}
 	}
 }

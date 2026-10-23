@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Server) ImportPo(ctx context.Context, req *connect.Request[pb.ImportPoRequest]) (*connect.Response[pb.ImportPoResponse], error) {
-	mode, err := s.startImport(ctx, req.Msg.Mode, req.Msg.FileContent)
+	options, err := s.startImport(ctx, req.Msg.Mode, req.Msg.Approve, req.Msg.FileContent)
 	if err != nil {
 		return nil, err
 	}
@@ -68,11 +68,11 @@ func (s *Server) ImportPo(ctx context.Context, req *connect.Request[pb.ImportPoR
 		translations[entry.ID] = entry.Translation
 	}
 
-	if mode == pb.ImportMode_IMPORT_MODE_REPLACE_ALL && len(failures) > 0 {
+	if options.mode == pb.ImportMode_IMPORT_MODE_REPLACE_ALL && len(failures) > 0 {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "replace-all requires a PO file without unsupported or duplicate entries")
 	}
 
-	result, err := s.processImport(ctx, req.Msg.LocaleId, req.Msg.ScopeIds, translations, mode)
+	result, err := s.processImport(ctx, req.Msg.LocaleId, req.Msg.ScopeIds, translations, options)
 	if err != nil {
 		return nil, err
 	}

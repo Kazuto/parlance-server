@@ -38,8 +38,10 @@ type Entry struct {
 	// The text in the default locale, shortened for previews; only set by ListEntries
 	// with summary. Empty when the entry has none.
 	DefaultTranslation string `protobuf:"bytes,12,opt,name=default_translation,json=defaultTranslation,proto3" json:"default_translation,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// Target locales whose translation is a draft; only set by ListEntries with summary.
+	DraftLocaleIds []string `protobuf:"bytes,13,rep,name=draft_locale_ids,json=draftLocaleIds,proto3" json:"draft_locale_ids,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *Entry) Reset() {
@@ -156,13 +158,21 @@ func (x *Entry) GetDefaultTranslation() string {
 	return ""
 }
 
+func (x *Entry) GetDraftLocaleIds() []string {
+	if x != nil {
+		return x.DraftLocaleIds
+	}
+	return nil
+}
+
 type ListEntriesRequest struct {
 	state      protoimpl.MessageState `protogen:"open.v1"`
 	ScopeId    string                 `protobuf:"bytes,1,opt,name=scope_id,json=scopeId,proto3" json:"scope_id,omitempty"`
 	LocaleId   string                 `protobuf:"bytes,2,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
 	Pagination *PaginationRequest     `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	Filter     *FilterRequest         `protobuf:"bytes,4,opt,name=filter,proto3" json:"filter,omitempty"`
-	// "", "missing", or "complete" for the selected locales (all active locales if empty).
+	// "", "missing", "complete", or "review" (a draft awaits approval) for the selected
+	// locales (all active locales if empty).
 	TranslationStatus string   `protobuf:"bytes,5,opt,name=translation_status,json=translationStatus,proto3" json:"translation_status,omitempty"`
 	TargetLocaleIds   []string `protobuf:"bytes,6,rep,name=target_locale_ids,json=targetLocaleIds,proto3" json:"target_locale_ids,omitempty"`
 	// Entries in any of these scopes; combined with scope_id when both are set.
@@ -1133,11 +1143,14 @@ type LocalizationHistory struct {
 	EntryId        string                 `protobuf:"bytes,4,opt,name=entry_id,json=entryId,proto3" json:"entry_id,omitempty"`
 	UserId         string                 `protobuf:"bytes,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Translation    string                 `protobuf:"bytes,6,opt,name=translation,proto3" json:"translation,omitempty"`
-	Action         string                 `protobuf:"bytes,7,opt,name=action,proto3" json:"action,omitempty"` // "created", "updated", "deleted"
+	Action         string                 `protobuf:"bytes,7,opt,name=action,proto3" json:"action,omitempty"` // "created", "updated", "deleted", "approved", "rejected"
 	ChangedAt      string                 `protobuf:"bytes,8,opt,name=changed_at,json=changedAt,proto3" json:"changed_at,omitempty"`
 	User           *User                  `protobuf:"bytes,9,opt,name=user,proto3" json:"user,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	Status         ReviewStatus           `protobuf:"varint,10,opt,name=status,proto3,enum=parlance.v1.ReviewStatus" json:"status,omitempty"`
+	// The reviewer's comment on a rejection.
+	Comment       string `protobuf:"bytes,11,opt,name=comment,proto3" json:"comment,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LocalizationHistory) Reset() {
@@ -1233,11 +1246,25 @@ func (x *LocalizationHistory) GetUser() *User {
 	return nil
 }
 
+func (x *LocalizationHistory) GetStatus() ReviewStatus {
+	if x != nil {
+		return x.Status
+	}
+	return ReviewStatus_REVIEW_STATUS_UNSPECIFIED
+}
+
+func (x *LocalizationHistory) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
 var File_parlance_v1_entry_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\n" +
-	"\x17parlance/v1/entry.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x17parlance/v1/scope.proto\x1a\x1eparlance/v1/localization.proto\x1a\x16parlance/v1/user.proto\"\xb2\x03\n" +
+	"\x17parlance/v1/entry.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x17parlance/v1/scope.proto\x1a\x1eparlance/v1/localization.proto\x1a\x16parlance/v1/user.proto\"\xdc\x03\n" +
 	"\x05Entry\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x10\n" +
 	"\x03key\x18\x02 \x01(\tR\x03key\x12 \n" +
@@ -1256,7 +1283,8 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\x06scopes\x18\n" +
 	" \x03(\v2\x12.parlance.v1.ScopeR\x06scopes\x12,\n" +
 	"\x12missing_locale_ids\x18\v \x03(\tR\x10missingLocaleIds\x12/\n" +
-	"\x13default_translation\x18\f \x01(\tR\x12defaultTranslation\"\xea\x02\n" +
+	"\x13default_translation\x18\f \x01(\tR\x12defaultTranslation\x12(\n" +
+	"\x10draft_locale_ids\x18\r \x03(\tR\x0edraftLocaleIds\"\xea\x02\n" +
 	"\x12ListEntriesRequest\x12\x19\n" +
 	"\bscope_id\x18\x01 \x01(\tR\ascopeId\x12\x1b\n" +
 	"\tlocale_id\x18\x02 \x01(\tR\blocaleId\x12>\n" +
@@ -1328,7 +1356,7 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\ahistory\x18\x01 \x03(\v2 .parlance.v1.LocalizationHistoryR\ahistory\x12?\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1f.parlance.v1.PaginationResponseR\n" +
-	"pagination\"\x9f\x02\n" +
+	"pagination\"\xec\x02\n" +
 	"\x13LocalizationHistory\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0flocalization_id\x18\x02 \x01(\tR\x0elocalizationId\x12\x1b\n" +
@@ -1339,7 +1367,10 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\x06action\x18\a \x01(\tR\x06action\x12\x1d\n" +
 	"\n" +
 	"changed_at\x18\b \x01(\tR\tchangedAt\x12%\n" +
-	"\x04user\x18\t \x01(\v2\x11.parlance.v1.UserR\x04user2\x94\x06\n" +
+	"\x04user\x18\t \x01(\v2\x11.parlance.v1.UserR\x04user\x121\n" +
+	"\x06status\x18\n" +
+	" \x01(\x0e2\x19.parlance.v1.ReviewStatusR\x06status\x12\x18\n" +
+	"\acomment\x18\v \x01(\tR\acomment2\x94\x06\n" +
 	"\fEntryService\x12P\n" +
 	"\vListEntries\x12\x1f.parlance.v1.ListEntriesRequest\x1a .parlance.v1.ListEntriesResponse\x12G\n" +
 	"\bGetEntry\x12\x1c.parlance.v1.GetEntryRequest\x1a\x1d.parlance.v1.GetEntryResponse\x12P\n" +
@@ -1394,6 +1425,7 @@ var file_parlance_v1_entry_proto_goTypes = []any{
 	(*PaginationResponse)(nil),          // 24: parlance.v1.PaginationResponse
 	(*IdSelection)(nil),                 // 25: parlance.v1.IdSelection
 	(*User)(nil),                        // 26: parlance.v1.User
+	(ReviewStatus)(0),                   // 27: parlance.v1.ReviewStatus
 }
 var file_parlance_v1_entry_proto_depIdxs = []int32{
 	20, // 0: parlance.v1.Entry.localizations:type_name -> parlance.v1.Localization
@@ -1415,29 +1447,30 @@ var file_parlance_v1_entry_proto_depIdxs = []int32{
 	19, // 16: parlance.v1.GetEntryHistoryResponse.history:type_name -> parlance.v1.LocalizationHistory
 	24, // 17: parlance.v1.GetEntryHistoryResponse.pagination:type_name -> parlance.v1.PaginationResponse
 	26, // 18: parlance.v1.LocalizationHistory.user:type_name -> parlance.v1.User
-	1,  // 19: parlance.v1.EntryService.ListEntries:input_type -> parlance.v1.ListEntriesRequest
-	3,  // 20: parlance.v1.EntryService.GetEntry:input_type -> parlance.v1.GetEntryRequest
-	5,  // 21: parlance.v1.EntryService.CreateEntry:input_type -> parlance.v1.CreateEntryRequest
-	7,  // 22: parlance.v1.EntryService.UpdateEntry:input_type -> parlance.v1.UpdateEntryRequest
-	11, // 23: parlance.v1.EntryService.DeleteEntry:input_type -> parlance.v1.DeleteEntryRequest
-	13, // 24: parlance.v1.EntryService.RestoreEntry:input_type -> parlance.v1.RestoreEntryRequest
-	15, // 25: parlance.v1.EntryService.SearchEntries:input_type -> parlance.v1.SearchEntriesRequest
-	17, // 26: parlance.v1.EntryService.GetEntryHistory:input_type -> parlance.v1.GetEntryHistoryRequest
-	9,  // 27: parlance.v1.EntryService.UpdateEntriesScopes:input_type -> parlance.v1.UpdateEntriesScopesRequest
-	2,  // 28: parlance.v1.EntryService.ListEntries:output_type -> parlance.v1.ListEntriesResponse
-	4,  // 29: parlance.v1.EntryService.GetEntry:output_type -> parlance.v1.GetEntryResponse
-	6,  // 30: parlance.v1.EntryService.CreateEntry:output_type -> parlance.v1.CreateEntryResponse
-	8,  // 31: parlance.v1.EntryService.UpdateEntry:output_type -> parlance.v1.UpdateEntryResponse
-	12, // 32: parlance.v1.EntryService.DeleteEntry:output_type -> parlance.v1.DeleteEntryResponse
-	14, // 33: parlance.v1.EntryService.RestoreEntry:output_type -> parlance.v1.RestoreEntryResponse
-	16, // 34: parlance.v1.EntryService.SearchEntries:output_type -> parlance.v1.SearchEntriesResponse
-	18, // 35: parlance.v1.EntryService.GetEntryHistory:output_type -> parlance.v1.GetEntryHistoryResponse
-	10, // 36: parlance.v1.EntryService.UpdateEntriesScopes:output_type -> parlance.v1.UpdateEntriesScopesResponse
-	28, // [28:37] is the sub-list for method output_type
-	19, // [19:28] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	27, // 19: parlance.v1.LocalizationHistory.status:type_name -> parlance.v1.ReviewStatus
+	1,  // 20: parlance.v1.EntryService.ListEntries:input_type -> parlance.v1.ListEntriesRequest
+	3,  // 21: parlance.v1.EntryService.GetEntry:input_type -> parlance.v1.GetEntryRequest
+	5,  // 22: parlance.v1.EntryService.CreateEntry:input_type -> parlance.v1.CreateEntryRequest
+	7,  // 23: parlance.v1.EntryService.UpdateEntry:input_type -> parlance.v1.UpdateEntryRequest
+	11, // 24: parlance.v1.EntryService.DeleteEntry:input_type -> parlance.v1.DeleteEntryRequest
+	13, // 25: parlance.v1.EntryService.RestoreEntry:input_type -> parlance.v1.RestoreEntryRequest
+	15, // 26: parlance.v1.EntryService.SearchEntries:input_type -> parlance.v1.SearchEntriesRequest
+	17, // 27: parlance.v1.EntryService.GetEntryHistory:input_type -> parlance.v1.GetEntryHistoryRequest
+	9,  // 28: parlance.v1.EntryService.UpdateEntriesScopes:input_type -> parlance.v1.UpdateEntriesScopesRequest
+	2,  // 29: parlance.v1.EntryService.ListEntries:output_type -> parlance.v1.ListEntriesResponse
+	4,  // 30: parlance.v1.EntryService.GetEntry:output_type -> parlance.v1.GetEntryResponse
+	6,  // 31: parlance.v1.EntryService.CreateEntry:output_type -> parlance.v1.CreateEntryResponse
+	8,  // 32: parlance.v1.EntryService.UpdateEntry:output_type -> parlance.v1.UpdateEntryResponse
+	12, // 33: parlance.v1.EntryService.DeleteEntry:output_type -> parlance.v1.DeleteEntryResponse
+	14, // 34: parlance.v1.EntryService.RestoreEntry:output_type -> parlance.v1.RestoreEntryResponse
+	16, // 35: parlance.v1.EntryService.SearchEntries:output_type -> parlance.v1.SearchEntriesResponse
+	18, // 36: parlance.v1.EntryService.GetEntryHistory:output_type -> parlance.v1.GetEntryHistoryResponse
+	10, // 37: parlance.v1.EntryService.UpdateEntriesScopes:output_type -> parlance.v1.UpdateEntriesScopesResponse
+	29, // [29:38] is the sub-list for method output_type
+	20, // [20:29] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_entry_proto_init() }

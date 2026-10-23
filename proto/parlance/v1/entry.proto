@@ -36,6 +36,8 @@ message Entry {
   // The text in the default locale, shortened for previews; only set by ListEntries
   // with summary. Empty when the entry has none.
   string default_translation = 12;
+  // Target locales whose translation is a draft; only set by ListEntries with summary.
+  repeated string draft_locale_ids = 13;
 }
 
 message ListEntriesRequest {
@@ -43,7 +45,8 @@ message ListEntriesRequest {
   string locale_id = 2;
   PaginationRequest pagination = 3;
   FilterRequest filter = 4;
-  // "", "missing", or "complete" for the selected locales (all active locales if empty).
+  // "", "missing", "complete", or "review" (a draft awaits approval) for the selected
+  // locales (all active locales if empty).
   string translation_status = 5;
   repeated string target_locale_ids = 6;
   // Entries in any of these scopes; combined with scope_id when both are set.
@@ -147,7 +150,10 @@ message LocalizationHistory {
   string entry_id = 4;
   string user_id = 5;
   string translation = 6;
-  string action = 7;  // "created", "updated", "deleted"
+  string action = 7;  // "created", "updated", "deleted", "approved", "rejected"
   string changed_at = 8;
   User user = 9;
+  ReviewStatus status = 10;
+  // The reviewer's comment on a rejection.
+  string comment = 11;
 }

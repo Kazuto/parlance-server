@@ -123,7 +123,11 @@ func SetupTestDB() (*database.DB, error) {
 			updated_at DATETIME,
 			deleted_at DATETIME,
 			created_by TEXT,
-			updated_by TEXT
+			updated_by TEXT,
+			status TEXT NOT NULL DEFAULT 'draft',
+			reviewed_by TEXT,
+			reviewed_at DATETIME,
+			review_comment TEXT NOT NULL DEFAULT ''
 		)`,
 		`CREATE TABLE IF NOT EXISTS locales (
 			id TEXT PRIMARY KEY,
@@ -143,7 +147,11 @@ func SetupTestDB() (*database.DB, error) {
 			updated_at DATETIME,
 			deleted_at DATETIME,
 			created_by TEXT,
-			updated_by TEXT
+			updated_by TEXT,
+			status TEXT NOT NULL DEFAULT 'draft',
+			reviewed_by TEXT,
+			reviewed_at DATETIME,
+			review_comment TEXT NOT NULL DEFAULT ''
 		)`,
 		// Saving or deleting a localization or definition records it in these tables.
 		`CREATE TABLE IF NOT EXISTS localization_history (
@@ -154,6 +162,8 @@ func SetupTestDB() (*database.DB, error) {
 			user_id TEXT,
 			translation TEXT NOT NULL,
 			action TEXT NOT NULL,
+			status TEXT NOT NULL DEFAULT '',
+			comment TEXT NOT NULL DEFAULT '',
 			changed_at DATETIME NOT NULL
 		)`,
 		`CREATE TABLE IF NOT EXISTS definition_history (
@@ -164,6 +174,8 @@ func SetupTestDB() (*database.DB, error) {
 			user_id TEXT,
 			translation TEXT NOT NULL,
 			action TEXT NOT NULL,
+			status TEXT NOT NULL DEFAULT '',
+			comment TEXT NOT NULL DEFAULT '',
 			changed_at DATETIME NOT NULL
 		)`,
 		`CREATE TABLE IF NOT EXISTS scopes (

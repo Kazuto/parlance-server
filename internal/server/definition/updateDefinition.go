@@ -33,8 +33,10 @@ func (s *Server) UpdateDefinition(
 	// Extract user ID from context
 	definition.UpdatedBy = middleware.UserIDPtr(ctx)
 
-	if req.Msg.Translation != nil {
+	// New text needs review again
+	if req.Msg.Translation != nil && req.Msg.GetTranslation() != definition.Translation {
 		definition.Translation = req.Msg.GetTranslation()
+		definition.MarkDraft()
 	}
 
 	if err := s.db.Save(&definition).Error; err != nil {

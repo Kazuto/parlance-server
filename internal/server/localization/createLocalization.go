@@ -34,6 +34,7 @@ func (s *Server) CreateLocalization(
 		LocaleID:    req.Msg.LocaleId,
 		Translation: req.Msg.Translation,
 		CreatedBy:   middleware.UserIDPtr(ctx),
+		Review:      models.Review{Status: models.StatusDraft},
 	}
 
 	if err := s.db.Create(localization).Error; err != nil {

@@ -4,13 +4,14 @@ import (
 	"time"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/models"
 )
 
 // change is one row from a history table.
 type change struct {
 	ID        string
 	Kind      pb.ActivityKind
-	Action    string // created, updated, deleted
+	Action    string // created, updated, deleted, approved, rejected
 	UserID    string
 	LocaleID  string
 	SubjectID string // entry or terminology id
@@ -24,6 +25,8 @@ type group struct {
 	Created  int
 	Updated  int
 	Deleted  int
+	Approved int
+	Rejected int
 	Subjects map[string]bool
 	Locales  map[string]bool
 }
@@ -79,6 +82,10 @@ func (g *group) add(c change) {
 		g.Created++
 	case "deleted":
 		g.Deleted++
+	case models.ActionApproved:
+		g.Approved++
+	case models.ActionRejected:
+		g.Rejected++
 	default:
 		g.Updated++
 	}

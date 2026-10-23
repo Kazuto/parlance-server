@@ -24,6 +24,20 @@ message FilterRequest {
 
 message Empty {}
 
+// Where a translation stands in review. Changing its text makes it a draft again.
+enum ReviewStatus {
+  REVIEW_STATUS_UNSPECIFIED = 0;
+  REVIEW_STATUS_DRAFT = 1;
+  REVIEW_STATUS_APPROVED = 2;
+}
+
+// Approving accepts a translation; rejecting keeps it a draft, with a comment.
+enum ReviewDecision {
+  REVIEW_DECISION_UNSPECIFIED = 0;
+  REVIEW_DECISION_APPROVE = 1;
+  REVIEW_DECISION_REJECT = 2;
+}
+
 // A set of related ids. In an update, omit the field to keep the current set;
 // send it (even with no ids) to replace the set.
 message IdSelection {

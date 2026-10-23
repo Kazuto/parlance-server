@@ -41,8 +41,10 @@ func (s *Server) UpdateLocalization(
 		}), nil
 	}
 
-	if req.Msg.Translation != nil {
+	// New text needs review again
+	if req.Msg.Translation != nil && req.Msg.GetTranslation() != localization.Translation {
 		localization.Translation = req.Msg.GetTranslation()
+		localization.MarkDraft()
 	}
 
 	if err := s.db.Save(&localization).Error; err != nil {

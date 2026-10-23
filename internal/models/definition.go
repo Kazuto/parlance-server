@@ -16,6 +16,7 @@ type Definition struct {
 	DeletedAt     gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 	CreatedBy     *string        `gorm:"type:uuid;index" json:"created_by,omitempty"`
 	UpdatedBy     *string        `gorm:"type:uuid;index" json:"updated_by,omitempty"`
+	Review        `gorm:"embedded"`
 
 	// Relationships
 	Terminology Terminology `gorm:"foreignKey:TerminologyID" json:"terminology"`
@@ -49,8 +50,17 @@ func recordDefinitionHistory(tx *gorm.DB, d *Definition, action string) error {
 	}
 
 	userID := d.UpdatedBy
-	if action == "created" {
+
+	switch action {
+	case "created":
 		userID = d.CreatedBy
+	case ActionApproved, ActionRejected:
+		userID = d.ReviewedBy
+	}
+
+	comment := ""
+	if action == ActionRejected {
+		comment = d.ReviewComment
 	}
 
 	history := DefinitionHistory{
@@ -60,8 +70,15 @@ func recordDefinitionHistory(tx *gorm.DB, d *Definition, action string) error {
 		UserID:        userID,
 		Translation:   d.Translation,
 		Action:        action,
+		Status:        d.Status,
+		Comment:       comment,
 		ChangedAt:     time.Now(),
 	}
 
 	return tx.Create(&history).Error
+}
+
+// RecordReview writes the history of a review, which the review saves without hooks
+func (d *Definition) RecordReview(tx *gorm.DB, action string) error {
+	return recordDefinitionHistory(tx, d, action)
 }

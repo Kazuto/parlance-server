@@ -12,8 +12,8 @@ import (
 )
 
 // Rules lists the permissions each protected procedure needs; the user must hold all of
-// them. Import and export have no permissions of their own and use the entry permissions;
-// REPLACE_ALL imports also need delete_entry, which the handler checks.
+// them. REPLACE_ALL imports also need delete_entry, and approving imports review_entry,
+// which the handler checks.
 var Rules = map[string][]string{
 	// ActivityService
 	parlancev1connect.ActivityServiceListRecentActivityProcedure: {permissions.ReadEntry},
@@ -23,6 +23,7 @@ var Rules = map[string][]string{
 	parlancev1connect.DefinitionServiceDeleteDefinitionProcedure:  {permissions.DeleteDefinition},
 	parlancev1connect.DefinitionServiceGetDefinitionProcedure:     {permissions.ReadDefinition},
 	parlancev1connect.DefinitionServiceListDefinitionsProcedure:   {permissions.ReadDefinition},
+	parlancev1connect.DefinitionServiceReviewDefinitionsProcedure: {permissions.ReviewDefinition},
 	parlancev1connect.DefinitionServiceRestoreDefinitionProcedure: {permissions.DeleteDefinition},
 	parlancev1connect.DefinitionServiceUpdateDefinitionProcedure:  {permissions.UpdateDefinition},
 
@@ -38,16 +39,16 @@ var Rules = map[string][]string{
 	parlancev1connect.EntryServiceUpdateEntryProcedure:         {permissions.UpdateEntry},
 
 	// ExportService
-	parlancev1connect.ExportServiceExportJsonProcedure: {permissions.ReadEntry},
-	parlancev1connect.ExportServiceExportPhpProcedure:  {permissions.ReadEntry},
-	parlancev1connect.ExportServiceExportPoProcedure:   {permissions.ReadEntry},
-	parlancev1connect.ExportServiceExportZipProcedure:  {permissions.ReadEntry},
+	parlancev1connect.ExportServiceExportJsonProcedure: {permissions.ExportEntry},
+	parlancev1connect.ExportServiceExportPhpProcedure:  {permissions.ExportEntry},
+	parlancev1connect.ExportServiceExportPoProcedure:   {permissions.ExportEntry},
+	parlancev1connect.ExportServiceExportZipProcedure:  {permissions.ExportEntry},
 
 	// ImportService
-	parlancev1connect.ImportServiceImportJsonProcedure: {permissions.CreateEntry, permissions.UpdateEntry},
-	parlancev1connect.ImportServiceImportPhpProcedure:  {permissions.CreateEntry, permissions.UpdateEntry},
-	parlancev1connect.ImportServiceImportPoProcedure:   {permissions.CreateEntry, permissions.UpdateEntry},
-	parlancev1connect.ImportServiceImportZipProcedure:  {permissions.CreateEntry, permissions.UpdateEntry},
+	parlancev1connect.ImportServiceImportJsonProcedure: {permissions.ImportEntry},
+	parlancev1connect.ImportServiceImportPhpProcedure:  {permissions.ImportEntry},
+	parlancev1connect.ImportServiceImportPoProcedure:   {permissions.ImportEntry},
+	parlancev1connect.ImportServiceImportZipProcedure:  {permissions.ImportEntry},
 
 	// LocaleService
 	parlancev1connect.LocaleServiceCreateLocaleProcedure:     {permissions.CreateLocale},
@@ -66,6 +67,7 @@ var Rules = map[string][]string{
 	parlancev1connect.LocalizationServiceDeleteLocalizationProcedure:  {permissions.UpdateEntry},
 	parlancev1connect.LocalizationServiceGetLocalizationProcedure:     {permissions.ReadEntry},
 	parlancev1connect.LocalizationServiceListLocalizationsProcedure:   {permissions.ReadEntry},
+	parlancev1connect.LocalizationServiceReviewLocalizationsProcedure: {permissions.ReviewEntry},
 	parlancev1connect.LocalizationServiceRestoreLocalizationProcedure: {permissions.UpdateEntry},
 	parlancev1connect.LocalizationServiceSuggestTranslationsProcedure: {permissions.UpdateEntry, permissions.UseMachineTranslation},
 	parlancev1connect.LocalizationServiceUpdateLocalizationProcedure:  {permissions.UpdateEntry},

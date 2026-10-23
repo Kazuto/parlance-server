@@ -18,6 +18,11 @@ func (i *DefinitionSeeder) Run(db *gorm.DB) error {
 
 	db.Where("email = ?", "translator@parlance.dev").First(&translator)
 
+	// The admin approved the demo text.
+	var reviewer models.User
+
+	db.Where("email = ?", "admin@parlance.dev").First(&reviewer)
+
 	var terminologies []models.Terminology
 
 	db.Find(&terminologies)
@@ -110,6 +115,7 @@ func (i *DefinitionSeeder) Run(db *gorm.DB) error {
 					LocaleID:      localeID,
 					Translation:   translation,
 					CreatedBy:     &translator.ID,
+					Review:        demoReview(localeCode, reviewer.ID),
 				}
 
 				if err := db.Create(&definition).Error; err != nil {

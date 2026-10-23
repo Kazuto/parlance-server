@@ -51,7 +51,7 @@ func (s *Server) ExportZip(
 
 	// Export each locale as a JSON file
 	for _, locale := range locales {
-		entries, err := loadEntries(db, locale.ID, scopeIDs)
+		entries, err := loadEntries(db, locale.ID, scopeIDs, req.Msg.IncludeDrafts)
 		if err != nil {
 			return nil, err
 		}

@@ -64,6 +64,7 @@ type LocaleStats struct {
 	Completed     int32                  `protobuf:"varint,3,opt,name=completed,proto3" json:"completed,omitempty"`
 	Missing       int32                  `protobuf:"varint,4,opt,name=missing,proto3" json:"missing,omitempty"`
 	Percentage    int32                  `protobuf:"varint,5,opt,name=percentage,proto3" json:"percentage,omitempty"` // 0-100
+	Drafts        int32                  `protobuf:"varint,6,opt,name=drafts,proto3" json:"drafts,omitempty"`         // translations awaiting approval
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -133,6 +134,13 @@ func (x *LocaleStats) GetPercentage() int32 {
 	return 0
 }
 
+func (x *LocaleStats) GetDrafts() int32 {
+	if x != nil {
+		return x.Drafts
+	}
+	return 0
+}
+
 type GetStatsResponse struct {
 	state                     protoimpl.MessageState `protogen:"open.v1"`
 	TotalEntries              int32                  `protobuf:"varint,1,opt,name=total_entries,json=totalEntries,proto3" json:"total_entries,omitempty"`
@@ -142,6 +150,7 @@ type GetStatsResponse struct {
 	MissingTranslations       int32                  `protobuf:"varint,5,opt,name=missing_translations,json=missingTranslations,proto3" json:"missing_translations,omitempty"`                     // totalPossible - completed
 	ByLocale                  []*LocaleStats         `protobuf:"bytes,6,rep,name=by_locale,json=byLocale,proto3" json:"by_locale,omitempty"`                                                       // breakdown by locale
 	FullyTranslatedEntries    int32                  `protobuf:"varint,7,opt,name=fully_translated_entries,json=fullyTranslatedEntries,proto3" json:"fully_translated_entries,omitempty"`          // entries that have 100% translations
+	DraftTranslations         int32                  `protobuf:"varint,8,opt,name=draft_translations,json=draftTranslations,proto3" json:"draft_translations,omitempty"`                           // translations awaiting approval
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
 }
@@ -225,12 +234,19 @@ func (x *GetStatsResponse) GetFullyTranslatedEntries() int32 {
 	return 0
 }
 
+func (x *GetStatsResponse) GetDraftTranslations() int32 {
+	if x != nil {
+		return x.DraftTranslations
+	}
+	return 0
+}
+
 var File_parlance_v1_stats_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_stats_proto_rawDesc = "" +
 	"\n" +
 	"\x17parlance/v1/stats.proto\x12\vparlance.v1\"\x11\n" +
-	"\x0fGetStatsRequest\"\xa3\x01\n" +
+	"\x0fGetStatsRequest\"\xbb\x01\n" +
 	"\vLocaleStats\x12\x1b\n" +
 	"\tlocale_id\x18\x01 \x01(\tR\blocaleId\x12\x1f\n" +
 	"\vlocale_code\x18\x02 \x01(\tR\n" +
@@ -239,7 +255,8 @@ const file_parlance_v1_stats_proto_rawDesc = "" +
 	"\amissing\x18\x04 \x01(\x05R\amissing\x12\x1e\n" +
 	"\n" +
 	"percentage\x18\x05 \x01(\x05R\n" +
-	"percentage\"\xf7\x02\n" +
+	"percentage\x12\x16\n" +
+	"\x06drafts\x18\x06 \x01(\x05R\x06drafts\"\xa6\x03\n" +
 	"\x10GetStatsResponse\x12#\n" +
 	"\rtotal_entries\x18\x01 \x01(\x05R\ftotalEntries\x12#\n" +
 	"\rtotal_locales\x18\x02 \x01(\x05R\ftotalLocales\x12>\n" +
@@ -247,7 +264,8 @@ const file_parlance_v1_stats_proto_rawDesc = "" +
 	"\x16completed_translations\x18\x04 \x01(\x05R\x15completedTranslations\x121\n" +
 	"\x14missing_translations\x18\x05 \x01(\x05R\x13missingTranslations\x125\n" +
 	"\tby_locale\x18\x06 \x03(\v2\x18.parlance.v1.LocaleStatsR\bbyLocale\x128\n" +
-	"\x18fully_translated_entries\x18\a \x01(\x05R\x16fullyTranslatedEntries2W\n" +
+	"\x18fully_translated_entries\x18\a \x01(\x05R\x16fullyTranslatedEntries\x12-\n" +
+	"\x12draft_translations\x18\b \x01(\x05R\x11draftTranslations2W\n" +
 	"\fStatsService\x12G\n" +
 	"\bGetStats\x12\x1c.parlance.v1.GetStatsRequest\x1a\x1d.parlance.v1.GetStatsResponseB\xa8\x01\n" +
 	"\x0fcom.parlance.v1B\n" +

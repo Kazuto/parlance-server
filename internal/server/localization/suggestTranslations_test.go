@@ -84,9 +84,10 @@ func seedTranslationData(t *testing.T, db *database.DB) {
 		('st-l1', 'st-entry', 'st-en', 'Open the dashboard'),
 		('st-l2', 'st-entry', 'st-de', 'Übersicht öffnen')`)
 	testutil.Exec(t, db, `INSERT INTO terminologies (id, term) VALUES ('st-t1', 'Dashboard'), ('st-t2', 'Logo')`)
-	testutil.Exec(t, db, `INSERT INTO definitions (id, terminology_id, locale_id, translation) VALUES
-		('st-d1', 'st-t1', 'st-es', 'Panel de control'),
-		('st-d2', 'st-t2', 'st-es', 'Logotipo')`)
+	testutil.Exec(t, db, `INSERT INTO definitions (id, terminology_id, locale_id, translation, status) VALUES
+		('st-d1', 'st-t1', 'st-es', 'Panel de control', 'approved'),
+		('st-d2', 'st-t2', 'st-es', 'Logotipo', 'approved'),
+		('st-d3', 'st-t1', 'st-de', 'Übersicht', 'draft')`)
 	t.Cleanup(func() {
 		db.Exec(`DELETE FROM localization_history WHERE entry_id LIKE 'st-%'`)
 		db.Exec(`DELETE FROM localizations WHERE entry_id LIKE 'st-%'`)
@@ -174,7 +175,7 @@ func TestSuggestTranslations(t *testing.T) {
 		if es.Text != "Open the dashboard" {
 			t.Errorf("es request: got %+v", es)
 		}
-		// Logo isn't in the text, and German has no glossary translation.
+		// Logo isn't in the text, and German's glossary translation is still a draft.
 		if len(es.Terms) != 1 || es.Terms[0] != (translate.Term{Source: "Dashboard", Target: "Panel de control"}) {
 			t.Errorf("es terms: got %+v", es.Terms)
 		}

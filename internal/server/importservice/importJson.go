@@ -12,7 +12,7 @@ func (s *Server) ImportJson(
 	ctx context.Context,
 	req *connect.Request[pb.ImportJsonRequest],
 ) (*connect.Response[pb.ImportJsonResponse], error) {
-	mode, err := s.startImport(ctx, req.Msg.Mode, req.Msg.FileContent)
+	options, err := s.startImport(ctx, req.Msg.Mode, req.Msg.Approve, req.Msg.FileContent)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (s *Server) ImportJson(
 	}
 
 	// Process import
-	result, err := s.processImport(ctx, req.Msg.LocaleId, req.Msg.ScopeIds, translations, mode)
+	result, err := s.processImport(ctx, req.Msg.LocaleId, req.Msg.ScopeIds, translations, options)
 	if err != nil {
 		return nil, err
 	}

@@ -16,6 +16,7 @@ type Localization struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 	CreatedBy   *string        `gorm:"type:uuid;index" json:"created_by,omitempty"`
 	UpdatedBy   *string        `gorm:"type:uuid;index" json:"updated_by,omitempty"`
+	Review      `gorm:"embedded"`
 
 	// Relationships
 	Entry   Entry  `gorm:"foreignKey:EntryID" json:"entry"`
@@ -49,8 +50,17 @@ func recordLocalizationHistory(tx *gorm.DB, l *Localization, action string) erro
 	}
 
 	userID := l.UpdatedBy
-	if action == "created" {
+
+	switch action {
+	case "created":
 		userID = l.CreatedBy
+	case ActionApproved, ActionRejected:
+		userID = l.ReviewedBy
+	}
+
+	comment := ""
+	if action == ActionRejected {
+		comment = l.ReviewComment
 	}
 
 	history := LocalizationHistory{
@@ -60,8 +70,15 @@ func recordLocalizationHistory(tx *gorm.DB, l *Localization, action string) erro
 		UserID:         userID,
 		Translation:    l.Translation,
 		Action:         action,
+		Status:         l.Status,
+		Comment:        comment,
 		ChangedAt:      time.Now(),
 	}
 
 	return tx.Create(&history).Error
+}
+
+// RecordReview writes the history of a review, which the review saves without hooks
+func (l *Localization) RecordReview(tx *gorm.DB, action string) error {
+	return recordLocalizationHistory(tx, l, action)
 }

@@ -187,7 +187,9 @@ type ActivityItem struct {
 	ChangedAt    string                 `protobuf:"bytes,15,opt,name=changed_at,json=changedAt,proto3" json:"changed_at,omitempty"`        // Newest change in the group (RFC 3339)
 	LocaleCount  int32                  `protobuf:"varint,16,opt,name=locale_count,json=localeCount,proto3" json:"locale_count,omitempty"` // Distinct locales changed
 	// The group reaches past the scanned history, so its counts are a lower bound.
-	Partial       bool `protobuf:"varint,17,opt,name=partial,proto3" json:"partial,omitempty"`
+	Partial       bool  `protobuf:"varint,17,opt,name=partial,proto3" json:"partial,omitempty"`
+	ApprovedCount int32 `protobuf:"varint,18,opt,name=approved_count,json=approvedCount,proto3" json:"approved_count,omitempty"`
+	RejectedCount int32 `protobuf:"varint,19,opt,name=rejected_count,json=rejectedCount,proto3" json:"rejected_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -341,6 +343,20 @@ func (x *ActivityItem) GetPartial() bool {
 	return false
 }
 
+func (x *ActivityItem) GetApprovedCount() int32 {
+	if x != nil {
+		return x.ApprovedCount
+	}
+	return 0
+}
+
+func (x *ActivityItem) GetRejectedCount() int32 {
+	if x != nil {
+		return x.RejectedCount
+	}
+	return 0
+}
+
 var File_parlance_v1_activity_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_activity_proto_rawDesc = "" +
@@ -350,7 +366,7 @@ const file_parlance_v1_activity_proto_rawDesc = "" +
 	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x1b\n" +
 	"\tonly_mine\x18\x02 \x01(\bR\bonlyMine\"M\n" +
 	"\x1aListRecentActivityResponse\x12/\n" +
-	"\x05items\x18\x01 \x03(\v2\x19.parlance.v1.ActivityItemR\x05items\"\xb5\x04\n" +
+	"\x05items\x18\x01 \x03(\v2\x19.parlance.v1.ActivityItemR\x05items\"\x83\x05\n" +
 	"\fActivityItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12-\n" +
 	"\x04kind\x18\x02 \x01(\x0e2\x19.parlance.v1.ActivityKindR\x04kind\x12#\n" +
@@ -374,7 +390,9 @@ const file_parlance_v1_activity_proto_rawDesc = "" +
 	"\n" +
 	"changed_at\x18\x0f \x01(\tR\tchangedAt\x12!\n" +
 	"\flocale_count\x18\x10 \x01(\x05R\vlocaleCount\x12\x18\n" +
-	"\apartial\x18\x11 \x01(\bR\apartial*j\n" +
+	"\apartial\x18\x11 \x01(\bR\apartial\x12%\n" +
+	"\x0eapproved_count\x18\x12 \x01(\x05R\rapprovedCount\x12%\n" +
+	"\x0erejected_count\x18\x13 \x01(\x05R\rrejectedCount*j\n" +
 	"\fActivityKind\x12\x1d\n" +
 	"\x19ACTIVITY_KIND_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19ACTIVITY_KIND_TRANSLATION\x10\x01\x12\x1c\n" +

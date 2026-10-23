@@ -21,6 +21,106 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Where a translation stands in review. Changing its text makes it a draft again.
+type ReviewStatus int32
+
+const (
+	ReviewStatus_REVIEW_STATUS_UNSPECIFIED ReviewStatus = 0
+	ReviewStatus_REVIEW_STATUS_DRAFT       ReviewStatus = 1
+	ReviewStatus_REVIEW_STATUS_APPROVED    ReviewStatus = 2
+)
+
+// Enum value maps for ReviewStatus.
+var (
+	ReviewStatus_name = map[int32]string{
+		0: "REVIEW_STATUS_UNSPECIFIED",
+		1: "REVIEW_STATUS_DRAFT",
+		2: "REVIEW_STATUS_APPROVED",
+	}
+	ReviewStatus_value = map[string]int32{
+		"REVIEW_STATUS_UNSPECIFIED": 0,
+		"REVIEW_STATUS_DRAFT":       1,
+		"REVIEW_STATUS_APPROVED":    2,
+	}
+)
+
+func (x ReviewStatus) Enum() *ReviewStatus {
+	p := new(ReviewStatus)
+	*p = x
+	return p
+}
+
+func (x ReviewStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ReviewStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_parlance_v1_common_proto_enumTypes[0].Descriptor()
+}
+
+func (ReviewStatus) Type() protoreflect.EnumType {
+	return &file_parlance_v1_common_proto_enumTypes[0]
+}
+
+func (x ReviewStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ReviewStatus.Descriptor instead.
+func (ReviewStatus) EnumDescriptor() ([]byte, []int) {
+	return file_parlance_v1_common_proto_rawDescGZIP(), []int{0}
+}
+
+// Approving accepts a translation; rejecting keeps it a draft, with a comment.
+type ReviewDecision int32
+
+const (
+	ReviewDecision_REVIEW_DECISION_UNSPECIFIED ReviewDecision = 0
+	ReviewDecision_REVIEW_DECISION_APPROVE     ReviewDecision = 1
+	ReviewDecision_REVIEW_DECISION_REJECT      ReviewDecision = 2
+)
+
+// Enum value maps for ReviewDecision.
+var (
+	ReviewDecision_name = map[int32]string{
+		0: "REVIEW_DECISION_UNSPECIFIED",
+		1: "REVIEW_DECISION_APPROVE",
+		2: "REVIEW_DECISION_REJECT",
+	}
+	ReviewDecision_value = map[string]int32{
+		"REVIEW_DECISION_UNSPECIFIED": 0,
+		"REVIEW_DECISION_APPROVE":     1,
+		"REVIEW_DECISION_REJECT":      2,
+	}
+)
+
+func (x ReviewDecision) Enum() *ReviewDecision {
+	p := new(ReviewDecision)
+	*p = x
+	return p
+}
+
+func (x ReviewDecision) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ReviewDecision) Descriptor() protoreflect.EnumDescriptor {
+	return file_parlance_v1_common_proto_enumTypes[1].Descriptor()
+}
+
+func (ReviewDecision) Type() protoreflect.EnumType {
+	return &file_parlance_v1_common_proto_enumTypes[1]
+}
+
+func (x ReviewDecision) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ReviewDecision.Descriptor instead.
+func (ReviewDecision) EnumDescriptor() ([]byte, []int) {
+	return file_parlance_v1_common_proto_rawDescGZIP(), []int{1}
+}
+
 type PaginationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
@@ -363,7 +463,15 @@ const file_parlance_v1_common_proto_rawDesc = "" +
 	"\x06values\x18\x01 \x03(\v2\".parlance.v1.StringMap.ValuesEntryR\x06values\x1a9\n" +
 	"\vValuesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\xa9\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*b\n" +
+	"\fReviewStatus\x12\x1d\n" +
+	"\x19REVIEW_STATUS_UNSPECIFIED\x10\x00\x12\x17\n" +
+	"\x13REVIEW_STATUS_DRAFT\x10\x01\x12\x1a\n" +
+	"\x16REVIEW_STATUS_APPROVED\x10\x02*j\n" +
+	"\x0eReviewDecision\x12\x1f\n" +
+	"\x1bREVIEW_DECISION_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17REVIEW_DECISION_APPROVE\x10\x01\x12\x1a\n" +
+	"\x16REVIEW_DECISION_REJECT\x10\x02B\xa9\x01\n" +
 	"\x0fcom.parlance.v1B\vCommonProtoP\x01Z<github.com/kazuto/parlance-server/gen/parlance/v1;parlancev1\xa2\x02\x03PXX\xaa\x02\vParlance.V1\xca\x02\vParlance\\V1\xe2\x02\x17Parlance\\V1\\GPBMetadata\xea\x02\fParlance::V1b\x06proto3"
 
 var (
@@ -378,18 +486,21 @@ func file_parlance_v1_common_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_common_proto_rawDescData
 }
 
+var file_parlance_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_parlance_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_parlance_v1_common_proto_goTypes = []any{
-	(*PaginationRequest)(nil),  // 0: parlance.v1.PaginationRequest
-	(*PaginationResponse)(nil), // 1: parlance.v1.PaginationResponse
-	(*FilterRequest)(nil),      // 2: parlance.v1.FilterRequest
-	(*Empty)(nil),              // 3: parlance.v1.Empty
-	(*IdSelection)(nil),        // 4: parlance.v1.IdSelection
-	(*StringMap)(nil),          // 5: parlance.v1.StringMap
-	nil,                        // 6: parlance.v1.StringMap.ValuesEntry
+	(ReviewStatus)(0),          // 0: parlance.v1.ReviewStatus
+	(ReviewDecision)(0),        // 1: parlance.v1.ReviewDecision
+	(*PaginationRequest)(nil),  // 2: parlance.v1.PaginationRequest
+	(*PaginationResponse)(nil), // 3: parlance.v1.PaginationResponse
+	(*FilterRequest)(nil),      // 4: parlance.v1.FilterRequest
+	(*Empty)(nil),              // 5: parlance.v1.Empty
+	(*IdSelection)(nil),        // 6: parlance.v1.IdSelection
+	(*StringMap)(nil),          // 7: parlance.v1.StringMap
+	nil,                        // 8: parlance.v1.StringMap.ValuesEntry
 }
 var file_parlance_v1_common_proto_depIdxs = []int32{
-	6, // 0: parlance.v1.StringMap.values:type_name -> parlance.v1.StringMap.ValuesEntry
+	8, // 0: parlance.v1.StringMap.values:type_name -> parlance.v1.StringMap.ValuesEntry
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -407,13 +518,14 @@ func file_parlance_v1_common_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_common_proto_rawDesc), len(file_parlance_v1_common_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      2,
 			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_parlance_v1_common_proto_goTypes,
 		DependencyIndexes: file_parlance_v1_common_proto_depIdxs,
+		EnumInfos:         file_parlance_v1_common_proto_enumTypes,
 		MessageInfos:      file_parlance_v1_common_proto_msgTypes,
 	}.Build()
 	File_parlance_v1_common_proto = out.File

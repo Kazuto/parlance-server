@@ -110,10 +110,12 @@ func (s *Server) BatchTranslate(
 			continue
 		}
 
+		// Machine translations always wait for a reviewer
 		targetLocalization := models.Localization{
 			EntryID:     entryID,
 			LocaleID:    req.Msg.TargetLocaleId,
 			Translation: suggestion.Translation,
+			Review:      models.Review{Status: models.StatusDraft},
 		}
 		targetLocalization.CreatedBy = userID
 

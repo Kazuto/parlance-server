@@ -15,6 +15,7 @@ message LocaleStats {
   int32 completed = 3;
   int32 missing = 4;
   int32 percentage = 5;  // 0-100
+  int32 drafts = 6;      // translations awaiting approval
 }
 
 message GetStatsResponse {
@@ -25,4 +26,5 @@ message GetStatsResponse {
   int32 missing_translations = 5;         // totalPossible - completed
   repeated LocaleStats by_locale = 6;     // breakdown by locale
   int32 fully_translated_entries = 7;     // entries that have 100% translations
+  int32 draft_translations = 8;           // translations awaiting approval
 }

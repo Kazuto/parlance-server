@@ -32,6 +32,11 @@ type Definition struct {
 	DeletedAt     string                 `protobuf:"bytes,7,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
 	CreatedBy     string                 `protobuf:"bytes,8,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
 	UpdatedBy     string                 `protobuf:"bytes,9,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
+	Status        ReviewStatus           `protobuf:"varint,10,opt,name=status,proto3,enum=parlance.v1.ReviewStatus" json:"status,omitempty"`
+	ReviewedBy    string                 `protobuf:"bytes,11,opt,name=reviewed_by,json=reviewedBy,proto3" json:"reviewed_by,omitempty"`
+	ReviewedAt    string                 `protobuf:"bytes,12,opt,name=reviewed_at,json=reviewedAt,proto3" json:"reviewed_at,omitempty"`
+	// Why a reviewer sent the translation back; cleared once it is approved.
+	ReviewComment string `protobuf:"bytes,13,opt,name=review_comment,json=reviewComment,proto3" json:"review_comment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -125,6 +130,34 @@ func (x *Definition) GetCreatedBy() string {
 func (x *Definition) GetUpdatedBy() string {
 	if x != nil {
 		return x.UpdatedBy
+	}
+	return ""
+}
+
+func (x *Definition) GetStatus() ReviewStatus {
+	if x != nil {
+		return x.Status
+	}
+	return ReviewStatus_REVIEW_STATUS_UNSPECIFIED
+}
+
+func (x *Definition) GetReviewedBy() string {
+	if x != nil {
+		return x.ReviewedBy
+	}
+	return ""
+}
+
+func (x *Definition) GetReviewedAt() string {
+	if x != nil {
+		return x.ReviewedAt
+	}
+	return ""
+}
+
+func (x *Definition) GetReviewComment() string {
+	if x != nil {
+		return x.ReviewComment
 	}
 	return ""
 }
@@ -697,11 +730,134 @@ func (x *RestoreDefinitionResponse) GetDefinition() *Definition {
 	return nil
 }
 
+type ReviewDefinitionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DefinitionIds []string               `protobuf:"bytes,1,rep,name=definition_ids,json=definitionIds,proto3" json:"definition_ids,omitempty"`
+	// Also the definitions of these terminologies in these locales. Missing ones, and
+	// approved ones when approving, are skipped.
+	TerminologyIds []string       `protobuf:"bytes,2,rep,name=terminology_ids,json=terminologyIds,proto3" json:"terminology_ids,omitempty"`
+	LocaleIds      []string       `protobuf:"bytes,3,rep,name=locale_ids,json=localeIds,proto3" json:"locale_ids,omitempty"`
+	Decision       ReviewDecision `protobuf:"varint,4,opt,name=decision,proto3,enum=parlance.v1.ReviewDecision" json:"decision,omitempty"`
+	// Required when rejecting: what should change.
+	Comment       string `protobuf:"bytes,5,opt,name=comment,proto3" json:"comment,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReviewDefinitionsRequest) Reset() {
+	*x = ReviewDefinitionsRequest{}
+	mi := &file_parlance_v1_definition_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReviewDefinitionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReviewDefinitionsRequest) ProtoMessage() {}
+
+func (x *ReviewDefinitionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_definition_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReviewDefinitionsRequest.ProtoReflect.Descriptor instead.
+func (*ReviewDefinitionsRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ReviewDefinitionsRequest) GetDefinitionIds() []string {
+	if x != nil {
+		return x.DefinitionIds
+	}
+	return nil
+}
+
+func (x *ReviewDefinitionsRequest) GetTerminologyIds() []string {
+	if x != nil {
+		return x.TerminologyIds
+	}
+	return nil
+}
+
+func (x *ReviewDefinitionsRequest) GetLocaleIds() []string {
+	if x != nil {
+		return x.LocaleIds
+	}
+	return nil
+}
+
+func (x *ReviewDefinitionsRequest) GetDecision() ReviewDecision {
+	if x != nil {
+		return x.Decision
+	}
+	return ReviewDecision_REVIEW_DECISION_UNSPECIFIED
+}
+
+func (x *ReviewDefinitionsRequest) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
+type ReviewDefinitionsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Definitions   []*Definition          `protobuf:"bytes,1,rep,name=definitions,proto3" json:"definitions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReviewDefinitionsResponse) Reset() {
+	*x = ReviewDefinitionsResponse{}
+	mi := &file_parlance_v1_definition_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReviewDefinitionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReviewDefinitionsResponse) ProtoMessage() {}
+
+func (x *ReviewDefinitionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_definition_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReviewDefinitionsResponse.ProtoReflect.Descriptor instead.
+func (*ReviewDefinitionsResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_definition_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ReviewDefinitionsResponse) GetDefinitions() []*Definition {
+	if x != nil {
+		return x.Definitions
+	}
+	return nil
+}
+
 var File_parlance_v1_definition_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_definition_proto_rawDesc = "" +
 	"\n" +
-	"\x1cparlance/v1/definition.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\x9d\x02\n" +
+	"\x1cparlance/v1/definition.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\xb9\x03\n" +
 	"\n" +
 	"Definition\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
@@ -717,7 +873,14 @@ const file_parlance_v1_definition_proto_rawDesc = "" +
 	"\n" +
 	"created_by\x18\b \x01(\tR\tcreatedBy\x12\x1d\n" +
 	"\n" +
-	"updated_by\x18\t \x01(\tR\tupdatedBy\"\xb3\x01\n" +
+	"updated_by\x18\t \x01(\tR\tupdatedBy\x121\n" +
+	"\x06status\x18\n" +
+	" \x01(\x0e2\x19.parlance.v1.ReviewStatusR\x06status\x12\x1f\n" +
+	"\vreviewed_by\x18\v \x01(\tR\n" +
+	"reviewedBy\x12\x1f\n" +
+	"\vreviewed_at\x18\f \x01(\tR\n" +
+	"reviewedAt\x12%\n" +
+	"\x0ereview_comment\x18\r \x01(\tR\rreviewComment\"\xb3\x01\n" +
 	"\x16ListDefinitionsRequest\x12%\n" +
 	"\x0eterminology_id\x18\x01 \x01(\tR\rterminologyId\x12>\n" +
 	"\n" +
@@ -759,14 +922,24 @@ const file_parlance_v1_definition_proto_rawDesc = "" +
 	"\x19RestoreDefinitionResponse\x127\n" +
 	"\n" +
 	"definition\x18\x01 \x01(\v2\x17.parlance.v1.DefinitionR\n" +
-	"definition2\xd0\x04\n" +
+	"definition\"\xdc\x01\n" +
+	"\x18ReviewDefinitionsRequest\x12%\n" +
+	"\x0edefinition_ids\x18\x01 \x03(\tR\rdefinitionIds\x12'\n" +
+	"\x0fterminology_ids\x18\x02 \x03(\tR\x0eterminologyIds\x12\x1d\n" +
+	"\n" +
+	"locale_ids\x18\x03 \x03(\tR\tlocaleIds\x127\n" +
+	"\bdecision\x18\x04 \x01(\x0e2\x1b.parlance.v1.ReviewDecisionR\bdecision\x12\x18\n" +
+	"\acomment\x18\x05 \x01(\tR\acomment\"V\n" +
+	"\x19ReviewDefinitionsResponse\x129\n" +
+	"\vdefinitions\x18\x01 \x03(\v2\x17.parlance.v1.DefinitionR\vdefinitions2\xb4\x05\n" +
 	"\x11DefinitionService\x12\\\n" +
 	"\x0fListDefinitions\x12#.parlance.v1.ListDefinitionsRequest\x1a$.parlance.v1.ListDefinitionsResponse\x12V\n" +
 	"\rGetDefinition\x12!.parlance.v1.GetDefinitionRequest\x1a\".parlance.v1.GetDefinitionResponse\x12_\n" +
 	"\x10CreateDefinition\x12$.parlance.v1.CreateDefinitionRequest\x1a%.parlance.v1.CreateDefinitionResponse\x12_\n" +
 	"\x10UpdateDefinition\x12$.parlance.v1.UpdateDefinitionRequest\x1a%.parlance.v1.UpdateDefinitionResponse\x12_\n" +
 	"\x10DeleteDefinition\x12$.parlance.v1.DeleteDefinitionRequest\x1a%.parlance.v1.DeleteDefinitionResponse\x12b\n" +
-	"\x11RestoreDefinition\x12%.parlance.v1.RestoreDefinitionRequest\x1a&.parlance.v1.RestoreDefinitionResponseB\xad\x01\n" +
+	"\x11RestoreDefinition\x12%.parlance.v1.RestoreDefinitionRequest\x1a&.parlance.v1.RestoreDefinitionResponse\x12b\n" +
+	"\x11ReviewDefinitions\x12%.parlance.v1.ReviewDefinitionsRequest\x1a&.parlance.v1.ReviewDefinitionsResponseB\xad\x01\n" +
 	"\x0fcom.parlance.v1B\x0fDefinitionProtoP\x01Z<github.com/kazuto/parlance-server/gen/parlance/v1;parlancev1\xa2\x02\x03PXX\xaa\x02\vParlance.V1\xca\x02\vParlance\\V1\xe2\x02\x17Parlance\\V1\\GPBMetadata\xea\x02\fParlance::V1b\x06proto3"
 
 var (
@@ -781,7 +954,7 @@ func file_parlance_v1_definition_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_definition_proto_rawDescData
 }
 
-var file_parlance_v1_definition_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_parlance_v1_definition_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_parlance_v1_definition_proto_goTypes = []any{
 	(*Definition)(nil),                // 0: parlance.v1.Definition
 	(*ListDefinitionsRequest)(nil),    // 1: parlance.v1.ListDefinitionsRequest
@@ -796,36 +969,45 @@ var file_parlance_v1_definition_proto_goTypes = []any{
 	(*DeleteDefinitionResponse)(nil),  // 10: parlance.v1.DeleteDefinitionResponse
 	(*RestoreDefinitionRequest)(nil),  // 11: parlance.v1.RestoreDefinitionRequest
 	(*RestoreDefinitionResponse)(nil), // 12: parlance.v1.RestoreDefinitionResponse
-	(*PaginationRequest)(nil),         // 13: parlance.v1.PaginationRequest
-	(*FilterRequest)(nil),             // 14: parlance.v1.FilterRequest
-	(*PaginationResponse)(nil),        // 15: parlance.v1.PaginationResponse
+	(*ReviewDefinitionsRequest)(nil),  // 13: parlance.v1.ReviewDefinitionsRequest
+	(*ReviewDefinitionsResponse)(nil), // 14: parlance.v1.ReviewDefinitionsResponse
+	(ReviewStatus)(0),                 // 15: parlance.v1.ReviewStatus
+	(*PaginationRequest)(nil),         // 16: parlance.v1.PaginationRequest
+	(*FilterRequest)(nil),             // 17: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),        // 18: parlance.v1.PaginationResponse
+	(ReviewDecision)(0),               // 19: parlance.v1.ReviewDecision
 }
 var file_parlance_v1_definition_proto_depIdxs = []int32{
-	13, // 0: parlance.v1.ListDefinitionsRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	14, // 1: parlance.v1.ListDefinitionsRequest.filter:type_name -> parlance.v1.FilterRequest
-	0,  // 2: parlance.v1.ListDefinitionsResponse.definitions:type_name -> parlance.v1.Definition
-	15, // 3: parlance.v1.ListDefinitionsResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	0,  // 4: parlance.v1.GetDefinitionResponse.definition:type_name -> parlance.v1.Definition
-	0,  // 5: parlance.v1.CreateDefinitionResponse.definition:type_name -> parlance.v1.Definition
-	0,  // 6: parlance.v1.UpdateDefinitionResponse.definition:type_name -> parlance.v1.Definition
-	0,  // 7: parlance.v1.RestoreDefinitionResponse.definition:type_name -> parlance.v1.Definition
-	1,  // 8: parlance.v1.DefinitionService.ListDefinitions:input_type -> parlance.v1.ListDefinitionsRequest
-	3,  // 9: parlance.v1.DefinitionService.GetDefinition:input_type -> parlance.v1.GetDefinitionRequest
-	5,  // 10: parlance.v1.DefinitionService.CreateDefinition:input_type -> parlance.v1.CreateDefinitionRequest
-	7,  // 11: parlance.v1.DefinitionService.UpdateDefinition:input_type -> parlance.v1.UpdateDefinitionRequest
-	9,  // 12: parlance.v1.DefinitionService.DeleteDefinition:input_type -> parlance.v1.DeleteDefinitionRequest
-	11, // 13: parlance.v1.DefinitionService.RestoreDefinition:input_type -> parlance.v1.RestoreDefinitionRequest
-	2,  // 14: parlance.v1.DefinitionService.ListDefinitions:output_type -> parlance.v1.ListDefinitionsResponse
-	4,  // 15: parlance.v1.DefinitionService.GetDefinition:output_type -> parlance.v1.GetDefinitionResponse
-	6,  // 16: parlance.v1.DefinitionService.CreateDefinition:output_type -> parlance.v1.CreateDefinitionResponse
-	8,  // 17: parlance.v1.DefinitionService.UpdateDefinition:output_type -> parlance.v1.UpdateDefinitionResponse
-	10, // 18: parlance.v1.DefinitionService.DeleteDefinition:output_type -> parlance.v1.DeleteDefinitionResponse
-	12, // 19: parlance.v1.DefinitionService.RestoreDefinition:output_type -> parlance.v1.RestoreDefinitionResponse
-	14, // [14:20] is the sub-list for method output_type
-	8,  // [8:14] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	15, // 0: parlance.v1.Definition.status:type_name -> parlance.v1.ReviewStatus
+	16, // 1: parlance.v1.ListDefinitionsRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	17, // 2: parlance.v1.ListDefinitionsRequest.filter:type_name -> parlance.v1.FilterRequest
+	0,  // 3: parlance.v1.ListDefinitionsResponse.definitions:type_name -> parlance.v1.Definition
+	18, // 4: parlance.v1.ListDefinitionsResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	0,  // 5: parlance.v1.GetDefinitionResponse.definition:type_name -> parlance.v1.Definition
+	0,  // 6: parlance.v1.CreateDefinitionResponse.definition:type_name -> parlance.v1.Definition
+	0,  // 7: parlance.v1.UpdateDefinitionResponse.definition:type_name -> parlance.v1.Definition
+	0,  // 8: parlance.v1.RestoreDefinitionResponse.definition:type_name -> parlance.v1.Definition
+	19, // 9: parlance.v1.ReviewDefinitionsRequest.decision:type_name -> parlance.v1.ReviewDecision
+	0,  // 10: parlance.v1.ReviewDefinitionsResponse.definitions:type_name -> parlance.v1.Definition
+	1,  // 11: parlance.v1.DefinitionService.ListDefinitions:input_type -> parlance.v1.ListDefinitionsRequest
+	3,  // 12: parlance.v1.DefinitionService.GetDefinition:input_type -> parlance.v1.GetDefinitionRequest
+	5,  // 13: parlance.v1.DefinitionService.CreateDefinition:input_type -> parlance.v1.CreateDefinitionRequest
+	7,  // 14: parlance.v1.DefinitionService.UpdateDefinition:input_type -> parlance.v1.UpdateDefinitionRequest
+	9,  // 15: parlance.v1.DefinitionService.DeleteDefinition:input_type -> parlance.v1.DeleteDefinitionRequest
+	11, // 16: parlance.v1.DefinitionService.RestoreDefinition:input_type -> parlance.v1.RestoreDefinitionRequest
+	13, // 17: parlance.v1.DefinitionService.ReviewDefinitions:input_type -> parlance.v1.ReviewDefinitionsRequest
+	2,  // 18: parlance.v1.DefinitionService.ListDefinitions:output_type -> parlance.v1.ListDefinitionsResponse
+	4,  // 19: parlance.v1.DefinitionService.GetDefinition:output_type -> parlance.v1.GetDefinitionResponse
+	6,  // 20: parlance.v1.DefinitionService.CreateDefinition:output_type -> parlance.v1.CreateDefinitionResponse
+	8,  // 21: parlance.v1.DefinitionService.UpdateDefinition:output_type -> parlance.v1.UpdateDefinitionResponse
+	10, // 22: parlance.v1.DefinitionService.DeleteDefinition:output_type -> parlance.v1.DeleteDefinitionResponse
+	12, // 23: parlance.v1.DefinitionService.RestoreDefinition:output_type -> parlance.v1.RestoreDefinitionResponse
+	14, // 24: parlance.v1.DefinitionService.ReviewDefinitions:output_type -> parlance.v1.ReviewDefinitionsResponse
+	18, // [18:25] is the sub-list for method output_type
+	11, // [11:18] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_definition_proto_init() }
@@ -841,7 +1023,7 @@ func file_parlance_v1_definition_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_definition_proto_rawDesc), len(file_parlance_v1_definition_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

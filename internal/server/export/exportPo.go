@@ -19,7 +19,7 @@ func (s *Server) ExportPo(ctx context.Context, req *connect.Request[pb.ExportPoR
 
 	scopeIDs := common.UniqueIDs(req.Msg.ScopeIds)
 
-	entries, err := loadEntries(db, locale.ID, scopeIDs)
+	entries, err := loadEntries(db, locale.ID, scopeIDs, req.Msg.IncludeDrafts)
 	if err != nil {
 		return nil, err
 	}

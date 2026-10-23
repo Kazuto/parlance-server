@@ -14,6 +14,11 @@ const (
 	ReadEntry   = "read_entry"
 	UpdateEntry = "update_entry"
 	DeleteEntry = "delete_entry"
+	// Approving or rejecting translations
+	ReviewEntry = "review_entry"
+	// Importing and exporting translation files
+	ImportEntry = "import_entry"
+	ExportEntry = "export_entry"
 
 	// User permissions
 	CreateUser = "create_user"
@@ -47,6 +52,8 @@ const (
 	ReadDefinition   = "read_definition"
 	UpdateDefinition = "update_definition"
 	DeleteDefinition = "delete_definition"
+	// Approving or rejecting definitions
+	ReviewDefinition = "review_definition"
 
 	// Translation server permissions
 	CreateTranslationServer = "create_translation_server"
@@ -70,6 +77,9 @@ func AllPermissions() []string {
 		ReadEntry,
 		UpdateEntry,
 		DeleteEntry,
+		ReviewEntry,
+		ImportEntry,
+		ExportEntry,
 		CreateUser,
 		ReadUser,
 		UpdateUser,
@@ -91,10 +101,19 @@ func AllPermissions() []string {
 		ReadDefinition,
 		UpdateDefinition,
 		DeleteDefinition,
+		ReviewDefinition,
 		CreateTranslationServer,
 		ReadTranslationServer,
 		UpdateTranslationServer,
 		DeleteTranslationServer,
 		UseMachineTranslation,
 	}
+}
+
+// GrantedWith lists, for permissions split off from broader ones, the permissions a
+// role needed for the same thing before. When such a permission is added to an
+// existing database, the roles holding all of them get it, so nobody loses access.
+var GrantedWith = map[string][]string{
+	ImportEntry: {CreateEntry, UpdateEntry},
+	ExportEntry: {ReadEntry},
 }

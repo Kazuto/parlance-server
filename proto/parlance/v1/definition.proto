@@ -12,6 +12,8 @@ service DefinitionService {
   rpc UpdateDefinition(UpdateDefinitionRequest) returns (UpdateDefinitionResponse);
   rpc DeleteDefinition(DeleteDefinitionRequest) returns (DeleteDefinitionResponse);
   rpc RestoreDefinition(RestoreDefinitionRequest) returns (RestoreDefinitionResponse);
+  // Approves or rejects definitions, picked by id or by terminology and locale.
+  rpc ReviewDefinitions(ReviewDefinitionsRequest) returns (ReviewDefinitionsResponse);
 }
 
 message Definition {
@@ -24,6 +26,11 @@ message Definition {
   string deleted_at = 7;
   string created_by = 8;
   string updated_by = 9;
+  ReviewStatus status = 10;
+  string reviewed_by = 11;
+  string reviewed_at = 12;
+  // Why a reviewer sent the translation back; cleared once it is approved.
+  string review_comment = 13;
 }
 
 message ListDefinitionsRequest {
@@ -76,4 +83,19 @@ message RestoreDefinitionRequest {
 
 message RestoreDefinitionResponse {
   Definition definition = 1;
+}
+
+message ReviewDefinitionsRequest {
+  repeated string definition_ids = 1;
+  // Also the definitions of these terminologies in these locales. Missing ones, and
+  // approved ones when approving, are skipped.
+  repeated string terminology_ids = 2;
+  repeated string locale_ids = 3;
+  ReviewDecision decision = 4;
+  // Required when rejecting: what should change.
+  string comment = 5;
+}
+
+message ReviewDefinitionsResponse {
+  repeated Definition definitions = 1;
 }

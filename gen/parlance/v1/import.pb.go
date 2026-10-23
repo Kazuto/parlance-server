@@ -85,6 +85,7 @@ type ImportPhpRequest struct {
 	FileContent   []byte                 `protobuf:"bytes,3,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"` // File content as bytes
 	Filename      string                 `protobuf:"bytes,4,opt,name=filename,proto3" json:"filename,omitempty"`                          // Original filename (optional, for logging)
 	Mode          ImportMode             `protobuf:"varint,5,opt,name=mode,proto3,enum=parlance.v1.ImportMode" json:"mode,omitempty"`     // How to handle conflicts
+	Approve       bool                   `protobuf:"varint,6,opt,name=approve,proto3" json:"approve,omitempty"`                           // Approve the imported translations; needs review_entry
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -154,6 +155,13 @@ func (x *ImportPhpRequest) GetMode() ImportMode {
 	return ImportMode_IMPORT_MODE_UNSPECIFIED
 }
 
+func (x *ImportPhpRequest) GetApprove() bool {
+	if x != nil {
+		return x.Approve
+	}
+	return false
+}
+
 type ImportPhpResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Result        *ImportResult          `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
@@ -206,6 +214,7 @@ type ImportJsonRequest struct {
 	FileContent   []byte                 `protobuf:"bytes,3,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"` // File content as bytes
 	Filename      string                 `protobuf:"bytes,4,opt,name=filename,proto3" json:"filename,omitempty"`                          // Original filename (optional)
 	Mode          ImportMode             `protobuf:"varint,5,opt,name=mode,proto3,enum=parlance.v1.ImportMode" json:"mode,omitempty"`
+	Approve       bool                   `protobuf:"varint,6,opt,name=approve,proto3" json:"approve,omitempty"` // Approve the imported translations; needs review_entry
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -275,6 +284,13 @@ func (x *ImportJsonRequest) GetMode() ImportMode {
 	return ImportMode_IMPORT_MODE_UNSPECIFIED
 }
 
+func (x *ImportJsonRequest) GetApprove() bool {
+	if x != nil {
+		return x.Approve
+	}
+	return false
+}
+
 type ImportJsonResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Result        *ImportResult          `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
@@ -327,6 +343,7 @@ type ImportPoRequest struct {
 	FileContent   []byte                 `protobuf:"bytes,3,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"`
 	Filename      string                 `protobuf:"bytes,4,opt,name=filename,proto3" json:"filename,omitempty"`
 	Mode          ImportMode             `protobuf:"varint,5,opt,name=mode,proto3,enum=parlance.v1.ImportMode" json:"mode,omitempty"`
+	Approve       bool                   `protobuf:"varint,6,opt,name=approve,proto3" json:"approve,omitempty"` // Approve the imported translations; needs review_entry
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -394,6 +411,13 @@ func (x *ImportPoRequest) GetMode() ImportMode {
 		return x.Mode
 	}
 	return ImportMode_IMPORT_MODE_UNSPECIFIED
+}
+
+func (x *ImportPoRequest) GetApprove() bool {
+	if x != nil {
+		return x.Approve
+	}
+	return false
 }
 
 type ImportPoResponse struct {
@@ -575,6 +599,7 @@ type ImportZipRequest struct {
 	FileContent   []byte                 `protobuf:"bytes,1,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"` // ZIP file content as bytes
 	ScopeIds      []string               `protobuf:"bytes,2,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`          // Scopes to assign to all imported entries
 	Mode          ImportMode             `protobuf:"varint,3,opt,name=mode,proto3,enum=parlance.v1.ImportMode" json:"mode,omitempty"`     // How to handle conflicts
+	Approve       bool                   `protobuf:"varint,4,opt,name=approve,proto3" json:"approve,omitempty"`                           // Approve the imported translations; needs review_entry
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -628,6 +653,13 @@ func (x *ImportZipRequest) GetMode() ImportMode {
 		return x.Mode
 	}
 	return ImportMode_IMPORT_MODE_UNSPECIFIED
+}
+
+func (x *ImportZipRequest) GetApprove() bool {
+	if x != nil {
+		return x.Approve
+	}
+	return false
 }
 
 type ImportZipResponse struct {
@@ -770,29 +802,32 @@ var File_parlance_v1_import_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_import_proto_rawDesc = "" +
 	"\n" +
-	"\x18parlance/v1/import.proto\x12\vparlance.v1\"\xb8\x01\n" +
+	"\x18parlance/v1/import.proto\x12\vparlance.v1\"\xd2\x01\n" +
 	"\x10ImportPhpRequest\x12\x1b\n" +
 	"\tlocale_id\x18\x01 \x01(\tR\blocaleId\x12\x1b\n" +
 	"\tscope_ids\x18\x02 \x03(\tR\bscopeIds\x12!\n" +
 	"\ffile_content\x18\x03 \x01(\fR\vfileContent\x12\x1a\n" +
 	"\bfilename\x18\x04 \x01(\tR\bfilename\x12+\n" +
-	"\x04mode\x18\x05 \x01(\x0e2\x17.parlance.v1.ImportModeR\x04mode\"F\n" +
+	"\x04mode\x18\x05 \x01(\x0e2\x17.parlance.v1.ImportModeR\x04mode\x12\x18\n" +
+	"\aapprove\x18\x06 \x01(\bR\aapprove\"F\n" +
 	"\x11ImportPhpResponse\x121\n" +
-	"\x06result\x18\x01 \x01(\v2\x19.parlance.v1.ImportResultR\x06result\"\xb9\x01\n" +
+	"\x06result\x18\x01 \x01(\v2\x19.parlance.v1.ImportResultR\x06result\"\xd3\x01\n" +
 	"\x11ImportJsonRequest\x12\x1b\n" +
 	"\tlocale_id\x18\x01 \x01(\tR\blocaleId\x12\x1b\n" +
 	"\tscope_ids\x18\x02 \x03(\tR\bscopeIds\x12!\n" +
 	"\ffile_content\x18\x03 \x01(\fR\vfileContent\x12\x1a\n" +
 	"\bfilename\x18\x04 \x01(\tR\bfilename\x12+\n" +
-	"\x04mode\x18\x05 \x01(\x0e2\x17.parlance.v1.ImportModeR\x04mode\"G\n" +
+	"\x04mode\x18\x05 \x01(\x0e2\x17.parlance.v1.ImportModeR\x04mode\x12\x18\n" +
+	"\aapprove\x18\x06 \x01(\bR\aapprove\"G\n" +
 	"\x12ImportJsonResponse\x121\n" +
-	"\x06result\x18\x01 \x01(\v2\x19.parlance.v1.ImportResultR\x06result\"\xb7\x01\n" +
+	"\x06result\x18\x01 \x01(\v2\x19.parlance.v1.ImportResultR\x06result\"\xd1\x01\n" +
 	"\x0fImportPoRequest\x12\x1b\n" +
 	"\tlocale_id\x18\x01 \x01(\tR\blocaleId\x12\x1b\n" +
 	"\tscope_ids\x18\x02 \x03(\tR\bscopeIds\x12!\n" +
 	"\ffile_content\x18\x03 \x01(\fR\vfileContent\x12\x1a\n" +
 	"\bfilename\x18\x04 \x01(\tR\bfilename\x12+\n" +
-	"\x04mode\x18\x05 \x01(\x0e2\x17.parlance.v1.ImportModeR\x04mode\"E\n" +
+	"\x04mode\x18\x05 \x01(\x0e2\x17.parlance.v1.ImportModeR\x04mode\x12\x18\n" +
+	"\aapprove\x18\x06 \x01(\bR\aapprove\"E\n" +
 	"\x10ImportPoResponse\x121\n" +
 	"\x06result\x18\x01 \x01(\v2\x19.parlance.v1.ImportResultR\x06result\"\xe2\x01\n" +
 	"\fImportResult\x12'\n" +
@@ -803,11 +838,12 @@ const file_parlance_v1_import_proto_rawDesc = "" +
 	"\x06errors\x18\x05 \x03(\v2\x18.parlance.v1.ImportErrorR\x06errors\"9\n" +
 	"\vImportError\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\x7f\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\x99\x01\n" +
 	"\x10ImportZipRequest\x12!\n" +
 	"\ffile_content\x18\x01 \x01(\fR\vfileContent\x12\x1b\n" +
 	"\tscope_ids\x18\x02 \x03(\tR\bscopeIds\x12+\n" +
-	"\x04mode\x18\x03 \x01(\x0e2\x17.parlance.v1.ImportModeR\x04mode\"\xe0\x01\n" +
+	"\x04mode\x18\x03 \x01(\x0e2\x17.parlance.v1.ImportModeR\x04mode\x12\x18\n" +
+	"\aapprove\x18\x04 \x01(\bR\aapprove\"\xe0\x01\n" +
 	"\x11ImportZipResponse\x129\n" +
 	"\aresults\x18\x01 \x03(\v2\x1f.parlance.v1.LocaleImportResultR\aresults\x12#\n" +
 	"\rtotal_created\x18\x02 \x01(\x05R\ftotalCreated\x12#\n" +

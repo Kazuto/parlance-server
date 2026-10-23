@@ -37,12 +37,17 @@ func findLocale(db *gorm.DB, code string) (models.Locale, error) {
 }
 
 // loadEntries loads the entries in any of the scopes (all entries without scopes), ordered by
-// key, with their translation in the locale
-func loadEntries(db *gorm.DB, localeID string, scopeIDs []string) ([]exportedEntry, error) {
+// key, with their translation in the locale. Drafts count as untranslated unless included.
+func loadEntries(db *gorm.DB, localeID string, scopeIDs []string, includeDrafts bool) ([]exportedEntry, error) {
+	translations := db.Where("locale_id = ?", localeID)
+	if !includeDrafts {
+		translations = translations.Where("status = ?", models.StatusApproved)
+	}
+
 	var entries []models.Entry
 
 	query := common.FilterEntriesByScopes(db.Model(&models.Entry{}), scopeIDs).
-		Preload("Localizations", "locale_id = ?", localeID).
+		Preload("Localizations", translations).
 		Order("key")
 	if err := query.Find(&entries).Error; err != nil {
 		return nil, errors.InternalCause(err, "failed to query entries")

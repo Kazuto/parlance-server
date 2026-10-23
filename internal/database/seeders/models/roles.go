@@ -39,8 +39,8 @@ func (i *RoleSeeder) Run(db *gorm.DB) error {
 		return err
 	}
 
-	// Translations (localizations), import and export are covered by the entry
-	// permissions; see rbac.Rules.
+	// Translations (localizations) are covered by the entry permissions; reviewing,
+	// importing and exporting them have their own. See rbac.Rules.
 	rolePermissions := map[string][]string{
 		"translator": {
 			permissions.ReadLocale,
@@ -49,13 +49,15 @@ func (i *RoleSeeder) Run(db *gorm.DB) error {
 			permissions.ReadDefinition, permissions.CreateDefinition, permissions.UpdateDefinition,
 			permissions.ReadScope,
 			permissions.UseMachineTranslation,
+			permissions.ImportEntry, permissions.ExportEntry,
 		},
 		"reviewer": {
 			permissions.ReadLocale,
-			permissions.ReadEntry, permissions.UpdateEntry,
+			permissions.ReadEntry, permissions.UpdateEntry, permissions.ReviewEntry,
 			permissions.ReadTerminology,
-			permissions.ReadDefinition, permissions.UpdateDefinition,
+			permissions.ReadDefinition, permissions.UpdateDefinition, permissions.ReviewDefinition,
 			permissions.ReadScope,
+			permissions.ExportEntry,
 		},
 		"viewer": {
 			permissions.ReadLocale,
@@ -63,6 +65,7 @@ func (i *RoleSeeder) Run(db *gorm.DB) error {
 			permissions.ReadTerminology,
 			permissions.ReadDefinition,
 			permissions.ReadScope,
+			permissions.ExportEntry,
 		},
 	}
 

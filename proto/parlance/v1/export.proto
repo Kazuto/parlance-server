@@ -15,6 +15,7 @@ message ExportPhpRequest {
   reserved 2;
   reserved "scope_id";
   repeated string scope_ids = 3;  // Export entries in any of these scopes; empty exports all
+  bool include_drafts = 4;  // Also export drafts; by default only approved text
 }
 
 message ExportPhpResponse {
@@ -28,6 +29,7 @@ message ExportJsonRequest {
   reserved 2;
   reserved "scope_id";
   repeated string scope_ids = 3;  // Export entries in any of these scopes; empty exports all
+  bool include_drafts = 4;  // Also export drafts; by default only approved text
 }
 
 message ExportJsonResponse {
@@ -42,6 +44,7 @@ message ExportPoRequest {
   reserved 2;
   reserved "scope_id";
   repeated string scope_ids = 3;  // Export entries in any of these scopes; empty exports all
+  bool include_drafts = 4;  // Also export drafts; by default only approved text
 }
 
 message ExportPoResponse {
@@ -53,6 +56,7 @@ message ExportPoResponse {
 // Export all locales as a ZIP archive containing JSON files
 message ExportZipRequest {
   repeated string scope_ids = 1;  // Export entries in any of these scopes; empty exports all
+  bool include_drafts = 2;        // Also export drafts; by default only approved text
 }
 
 message ExportZipResponse {

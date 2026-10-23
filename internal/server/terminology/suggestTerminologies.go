@@ -48,11 +48,12 @@ func (s *Server) SuggestTerminologies(
 
 		if len(matchedWords) > 0 {
 			// Get the definition for the target locale
-			var targetTranslation string
+			var targetTranslation, targetStatus string
 
 			for _, def := range term.Definitions {
 				if def.LocaleID == req.Msg.TargetLocaleId {
 					targetTranslation = def.Translation
+					targetStatus = def.Status
 
 					break
 				}
@@ -63,6 +64,7 @@ func (s *Server) SuggestTerminologies(
 				suggestions = append(suggestions, &pb.TerminologySuggestion{
 					Terminology:       converter.TerminologyToProto(&term),
 					TargetTranslation: targetTranslation,
+					TargetStatus:      converter.ReviewStatusToProto(targetStatus),
 					MatchedWords:      matchedWords,
 				})
 			}

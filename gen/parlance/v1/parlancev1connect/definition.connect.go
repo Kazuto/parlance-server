@@ -51,6 +51,9 @@ const (
 	// DefinitionServiceRestoreDefinitionProcedure is the fully-qualified name of the
 	// DefinitionService's RestoreDefinition RPC.
 	DefinitionServiceRestoreDefinitionProcedure = "/parlance.v1.DefinitionService/RestoreDefinition"
+	// DefinitionServiceReviewDefinitionsProcedure is the fully-qualified name of the
+	// DefinitionService's ReviewDefinitions RPC.
+	DefinitionServiceReviewDefinitionsProcedure = "/parlance.v1.DefinitionService/ReviewDefinitions"
 )
 
 // DefinitionServiceClient is a client for the parlance.v1.DefinitionService service.
@@ -61,6 +64,8 @@ type DefinitionServiceClient interface {
 	UpdateDefinition(context.Context, *connect.Request[v1.UpdateDefinitionRequest]) (*connect.Response[v1.UpdateDefinitionResponse], error)
 	DeleteDefinition(context.Context, *connect.Request[v1.DeleteDefinitionRequest]) (*connect.Response[v1.DeleteDefinitionResponse], error)
 	RestoreDefinition(context.Context, *connect.Request[v1.RestoreDefinitionRequest]) (*connect.Response[v1.RestoreDefinitionResponse], error)
+	// Approves or rejects definitions, picked by id or by terminology and locale.
+	ReviewDefinitions(context.Context, *connect.Request[v1.ReviewDefinitionsRequest]) (*connect.Response[v1.ReviewDefinitionsResponse], error)
 }
 
 // NewDefinitionServiceClient constructs a client for the parlance.v1.DefinitionService service. By
@@ -110,6 +115,12 @@ func NewDefinitionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(definitionServiceMethods.ByName("RestoreDefinition")),
 			connect.WithClientOptions(opts...),
 		),
+		reviewDefinitions: connect.NewClient[v1.ReviewDefinitionsRequest, v1.ReviewDefinitionsResponse](
+			httpClient,
+			baseURL+DefinitionServiceReviewDefinitionsProcedure,
+			connect.WithSchema(definitionServiceMethods.ByName("ReviewDefinitions")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -121,6 +132,7 @@ type definitionServiceClient struct {
 	updateDefinition  *connect.Client[v1.UpdateDefinitionRequest, v1.UpdateDefinitionResponse]
 	deleteDefinition  *connect.Client[v1.DeleteDefinitionRequest, v1.DeleteDefinitionResponse]
 	restoreDefinition *connect.Client[v1.RestoreDefinitionRequest, v1.RestoreDefinitionResponse]
+	reviewDefinitions *connect.Client[v1.ReviewDefinitionsRequest, v1.ReviewDefinitionsResponse]
 }
 
 // ListDefinitions calls parlance.v1.DefinitionService.ListDefinitions.
@@ -153,6 +165,11 @@ func (c *definitionServiceClient) RestoreDefinition(ctx context.Context, req *co
 	return c.restoreDefinition.CallUnary(ctx, req)
 }
 
+// ReviewDefinitions calls parlance.v1.DefinitionService.ReviewDefinitions.
+func (c *definitionServiceClient) ReviewDefinitions(ctx context.Context, req *connect.Request[v1.ReviewDefinitionsRequest]) (*connect.Response[v1.ReviewDefinitionsResponse], error) {
+	return c.reviewDefinitions.CallUnary(ctx, req)
+}
+
 // DefinitionServiceHandler is an implementation of the parlance.v1.DefinitionService service.
 type DefinitionServiceHandler interface {
 	ListDefinitions(context.Context, *connect.Request[v1.ListDefinitionsRequest]) (*connect.Response[v1.ListDefinitionsResponse], error)
@@ -161,6 +178,8 @@ type DefinitionServiceHandler interface {
 	UpdateDefinition(context.Context, *connect.Request[v1.UpdateDefinitionRequest]) (*connect.Response[v1.UpdateDefinitionResponse], error)
 	DeleteDefinition(context.Context, *connect.Request[v1.DeleteDefinitionRequest]) (*connect.Response[v1.DeleteDefinitionResponse], error)
 	RestoreDefinition(context.Context, *connect.Request[v1.RestoreDefinitionRequest]) (*connect.Response[v1.RestoreDefinitionResponse], error)
+	// Approves or rejects definitions, picked by id or by terminology and locale.
+	ReviewDefinitions(context.Context, *connect.Request[v1.ReviewDefinitionsRequest]) (*connect.Response[v1.ReviewDefinitionsResponse], error)
 }
 
 // NewDefinitionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -206,6 +225,12 @@ func NewDefinitionServiceHandler(svc DefinitionServiceHandler, opts ...connect.H
 		connect.WithSchema(definitionServiceMethods.ByName("RestoreDefinition")),
 		connect.WithHandlerOptions(opts...),
 	)
+	definitionServiceReviewDefinitionsHandler := connect.NewUnaryHandler(
+		DefinitionServiceReviewDefinitionsProcedure,
+		svc.ReviewDefinitions,
+		connect.WithSchema(definitionServiceMethods.ByName("ReviewDefinitions")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/parlance.v1.DefinitionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case DefinitionServiceListDefinitionsProcedure:
@@ -220,6 +245,8 @@ func NewDefinitionServiceHandler(svc DefinitionServiceHandler, opts ...connect.H
 			definitionServiceDeleteDefinitionHandler.ServeHTTP(w, r)
 		case DefinitionServiceRestoreDefinitionProcedure:
 			definitionServiceRestoreDefinitionHandler.ServeHTTP(w, r)
+		case DefinitionServiceReviewDefinitionsProcedure:
+			definitionServiceReviewDefinitionsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -251,4 +278,8 @@ func (UnimplementedDefinitionServiceHandler) DeleteDefinition(context.Context, *
 
 func (UnimplementedDefinitionServiceHandler) RestoreDefinition(context.Context, *connect.Request[v1.RestoreDefinitionRequest]) (*connect.Response[v1.RestoreDefinitionResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.DefinitionService.RestoreDefinition is not implemented"))
+}
+
+func (UnimplementedDefinitionServiceHandler) ReviewDefinitions(context.Context, *connect.Request[v1.ReviewDefinitionsRequest]) (*connect.Response[v1.ReviewDefinitionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.DefinitionService.ReviewDefinitions is not implemented"))
 }

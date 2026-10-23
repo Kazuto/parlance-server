@@ -54,6 +54,7 @@ func (s *Server) CreateDefinition(
 		LocaleID:      req.Msg.LocaleId,
 		Translation:   req.Msg.Translation,
 		CreatedBy:     middleware.UserIDPtr(ctx),
+		Review:        models.Review{Status: models.StatusDraft},
 	}
 
 	if err := s.db.Create(definition).Error; err != nil {

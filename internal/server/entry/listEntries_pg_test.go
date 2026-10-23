@@ -84,3 +84,59 @@ func TestListEntriesFiltersByScopeAndStatus(t *testing.T) {
 	check("missing", list(&pb.ListEntriesRequest{TranslationStatus: "missing", TargetLocaleIds: []string{locale.ID}}), "app.only", "unscoped")
 	check("complete", list(&pb.ListEntriesRequest{TranslationStatus: "complete", TargetLocaleIds: []string{locale.ID}}), "shared")
 }
+
+func TestListEntriesFindsDraftsForReview(t *testing.T) {
+	db := testutil.SetupPostgresDB(t)
+	if err := db.Bootstrap(); err != nil {
+		t.Fatalf("bootstrap: %v", err)
+	}
+
+	ctx, err := testutil.ContextWithPermissions(db, "read_entry")
+	if err != nil {
+		t.Fatalf("create user: %v", err)
+	}
+
+	de := models.Locale{Code: "de", Names: datatypes.JSON(`{"en":"German"}`)}
+	fr := models.Locale{Code: "fr", Names: datatypes.JSON(`{"en":"French"}`)}
+	approved, draft := models.Entry{Key: "approved"}, models.Entry{Key: "draft"}
+
+	for _, row := range []any{&de, &fr, &approved, &draft} {
+		if err := db.Create(row).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	for _, localization := range []models.Localization{
+		{EntryID: approved.ID, LocaleID: de.ID, Translation: "Ja", Review: models.Review{Status: models.StatusApproved}},
+		{EntryID: draft.ID, LocaleID: de.ID, Translation: "Ja", Review: models.Review{Status: models.StatusApproved}},
+		{EntryID: draft.ID, LocaleID: fr.ID, Translation: "Oui", Review: models.Review{Status: models.StatusDraft}},
+	} {
+		if err := db.Create(&localization).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	server := &Server{db: db}
+	list := func(localeIDs ...string) *pb.ListEntriesResponse {
+		t.Helper()
+
+		res, err := server.ListEntries(ctx, connect.NewRequest(&pb.ListEntriesRequest{
+			Summary: true, TranslationStatus: "review", TargetLocaleIds: localeIDs,
+		}))
+		if err != nil {
+			t.Fatalf("ListEntries() error = %v", err)
+		}
+
+		return res.Msg
+	}
+
+	if res := list(de.ID, fr.ID); len(res.Entries) != 1 || res.Entries[0].Key != "draft" ||
+		len(res.Entries[0].DraftLocaleIds) != 1 || res.Entries[0].DraftLocaleIds[0] != fr.ID {
+		t.Errorf("review in de and fr = %+v, want draft with its French draft", res.Entries)
+	}
+
+	// The draft is French, so it is out of sight when only German is shown.
+	if res := list(de.ID); len(res.Entries) != 0 {
+		t.Errorf("review in de = %+v, want none", res.Entries)
+	}
+}

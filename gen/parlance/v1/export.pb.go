@@ -24,7 +24,8 @@ const (
 type ExportPhpRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	LocaleCode    string                 `protobuf:"bytes,1,opt,name=locale_code,json=localeCode,proto3" json:"locale_code,omitempty"`
-	ScopeIds      []string               `protobuf:"bytes,3,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"` // Export entries in any of these scopes; empty exports all
+	ScopeIds      []string               `protobuf:"bytes,3,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`                 // Export entries in any of these scopes; empty exports all
+	IncludeDrafts bool                   `protobuf:"varint,4,opt,name=include_drafts,json=includeDrafts,proto3" json:"include_drafts,omitempty"` // Also export drafts; by default only approved text
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -71,6 +72,13 @@ func (x *ExportPhpRequest) GetScopeIds() []string {
 		return x.ScopeIds
 	}
 	return nil
+}
+
+func (x *ExportPhpRequest) GetIncludeDrafts() bool {
+	if x != nil {
+		return x.IncludeDrafts
+	}
+	return false
 }
 
 type ExportPhpResponse struct {
@@ -136,7 +144,8 @@ func (x *ExportPhpResponse) GetFilename() string {
 type ExportJsonRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	LocaleCode    string                 `protobuf:"bytes,1,opt,name=locale_code,json=localeCode,proto3" json:"locale_code,omitempty"`
-	ScopeIds      []string               `protobuf:"bytes,3,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"` // Export entries in any of these scopes; empty exports all
+	ScopeIds      []string               `protobuf:"bytes,3,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`                 // Export entries in any of these scopes; empty exports all
+	IncludeDrafts bool                   `protobuf:"varint,4,opt,name=include_drafts,json=includeDrafts,proto3" json:"include_drafts,omitempty"` // Also export drafts; by default only approved text
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -183,6 +192,13 @@ func (x *ExportJsonRequest) GetScopeIds() []string {
 		return x.ScopeIds
 	}
 	return nil
+}
+
+func (x *ExportJsonRequest) GetIncludeDrafts() bool {
+	if x != nil {
+		return x.IncludeDrafts
+	}
+	return false
 }
 
 type ExportJsonResponse struct {
@@ -249,7 +265,8 @@ func (x *ExportJsonResponse) GetFilename() string {
 type ExportPoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	LocaleCode    string                 `protobuf:"bytes,1,opt,name=locale_code,json=localeCode,proto3" json:"locale_code,omitempty"`
-	ScopeIds      []string               `protobuf:"bytes,3,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"` // Export entries in any of these scopes; empty exports all
+	ScopeIds      []string               `protobuf:"bytes,3,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`                 // Export entries in any of these scopes; empty exports all
+	IncludeDrafts bool                   `protobuf:"varint,4,opt,name=include_drafts,json=includeDrafts,proto3" json:"include_drafts,omitempty"` // Also export drafts; by default only approved text
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -296,6 +313,13 @@ func (x *ExportPoRequest) GetScopeIds() []string {
 		return x.ScopeIds
 	}
 	return nil
+}
+
+func (x *ExportPoRequest) GetIncludeDrafts() bool {
+	if x != nil {
+		return x.IncludeDrafts
+	}
+	return false
 }
 
 type ExportPoResponse struct {
@@ -361,7 +385,8 @@ func (x *ExportPoResponse) GetFilename() string {
 // Export all locales as a ZIP archive containing JSON files
 type ExportZipRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ScopeIds      []string               `protobuf:"bytes,1,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"` // Export entries in any of these scopes; empty exports all
+	ScopeIds      []string               `protobuf:"bytes,1,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`                 // Export entries in any of these scopes; empty exports all
+	IncludeDrafts bool                   `protobuf:"varint,2,opt,name=include_drafts,json=includeDrafts,proto3" json:"include_drafts,omitempty"` // Also export drafts; by default only approved text
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -401,6 +426,13 @@ func (x *ExportZipRequest) GetScopeIds() []string {
 		return x.ScopeIds
 	}
 	return nil
+}
+
+func (x *ExportZipRequest) GetIncludeDrafts() bool {
+	if x != nil {
+		return x.IncludeDrafts
+	}
+	return false
 }
 
 type ExportZipResponse struct {
@@ -467,33 +499,37 @@ var File_parlance_v1_export_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_export_proto_rawDesc = "" +
 	"\n" +
-	"\x18parlance/v1/export.proto\x12\vparlance.v1\"`\n" +
+	"\x18parlance/v1/export.proto\x12\vparlance.v1\"\x87\x01\n" +
 	"\x10ExportPhpRequest\x12\x1f\n" +
 	"\vlocale_code\x18\x01 \x01(\tR\n" +
 	"localeCode\x12\x1b\n" +
-	"\tscope_ids\x18\x03 \x03(\tR\bscopeIdsJ\x04\b\x02\x10\x03R\bscope_id\"a\n" +
+	"\tscope_ids\x18\x03 \x03(\tR\bscopeIds\x12%\n" +
+	"\x0einclude_drafts\x18\x04 \x01(\bR\rincludeDraftsJ\x04\b\x02\x10\x03R\bscope_id\"a\n" +
 	"\x11ExportPhpResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1a\n" +
-	"\bfilename\x18\x03 \x01(\tR\bfilename\"a\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\"\x88\x01\n" +
 	"\x11ExportJsonRequest\x12\x1f\n" +
 	"\vlocale_code\x18\x01 \x01(\tR\n" +
 	"localeCode\x12\x1b\n" +
-	"\tscope_ids\x18\x03 \x03(\tR\bscopeIdsJ\x04\b\x02\x10\x03R\bscope_id\"b\n" +
+	"\tscope_ids\x18\x03 \x03(\tR\bscopeIds\x12%\n" +
+	"\x0einclude_drafts\x18\x04 \x01(\bR\rincludeDraftsJ\x04\b\x02\x10\x03R\bscope_id\"b\n" +
 	"\x12ExportJsonResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1a\n" +
-	"\bfilename\x18\x03 \x01(\tR\bfilename\"_\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\"\x86\x01\n" +
 	"\x0fExportPoRequest\x12\x1f\n" +
 	"\vlocale_code\x18\x01 \x01(\tR\n" +
 	"localeCode\x12\x1b\n" +
-	"\tscope_ids\x18\x03 \x03(\tR\bscopeIdsJ\x04\b\x02\x10\x03R\bscope_id\"`\n" +
+	"\tscope_ids\x18\x03 \x03(\tR\bscopeIds\x12%\n" +
+	"\x0einclude_drafts\x18\x04 \x01(\bR\rincludeDraftsJ\x04\b\x02\x10\x03R\bscope_id\"`\n" +
 	"\x10ExportPoResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1a\n" +
-	"\bfilename\x18\x03 \x01(\tR\bfilename\"/\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\"V\n" +
 	"\x10ExportZipRequest\x12\x1b\n" +
-	"\tscope_ids\x18\x01 \x03(\tR\bscopeIds\"a\n" +
+	"\tscope_ids\x18\x01 \x03(\tR\bscopeIds\x12%\n" +
+	"\x0einclude_drafts\x18\x02 \x01(\bR\rincludeDrafts\"a\n" +
 	"\x11ExportZipResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\fR\acontent\x12\x1a\n" +
