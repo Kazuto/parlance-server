@@ -1,4 +1,4 @@
-.PHONY: dev dev-stop dev-down dev-logs build test test-coverage migrate-up migrate-down migrate-create proto-gen proto-gen-web proto-gen-all proto-lint proto-breaking install-tools run lint fmt fmt-check vet ci seed seed-fresh clean
+.PHONY: hooks dev dev-stop dev-down dev-logs build test test-coverage migrate-up migrate-down migrate-create proto-gen proto-gen-web proto-gen-all proto-lint proto-breaking install-tools run lint fmt fmt-check vet ci seed seed-fresh clean
 
 # Development
 dev:
@@ -78,6 +78,10 @@ lint:
 ci: fmt-check vet test
 
 # Tools installation
+# Run the checks in .githooks before each commit
+hooks:
+	git config core.hooksPath .githooks
+
 install-tools:
 	go install github.com/bufbuild/buf/cmd/buf@latest
 	go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest

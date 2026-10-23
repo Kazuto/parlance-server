@@ -4,7 +4,8 @@
 
 You need Go (the version in `go.mod`), Docker, and for the protos the
 [Buf CLI](https://buf.build/docs/installation/). `make install-tools` installs Buf
-and golangci-lint with `go install`.
+and golangci-lint with `go install`; `make hooks` then turns on the pre-commit hook
+(see [Checks](#checks)).
 
 ```bash
 make dev       # API, PostgreSQL and MinIO in Docker; the API reloads on changes (air)
@@ -31,13 +32,19 @@ scopes, glossary terms and these users:
 
 ## Checks
 
-| Command     | What it does                                   |
-| ----------- | ---------------------------------------------- |
-| `make test` | All tests, with the race detector and coverage |
-| `make lint` | golangci-lint (`.golangci.yml`)                |
-| `make fmt`  | gofmt; `make fmt-check` only reports           |
-| `make vet`  | go vet                                         |
-| `make ci`   | fmt-check, vet and tests                       |
+| Command      | What it does                                   |
+| ------------ | ---------------------------------------------- |
+| `make test`  | All tests, with the race detector and coverage |
+| `make lint`  | golangci-lint (`.golangci.yml`)                |
+| `make fmt`   | gofmt; `make fmt-check` only reports           |
+| `make vet`   | go vet                                         |
+| `make ci`    | fmt-check, vet and tests                       |
+| `make hooks` | Run the pre-commit hook before each commit     |
+
+The pre-commit hook (`.githooks/pre-commit`) checks the staged Go files: gofmt,
+golangci-lint on the changed lines, then the tests. It only reports, so a commit
+never picks up unstaged edits; `make fmt` and `golangci-lint run --fix` fix most
+findings. `git commit --no-verify` skips it once.
 
 CI runs vet, the tests, golangci-lint and a build on pushes and pull requests to
 `main` and `develop`.
