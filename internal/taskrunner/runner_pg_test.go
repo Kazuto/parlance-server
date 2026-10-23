@@ -612,8 +612,8 @@ func TestGitExport(t *testing.T) {
 			t.Errorf("lang/en.json = %s, want only the approved greeting", files["lang/en.json"])
 		}
 
-		if files["lang/de.json"] != "{}" {
-			t.Errorf("lang/de.json = %s, want no drafts", files["lang/de.json"])
+		if files["lang/de.json"] != "{}\n" {
+			t.Errorf("lang/de.json = %q, want no drafts", files["lang/de.json"])
 		}
 
 		pulls := fake.Pulls()

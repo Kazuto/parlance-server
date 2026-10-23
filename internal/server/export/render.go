@@ -1,6 +1,7 @@
 package export
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -43,12 +44,30 @@ func Render(db *gorm.DB, format string, locale models.Locale, scopeIDs []string,
 
 // renderJSON renders a flat object of keys and translations
 func renderJSON(entries []exportedEntry) (string, error) {
-	content, err := json.MarshalIndent(translationMap(entries), "", "  ")
+	content, err := marshalJSON(translationMap(entries))
 	if err != nil {
 		return "", errors.InternalCause(err, "failed to marshal JSON")
 	}
 
 	return string(content), nil
+}
+
+// marshalJSON encodes an exported file as people write them, so exports into a
+// repository only change what changed: indented by two spaces, with "&", "<" and
+// ">" as they are, and ending with one newline.
+func marshalJSON(value any) ([]byte, error) {
+	var content bytes.Buffer
+
+	encoder := json.NewEncoder(&content)
+	encoder.SetEscapeHTML(false)
+	encoder.SetIndent("", "  ")
+
+	// Encode ends the file with a newline.
+	if err := encoder.Encode(value); err != nil {
+		return nil, err
+	}
+
+	return content.Bytes(), nil
 }
 
 // renderPHP renders a Laravel language file: a PHP array of keys and translations

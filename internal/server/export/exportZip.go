@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -56,7 +55,7 @@ func (s *Server) ExportZip(
 			return nil, err
 		}
 
-		contentBytes, err := json.MarshalIndent(translationMap(entries), "", "  ")
+		content, err := renderJSON(entries)
 		if err != nil {
 			return nil, errors.Internal(errors.ErrInternal, fmt.Sprintf("failed to marshal JSON for locale %s", locale.Code))
 		}
@@ -69,7 +68,7 @@ func (s *Server) ExportZip(
 			return nil, errors.Internal(errors.ErrInternal, fmt.Sprintf("failed to create ZIP entry for %s", filename))
 		}
 
-		if _, err := writer.Write(contentBytes); err != nil {
+		if _, err := writer.Write([]byte(content)); err != nil {
 			return nil, errors.Internal(errors.ErrInternal, fmt.Sprintf("failed to write ZIP entry for %s", filename))
 		}
 
@@ -79,7 +78,7 @@ func (s *Server) ExportZip(
 	manifest["locales"] = localeCodes
 
 	// Add manifest.json to ZIP
-	manifestBytes, err := json.MarshalIndent(manifest, "", "  ")
+	manifestBytes, err := marshalJSON(manifest)
 	if err != nil {
 		return nil, errors.Internal(errors.ErrInternal, "failed to marshal manifest")
 	}

@@ -1,6 +1,9 @@
 package export
 
 import (
+	"archive/zip"
+	"bytes"
+	"io"
 	"strings"
 	"testing"
 
@@ -29,8 +32,9 @@ func TestExports(t *testing.T) {
 	ctx, db := testutil.Setup(t)
 	locale := models.Locale{Code: "ex", Names: datatypes.JSON(`{"en":"Export"}`)}
 	translated, untranslated := models.Entry{Key: "ex.b.saved"}, models.Entry{Key: "ex.a.empty", Description: "No text yet"}
+	markup := models.Entry{Key: "ex.c.markup"}
 
-	for _, row := range []any{&locale, &translated, &untranslated} {
+	for _, row := range []any{&locale, &translated, &untranslated, &markup} {
 		if err := db.Create(row).Error; err != nil {
 			t.Fatal(err)
 		}
@@ -43,6 +47,13 @@ func TestExports(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if err := db.Create(&models.Localization{
+		EntryID: markup.ID, LocaleID: locale.ID, Translation: "Import & <export>",
+		Review: models.Review{Status: models.StatusApproved},
+	}).Error; err != nil {
+		t.Fatal(err)
+	}
+
 	server := &Server{db: db}
 
 	jsonRes, err := server.ExportJson(ctx, connect.NewRequest(&pb.ExportJsonRequest{LocaleCode: "ex"}))
@@ -50,8 +61,43 @@ func TestExports(t *testing.T) {
 		t.Fatalf("ExportJson() error = %v", err)
 	}
 
-	if !strings.Contains(jsonRes.Msg.Content, `"ex.b.saved": "It's in C:\\temp\\"`) || strings.Contains(jsonRes.Msg.Content, "ex.a.empty") {
-		t.Errorf("JSON export = %s", jsonRes.Msg.Content)
+	// As people write such files: "&" and "<" as they are, and a final newline.
+	wantJSON := "{\n  \"ex.b.saved\": \"It's in C:\\\\temp\\\\\",\n  \"ex.c.markup\": \"Import & <export>\"\n}\n"
+	if jsonRes.Msg.Content != wantJSON {
+		t.Errorf("JSON export = %q, want %q", jsonRes.Msg.Content, wantJSON)
+	}
+
+	// ZIP exports write their language files and manifest the same way.
+	zipRes, err := server.ExportZip(ctx, connect.NewRequest(&pb.ExportZipRequest{}))
+	if err != nil {
+		t.Fatalf("ExportZip() error = %v", err)
+	}
+
+	archive, err := zip.NewReader(bytes.NewReader(zipRes.Msg.Content), int64(len(zipRes.Msg.Content)))
+	if err != nil {
+		t.Fatalf("read ZIP: %v", err)
+	}
+
+	for _, file := range archive.File {
+		reader, err := file.Open()
+		if err != nil {
+			t.Fatalf("open %s: %v", file.Name, err)
+		}
+
+		content, err := io.ReadAll(reader)
+		if err != nil {
+			t.Fatalf("read %s: %v", file.Name, err)
+		}
+
+		_ = reader.Close()
+
+		if file.Name == "ex.json" && string(content) != wantJSON {
+			t.Errorf("ZIP %s = %q, want %q", file.Name, content, wantJSON)
+		}
+
+		if !strings.HasSuffix(string(content), "}\n") || strings.HasSuffix(string(content), "\n\n") {
+			t.Errorf("ZIP %s ends with %q, want one newline", file.Name, content[max(0, len(content)-3):])
+		}
 	}
 
 	if jsonRes.Msg.Filename != "ex.json" {
@@ -63,7 +109,7 @@ func TestExports(t *testing.T) {
 		t.Fatalf("ExportPhp() error = %v", err)
 	}
 
-	if want := "<?php\n\nreturn [\n    'ex.b.saved' => 'It\\'s in C:\\\\temp\\\\',\n];\n"; phpRes.Msg.Content != want {
+	if want := "<?php\n\nreturn [\n    'ex.b.saved' => 'It\\'s in C:\\\\temp\\\\',\n    'ex.c.markup' => 'Import & <export>',\n];\n"; phpRes.Msg.Content != want {
 		t.Errorf("PHP export = %q, want %q", phpRes.Msg.Content, want)
 	}
 
