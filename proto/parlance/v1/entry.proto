@@ -1,0 +1,159 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/common.proto";
+import "parlance/v1/scope.proto";
+import "parlance/v1/localization.proto";
+import "parlance/v1/user.proto";
+
+option go_package = "parlance/v1;parlance";
+
+service EntryService {
+  rpc ListEntries(ListEntriesRequest) returns (ListEntriesResponse);
+  rpc GetEntry(GetEntryRequest) returns (GetEntryResponse);
+  rpc CreateEntry(CreateEntryRequest) returns (CreateEntryResponse);
+  rpc UpdateEntry(UpdateEntryRequest) returns (UpdateEntryResponse);
+  rpc DeleteEntry(DeleteEntryRequest) returns (DeleteEntryResponse);
+  rpc RestoreEntry(RestoreEntryRequest) returns (RestoreEntryResponse);
+  rpc SearchEntries(SearchEntriesRequest) returns (SearchEntriesResponse);
+  rpc GetEntryHistory(GetEntryHistoryRequest) returns (GetEntryHistoryResponse);
+  rpc UpdateEntriesScopes(UpdateEntriesScopesRequest) returns (UpdateEntriesScopesResponse);
+}
+
+message Entry {
+  string id = 1;
+  string key = 2;
+  string description = 3;
+  string created_at = 4;
+  string updated_at = 5;
+  string deleted_at = 6;
+  string created_by = 7;
+  string updated_by = 8;
+  repeated Localization localizations = 9;
+  repeated Scope scopes = 10;  // Many-to-many relationship
+  // Target locales without a saved translation; only set by ListEntries with summary.
+  repeated string missing_locale_ids = 11;
+  // The text in the default locale, shortened for previews; only set by ListEntries
+  // with summary. Empty when the entry has none.
+  string default_translation = 12;
+  // Target locales whose translation is a draft; only set by ListEntries with summary.
+  repeated string draft_locale_ids = 13;
+}
+
+message ListEntriesRequest {
+  string scope_id = 1;
+  string locale_id = 2;
+  PaginationRequest pagination = 3;
+  FilterRequest filter = 4;
+  // "", "missing", "complete", or "review" (a draft awaits approval) for the selected
+  // locales (all active locales if empty).
+  string translation_status = 5;
+  repeated string target_locale_ids = 6;
+  // Entries in any of these scopes; combined with scope_id when both are set.
+  repeated string scope_ids = 7;
+  // Keyset paging: pass the previous response's next_cursor to continue after it.
+  // Requires the default key ordering; page and the total count are skipped.
+  string cursor = 8;
+  // Return only id, key, missing_locale_ids and default_translation instead of
+  // localizations and scopes.
+  bool summary = 9;
+}
+
+message ListEntriesResponse {
+  repeated Entry entries = 1;
+  PaginationResponse pagination = 2;
+  // Set when more entries follow in key order; empty on the last page.
+  string next_cursor = 3;
+}
+
+message GetEntryRequest {
+  string id = 1;
+}
+
+message GetEntryResponse {
+  Entry entry = 1;
+}
+
+message CreateEntryRequest {
+  string key = 1;
+  reserved 2;
+  reserved "scope_ids";
+  string description = 3;
+  IdSelection scopes = 4;
+}
+
+message CreateEntryResponse {
+  Entry entry = 1;
+}
+
+message UpdateEntryRequest {
+  string id = 1;
+  optional string description = 2;
+  optional string key = 3;
+  IdSelection scopes = 4;
+}
+
+message UpdateEntryResponse {
+  Entry entry = 1;
+}
+
+// Adds and removes scopes on several entries at once. Scopes not listed are kept.
+message UpdateEntriesScopesRequest {
+  repeated string entry_ids = 1;
+  repeated string add_scope_ids = 2;
+  repeated string remove_scope_ids = 3;
+}
+
+message UpdateEntriesScopesResponse {}
+
+message DeleteEntryRequest {
+  string id = 1;
+}
+
+message DeleteEntryResponse {}
+
+message RestoreEntryRequest {
+  string id = 1;
+}
+
+message RestoreEntryResponse {
+  Entry entry = 1;
+}
+
+message SearchEntriesRequest {
+  string query = 1;
+  PaginationRequest pagination = 2;
+  string scope_id = 3;
+}
+
+message SearchEntriesResponse {
+  repeated Entry entries = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetEntryHistoryRequest {
+  string entry_id = 1;
+  PaginationRequest pagination = 2;
+  // Optional: only history of this locale
+  string locale_id = 3;
+}
+
+message GetEntryHistoryResponse {
+  repeated LocalizationHistory history = 1;
+  PaginationResponse pagination = 2;
+}
+
+message LocalizationHistory {
+  string id = 1;
+  string localization_id = 2;
+  string locale_id = 3;
+  string entry_id = 4;
+  string user_id = 5;
+  string translation = 6;
+  string action = 7;  // "created", "updated", "deleted", "approved", "rejected"
+  string changed_at = 8;
+  User user = 9;
+  ReviewStatus status = 10;
+  // The reviewer's comment on a rejection.
+  string comment = 11;
+}

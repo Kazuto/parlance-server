@@ -1,0 +1,171 @@
+package common
+
+import (
+	"context"
+	"strings"
+	"time"
+
+	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/errors"
+	"github.com/kazuto/parlance-server/internal/middleware"
+	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/taskqueue"
+	"github.com/kazuto/parlance-server/internal/webhook"
+	"gorm.io/gorm"
+)
+
+// Reviewable is a row with a review state and its own history
+type Reviewable interface {
+	ReviewState() *models.Review
+	RecordReview(tx *gorm.DB, action string) error
+	RowID() string
+}
+
+// ReviewSelection picks rows by id, or by their parent (entry or terminology) and locale
+type ReviewSelection struct {
+	IDs       []string
+	ParentIDs []string
+	LocaleIDs []string
+	// The column holding the parent id, e.g. "entry_id"
+	ParentColumn string
+	// The task event approving rows emits, if any
+	ApprovedEvent string
+	// Whether reviews are sent to webhooks, as translations.approved or
+	// translations.rejected; only translations are
+	Webhooks bool
+}
+
+// ValidateReview checks a review request before rows are loaded
+func ValidateReview(selection ReviewSelection, decision pb.ReviewDecision, comment string) error {
+	switch decision {
+	case pb.ReviewDecision_REVIEW_DECISION_APPROVE:
+	case pb.ReviewDecision_REVIEW_DECISION_REJECT:
+		if strings.TrimSpace(comment) == "" {
+			return errors.InvalidInput(errors.ErrInvalidInput, "a comment is required when rejecting")
+		}
+	default:
+		return errors.InvalidInput(errors.ErrInvalidInput, "decision is required")
+	}
+
+	if len(selection.IDs) == 0 && len(selection.ParentIDs) == 0 {
+		return errors.InvalidInput(errors.ErrInvalidInput, "nothing to review")
+	}
+
+	if len(selection.ParentIDs) > 0 && len(selection.LocaleIDs) == 0 {
+		return errors.InvalidInput(errors.ErrInvalidInput, "locale ids are required with parent ids")
+	}
+
+	return nil
+}
+
+// ReviewRows loads the selected rows and approves or rejects them in one transaction,
+// recording each review in their history. Rows that don't exist, and approved rows when
+// approving, are skipped.
+func ReviewRows[T any, P interface {
+	*T
+	Reviewable
+}](ctx context.Context, db *gorm.DB, selection ReviewSelection, decision pb.ReviewDecision, comment string) ([]T, error) {
+	if err := ValidateReview(selection, decision, comment); err != nil {
+		return nil, err
+	}
+
+	var rows []T
+
+	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		query := tx.Model(new(T))
+
+		ids := UniqueIDs(selection.IDs)
+		parentIDs := UniqueIDs(selection.ParentIDs)
+
+		switch {
+		case len(ids) > 0 && len(parentIDs) > 0:
+			query = query.Where("id IN ? OR ("+selection.ParentColumn+" IN ? AND locale_id IN ?)", ids, parentIDs, selection.LocaleIDs)
+		case len(ids) > 0:
+			query = query.Where("id IN ?", ids)
+		default:
+			query = query.Where(selection.ParentColumn+" IN ? AND locale_id IN ?", parentIDs, selection.LocaleIDs)
+		}
+
+		// Approving leaves approved rows as they are, so their reviewer and history stay.
+		if decision == pb.ReviewDecision_REVIEW_DECISION_APPROVE {
+			query = query.Where("status = ?", models.StatusDraft)
+		}
+
+		if err := query.Find(&rows).Error; err != nil {
+			return err
+		}
+
+		reviewer := middleware.UserIDPtr(ctx)
+		now := time.Now()
+		action := models.ActionApproved
+
+		if decision == pb.ReviewDecision_REVIEW_DECISION_REJECT {
+			action = models.ActionRejected
+		}
+
+		// The review is not an edit, so it records its own history instead of "updated".
+		save := tx.Session(&gorm.Session{SkipHooks: true})
+
+		for i := range rows {
+			row := P(&rows[i])
+			review := row.ReviewState()
+
+			if action == models.ActionApproved {
+				review.Approve(reviewer, now)
+			} else {
+				review.Reject(reviewer, now, strings.TrimSpace(comment))
+			}
+
+			if err := save.Model(row).Select("status", "reviewed_by", "reviewed_at", "review_comment", "updated_at").Updates(row).Error; err != nil {
+				return err
+			}
+
+			if err := row.RecordReview(tx, action); err != nil {
+				return err
+			}
+		}
+
+		if len(rows) == 0 {
+			return nil
+		}
+
+		if selection.Webhooks {
+			if err := emitReviewed[T, P](tx, rows, action, reviewer, strings.TrimSpace(comment)); err != nil {
+				return err
+			}
+		}
+
+		if action == models.ActionApproved && selection.ApprovedEvent != "" {
+			return taskqueue.Emit(tx, selection.ApprovedEvent)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, errors.InternalCause(err, "failed to review")
+	}
+
+	return rows, nil
+}
+
+// emitReviewed sends the reviewed rows to the webhooks subscribed to the review.
+func emitReviewed[T any, P interface {
+	*T
+	Reviewable
+}](tx *gorm.DB, rows []T, action string, reviewer *string, comment string) error {
+	ids := make([]string, len(rows))
+	for i := range rows {
+		ids[i] = P(&rows[i]).RowID()
+	}
+
+	event := models.WebhookEventTranslationsApproved
+	if action == models.ActionRejected {
+		event = models.WebhookEventTranslationsRejected
+	} else {
+		comment = ""
+	}
+
+	return webhook.Emit(tx, event, func() (any, error) {
+		return webhook.Translations(tx, ids, reviewer, comment)
+	})
+}

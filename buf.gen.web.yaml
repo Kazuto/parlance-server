@@ -1,0 +1,8 @@
+version: v2
+# This directory contains generated files only. Remove stale schemas on regeneration.
+clean: true
+plugins:
+  - local: [go, run, ./cmd/protoc-gen-zod]
+    out: ../web/app/lib/api/schemas/parlance
+    opt: strip_prefix=parlance/
+    strategy: all

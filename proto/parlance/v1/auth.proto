@@ -1,0 +1,101 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/user.proto";
+
+option go_package = "parlance/v1;parlance";
+
+service AuthService {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+  rpc GetCurrentUser(GetCurrentUserRequest) returns (GetCurrentUserResponse);
+  // The single sign-on providers the sign-in page offers.
+  rpc ListSignInProviders(ListSignInProvidersRequest) returns (ListSignInProvidersResponse);
+  // Starts signing in with a provider: returns where to send the browser. The
+  // provider sends it back to the redirect URI with a code and the state.
+  rpc StartSso(StartSsoRequest) returns (StartSsoResponse);
+  // Finishes signing in with what the provider sent back, like Login.
+  rpc FinishSso(FinishSsoRequest) returns (FinishSsoResponse);
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string name = 3;
+}
+
+message RegisterResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  User user = 3;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  User user = 3;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  User user = 3;
+}
+
+message LogoutRequest {}
+
+message LogoutResponse {}
+
+message GetCurrentUserRequest {}
+
+message GetCurrentUserResponse {
+  User user = 1;
+  // Whether a machine translation server is configured.
+  bool translation_enabled = 2;
+}
+
+message SignInProvider {
+  string id = 1;
+  // Shown as "Sign in with <name>".
+  string name = 2;
+}
+
+message ListSignInProvidersRequest {}
+
+message ListSignInProvidersResponse {
+  repeated SignInProvider providers = 1;
+}
+
+message StartSsoRequest {
+  string provider_id = 1;
+  // The web app's page the provider sends the browser back to; it must be
+  // registered at the provider.
+  string redirect_uri = 2;
+}
+
+message StartSsoResponse {
+  // The provider's sign-in page.
+  string authorization_url = 1;
+}
+
+message FinishSsoRequest {
+  string state = 1;
+  string code = 2;
+}
+
+message FinishSsoResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  User user = 3;
+}

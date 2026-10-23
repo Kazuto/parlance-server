@@ -1,0 +1,59 @@
+meta {
+  name: Get Default Locale
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.LocaleService/GetDefaultLocale
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {}
+}
+
+docs {
+  # Get Default Locale
+
+  Retrieves the default locale configured in the system.
+
+  ## Authentication
+  Requires valid access token.
+
+  ## Request
+  No parameters required.
+
+  ## Response
+  Returns the default locale details.
+
+  ## Example Response
+  ```json
+  {
+    "locale": {
+      "id": "uuid",
+      "code": "en",
+      "name": "English",
+      "names": {
+        "en": "English",
+        "de": "Englisch",
+        "fr": "Anglais"
+      },
+      "isDefault": true,
+      "createdAt": "2026-03-27T18:12:31+01:00",
+      "updatedAt": "2026-03-27T18:12:31+01:00"
+    }
+  }
+  ```
+
+  **Note**: The `name` field is localized based on `Accept-Language` header.
+
+  ## Errors
+  - `NOT_FOUND`: default locale not found
+}

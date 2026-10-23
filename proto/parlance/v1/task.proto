@@ -1,0 +1,279 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/common.proto";
+import "parlance/v1/user.proto";
+
+option go_package = "parlance/v1;parlance";
+
+// Work the server does on its own: on a schedule, after events, or when someone
+// starts it. Each task has at most one queued run, which later triggers join.
+service TaskService {
+  rpc ListTasks(ListTasksRequest) returns (ListTasksResponse);
+  rpc GetTask(GetTaskRequest) returns (GetTaskResponse);
+  rpc CreateTask(CreateTaskRequest) returns (CreateTaskResponse);
+  rpc UpdateTask(UpdateTaskRequest) returns (UpdateTaskResponse);
+  rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse);
+  // Queues a run that starts right away, or returns the run already queued.
+  rpc RunTask(RunTaskRequest) returns (RunTaskResponse);
+  rpc ListTaskRuns(ListTaskRunsRequest) returns (ListTaskRunsResponse);
+  rpc GetTaskRun(GetTaskRunRequest) returns (GetTaskRunResponse);
+  // Drops a queued run, or asks a running one to stop.
+  rpc CancelTaskRun(CancelTaskRunRequest) returns (CancelTaskRunResponse);
+  // Checks a git export's repository settings and token without changing anything.
+  rpc CheckTaskAccess(CheckTaskAccessRequest) returns (CheckTaskAccessResponse);
+  // Settings of all tasks, such as whether they are paused.
+  rpc GetTaskSettings(GetTaskSettingsRequest) returns (GetTaskSettingsResponse);
+  rpc UpdateTaskSettings(UpdateTaskSettingsRequest) returns (UpdateTaskSettingsResponse);
+}
+
+enum TaskType {
+  TASK_TYPE_UNSPECIFIED = 0;
+  // Fills missing translations with machine translations, as drafts.
+  TASK_TYPE_AI_TRANSLATE = 1;
+  // Opens or updates a pull request with exported translation files.
+  TASK_TYPE_GIT_EXPORT = 2;
+}
+
+enum TaskEvent {
+  TASK_EVENT_UNSPECIFIED = 0;
+  TASK_EVENT_TRANSLATIONS_APPROVED = 1;
+}
+
+enum TaskTrigger {
+  TASK_TRIGGER_UNSPECIFIED = 0;
+  TASK_TRIGGER_MANUAL = 1;
+  TASK_TRIGGER_SCHEDULE = 2;
+  TASK_TRIGGER_EVENT = 3;
+}
+
+enum TaskRunStatus {
+  TASK_RUN_STATUS_UNSPECIFIED = 0;
+  TASK_RUN_STATUS_QUEUED = 1;
+  TASK_RUN_STATUS_RUNNING = 2;
+  TASK_RUN_STATUS_SUCCEEDED = 3;
+  TASK_RUN_STATUS_FAILED = 4;
+  TASK_RUN_STATUS_CANCELED = 5;
+}
+
+enum ExportFormat {
+  EXPORT_FORMAT_UNSPECIFIED = 0;
+  EXPORT_FORMAT_JSON = 1;
+  EXPORT_FORMAT_PHP = 2;
+  EXPORT_FORMAT_PO = 3;
+}
+
+message AiTranslateConfig {
+  // The language translated from; empty for the default locale.
+  string source_locale_id = 1;
+  // The languages to fill; empty for all but the source.
+  repeated string target_locale_ids = 2;
+  // Entries in any of the scopes; empty for all entries.
+  repeated string scope_ids = 3;
+  bool apply_terminology = 4;
+  // Caps the entry × language pairs one run translates; 0 for the default.
+  int32 max_pairs = 5;
+}
+
+message GitExportFile {
+  ExportFormat format = 1;
+  // Where each language's file goes, with "{locale}" for its code, e.g. "lang/{locale}.json".
+  string path = 2;
+}
+
+message GitExportConfig {
+  // The host's API; empty for "https://api.github.com".
+  string api_url = 1;
+  // "owner/name"
+  string repository = 2;
+  string base_branch = 3;
+  // The pull request's branch, rebuilt from the base branch on each run.
+  string branch = 4;
+  repeated GitExportFile files = 5;
+  // Empty for all languages.
+  repeated string locale_ids = 6;
+  // Entries in any of the scopes; empty for all entries.
+  repeated string scope_ids = 7;
+  bool include_drafts = 8;
+}
+
+message TaskRunSummary {
+  int32 translated = 1;
+  int32 failed = 2;
+  // Missing translations left for later runs.
+  int32 remaining = 3;
+  string pull_request_url = 4;
+  repeated string changed_files = 5;
+  // How the run ended, as a code: "no_changes" (the base branch has the files),
+  // "up_to_date" (the pull request branch has them), "updated", or
+  // "nothing_to_translate".
+  string outcome = 6;
+}
+
+message TaskRun {
+  string id = 1;
+  string task_id = 2;
+  TaskTrigger trigger = 3;
+  optional string triggered_by = 4;
+  TaskRunStatus status = 5;
+  string run_after = 6;
+  bool cancel_requested = 7;
+  optional string started_at = 8;
+  optional string finished_at = 9;
+  TaskRunSummary summary = 10;
+  string error = 11;
+  // Only GetTaskRun sends the log.
+  string log = 12;
+  string created_at = 13;
+  // Who started the run by hand, for manual runs.
+  User triggered_by_user = 14;
+}
+
+message Task {
+  string id = 1;
+  string name = 2;
+  TaskType type = 3;
+  bool enabled = 4;
+  // A standard 5-field cron expression in UTC; empty for none.
+  string schedule = 5;
+  optional string next_run_at = 6;
+  repeated TaskEvent events = 7;
+  // How long after the first event the run starts, so a burst of events runs once.
+  int32 event_delay_minutes = 8;
+  // Set for TASK_TYPE_AI_TRANSLATE.
+  AiTranslateConfig ai_translate = 9;
+  // Set for TASK_TYPE_GIT_EXPORT.
+  GitExportConfig git_export = 10;
+  // The token itself is never sent back.
+  bool has_token = 11;
+  // The newest run, if any.
+  TaskRun last_run = 12;
+  string created_at = 13;
+  string updated_at = 14;
+}
+
+message ListTasksRequest {}
+
+message ListTasksResponse {
+  repeated Task tasks = 1;
+}
+
+message GetTaskRequest {
+  string id = 1;
+}
+
+message GetTaskResponse {
+  Task task = 1;
+}
+
+message CreateTaskRequest {
+  string name = 1;
+  TaskType type = 2;
+  bool enabled = 3;
+  string schedule = 4;
+  repeated TaskEvent events = 5;
+  int32 event_delay_minutes = 6;
+  AiTranslateConfig ai_translate = 7;
+  GitExportConfig git_export = 8;
+  // The git host's access token.
+  string token = 9;
+}
+
+message CreateTaskResponse {
+  Task task = 1;
+}
+
+// Replaces the task's settings; its type stays.
+message UpdateTaskRequest {
+  string id = 1;
+  string name = 2;
+  bool enabled = 3;
+  string schedule = 4;
+  repeated TaskEvent events = 5;
+  int32 event_delay_minutes = 6;
+  AiTranslateConfig ai_translate = 7;
+  GitExportConfig git_export = 8;
+  // Unset keeps the stored token; empty removes it.
+  optional string token = 9;
+}
+
+message UpdateTaskResponse {
+  Task task = 1;
+}
+
+message DeleteTaskRequest {
+  string id = 1;
+}
+
+message DeleteTaskResponse {}
+
+message RunTaskRequest {
+  string id = 1;
+}
+
+message RunTaskResponse {
+  TaskRun run = 1;
+}
+
+message ListTaskRunsRequest {
+  string task_id = 1;
+  PaginationRequest pagination = 2;
+}
+
+message ListTaskRunsResponse {
+  // Newest first, without logs.
+  repeated TaskRun runs = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetTaskRunRequest {
+  string id = 1;
+}
+
+message GetTaskRunResponse {
+  TaskRun run = 1;
+}
+
+message CancelTaskRunRequest {
+  string id = 1;
+}
+
+message CancelTaskRunResponse {
+  TaskRun run = 1;
+}
+
+message CheckTaskAccessRequest {
+  // A saved task, whose stored token is used unless one is given.
+  string id = 1;
+  // Settings to check instead of the saved ones, e.g. while editing.
+  GitExportConfig git_export = 2;
+  optional string token = 3;
+}
+
+message CheckTaskAccessResponse {
+  bool ok = 1;
+  // What went wrong when not ok.
+  string error = 2;
+}
+
+message TaskSettings {
+  // Nothing is scheduled or run while paused. Triggers still queue runs, which
+  // start once tasks are resumed; schedules that came due fire then, once.
+  bool paused = 1;
+  // When the settings last changed, if ever.
+  optional string updated_at = 2;
+}
+
+message GetTaskSettingsRequest {}
+
+message GetTaskSettingsResponse {
+  TaskSettings settings = 1;
+}
+
+message UpdateTaskSettingsRequest {
+  bool paused = 1;
+}
+
+message UpdateTaskSettingsResponse {
+  TaskSettings settings = 1;
+}

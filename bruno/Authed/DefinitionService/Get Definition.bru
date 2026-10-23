@@ -1,0 +1,67 @@
+meta {
+  name: Get Definition
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.DefinitionService/GetDefinition
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "id": "{{definitionId}}"
+  }
+}
+
+script:pre-request {
+  const definitionId = bru.getVar('definitionId');
+  
+  if (!definitionId) {
+      await bru.runRequest('Authed/DefinitionService/ListDefinitions');
+  
+      return;
+  }
+}
+
+docs {
+  # Get Definition
+  
+  Retrieves a single definition by its ID.
+  
+  ## Authentication
+  Requires valid access token.
+  
+  ## Request
+  - `id` (required): The UUID of the definition to retrieve
+  
+  ## Response
+  Returns the definition.
+  
+  ## Example Response
+  ```json
+  {
+    "definition": {
+      "id": "0f21c0a9-65f8-4a8c-97f6-10c8f6abbd0a",
+      "terminologyId": "a6d543e7-032f-4ab1-b498-46d6a2144e97",
+      "localeId": "98a83600-5d1d-4b01-a644-7cd15fdd25cc",
+      "translation": "Updated definition with refined guidelines",
+      "createdAt": "2026-06-02T17:05:06+02:00",
+      "updatedAt": "2026-06-02T17:37:15+02:00",
+      "createdBy": "1bac9a62-99e1-4111-8771-c3de2be72fde",
+      "updatedBy": "f3037dd7-7fa4-4d6b-986e-0b7d9f9eea20"
+    }
+  }
+  ```
+  
+  ## Error Codes
+  - `INVALID_ARGUMENT`: definition id is required
+  - `NOT_FOUND`: Definition not found
+}

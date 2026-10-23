@@ -1,0 +1,83 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/common.proto";
+import "parlance/v1/permission.proto";
+
+option go_package = "parlance/v1;parlance";
+
+service RoleService {
+  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse);
+  rpc GetRole(GetRoleRequest) returns (GetRoleResponse);
+  rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse);
+  rpc UpdateRole(UpdateRoleRequest) returns (UpdateRoleResponse);
+  rpc DeleteRole(DeleteRoleRequest) returns (DeleteRoleResponse);
+  rpc RestoreRole(RestoreRoleRequest) returns (RestoreRoleResponse);
+}
+
+message Role {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  repeated Permission permissions = 4;
+  string created_at = 5;
+  string updated_at = 6;
+  string deleted_at = 7;
+}
+
+message ListRolesRequest {
+  PaginationRequest pagination = 1;
+  FilterRequest filter = 2;
+}
+
+message ListRolesResponse {
+  repeated Role roles = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetRoleRequest {
+  string id = 1;
+}
+
+message GetRoleResponse {
+  Role role = 1;
+}
+
+message CreateRoleRequest {
+  string name = 1;
+  string description = 2;
+  reserved 3;
+  reserved "permission_ids";
+  IdSelection permissions = 4;
+}
+
+message CreateRoleResponse {
+  Role role = 1;
+}
+
+message UpdateRoleRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string description = 3;
+  reserved 4;
+  reserved "permission_ids";
+  IdSelection permissions = 5;
+}
+
+message UpdateRoleResponse {
+  Role role = 1;
+}
+
+message DeleteRoleRequest {
+  string id = 1;
+}
+
+message DeleteRoleResponse {}
+
+message RestoreRoleRequest {
+  string id = 1;
+}
+
+message RestoreRoleResponse {
+  Role role = 1;
+}

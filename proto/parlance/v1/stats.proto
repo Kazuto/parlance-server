@@ -1,0 +1,30 @@
+syntax = "proto3";
+package parlance.v1;
+
+option go_package = "parlance/v1;parlance";
+
+service StatsService {
+  rpc GetStats(GetStatsRequest) returns (GetStatsResponse);
+}
+
+message GetStatsRequest {}
+
+message LocaleStats {
+  string locale_id = 1;
+  string locale_code = 2;
+  int32 completed = 3;
+  int32 missing = 4;
+  int32 percentage = 5;  // 0-100
+  int32 drafts = 6;      // translations awaiting approval
+}
+
+message GetStatsResponse {
+  int32 total_entries = 1;
+  int32 total_locales = 2;
+  int32 total_possible_translations = 3;  // entries × locales
+  int32 completed_translations = 4;       // actual translations that exist
+  int32 missing_translations = 5;         // totalPossible - completed
+  repeated LocaleStats by_locale = 6;     // breakdown by locale
+  int32 fully_translated_entries = 7;     // entries that have 100% translations
+  int32 draft_translations = 8;           // translations awaiting approval
+}

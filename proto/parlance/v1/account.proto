@@ -1,0 +1,35 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/user.proto";
+
+option go_package = "parlance/v1;parlance";
+
+// The signed-in user's own account. Everyone signed in may change their name,
+// email, language, avatar and password; changing other users needs UserService.
+service AccountService {
+  rpc UpdateAccount(UpdateAccountRequest) returns (UpdateAccountResponse);
+  // Needs the current password, unless the account has none yet, like accounts
+  // single sign-on created.
+  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse);
+}
+
+message UpdateAccountRequest {
+  optional string name = 1;
+  optional string email = 2;
+  // Empty for the app's default.
+  optional string locale = 3;
+  // A PNG, JPEG, WebP or GIF image of up to 2 MB; empty removes the avatar.
+  optional bytes avatar = 4;
+}
+
+message UpdateAccountResponse {
+  User user = 1;
+}
+
+message ChangePasswordRequest {
+  string current_password = 1;
+  string new_password = 2;
+}
+
+message ChangePasswordResponse {}

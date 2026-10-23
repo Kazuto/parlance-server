@@ -1,0 +1,146 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/common.proto";
+
+option go_package = "parlance/v1;parlance";
+
+service LocalizationService {
+  rpc ListLocalizations(ListLocalizationsRequest) returns (ListLocalizationsResponse);
+  rpc GetLocalization(GetLocalizationRequest) returns (GetLocalizationResponse);
+  rpc CreateLocalization(CreateLocalizationRequest) returns (CreateLocalizationResponse);
+  rpc UpdateLocalization(UpdateLocalizationRequest) returns (UpdateLocalizationResponse);
+  rpc DeleteLocalization(DeleteLocalizationRequest) returns (DeleteLocalizationResponse);
+  rpc RestoreLocalization(RestoreLocalizationRequest) returns (RestoreLocalizationResponse);
+  // Suggests machine translations of an entry's source text, without saving them.
+  rpc SuggestTranslations(SuggestTranslationsRequest) returns (SuggestTranslationsResponse);
+  rpc BatchTranslate(BatchTranslateRequest) returns (BatchTranslateResponse);
+  // Approves or rejects translations, picked by id or by entry and locale.
+  rpc ReviewLocalizations(ReviewLocalizationsRequest) returns (ReviewLocalizationsResponse);
+}
+
+message Localization {
+  string id = 1;
+  string entry_id = 2;
+  string locale_id = 3;
+  string translation = 4;
+  string created_at = 5;
+  string updated_at = 6;
+  string deleted_at = 7;
+  string created_by = 8;
+  string updated_by = 9;
+  ReviewStatus status = 10;
+  string reviewed_by = 11;
+  string reviewed_at = 12;
+  // Why a reviewer sent the translation back; cleared once it is approved.
+  string review_comment = 13;
+}
+
+message ListLocalizationsRequest {
+  string entry_id = 1;
+  PaginationRequest pagination = 2;
+  FilterRequest filter = 3;
+}
+
+message ListLocalizationsResponse {
+  repeated Localization localizations = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetLocalizationRequest {
+  string id = 1;
+}
+
+message GetLocalizationResponse {
+  Localization localization = 1;
+}
+
+message CreateLocalizationRequest {
+  string entry_id = 1;
+  string locale_id = 2;
+  string translation = 3;
+}
+
+message CreateLocalizationResponse {
+  Localization localization = 1;
+}
+
+message UpdateLocalizationRequest {
+  string id = 1;
+  optional string translation = 2;
+}
+
+message UpdateLocalizationResponse {
+  Localization localization = 1;
+}
+
+message DeleteLocalizationRequest {
+  string id = 1;
+}
+
+message RestoreLocalizationRequest {
+  string id = 1;
+}
+
+message RestoreLocalizationResponse {
+  Localization localization = 1;
+}
+
+message DeleteLocalizationResponse {}
+
+message SuggestTranslationsRequest {
+  string entry_id = 1;
+  repeated string target_locale_ids = 2;
+}
+
+// A part of a suggestion a reviewer should check.
+message TranslationWarning {
+  // PLACEHOLDER_MISSING, PLACEHOLDER_UNEXPECTED, PLURAL_FORMS or LINE_BREAKS.
+  string code = 1;
+  // What is affected, e.g. the placeholder "{count}".
+  string detail = 2;
+}
+
+message TranslationSuggestion {
+  string locale_id = 1;
+  // Empty when error_code is set.
+  string translation = 2;
+  repeated TranslationWarning warnings = 3;
+  // UNSUPPORTED_LANGUAGE, EMPTY_ANSWER, ANSWER_TOO_LONG or FAILED.
+  string error_code = 4;
+}
+
+message SuggestTranslationsResponse {
+  // One per requested locale, in the requested order.
+  repeated TranslationSuggestion suggestions = 1;
+}
+
+message BatchTranslateRequest {
+  repeated string entry_ids = 1;
+  string target_locale_id = 2;
+  string source_locale_id = 3;
+  bool apply_terminology = 4;
+}
+
+message BatchTranslateResponse {
+  repeated Localization localizations = 1;
+  int32 success_count = 2;
+  int32 failure_count = 3;
+  // Entries that already had a translation, which is kept.
+  int32 skipped_count = 4;
+}
+
+message ReviewLocalizationsRequest {
+  repeated string localization_ids = 1;
+  // Also the translations of these entries in these locales. Missing ones, and approved
+  // ones when approving, are skipped.
+  repeated string entry_ids = 2;
+  repeated string locale_ids = 3;
+  ReviewDecision decision = 4;
+  // Required when rejecting: what should change.
+  string comment = 5;
+}
+
+message ReviewLocalizationsResponse {
+  repeated Localization localizations = 1;
+}

@@ -1,0 +1,123 @@
+services:
+  api:
+    container_name: parlance-api
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: dev
+    ports:
+      - "${PORT:-8080}:${PORT:-8080}"
+    environment:
+      - ENV=${ENV:-development}
+      - PORT=${PORT:-8080}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USER=${DB_USER:-parlance}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      - DB_NAME=${DB_NAME:-parlance}
+      - DB_SSL_MODE=${DB_SSL_MODE:-disable}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-*}
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
+      - JWT_EXPIRY=${JWT_EXPIRY:-24h}
+      # Encrypts API keys of translation servers; changing it makes saved keys unreadable.
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-dev-encryption-key-change-in-production}
+      - S3_ENDPOINT=${S3_ENDPOINT:-minio:9000}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY:-minioadmin}
+      - S3_SECRET_KEY=${S3_SECRET_KEY:-minioadmin}
+      - S3_BUCKET=${S3_BUCKET:-parlance}
+      - S3_USE_SSL=${S3_USE_SSL:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - ..:/app
+    networks:
+      - parlance-network
+    restart: unless-stopped
+
+  postgres:
+    container_name: parlance-postgres
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=${DB_USER:-parlance}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-secret}
+      - POSTGRES_DB=${DB_NAME:-parlance}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - parlance-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U parlance"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  minio:
+    container_name: parlance-minio
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${S3_ACCESS_KEY:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${S3_SECRET_KEY:-minioadmin}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # Web console
+    networks:
+      - parlance-network
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # A Hy-MT2 translation model for machine translation. Optional, as the model is
+  # downloaded on first start (1.8B: ~1.1 GB): start it with
+  #   docker compose --profile translation up -d
+  # then add http://translator:8080/v1 under Settings > Machine translation.
+  # For a GPU, also an integrated one, use the image tag "server-vulkan" and pass
+  # the device: TRANSLATOR_IMAGE_TAG=server-vulkan plus `devices: ["/dev/dri:/dev/dri"]`.
+  translator:
+    container_name: parlance-translator
+    image: ghcr.io/ggml-org/llama.cpp:${TRANSLATOR_IMAGE_TAG:-server}
+    command:
+      - -hf
+      - ${TRANSLATOR_MODEL:-tencent/Hy-MT2-1.8B-GGUF:Q4_K_M}
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      # Two requests at once, each with 4096 tokens of context; match it with
+      # "Requests at a time" in the settings.
+      - --parallel
+      - "2"
+      - --ctx-size
+      - "8192"
+    volumes:
+      - translator_models:/root/.cache
+    networks:
+      - parlance-network
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      # The first start downloads the model.
+      start_period: 10m
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  minio_data:
+  translator_models:
+
+networks:
+  parlance-network:
+    driver: bridge
