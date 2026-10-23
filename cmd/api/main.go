@@ -19,10 +19,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/kazuto/parlance-server/gen/parlance/v1/parlancev1connect"
+	"github.com/kazuto/parlance-server/internal/avatar"
 	"github.com/kazuto/parlance-server/internal/config"
 	"github.com/kazuto/parlance-server/internal/database"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/secret"
+	"github.com/kazuto/parlance-server/internal/server/account"
 	"github.com/kazuto/parlance-server/internal/server/activity"
 	"github.com/kazuto/parlance-server/internal/server/auth"
 	"github.com/kazuto/parlance-server/internal/server/definition"
@@ -81,7 +83,17 @@ func main() {
 		log.Fatalf("Failed to connect to S3: %v", err)
 	}
 
+	// Avatars live in S3 and are served through the API; without a bucket, users
+	// can't set one.
+	var avatarStorage avatar.Storage
+	if cfg.S3.Bucket != "" {
+		avatarStorage = avatar.NewS3(s3Client, cfg.S3.Bucket)
+	}
+
+	avatars := avatar.New(avatarStorage)
+
 	mux := http.NewServeMux()
+	mux.Handle("GET /avatars/{id}", avatars)
 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -143,7 +155,10 @@ func main() {
 			return parlancev1connect.NewScopeServiceHandler(scope.NewServer(db), o...)
 		}, true},
 		{"UserService", func(o ...connect.HandlerOption) (string, http.Handler) {
-			return parlancev1connect.NewUserServiceHandler(user.NewServer(db, s3Client, cfg.S3), o...)
+			return parlancev1connect.NewUserServiceHandler(user.NewServer(db, avatars), o...)
+		}, true},
+		{"AccountService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewAccountServiceHandler(account.NewServer(db, avatars), o...)
 		}, true},
 		{"EntryService", func(o ...connect.HandlerOption) (string, http.Handler) {
 			return parlancev1connect.NewEntryServiceHandler(entry.NewServer(db), o...)

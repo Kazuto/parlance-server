@@ -24,6 +24,8 @@ func UserToProto(u *models.User) *pb.User {
 		CreatedAt: u.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: u.UpdatedAt.Format(time.RFC3339),
 		DeletedAt: formatDeletedAt(u.DeletedAt),
+		// Accounts single sign-on created have no password hash.
+		HasPassword: u.PasswordHash != "",
 	}
 }
 

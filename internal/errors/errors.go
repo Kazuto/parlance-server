@@ -29,6 +29,8 @@ const (
 	ErrUserNotFound       = "USER_NOT_FOUND"
 	ErrUserAlreadyExists  = "USER_ALREADY_EXISTS"
 	ErrInvalidCredentials = "INVALID_CREDENTIALS"
+	// Changing one's password needs the current one.
+	ErrWrongPassword = "WRONG_PASSWORD"
 
 	// Setup errors
 	ErrSetupAlreadyCompleted = "SETUP_ALREADY_COMPLETED"

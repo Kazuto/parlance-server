@@ -21,11 +21,16 @@ message User {
   string email = 2;
   string name = 3;
   string locale = 4;
+  // The avatar's address on the API, e.g. "/avatars/<id>?v=1761250000"; empty
+  // without one.
   string avatar = 5;
   repeated Role roles = 6;
   string created_at = 7;
   string updated_at = 8;
   string deleted_at = 9;
+  // Whether the user can sign in with a password; accounts single sign-on
+  // created have none.
+  bool has_password = 10;
 }
 
 message ListUsersRequest {
@@ -68,7 +73,9 @@ message UpdateUserRequest {
   reserved 5;
   reserved "role_ids";
   optional string locale = 6;
-  optional bytes avatar = 7;  // Send empty to remove the avatar
+  // A PNG, JPEG, WebP or GIF image of up to 2 MB; empty removes the avatar.
+  optional bytes avatar = 7;
+  // Not needed: the image's type is read from it.
   optional string avatar_mime = 8;
   IdSelection roles = 9;
 }

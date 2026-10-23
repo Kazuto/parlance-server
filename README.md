@@ -51,7 +51,7 @@ Set these as environment variables or in a `.env` file (see `.env.example`):
 | `JWT_EXPIRY`                            | `24h`                            | How long a sign-in lasts; refresh tokens last 7 times as long                                                                                                                                                                                                    |
 | `ENCRYPTION_KEY`                        | (none)                           | Encrypts stored API keys of translation servers, access tokens of tasks and signing secrets of webhooks, and client secrets of sign-in providers. Needed only to save them. Changing it makes saved ones unreadable. Generate one with `openssl rand -base64 32` |
 | `CORS_ALLOWED_ORIGINS`                  | `http://localhost:3000`          | Comma-separated addresses of the web apps allowed to call the API; single sign-on only returns to these                                                                                                                                                          |
-| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET` | (none)                           | S3-compatible storage for avatars                                                                                                                                                                                                                                |
+| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET` | (none)                           | S3-compatible storage for avatars, which the API serves at `/avatars/{id}`; the bucket is created if missing and needs no public access                                                                                                                          |
 | `S3_ACCESS_KEY`, `S3_SECRET_KEY`        | (none)                           | Credentials for that storage                                                                                                                                                                                                                                     |
 
 The Docker Compose file sets development values for all of them; set your own
@@ -329,7 +329,11 @@ curl -X POST http://localhost:8080/parlance.v1.EntryService/ListEntries \
 ```
 
 Every call checks the caller's permissions, such as `read_entry` or
-`update_locale`.
+`update_locale`. `AccountService` needs none: everyone signed in may change their
+own name, email, language, avatar and password; changing the password asks for
+the current one, unless the account has none yet, like accounts single sign-on
+created. Avatars are PNG, JPEG, WebP or GIF images of up to 2 MB; their type is
+read from the image.
 
 ### Create and update requests
 

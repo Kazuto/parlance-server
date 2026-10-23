@@ -1,13 +1,9 @@
 package user
 
 import (
-	"bytes"
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/kazuto/parlance-server/internal/auth"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
@@ -37,10 +33,6 @@ func (s *Server) UpdateUser(
 
 	if req.Msg.Password != nil && req.Msg.GetPassword() == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "password must not be empty")
-	}
-
-	if len(req.Msg.GetAvatar()) > 0 && req.Msg.GetAvatarMime() == "" {
-		return nil, errors.InvalidInput(errors.ErrInvalidInput, "avatar mime type is required")
 	}
 
 	user, err := common.FindByID[models.User](s.db.WithContext(ctx), req.Msg.Id, errors.ErrUserNotFound, "user not found")
@@ -75,14 +67,18 @@ func (s *Server) UpdateUser(
 
 	if req.Msg.Avatar != nil {
 		if len(req.Msg.Avatar) == 0 {
-			user.Avatar = nil
-		} else {
-			url, err := s.uploadAvatar(ctx, user.ID, req.Msg.Avatar, req.Msg.GetAvatarMime())
-			if err != nil {
-				return nil, errors.Internal(errors.ErrInternal, "failed to upload avatar")
+			if err := s.avatars.Remove(ctx, user.ID); err != nil {
+				return nil, err
 			}
 
-			user.Avatar = &url
+			user.Avatar = nil
+		} else {
+			address, err := s.avatars.Save(ctx, user.ID, req.Msg.Avatar)
+			if err != nil {
+				return nil, err
+			}
+
+			user.Avatar = &address
 		}
 	}
 
@@ -119,21 +115,4 @@ func (s *Server) UpdateUser(
 	return connect.NewResponse(&pb.UpdateUserResponse{
 		User: converter.UserToProto(&user),
 	}), nil
-}
-
-// Upload to S3
-func (s *Server) uploadAvatar(ctx context.Context, userID string, data []byte, contentType string) (string, error) {
-	key := fmt.Sprintf("avatars/%s", userID)
-
-	_, err := s.s3.PutObject(ctx, &s3.PutObjectInput{
-		Bucket:      aws.String(s.bucket),
-		Key:         aws.String(key),
-		Body:        bytes.NewReader(data),
-		ContentType: aws.String(contentType),
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("http://%s/%s/%s", s.endpoint, s.bucket, key), nil
 }

@@ -22,16 +22,21 @@ const (
 )
 
 type User struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Locale        string                 `protobuf:"bytes,4,opt,name=locale,proto3" json:"locale,omitempty"`
-	Avatar        string                 `protobuf:"bytes,5,opt,name=avatar,proto3" json:"avatar,omitempty"`
-	Roles         []*Role                `protobuf:"bytes,6,rep,name=roles,proto3" json:"roles,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	DeletedAt     string                 `protobuf:"bytes,9,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Id     string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Email  string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Name   string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Locale string                 `protobuf:"bytes,4,opt,name=locale,proto3" json:"locale,omitempty"`
+	// The avatar's address on the API, e.g. "/avatars/<id>?v=1761250000"; empty
+	// without one.
+	Avatar    string  `protobuf:"bytes,5,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	Roles     []*Role `protobuf:"bytes,6,rep,name=roles,proto3" json:"roles,omitempty"`
+	CreatedAt string  `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt string  `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DeletedAt string  `protobuf:"bytes,9,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
+	// Whether the user can sign in with a password; accounts single sign-on
+	// created have none.
+	HasPassword   bool `protobuf:"varint,10,opt,name=has_password,json=hasPassword,proto3" json:"has_password,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -127,6 +132,13 @@ func (x *User) GetDeletedAt() string {
 		return x.DeletedAt
 	}
 	return ""
+}
+
+func (x *User) GetHasPassword() bool {
+	if x != nil {
+		return x.HasPassword
+	}
+	return false
 }
 
 type ListUsersRequest struct {
@@ -442,15 +454,17 @@ func (x *CreateUserResponse) GetUser() *User {
 }
 
 type UpdateUserRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Email         *string                `protobuf:"bytes,2,opt,name=email,proto3,oneof" json:"email,omitempty"`
-	Name          *string                `protobuf:"bytes,3,opt,name=name,proto3,oneof" json:"name,omitempty"`
-	Password      *string                `protobuf:"bytes,4,opt,name=password,proto3,oneof" json:"password,omitempty"`
-	Locale        *string                `protobuf:"bytes,6,opt,name=locale,proto3,oneof" json:"locale,omitempty"`
-	Avatar        []byte                 `protobuf:"bytes,7,opt,name=avatar,proto3,oneof" json:"avatar,omitempty"` // Send empty to remove the avatar
-	AvatarMime    *string                `protobuf:"bytes,8,opt,name=avatar_mime,json=avatarMime,proto3,oneof" json:"avatar_mime,omitempty"`
-	Roles         *IdSelection           `protobuf:"bytes,9,opt,name=roles,proto3" json:"roles,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Id       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Email    *string                `protobuf:"bytes,2,opt,name=email,proto3,oneof" json:"email,omitempty"`
+	Name     *string                `protobuf:"bytes,3,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	Password *string                `protobuf:"bytes,4,opt,name=password,proto3,oneof" json:"password,omitempty"`
+	Locale   *string                `protobuf:"bytes,6,opt,name=locale,proto3,oneof" json:"locale,omitempty"`
+	// A PNG, JPEG, WebP or GIF image of up to 2 MB; empty removes the avatar.
+	Avatar []byte `protobuf:"bytes,7,opt,name=avatar,proto3,oneof" json:"avatar,omitempty"`
+	// Not needed: the image's type is read from it.
+	AvatarMime    *string      `protobuf:"bytes,8,opt,name=avatar_mime,json=avatarMime,proto3,oneof" json:"avatar_mime,omitempty"`
+	Roles         *IdSelection `protobuf:"bytes,9,opt,name=roles,proto3" json:"roles,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -853,7 +867,7 @@ var File_parlance_v1_user_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_user_proto_rawDesc = "" +
 	"\n" +
-	"\x16parlance/v1/user.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x16parlance/v1/role.proto\"\xf6\x01\n" +
+	"\x16parlance/v1/user.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x16parlance/v1/role.proto\"\x99\x02\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x12\n" +
@@ -866,7 +880,9 @@ const file_parlance_v1_user_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\b \x01(\tR\tupdatedAt\x12\x1d\n" +
 	"\n" +
-	"deleted_at\x18\t \x01(\tR\tdeletedAt\"\x86\x01\n" +
+	"deleted_at\x18\t \x01(\tR\tdeletedAt\x12!\n" +
+	"\fhas_password\x18\n" +
+	" \x01(\bR\vhasPassword\"\x86\x01\n" +
 	"\x10ListUsersRequest\x12>\n" +
 	"\n" +
 	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +

@@ -15,6 +15,10 @@ import (
 // them. REPLACE_ALL imports also need delete_entry, and approving imports review_entry,
 // which the handler checks.
 var Rules = map[string][]string{
+	// AccountService: everyone signed in manages their own account.
+	parlancev1connect.AccountServiceChangePasswordProcedure: {},
+	parlancev1connect.AccountServiceUpdateAccountProcedure:  {},
+
 	// ActivityService
 	parlancev1connect.ActivityServiceListRecentActivityProcedure: {permissions.ReadEntry},
 
