@@ -40,19 +40,19 @@ variables below.
 
 Set these as environment variables or in a `.env` file (see `.env.example`):
 
-| Variable                                | Default                          | Description                                                                                                                                                          |
-| --------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PORT`                                  | `8080`                           | Port of the API                                                                                                                                                      |
-| `ENV`                                   | `development`                    | Name of the environment, shown in the log                                                                                                                            |
-| `DB_HOST`, `DB_PORT`                    | `localhost`, `5432`              | PostgreSQL server                                                                                                                                                    |
-| `DB_USER`, `DB_PASSWORD`, `DB_NAME`     | `parlance`, `secret`, `parlance` | PostgreSQL login and database                                                                                                                                        |
-| `DB_SSL_MODE`                           | `disable`                        | PostgreSQL `sslmode`                                                                                                                                                 |
-| `JWT_SECRET`                            | `change-this-secret`             | Signs the sign-in tokens. **Set your own.**                                                                                                                          |
-| `JWT_EXPIRY`                            | `24h`                            | How long a sign-in lasts; refresh tokens last 7 times as long                                                                                                        |
-| `ENCRYPTION_KEY`                        | (none)                           | Encrypts stored API keys of translation servers. Needed only to save such keys. Changing it makes saved keys unreadable. Generate one with `openssl rand -base64 32` |
-| `CORS_ALLOWED_ORIGINS`                  | `http://localhost:3000`          | Comma-separated addresses of the web apps allowed to call the API                                                                                                    |
-| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET` | (none)                           | S3-compatible storage for avatars                                                                                                                                    |
-| `S3_ACCESS_KEY`, `S3_SECRET_KEY`        | (none)                           | Credentials for that storage                                                                                                                                         |
+| Variable                                | Default                          | Description                                                                                                                                                                                |
+| --------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PORT`                                  | `8080`                           | Port of the API                                                                                                                                                                            |
+| `ENV`                                   | `development`                    | Name of the environment, shown in the log                                                                                                                                                  |
+| `DB_HOST`, `DB_PORT`                    | `localhost`, `5432`              | PostgreSQL server                                                                                                                                                                          |
+| `DB_USER`, `DB_PASSWORD`, `DB_NAME`     | `parlance`, `secret`, `parlance` | PostgreSQL login and database                                                                                                                                                              |
+| `DB_SSL_MODE`                           | `disable`                        | PostgreSQL `sslmode`                                                                                                                                                                       |
+| `JWT_SECRET`                            | `change-this-secret`             | Signs the sign-in tokens. **Set your own.**                                                                                                                                                |
+| `JWT_EXPIRY`                            | `24h`                            | How long a sign-in lasts; refresh tokens last 7 times as long                                                                                                                              |
+| `ENCRYPTION_KEY`                        | (none)                           | Encrypts stored API keys of translation servers and access tokens of tasks. Needed only to save them. Changing it makes saved ones unreadable. Generate one with `openssl rand -base64 32` |
+| `CORS_ALLOWED_ORIGINS`                  | `http://localhost:3000`          | Comma-separated addresses of the web apps allowed to call the API                                                                                                                          |
+| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET` | (none)                           | S3-compatible storage for avatars                                                                                                                                                          |
+| `S3_ACCESS_KEY`, `S3_SECRET_KEY`        | (none)                           | Credentials for that storage                                                                                                                                                               |
 
 The Docker Compose file sets development values for all of them; set your own
 `JWT_SECRET` and `ENCRYPTION_KEY` anywhere else.
@@ -129,6 +129,42 @@ tried on the others.
 
 The code is in `internal/translate` (prompt, cleanup, client) and
 `internal/translators` (servers from the database).
+
+## Tasks
+
+Tasks do work on their own, set up by admins under **Automation** in the web app:
+
+- **Machine translation** fills missing translations from the default (or a chosen)
+  language, as drafts. Existing translations, drafts included, are kept, and
+  results the checks flag are left out. One run makes at most 200 translations by
+  default; the rest wait for the next run.
+- **Git export** renders the chosen formats for each language, for example
+  `lang/{locale}.json`, and proposes them as a GitHub pull request from its own
+  branch. Only approved translations are exported unless drafts are included. The
+  branch is rebuilt from the base branch on every run, and nothing is pushed while
+  the repository or the branch already hold the files. It needs a token with
+  read and write access to the repository's contents and pull requests (a
+  fine-grained token works), which is stored encrypted, so it needs `ENCRYPTION_KEY`.
+
+A task runs on its cron schedule (5 fields, UTC), after events, or when started by
+hand. Events, for now approving translations (in the editor or with an approving
+import), start a run after the task's delay; further events join that run, so a
+burst of approvals runs once. Each task has at most one queued and one running
+run.
+
+Tasks and their settings are kept in the database and set up in the app; nothing
+about them is configured at deployment. The switch at the top of the Automation
+page pauses all tasks: nothing is scheduled or run until they are resumed. Runs
+triggered in the meantime wait, and a schedule that came due fires once on resuming.
+
+The runner runs inside the API server (`internal/taskrunner`) and looks for work
+every 15 seconds; starting a run wakes it right away. Runs and scheduled
+firings are claimed with row locks, so several instances can share the work. A
+run that stops reporting, for example because its server stopped, fails after two
+minutes. The last 100 runs of each task are kept with their logs.
+
+Permissions: `read_task`, `create_task`, `update_task`, `delete_task`, and
+`run_task` to start and cancel runs.
 
 ## API
 

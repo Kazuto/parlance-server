@@ -52,6 +52,11 @@ issues:
         - errcheck
         - unparam
 
+    # Test fakes skip checks the tests don't need, e.g. on request bodies they built
+    - path: forgetest/
+      linters:
+        - errcheck
+
     # Exclude "interface{} can be replaced by any" for now (Go 1.18+ suggestion)
     - text: "interface\\{\\} can be replaced by any"
       linters:

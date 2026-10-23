@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"connectrpc.com/connect"
-	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
-	"github.com/kazuto/parlance-server/internal/gettext"
 	"github.com/kazuto/parlance-server/internal/server/common"
+
+	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
 
 func (s *Server) ExportPo(ctx context.Context, req *connect.Request[pb.ExportPoRequest]) (*connect.Response[pb.ExportPoResponse], error) {
@@ -19,17 +19,12 @@ func (s *Server) ExportPo(ctx context.Context, req *connect.Request[pb.ExportPoR
 
 	scopeIDs := common.UniqueIDs(req.Msg.ScopeIds)
 
-	entries, err := loadEntries(db, locale.ID, scopeIDs, req.Msg.IncludeDrafts)
+	content, err := Render(db, FormatPO, locale, scopeIDs, req.Msg.IncludeDrafts)
 	if err != nil {
 		return nil, err
 	}
 
-	messages := make([]gettext.Entry, len(entries))
-	for i, entry := range entries {
-		messages[i] = gettext.Entry{ID: entry.Key, Description: entry.Description, Translation: entry.Translation}
-	}
-
 	return connect.NewResponse(&pb.ExportPoResponse{
-		Format: "po", Content: gettext.Marshal(locale.Code, messages), Filename: exportFilename(db, scopeIDs, locale.Code, "po"),
+		Format: FormatPO, Content: content, Filename: exportFilename(db, scopeIDs, locale.Code, FormatPO),
 	}), nil
 }

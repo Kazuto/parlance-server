@@ -98,6 +98,20 @@ var Rules = map[string][]string{
 	// StatsService
 	parlancev1connect.StatsServiceGetStatsProcedure: {permissions.ReadEntry},
 
+	// TaskService
+	parlancev1connect.TaskServiceCancelTaskRunProcedure:      {permissions.RunTask},
+	parlancev1connect.TaskServiceCheckTaskAccessProcedure:    {permissions.UpdateTask},
+	parlancev1connect.TaskServiceCreateTaskProcedure:         {permissions.CreateTask},
+	parlancev1connect.TaskServiceDeleteTaskProcedure:         {permissions.DeleteTask},
+	parlancev1connect.TaskServiceGetTaskProcedure:            {permissions.ReadTask},
+	parlancev1connect.TaskServiceGetTaskRunProcedure:         {permissions.ReadTask},
+	parlancev1connect.TaskServiceGetTaskSettingsProcedure:    {permissions.ReadTask},
+	parlancev1connect.TaskServiceListTaskRunsProcedure:       {permissions.ReadTask},
+	parlancev1connect.TaskServiceListTasksProcedure:          {permissions.ReadTask},
+	parlancev1connect.TaskServiceRunTaskProcedure:            {permissions.RunTask},
+	parlancev1connect.TaskServiceUpdateTaskProcedure:         {permissions.UpdateTask},
+	parlancev1connect.TaskServiceUpdateTaskSettingsProcedure: {permissions.UpdateTask},
+
 	// TerminologyService
 	parlancev1connect.TerminologyServiceCreateTerminologyProcedure:    {permissions.CreateTerminology},
 	parlancev1connect.TerminologyServiceDeleteTerminologyProcedure:    {permissions.DeleteTerminology},

@@ -9,6 +9,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/taskqueue"
 	"gorm.io/gorm"
 )
 
@@ -25,6 +26,8 @@ type ReviewSelection struct {
 	LocaleIDs []string
 	// The column holding the parent id, e.g. "entry_id"
 	ParentColumn string
+	// The task event approving rows emits, if any
+	ApprovedEvent string
 }
 
 // ValidateReview checks a review request before rows are loaded
@@ -115,6 +118,10 @@ func ReviewRows[T any, P interface {
 			if err := row.RecordReview(tx, action); err != nil {
 				return err
 			}
+		}
+
+		if action == models.ActionApproved && len(rows) > 0 && selection.ApprovedEvent != "" {
+			return taskqueue.Emit(tx, selection.ApprovedEvent)
 		}
 
 		return nil

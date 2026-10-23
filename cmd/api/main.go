@@ -37,9 +37,11 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/scope"
 	"github.com/kazuto/parlance-server/internal/server/setup"
 	"github.com/kazuto/parlance-server/internal/server/stats"
+	"github.com/kazuto/parlance-server/internal/server/task"
 	"github.com/kazuto/parlance-server/internal/server/terminology"
 	"github.com/kazuto/parlance-server/internal/server/translationserver"
 	"github.com/kazuto/parlance-server/internal/server/user"
+	"github.com/kazuto/parlance-server/internal/taskrunner"
 	"github.com/kazuto/parlance-server/internal/translators"
 )
 
@@ -95,6 +97,15 @@ func main() {
 
 	translatorSource := translators.NewDBSource(db, secretBox)
 
+	// The task runner runs scheduled, triggered and requested task runs. Admins
+	// pause and resume tasks in the app. With several instances of the server,
+	// each run still happens once.
+	runnerCtx, stopRunner := context.WithCancel(context.Background())
+	defer stopRunner()
+
+	runner := taskrunner.New(db.DB, translatorSource, secretBox)
+	runnerDone := runner.Start(runnerCtx)
+
 	// Protected services require a valid token and the permissions rbac.Rules lists.
 	requireAuth := middleware.RequireAuth(cfg.JWT.Secret)
 	authorized := connect.WithInterceptors(rbac.Interceptor(db))
@@ -149,6 +160,9 @@ func main() {
 		{"ImportService", func(o ...connect.HandlerOption) (string, http.Handler) {
 			return parlancev1connect.NewImportServiceHandler(importservice.NewServer(db), o...)
 		}, true},
+		{"TaskService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewTaskServiceHandler(task.NewServer(db, secretBox, runner.Wake), o...)
+		}, true},
 		{"StatsService", func(o ...connect.HandlerOption) (string, http.Handler) {
 			return parlancev1connect.NewStatsServiceHandler(stats.NewServer(db), o...)
 		}, true},
@@ -197,8 +211,17 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// A run in progress is ended as interrupted, so it doesn't wait to go stale.
+	stopRunner()
+
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	select {
+	case <-runnerDone:
+	case <-ctx.Done():
+		log.Println("Task runner did not stop in time")
 	}
 
 	log.Println("Server exited gracefully")

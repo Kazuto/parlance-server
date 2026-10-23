@@ -2,8 +2,6 @@ package export
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/server/common"
@@ -24,27 +22,14 @@ func (s *Server) ExportPhp(
 
 	scopeIDs := common.UniqueIDs(req.Msg.ScopeIds)
 
-	entries, err := loadEntries(db, locale.ID, scopeIDs, req.Msg.IncludeDrafts)
+	content, err := Render(db, FormatPHP, locale, scopeIDs, req.Msg.IncludeDrafts)
 	if err != nil {
 		return nil, err
 	}
 
-	// Build Laravel PHP array format
-	var content strings.Builder
-
-	content.WriteString("<?php\n\nreturn [\n")
-
-	for _, entry := range entries {
-		if entry.Translated {
-			fmt.Fprintf(&content, "    %s => %s,\n", phpString(entry.Key), phpString(entry.Translation))
-		}
-	}
-
-	content.WriteString("];\n")
-
 	return connect.NewResponse(&pb.ExportPhpResponse{
-		Format:   "php",
-		Content:  content.String(),
-		Filename: exportFilename(db, scopeIDs, locale.Code, "php"),
+		Format:   FormatPHP,
+		Content:  content,
+		Filename: exportFilename(db, scopeIDs, locale.Code, FormatPHP),
 	}), nil
 }

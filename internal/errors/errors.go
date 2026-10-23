@@ -62,6 +62,10 @@ const (
 
 	// Translation server errors
 	ErrTranslationServerNotFound = "TRANSLATION_SERVER_NOT_FOUND"
+
+	// Task errors
+	ErrTaskNotFound    = "TASK_NOT_FOUND"
+	ErrTaskRunNotFound = "TASK_RUN_NOT_FOUND"
 	// Saving an API key needs ENCRYPTION_KEY.
 	ErrEncryptionKeyMissing = "ENCRYPTION_KEY_MISSING"
 )

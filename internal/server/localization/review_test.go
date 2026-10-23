@@ -147,3 +147,43 @@ func TestChangedTextNeedsReviewAgain(t *testing.T) {
 		t.Errorf("created translation = %+v, %v; want a draft", res, err)
 	}
 }
+
+func TestApprovingQueuesSubscribedTasks(t *testing.T) {
+	ctx, db := testutil.Setup(t)
+	server := &Server{db: db}
+	seedReviewData(t, server)
+
+	task := models.Task{Name: "Ship", Type: models.TaskTypeGitExport, Enabled: true, Events: []string{models.EventTranslationsApproved}}
+	db.Create(&task)
+	t.Cleanup(func() {
+		db.Exec(`DELETE FROM task_runs WHERE task_id = ?`, task.ID)
+		db.Exec(`DELETE FROM tasks WHERE id = ?`, task.ID)
+	})
+
+	queued := func() int64 {
+		var count int64
+
+		db.Model(&models.TaskRun{}).Where("task_id = ? AND status = ?", task.ID, models.RunQueued).Count(&count)
+
+		return count
+	}
+
+	if _, err := review(ctx, server, &pb.ReviewLocalizationsRequest{
+		LocalizationIds: []string{"rv-l1"}, Decision: pb.ReviewDecision_REVIEW_DECISION_REJECT, Comment: "Typo",
+	}); err != nil || queued() != 0 {
+		t.Fatalf("rejecting: err = %v, %d queued runs, want none", err, queued())
+	}
+
+	if _, err := review(ctx, server, &pb.ReviewLocalizationsRequest{
+		LocalizationIds: []string{"rv-l1", "rv-l2"}, Decision: pb.ReviewDecision_REVIEW_DECISION_APPROVE,
+	}); err != nil || queued() != 1 {
+		t.Fatalf("approving: err = %v, %d queued runs, want 1", err, queued())
+	}
+
+	// Nothing left to approve emits nothing new; the queued run stays the one.
+	if _, err := review(ctx, server, &pb.ReviewLocalizationsRequest{
+		LocalizationIds: []string{"rv-l1"}, Decision: pb.ReviewDecision_REVIEW_DECISION_APPROVE,
+	}); err != nil || queued() != 1 {
+		t.Errorf("approving again: err = %v, %d queued runs, want 1", err, queued())
+	}
+}

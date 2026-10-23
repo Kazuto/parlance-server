@@ -103,7 +103,7 @@ func (s *Server) BatchTranslate(
 			}
 		}
 
-		suggestion := suggestOne(ctx, translator, sourceLocalization.Translation, targetLocale, terms[targetLocale.ID])
+		suggestion := SuggestOne(ctx, translator, sourceLocalization.Translation, targetLocale, terms[targetLocale.ID])
 		if suggestion.ErrorCode != "" || len(suggestion.Warnings) > 0 {
 			failureCount++
 

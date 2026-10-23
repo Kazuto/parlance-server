@@ -20,6 +20,7 @@ func TestSchemaMatchesModels(t *testing.T) {
 		&models.Locale{}, &models.Scope{}, &models.User{}, &models.Role{}, &models.Permission{},
 		&models.Entry{}, &models.EntryScope{}, &models.Localization{}, &models.LocalizationHistory{},
 		&models.Terminology{}, &models.Definition{}, &models.DefinitionHistory{}, &models.TranslationServer{},
+		&models.Task{}, &models.TaskRun{}, &models.Setting{},
 	} {
 		parsed, err := schema.Parse(model, &sync.Map{}, db.NamingStrategy)
 		if err != nil {

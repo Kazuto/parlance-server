@@ -10,6 +10,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/translate"
+	"gorm.io/gorm"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -72,7 +73,7 @@ func (s *Server) suggest(
 			limit <- struct{}{}
 			defer func() { <-limit }()
 
-			suggestions[i] = suggestOne(ctx, translator, source, locale, terms[locale.ID])
+			suggestions[i] = SuggestOne(ctx, translator, source, locale, terms[locale.ID])
 		})
 	}
 
@@ -81,7 +82,9 @@ func (s *Server) suggest(
 	return suggestions
 }
 
-func suggestOne(
+// SuggestOne machine-translates source into the locale. A suggestion with an error
+// code or warnings is one a reviewer shouldn't be handed as a draft.
+func SuggestOne(
 	ctx context.Context,
 	translator translate.Translator,
 	source string,
@@ -150,15 +153,33 @@ func isTimeout(ctx context.Context, err error) bool {
 // glossaryTerms returns, per locale, the glossary terms that occur in source and
 // have an approved translation in that locale, so a draft can't steer translations.
 func (s *Server) glossaryTerms(source string, localeIDs []string) (map[string][]translate.Term, error) {
-	var terminologies []models.Terminology
-	if err := s.db.Preload("Definitions", "locale_id IN ? AND status = ?", localeIDs, models.StatusApproved).Find(&terminologies).Error; err != nil {
+	glossary, err := LoadGlossary(s.db.DB, localeIDs)
+	if err != nil {
 		return nil, err
 	}
 
+	return glossary.Terms(source), nil
+}
+
+// Glossary is the glossary with its approved translations in some locales.
+type Glossary []models.Terminology
+
+// LoadGlossary loads the terms with their approved translations in the locales.
+func LoadGlossary(db *gorm.DB, localeIDs []string) (Glossary, error) {
+	var terminologies []models.Terminology
+	if err := db.Preload("Definitions", "locale_id IN ? AND status = ?", localeIDs, models.StatusApproved).Find(&terminologies).Error; err != nil {
+		return nil, err
+	}
+
+	return terminologies, nil
+}
+
+// Terms returns, per locale, the terms that occur in source with their translation.
+func (g Glossary) Terms(source string) map[string][]translate.Term {
 	words := translate.Words(source)
 	terms := map[string][]translate.Term{}
 
-	for _, terminology := range terminologies {
+	for _, terminology := range g {
 		if len(translate.FindTerm(terminology.Term, words)) == 0 {
 			continue
 		}
@@ -175,5 +196,5 @@ func (s *Server) glossaryTerms(source string, localeIDs []string) (map[string][]
 		}
 	}
 
-	return terms, nil
+	return terms
 }

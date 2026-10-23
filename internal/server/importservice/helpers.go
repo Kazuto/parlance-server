@@ -14,6 +14,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
 	"github.com/kazuto/parlance-server/internal/server/common"
+	"github.com/kazuto/parlance-server/internal/taskqueue"
 	"gorm.io/gorm"
 )
 
@@ -66,7 +67,16 @@ func (s *Server) processImport(
 			return err
 		}
 
-		return applyImport(tx, result, plan, scopes, userID, localeID, translations, options)
+		if err := applyImport(tx, result, plan, scopes, userID, localeID, translations, options); err != nil {
+			return err
+		}
+
+		// Approved imports ship like translations approved in the editor.
+		if options.approve && result.EntriesCreated+result.EntriesUpdated > 0 {
+			return taskqueue.Emit(tx, models.EventTranslationsApproved)
+		}
+
+		return nil
 	})
 	if err != nil {
 		if connect.CodeOf(err) != connect.CodeUnknown {

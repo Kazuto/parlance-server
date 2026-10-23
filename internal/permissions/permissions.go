@@ -63,6 +63,14 @@ const (
 
 	// Requesting machine translations, which loads the translation servers.
 	UseMachineTranslation = "use_machine_translation"
+
+	// Task permissions
+	CreateTask = "create_task"
+	ReadTask   = "read_task"
+	UpdateTask = "update_task"
+	DeleteTask = "delete_task"
+	// Starting and canceling task runs
+	RunTask = "run_task"
 )
 
 // AllPermissions returns all defined permissions
@@ -107,6 +115,11 @@ func AllPermissions() []string {
 		UpdateTranslationServer,
 		DeleteTranslationServer,
 		UseMachineTranslation,
+		CreateTask,
+		ReadTask,
+		UpdateTask,
+		DeleteTask,
+		RunTask,
 	}
 }
 

@@ -97,6 +97,9 @@ func (db *DB) AutoMigrate() error {
 		&models.Definition{},
 		&models.DefinitionHistory{},
 		&models.TranslationServer{},
+		&models.Task{},
+		&models.TaskRun{},
+		&models.Setting{},
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
@@ -116,6 +119,8 @@ func (db *DB) AutoMigrate() error {
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_entry_scopes_unique ON entry_scopes (entry_id, scope_id)")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_roles_unique ON user_roles (user_id, role_id)")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_role_permissions_unique ON role_permissions (role_id, permission_id)")
+	// A task has at most one queued run, which later triggers join.
+	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_task_runs_queued ON task_runs (task_id) WHERE status = 'queued'")
 
 	log.Println("Database migrations completed")
 

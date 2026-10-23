@@ -219,6 +219,45 @@ func SetupTestDB() (*database.DB, error) {
 			created_by TEXT,
 			updated_by TEXT
 		)`,
+		`CREATE TABLE IF NOT EXISTS tasks (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			type TEXT NOT NULL,
+			enabled INTEGER NOT NULL DEFAULT 0,
+			schedule TEXT NOT NULL DEFAULT '',
+			next_run_at DATETIME,
+			events TEXT,
+			event_delay_minutes INTEGER NOT NULL DEFAULT 0,
+			config TEXT,
+			secret TEXT,
+			created_at DATETIME,
+			updated_at DATETIME,
+			created_by TEXT,
+			updated_by TEXT
+		)`,
+		`CREATE TABLE IF NOT EXISTS task_runs (
+			id TEXT PRIMARY KEY,
+			task_id TEXT NOT NULL,
+			trigger TEXT NOT NULL,
+			triggered_by TEXT,
+			status TEXT NOT NULL,
+			run_after DATETIME NOT NULL,
+			cancel_requested INTEGER NOT NULL DEFAULT 0,
+			started_at DATETIME,
+			heartbeat_at DATETIME,
+			finished_at DATETIME,
+			summary TEXT,
+			log TEXT NOT NULL DEFAULT '',
+			error TEXT NOT NULL DEFAULT '',
+			created_at DATETIME
+		)`,
+		`CREATE TABLE IF NOT EXISTS settings (
+			key TEXT PRIMARY KEY,
+			value TEXT NOT NULL,
+			updated_at DATETIME,
+			updated_by TEXT
+		)`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS idx_task_runs_queued ON task_runs (task_id) WHERE status = 'queued'`,
 	} {
 		if err := db.Exec(statement).Error; err != nil {
 			return nil, fmt.Errorf("create test schema: %w", err)
