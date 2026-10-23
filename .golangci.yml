@@ -14,6 +14,9 @@ linters:
     - unparam
     - gofmt
     - goimports
+    # Blank lines between statements, like the web app's padding rules
+    - wsl
+    - nlreturn
   disable:
     - exhaustive
     - exhaustruct
@@ -30,6 +33,10 @@ linters-settings:
 
   gofmt:
     simplify: true
+
+  nlreturn:
+    # A block of only a return or branch needs no blank line before it.
+    block-size: 1
 
   misspell:
     locale: US
