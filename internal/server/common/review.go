@@ -10,6 +10,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/taskqueue"
+	"github.com/kazuto/parlance-server/internal/webhook"
 	"gorm.io/gorm"
 )
 
@@ -17,6 +18,7 @@ import (
 type Reviewable interface {
 	ReviewState() *models.Review
 	RecordReview(tx *gorm.DB, action string) error
+	RowID() string
 }
 
 // ReviewSelection picks rows by id, or by their parent (entry or terminology) and locale
@@ -28,6 +30,9 @@ type ReviewSelection struct {
 	ParentColumn string
 	// The task event approving rows emits, if any
 	ApprovedEvent string
+	// Whether reviews are sent to webhooks, as translations.approved or
+	// translations.rejected; only translations are
+	Webhooks bool
 }
 
 // ValidateReview checks a review request before rows are loaded
@@ -120,7 +125,17 @@ func ReviewRows[T any, P interface {
 			}
 		}
 
-		if action == models.ActionApproved && len(rows) > 0 && selection.ApprovedEvent != "" {
+		if len(rows) == 0 {
+			return nil
+		}
+
+		if selection.Webhooks {
+			if err := emitReviewed[T, P](tx, rows, action, reviewer, strings.TrimSpace(comment)); err != nil {
+				return err
+			}
+		}
+
+		if action == models.ActionApproved && selection.ApprovedEvent != "" {
 			return taskqueue.Emit(tx, selection.ApprovedEvent)
 		}
 
@@ -131,4 +146,26 @@ func ReviewRows[T any, P interface {
 	}
 
 	return rows, nil
+}
+
+// emitReviewed sends the reviewed rows to the webhooks subscribed to the review.
+func emitReviewed[T any, P interface {
+	*T
+	Reviewable
+}](tx *gorm.DB, rows []T, action string, reviewer *string, comment string) error {
+	ids := make([]string, len(rows))
+	for i := range rows {
+		ids[i] = P(&rows[i]).RowID()
+	}
+
+	event := models.WebhookEventTranslationsApproved
+	if action == models.ActionRejected {
+		event = models.WebhookEventTranslationsRejected
+	} else {
+		comment = ""
+	}
+
+	return webhook.Emit(tx, event, func() (any, error) {
+		return webhook.Translations(tx, ids, reviewer, comment)
+	})
 }

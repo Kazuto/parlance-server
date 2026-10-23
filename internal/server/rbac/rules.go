@@ -137,6 +137,16 @@ var Rules = map[string][]string{
 	parlancev1connect.UserServiceListUsersProcedure:   {permissions.ReadUser},
 	parlancev1connect.UserServiceRestoreUserProcedure: {permissions.DeleteUser},
 	parlancev1connect.UserServiceUpdateUserProcedure:  {permissions.UpdateUser},
+
+	// WebhookService
+	parlancev1connect.WebhookServiceCreateWebhookProcedure:            {permissions.CreateWebhook},
+	parlancev1connect.WebhookServiceDeleteWebhookProcedure:            {permissions.DeleteWebhook},
+	parlancev1connect.WebhookServiceGetWebhookDeliveryProcedure:       {permissions.ReadWebhook},
+	parlancev1connect.WebhookServiceListWebhookDeliveriesProcedure:    {permissions.ReadWebhook},
+	parlancev1connect.WebhookServiceListWebhooksProcedure:             {permissions.ReadWebhook},
+	parlancev1connect.WebhookServiceRedeliverWebhookDeliveryProcedure: {permissions.UpdateWebhook},
+	parlancev1connect.WebhookServiceTestWebhookProcedure:              {permissions.UpdateWebhook},
+	parlancev1connect.WebhookServiceUpdateWebhookProcedure:            {permissions.UpdateWebhook},
 }
 
 // Interceptor enforces Rules on the services it is installed on

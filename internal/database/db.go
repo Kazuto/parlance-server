@@ -100,6 +100,8 @@ func (db *DB) AutoMigrate() error {
 		&models.Task{},
 		&models.TaskRun{},
 		&models.Setting{},
+		&models.Webhook{},
+		&models.WebhookDelivery{},
 	)
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)

@@ -4,6 +4,7 @@ import (
 	"context"
 	stderrors "errors"
 	"log"
+	"slices"
 	"time"
 
 	"connectrpc.com/connect"
@@ -15,6 +16,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/permissions"
 	"github.com/kazuto/parlance-server/internal/server/common"
 	"github.com/kazuto/parlance-server/internal/taskqueue"
+	"github.com/kazuto/parlance-server/internal/webhook"
 	"gorm.io/gorm"
 )
 
@@ -24,6 +26,8 @@ type importPlan struct {
 	localizationsToCreate []models.Localization
 	localizationsToUpdate []models.Localization
 	entriesToAddScopes    []*models.Entry
+	// changedEntryIDs holds the entries whose translation the import changes, by id.
+	changedEntryIDs map[string]bool
 }
 
 // processImport handles the common import logic for all formats. All reads and writes,
@@ -71,12 +75,7 @@ func (s *Server) processImport(
 			return err
 		}
 
-		// Approved imports ship like translations approved in the editor.
-		if options.approve && result.EntriesCreated+result.EntriesUpdated > 0 {
-			return taskqueue.Emit(tx, models.EventTranslationsApproved)
-		}
-
-		return nil
+		return emitImported(tx, plan, &userID, options)
 	})
 	if err != nil {
 		if connect.CodeOf(err) != connect.CodeUnknown {
@@ -152,7 +151,7 @@ func planImport(
 		localizationMap[existingLocalizations[i].EntryID] = &existingLocalizations[i]
 	}
 
-	plan := &importPlan{}
+	plan := &importPlan{changedEntryIDs: map[string]bool{}}
 
 	for key, value := range translations {
 		entry, entryExists := entryMap[key]
@@ -185,6 +184,8 @@ func planImport(
 			if localization.Translation != value {
 				localization.Translation = value
 				localization.MarkDraft()
+
+				plan.changedEntryIDs[entry.ID] = true
 			}
 
 			if options.approve {
@@ -262,6 +263,53 @@ func applyImport(
 	}
 
 	return nil
+}
+
+// emitImported sends the import's new entries to webhooks, and its translations: as
+// approved when it approves them, else the new and changed ones as awaiting approval.
+// Approved imports also ship like translations approved in the editor.
+func emitImported(tx *gorm.DB, plan *importPlan, userID *string, options importOptions) error {
+	if len(plan.entriesToCreate) > 0 {
+		ids := make([]string, len(plan.entriesToCreate))
+		for i := range plan.entriesToCreate {
+			ids[i] = plan.entriesToCreate[i].ID
+		}
+
+		if err := webhook.Emit(tx, models.WebhookEventEntriesCreated, func() (any, error) {
+			return webhook.Entries(tx, ids, userID)
+		}); err != nil {
+			return err
+		}
+	}
+
+	imported := slices.Concat(plan.localizationsToCreate, plan.localizationsToUpdate)
+
+	if !options.approve {
+		var drafted []string
+
+		for i, localization := range imported {
+			if i < len(plan.localizationsToCreate) || plan.changedEntryIDs[localization.EntryID] {
+				drafted = append(drafted, localization.ID)
+			}
+		}
+
+		return webhook.EmitTranslations(tx, models.WebhookEventTranslationsAwaitingApproval, drafted, userID, nil)
+	}
+
+	if len(imported) == 0 {
+		return nil
+	}
+
+	ids := make([]string, len(imported))
+	for i := range imported {
+		ids[i] = imported[i].ID
+	}
+
+	if err := webhook.EmitTranslations(tx, models.WebhookEventTranslationsApproved, ids, userID, nil); err != nil {
+		return err
+	}
+
+	return taskqueue.Emit(tx, models.EventTranslationsApproved)
 }
 
 // startImport authorizes the import and checks its content, returning its options with

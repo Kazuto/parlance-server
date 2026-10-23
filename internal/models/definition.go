@@ -82,3 +82,8 @@ func recordDefinitionHistory(tx *gorm.DB, d *Definition, action string) error {
 func (d *Definition) RecordReview(tx *gorm.DB, action string) error {
 	return recordDefinitionHistory(tx, d, action)
 }
+
+// RowID returns the id, for code handling reviewable rows of any kind
+func (d *Definition) RowID() string {
+	return d.ID
+}

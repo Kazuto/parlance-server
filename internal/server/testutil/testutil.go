@@ -258,6 +258,37 @@ func SetupTestDB() (*database.DB, error) {
 			updated_by TEXT
 		)`,
 		`CREATE UNIQUE INDEX IF NOT EXISTS idx_task_runs_queued ON task_runs (task_id) WHERE status = 'queued'`,
+		`CREATE TABLE IF NOT EXISTS webhooks (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			url TEXT NOT NULL,
+			events TEXT,
+			enabled INTEGER NOT NULL DEFAULT 0,
+			format TEXT NOT NULL DEFAULT 'json',
+			schedule TEXT NOT NULL DEFAULT '',
+			next_digest_at DATETIME,
+			secret TEXT,
+			created_at DATETIME,
+			updated_at DATETIME,
+			created_by TEXT,
+			updated_by TEXT
+		)`,
+		`CREATE TABLE IF NOT EXISTS webhook_deliveries (
+			id TEXT PRIMARY KEY,
+			webhook_id TEXT NOT NULL,
+			event_id TEXT NOT NULL,
+			event TEXT NOT NULL,
+			payload TEXT NOT NULL,
+			status TEXT NOT NULL,
+			attempts INTEGER NOT NULL DEFAULT 0,
+			next_attempt_at DATETIME,
+			last_attempt_at DATETIME,
+			response_status INTEGER NOT NULL DEFAULT 0,
+			response_body TEXT NOT NULL DEFAULT '',
+			error TEXT NOT NULL DEFAULT '',
+			duration_ms INTEGER NOT NULL DEFAULT 0,
+			created_at DATETIME
+		)`,
 	} {
 		if err := db.Exec(statement).Error; err != nil {
 			return nil, fmt.Errorf("create test schema: %w", err)

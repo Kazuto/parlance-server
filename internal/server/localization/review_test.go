@@ -2,6 +2,7 @@ package localization
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -9,6 +10,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
+	"github.com/kazuto/parlance-server/internal/webhook"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -186,4 +188,74 @@ func TestApprovingQueuesSubscribedTasks(t *testing.T) {
 	}); err != nil || queued() != 1 {
 		t.Errorf("approving again: err = %v, %d queued runs, want 1", err, queued())
 	}
+}
+
+func TestReviewsAreSentToWebhooks(t *testing.T) {
+	ctx, db := testutil.Setup(t)
+	server := &Server{db: db}
+	seedReviewData(t, server)
+
+	hook := models.Webhook{
+		Name: "Chat", URL: "https://chat.example/hook", Enabled: true,
+		Events: []string{models.WebhookEventTranslationsApproved, models.WebhookEventTranslationsRejected},
+	}
+	db.Create(&hook)
+	t.Cleanup(func() {
+		db.Exec(`DELETE FROM webhook_deliveries WHERE webhook_id = ?`, hook.ID)
+		db.Exec(`DELETE FROM webhooks WHERE id = ?`, hook.ID)
+	})
+
+	sent := func(t *testing.T, event string) webhook.TranslationsData {
+		t.Helper()
+
+		var deliveries []models.WebhookDelivery
+
+		db.Where("webhook_id = ? AND event = ?", hook.ID, event).Find(&deliveries)
+
+		if len(deliveries) != 1 {
+			t.Fatalf("%d %s deliveries, want 1", len(deliveries), event)
+		}
+
+		var body struct {
+			Data webhook.TranslationsData `json:"data"`
+		}
+
+		if err := json.Unmarshal([]byte(deliveries[0].Payload), &body); err != nil {
+			t.Fatalf("payload: %v", err)
+		}
+
+		return body.Data
+	}
+
+	if _, err := review(ctx, server, &pb.ReviewLocalizationsRequest{
+		LocalizationIds: []string{"rv-l1"}, Decision: pb.ReviewDecision_REVIEW_DECISION_REJECT, Comment: " Typo ",
+	}); err != nil {
+		t.Fatalf("rejecting: %v", err)
+	}
+
+	rejected := sent(t, models.WebhookEventTranslationsRejected)
+	if rejected.Count != 1 || rejected.Comment != "Typo" || rejected.Translations[0].Key != "rv.one" ||
+		rejected.Translations[0].Locale != "rv-de" || rejected.User == nil || rejected.User.ID != middleware.UserID(ctx) {
+		t.Errorf("rejected = %+v", rejected)
+	}
+
+	if _, err := review(ctx, server, &pb.ReviewLocalizationsRequest{
+		EntryIds: []string{"rv-1", "rv-2"}, LocaleIds: []string{"rv-de"}, Decision: pb.ReviewDecision_REVIEW_DECISION_APPROVE,
+	}); err != nil {
+		t.Fatalf("approving: %v", err)
+	}
+
+	approved := sent(t, models.WebhookEventTranslationsApproved)
+	if approved.Count != 2 || len(approved.Translations) != 2 || approved.Comment != "" || approved.Translations[1].Translation != "Zwei" {
+		t.Errorf("approved = %+v", approved)
+	}
+
+	// Approving what is approved already changes nothing, so nothing is sent.
+	if _, err := review(ctx, server, &pb.ReviewLocalizationsRequest{
+		LocalizationIds: []string{"rv-l1"}, Decision: pb.ReviewDecision_REVIEW_DECISION_APPROVE,
+	}); err != nil {
+		t.Fatalf("approving again: %v", err)
+	}
+
+	sent(t, models.WebhookEventTranslationsApproved)
 }

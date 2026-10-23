@@ -82,3 +82,8 @@ func recordLocalizationHistory(tx *gorm.DB, l *Localization, action string) erro
 func (l *Localization) RecordReview(tx *gorm.DB, action string) error {
 	return recordLocalizationHistory(tx, l, action)
 }
+
+// RowID returns the id, for code handling reviewable rows of any kind
+func (l *Localization) RowID() string {
+	return l.ID
+}

@@ -2,6 +2,7 @@ package localization
 
 import (
 	"context"
+	"log"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
@@ -10,6 +11,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
 	"github.com/kazuto/parlance-server/internal/translate"
+	"github.com/kazuto/parlance-server/internal/webhook"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -128,6 +130,16 @@ func (s *Server) BatchTranslate(
 		successCount++
 
 		resultLocalizations = append(resultLocalizations, targetLocalization)
+	}
+
+	// One event for the whole batch, as its drafts were saved one by one.
+	drafted := make([]string, len(resultLocalizations))
+	for i := range resultLocalizations {
+		drafted[i] = resultLocalizations[i].ID
+	}
+
+	if err := webhook.EmitTranslations(s.db.WithContext(ctx), models.WebhookEventTranslationsAwaitingApproval, drafted, userID, nil); err != nil {
+		log.Printf("batch translate: send the drafts to webhooks: %v", err)
 	}
 
 	return connect.NewResponse(&pb.BatchTranslateResponse{

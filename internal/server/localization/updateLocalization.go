@@ -9,6 +9,8 @@ import (
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
+	"github.com/kazuto/parlance-server/internal/webhook"
+	"gorm.io/gorm"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -42,12 +44,23 @@ func (s *Server) UpdateLocalization(
 	}
 
 	// New text needs review again
-	if req.Msg.Translation != nil && req.Msg.GetTranslation() != localization.Translation {
+	changed := req.Msg.Translation != nil && req.Msg.GetTranslation() != localization.Translation
+	if changed {
 		localization.Translation = req.Msg.GetTranslation()
 		localization.MarkDraft()
 	}
 
-	if err := s.db.Save(&localization).Error; err != nil {
+	if err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(&localization).Error; err != nil {
+			return err
+		}
+
+		if !changed {
+			return nil
+		}
+
+		return webhook.EmitTranslations(tx, models.WebhookEventTranslationsAwaitingApproval, []string{localization.ID}, localization.UpdatedBy, nil)
+	}); err != nil {
 		return nil, errors.Internal(errors.ErrInternal, "failed to update localization")
 	}
 

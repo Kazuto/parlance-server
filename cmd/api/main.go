@@ -41,8 +41,10 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/terminology"
 	"github.com/kazuto/parlance-server/internal/server/translationserver"
 	"github.com/kazuto/parlance-server/internal/server/user"
+	"github.com/kazuto/parlance-server/internal/server/webhookservice"
 	"github.com/kazuto/parlance-server/internal/taskrunner"
 	"github.com/kazuto/parlance-server/internal/translators"
+	"github.com/kazuto/parlance-server/internal/webhook"
 )
 
 func main() {
@@ -106,6 +108,14 @@ func main() {
 	runner := taskrunner.New(db.DB, translatorSource, secretBox)
 	runnerDone := runner.Start(runnerCtx)
 
+	// The dispatcher sends webhook deliveries and tries failed ones again. With
+	// several instances of the server, each delivery is still sent once at a time.
+	dispatcherCtx, stopDispatcher := context.WithCancel(context.Background())
+	defer stopDispatcher()
+
+	webhookSender := webhook.NewSender(secretBox)
+	dispatcherDone := webhook.NewDispatcher(db.DB, webhookSender).Start(dispatcherCtx)
+
 	// Protected services require a valid token and the permissions rbac.Rules lists.
 	requireAuth := middleware.RequireAuth(cfg.JWT.Secret)
 	authorized := connect.WithInterceptors(rbac.Interceptor(db))
@@ -166,6 +176,9 @@ func main() {
 		{"StatsService", func(o ...connect.HandlerOption) (string, http.Handler) {
 			return parlancev1connect.NewStatsServiceHandler(stats.NewServer(db), o...)
 		}, true},
+		{"WebhookService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewWebhookServiceHandler(webhookservice.NewServer(db, secretBox, webhookSender), o...)
+		}, true},
 	}
 
 	for _, service := range services {
@@ -212,7 +225,9 @@ func main() {
 	defer cancel()
 
 	// A run in progress is ended as interrupted, so it doesn't wait to go stale.
+	// Webhook deliveries cut short are sent again once their lease runs out.
 	stopRunner()
+	stopDispatcher()
 
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatalf("Server forced to shutdown: %v", err)
@@ -222,6 +237,12 @@ func main() {
 	case <-runnerDone:
 	case <-ctx.Done():
 		log.Println("Task runner did not stop in time")
+	}
+
+	select {
+	case <-dispatcherDone:
+	case <-ctx.Done():
+		log.Println("Webhook dispatcher did not stop in time")
 	}
 
 	log.Println("Server exited gracefully")

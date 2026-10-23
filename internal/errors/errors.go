@@ -66,6 +66,10 @@ const (
 	// Task errors
 	ErrTaskNotFound    = "TASK_NOT_FOUND"
 	ErrTaskRunNotFound = "TASK_RUN_NOT_FOUND"
+
+	// Webhook errors
+	ErrWebhookNotFound         = "WEBHOOK_NOT_FOUND"
+	ErrWebhookDeliveryNotFound = "WEBHOOK_DELIVERY_NOT_FOUND"
 	// Saving an API key needs ENCRYPTION_KEY.
 	ErrEncryptionKeyMissing = "ENCRYPTION_KEY_MISSING"
 )

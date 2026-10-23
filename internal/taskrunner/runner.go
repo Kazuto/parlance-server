@@ -18,6 +18,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/secret"
 	"github.com/kazuto/parlance-server/internal/taskqueue"
 	"github.com/kazuto/parlance-server/internal/translators"
+	"github.com/kazuto/parlance-server/internal/webhook"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -211,15 +212,33 @@ func (r *Runner) queueScheduled(ctx context.Context) error {
 
 // failStale ends runs whose server stopped beating for them as failed.
 func (r *Runner) failStale(ctx context.Context) error {
-	now := time.Now()
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		now := time.Now()
 
-	return r.db.WithContext(ctx).Model(&models.TaskRun{}).
-		Where("status = ? AND heartbeat_at < ?", models.RunRunning, now.Add(-r.staleAfter)).
-		Updates(map[string]any{
-			"status":      models.RunFailed,
-			"error":       "the run stopped responding, e.g. because its server stopped",
-			"finished_at": now,
-		}).Error
+		var stale []models.TaskRun
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
+			Select("id").
+			Where("status = ? AND heartbeat_at < ?", models.RunRunning, now.Add(-r.staleAfter)).
+			Find(&stale).Error; err != nil {
+			return err
+		}
+
+		for _, run := range stale {
+			if err := tx.Model(&models.TaskRun{}).Where("id = ?", run.ID).Updates(map[string]any{
+				"status":      models.RunFailed,
+				"error":       "the run stopped responding, e.g. because its server stopped",
+				"finished_at": now,
+			}).Error; err != nil {
+				return err
+			}
+
+			if err := emitEnded(tx, run.ID, models.RunFailed); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 // claim marks the next queued run that may start as running and returns it, or nil
@@ -375,15 +394,22 @@ func (r *Runner) finish(run *models.TaskRun, runLog *runLog, summary models.Task
 
 	db := r.db.WithContext(ctx)
 
-	if err := db.Model(&models.TaskRun{}).
-		Where("id = ? AND status = ?", run.ID, models.RunRunning).
-		Updates(map[string]any{
-			"status":      status,
-			"error":       message,
-			"summary":     datatypes.JSON(encoded),
-			"log":         runLog.String(),
-			"finished_at": time.Now(),
-		}).Error; err != nil {
+	if err := db.Transaction(func(tx *gorm.DB) error {
+		result := tx.Model(&models.TaskRun{}).
+			Where("id = ? AND status = ?", run.ID, models.RunRunning).
+			Updates(map[string]any{
+				"status":      status,
+				"error":       message,
+				"summary":     datatypes.JSON(encoded),
+				"log":         runLog.String(),
+				"finished_at": time.Now(),
+			})
+		if result.Error != nil || result.RowsAffected == 0 {
+			return result.Error
+		}
+
+		return emitEnded(tx, run.ID, status)
+	}); err != nil {
 		log.Printf("tasks: finish run %s: %v", run.ID, err)
 	}
 
@@ -396,4 +422,22 @@ func (r *Runner) finish(run *models.TaskRun, runLog *runLog, summary models.Task
 		Delete(&models.TaskRun{}).Error; err != nil {
 		log.Printf("tasks: drop old runs of task %s: %v", run.TaskID, err)
 	}
+}
+
+// Webhook events of runs that ended; canceled runs send none.
+var endedEvents = map[string]string{
+	models.RunSucceeded: models.WebhookEventTaskRunSucceeded,
+	models.RunFailed:    models.WebhookEventTaskRunFailed,
+}
+
+// emitEnded sends a run that ended with the status to the webhooks subscribed to it.
+func emitEnded(tx *gorm.DB, runID, status string) error {
+	event, ok := endedEvents[status]
+	if !ok {
+		return nil
+	}
+
+	return webhook.Emit(tx, event, func() (any, error) {
+		return webhook.TaskRun(tx, runID)
+	})
 }

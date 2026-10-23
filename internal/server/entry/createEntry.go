@@ -9,6 +9,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
+	"github.com/kazuto/parlance-server/internal/webhook"
 	"gorm.io/gorm"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
@@ -39,10 +40,14 @@ func (s *Server) CreateEntry(
 			return err
 		}
 		if len(scopes) > 0 {
-			return tx.Model(entry).Association("Scopes").Append(scopes)
+			if err := tx.Model(entry).Association("Scopes").Append(scopes); err != nil {
+				return err
+			}
 		}
 
-		return nil
+		return webhook.Emit(tx, models.WebhookEventEntriesCreated, func() (any, error) {
+			return webhook.Entries(tx, []string{entry.ID}, entry.CreatedBy)
+		})
 	}); err != nil {
 		return nil, errors.Internal(errors.ErrInternal, "failed to create entry")
 	}

@@ -18,6 +18,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/testutil"
 	"github.com/kazuto/parlance-server/internal/taskqueue"
 	"github.com/kazuto/parlance-server/internal/translate"
+	"github.com/kazuto/parlance-server/internal/webhook"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -312,6 +313,85 @@ func TestTickRecordsOutcomes(t *testing.T) {
 	}
 }
 
+func TestEndedRunsAreSentToWebhooks(t *testing.T) {
+	db := testutil.SetupPostgresDB(t)
+	r := newTestRunner(t, db)
+	r.executors = map[string]executor{
+		models.TaskTypeGitExport: func(_ context.Context, task *models.Task, _ *runLog) (models.TaskRunSummary, error) {
+			if task.Name == "Bad" {
+				return models.TaskRunSummary{}, stderrors.New("it broke")
+			}
+
+			return models.TaskRunSummary{PullRequestURL: "https://github.example/pr/1"}, nil
+		},
+	}
+
+	hook := models.Webhook{
+		Name: "Alerts", URL: "https://alerts.example", Enabled: true,
+		Events: []string{models.WebhookEventTaskRunSucceeded, models.WebhookEventTaskRunFailed},
+	}
+	create(t, db.DB, &hook)
+
+	good := newTask(t, db.DB, models.TaskTypeGitExport, nil)
+	bad := models.Task{Name: "Bad", Type: models.TaskTypeGitExport}
+	create(t, db.DB, &bad)
+
+	old := time.Now().Add(-time.Hour)
+	stale := models.TaskRun{TaskID: good.ID, Trigger: models.TriggerSchedule, Status: models.RunRunning, RunAfter: old, HeartbeatAt: &old}
+	create(t, db.DB, &stale)
+
+	r.Tick(context.Background())
+
+	queue(t, db.DB, good.ID)
+	badRun := queue(t, db.DB, bad.ID)
+
+	r.Tick(context.Background())
+
+	sent := map[string][]webhook.TaskRunData{}
+
+	var deliveries []models.WebhookDelivery
+
+	db.Where("webhook_id = ?", hook.ID).Find(&deliveries)
+
+	for _, delivery := range deliveries {
+		var body struct {
+			Data webhook.TaskRunData `json:"data"`
+		}
+
+		if err := json.Unmarshal([]byte(delivery.Payload), &body); err != nil {
+			t.Fatalf("payload: %v", err)
+		}
+
+		sent[delivery.Event] = append(sent[delivery.Event], body.Data)
+	}
+
+	if succeeded := sent[models.WebhookEventTaskRunSucceeded]; len(succeeded) != 1 ||
+		succeeded[0].Run.Summary.PullRequestURL != "https://github.example/pr/1" || succeeded[0].Task.ID != good.ID {
+		t.Errorf("task_run.succeeded = %+v", succeeded)
+	}
+
+	failed := sent[models.WebhookEventTaskRunFailed]
+	if len(failed) != 2 {
+		t.Fatalf("task_run.failed = %+v, want the stale and the bad run", failed)
+	}
+
+	for _, data := range failed {
+		switch data.Run.ID {
+		case stale.ID:
+			if data.Run.Trigger != models.TriggerSchedule || !strings.Contains(data.Run.Error, "stopped responding") {
+				t.Errorf("stale run = %+v", data)
+			}
+		case badRun.ID:
+			if data.Task.Name != "Bad" || data.Task.Type != models.TaskTypeGitExport || data.Run.Status != models.RunFailed ||
+				data.Run.Error != "it broke" || data.Run.FinishedAt == nil || data.Run.Trigger != models.TriggerManual {
+				t.Errorf("bad run = %+v", data)
+			}
+		default:
+			t.Errorf("unexpected run %+v", data)
+		}
+	}
+}
+
 func TestCancelRunningRun(t *testing.T) {
 	db := testutil.SetupPostgresDB(t)
 	r := newTestRunner(t, db)
@@ -423,9 +503,33 @@ func TestAITranslate(t *testing.T) {
 	})
 
 	t.Run("fills what is missing as drafts", func(t *testing.T) {
+		hook := models.Webhook{
+			Name: "Reviewers", URL: "https://chat.example", Enabled: true,
+			Events: []string{models.WebhookEventTranslationsAwaitingApproval},
+		}
+		create(t, db.DB, &hook)
+
 		summary, err := run(t, r, models.AITranslateConfig{})
 		if err != nil {
 			t.Fatalf("error = %v", err)
+		}
+
+		// One event for the run, however many drafts it made.
+		var deliveries []models.WebhookDelivery
+
+		db.Where("webhook_id = ?", hook.ID).Find(&deliveries)
+
+		if len(deliveries) != 1 {
+			t.Fatalf("%d deliveries, want one for the run", len(deliveries))
+		}
+
+		var body struct {
+			Data webhook.TranslationsData `json:"data"`
+		}
+
+		if err := json.Unmarshal([]byte(deliveries[0].Payload), &body); err != nil || body.Data.Count != 2 ||
+			body.Data.Task == nil || body.Data.Task.Name != "Task" || body.Data.User != nil {
+			t.Errorf("event = %s (%v), want the task's 2 drafts", deliveries[0].Payload, err)
 		}
 
 		// Missing: a/de, c/de, and in French b and c (a was done above). c loses its placeholder.

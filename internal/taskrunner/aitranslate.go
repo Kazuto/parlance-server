@@ -4,11 +4,13 @@ import (
 	"context"
 	stderrors "errors"
 	"sync"
+	"time"
 
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
 	"github.com/kazuto/parlance-server/internal/server/localization"
 	"github.com/kazuto/parlance-server/internal/translate"
+	"github.com/kazuto/parlance-server/internal/webhook"
 	"gorm.io/gorm"
 )
 
@@ -123,9 +125,10 @@ func (r *Runner) aiTranslate(ctx context.Context, task *models.Task, runLog *run
 	}
 
 	var (
-		mu    sync.Mutex
-		wg    sync.WaitGroup
-		limit = make(chan struct{}, maxParallelTranslations)
+		mu      sync.Mutex
+		wg      sync.WaitGroup
+		limit   = make(chan struct{}, maxParallelTranslations)
+		drafted []string
 	)
 
 	for _, pair := range pairs {
@@ -139,13 +142,15 @@ func (r *Runner) aiTranslate(ctx context.Context, task *models.Task, runLog *run
 			defer func() { <-limit }()
 
 			locale := locales[pair.LocaleID]
-			saved := r.translatePair(ctx, translator, glossary, pair, locale, runLog)
+			id := r.translatePair(ctx, translator, glossary, pair, locale, runLog)
 
 			mu.Lock()
 			defer mu.Unlock()
 
-			if saved {
+			if id != "" {
 				summary.Translated++
+
+				drafted = append(drafted, id)
 			} else {
 				summary.Failed++
 			}
@@ -153,6 +158,8 @@ func (r *Runner) aiTranslate(ctx context.Context, task *models.Task, runLog *run
 	}
 
 	wg.Wait()
+
+	r.emitDrafted(task, drafted, runLog)
 
 	summary.Remaining = int(total) - summary.Translated
 
@@ -173,9 +180,20 @@ var (
 	errAllFailed    = stderrors.New("every translation failed, see the log")
 )
 
+// emitDrafted sends the run's drafts to webhooks as one event. The drafts are saved
+// already, also when the run was cut short, so this uses its own context.
+func (r *Runner) emitDrafted(task *models.Task, drafted []string, runLog *runLog) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := webhook.EmitTranslations(r.db.WithContext(ctx), models.WebhookEventTranslationsAwaitingApproval, drafted, nil, task); err != nil {
+		runLog.Printf("The drafts could not be sent to webhooks: %v", err)
+	}
+}
+
 // translatePair translates one entry into one locale and saves it as a draft,
-// telling whether it did. A result a reviewer would have to fix first, e.g. one
-// that lost a placeholder, is not saved.
+// returning its id, or "" when it didn't. A result a reviewer would have to fix
+// first, e.g. one that lost a placeholder, is not saved.
 func (r *Runner) translatePair(
 	ctx context.Context,
 	translator translate.Translator,
@@ -183,7 +201,7 @@ func (r *Runner) translatePair(
 	pair missingPair,
 	locale models.Locale,
 	runLog *runLog,
-) bool {
+) string {
 	var terms []translate.Term
 	if glossary != nil {
 		terms = glossary.Terms(pair.Source)[locale.ID]
@@ -193,13 +211,13 @@ func (r *Runner) translatePair(
 	if suggestion.ErrorCode != "" {
 		runLog.Printf("%s → %s: %s", pair.Key, locale.Code, suggestion.ErrorCode)
 
-		return false
+		return ""
 	}
 
 	if len(suggestion.Warnings) > 0 {
 		runLog.Printf("%s → %s: left out, %s", pair.Key, locale.Code, suggestion.Warnings[0].Code)
 
-		return false
+		return ""
 	}
 
 	draft := models.Localization{
@@ -213,10 +231,10 @@ func (r *Runner) translatePair(
 	if err := r.db.WithContext(ctx).Create(&draft).Error; err != nil {
 		runLog.Printf("%s → %s: not saved, %v", pair.Key, locale.Code, err)
 
-		return false
+		return ""
 	}
 
-	return true
+	return draft.ID
 }
 
 // sourceLocale returns the locale to translate from: the given one, or the default.

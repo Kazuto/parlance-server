@@ -8,6 +8,8 @@ import (
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/webhook"
+	"gorm.io/gorm"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -37,7 +39,13 @@ func (s *Server) CreateLocalization(
 		Review:      models.Review{Status: models.StatusDraft},
 	}
 
-	if err := s.db.Create(localization).Error; err != nil {
+	if err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(localization).Error; err != nil {
+			return err
+		}
+
+		return webhook.EmitTranslations(tx, models.WebhookEventTranslationsAwaitingApproval, []string{localization.ID}, localization.CreatedBy, nil)
+	}); err != nil {
 		return nil, errors.Internal(errors.ErrInternal, "failed to create localization")
 	}
 

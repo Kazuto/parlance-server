@@ -104,6 +104,7 @@ internal/
   permissions/      permission names
   translate/        machine translation: prompt, cleanup, OpenAI-compatible client
   translators/      translation servers from the database
+  webhook/          queues webhook deliveries in each change's transaction, and sends them
   secret/           encryption of stored API keys
   gettext/          PO files
 docker/             Dockerfile and Compose file

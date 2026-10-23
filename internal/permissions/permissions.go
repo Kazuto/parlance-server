@@ -71,6 +71,12 @@ const (
 	DeleteTask = "delete_task"
 	// Starting and canceling task runs
 	RunTask = "run_task"
+
+	// Webhook permissions; testing and redelivering need update_webhook
+	CreateWebhook = "create_webhook"
+	ReadWebhook   = "read_webhook"
+	UpdateWebhook = "update_webhook"
+	DeleteWebhook = "delete_webhook"
 )
 
 // AllPermissions returns all defined permissions
@@ -120,6 +126,10 @@ func AllPermissions() []string {
 		UpdateTask,
 		DeleteTask,
 		RunTask,
+		CreateWebhook,
+		ReadWebhook,
+		UpdateWebhook,
+		DeleteWebhook,
 	}
 }
 

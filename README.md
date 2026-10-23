@@ -40,19 +40,19 @@ variables below.
 
 Set these as environment variables or in a `.env` file (see `.env.example`):
 
-| Variable                                | Default                          | Description                                                                                                                                                                                |
-| --------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `PORT`                                  | `8080`                           | Port of the API                                                                                                                                                                            |
-| `ENV`                                   | `development`                    | Name of the environment, shown in the log                                                                                                                                                  |
-| `DB_HOST`, `DB_PORT`                    | `localhost`, `5432`              | PostgreSQL server                                                                                                                                                                          |
-| `DB_USER`, `DB_PASSWORD`, `DB_NAME`     | `parlance`, `secret`, `parlance` | PostgreSQL login and database                                                                                                                                                              |
-| `DB_SSL_MODE`                           | `disable`                        | PostgreSQL `sslmode`                                                                                                                                                                       |
-| `JWT_SECRET`                            | `change-this-secret`             | Signs the sign-in tokens. **Set your own.**                                                                                                                                                |
-| `JWT_EXPIRY`                            | `24h`                            | How long a sign-in lasts; refresh tokens last 7 times as long                                                                                                                              |
-| `ENCRYPTION_KEY`                        | (none)                           | Encrypts stored API keys of translation servers and access tokens of tasks. Needed only to save them. Changing it makes saved ones unreadable. Generate one with `openssl rand -base64 32` |
-| `CORS_ALLOWED_ORIGINS`                  | `http://localhost:3000`          | Comma-separated addresses of the web apps allowed to call the API                                                                                                                          |
-| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET` | (none)                           | S3-compatible storage for avatars                                                                                                                                                          |
-| `S3_ACCESS_KEY`, `S3_SECRET_KEY`        | (none)                           | Credentials for that storage                                                                                                                                                               |
+| Variable                                | Default                          | Description                                                                                                                                                                                                             |
+| --------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                                  | `8080`                           | Port of the API                                                                                                                                                                                                         |
+| `ENV`                                   | `development`                    | Name of the environment, shown in the log                                                                                                                                                                               |
+| `DB_HOST`, `DB_PORT`                    | `localhost`, `5432`              | PostgreSQL server                                                                                                                                                                                                       |
+| `DB_USER`, `DB_PASSWORD`, `DB_NAME`     | `parlance`, `secret`, `parlance` | PostgreSQL login and database                                                                                                                                                                                           |
+| `DB_SSL_MODE`                           | `disable`                        | PostgreSQL `sslmode`                                                                                                                                                                                                    |
+| `JWT_SECRET`                            | `change-this-secret`             | Signs the sign-in tokens. **Set your own.**                                                                                                                                                                             |
+| `JWT_EXPIRY`                            | `24h`                            | How long a sign-in lasts; refresh tokens last 7 times as long                                                                                                                                                           |
+| `ENCRYPTION_KEY`                        | (none)                           | Encrypts stored API keys of translation servers, access tokens of tasks and signing secrets of webhooks. Needed only to save them. Changing it makes saved ones unreadable. Generate one with `openssl rand -base64 32` |
+| `CORS_ALLOWED_ORIGINS`                  | `http://localhost:3000`          | Comma-separated addresses of the web apps allowed to call the API                                                                                                                                                       |
+| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET` | (none)                           | S3-compatible storage for avatars                                                                                                                                                                                       |
+| `S3_ACCESS_KEY`, `S3_SECRET_KEY`        | (none)                           | Credentials for that storage                                                                                                                                                                                            |
 
 The Docker Compose file sets development values for all of them; set your own
 `JWT_SECRET` and `ENCRYPTION_KEY` anywhere else.
@@ -165,6 +165,109 @@ minutes. The last 100 runs of each task are kept with their logs.
 
 Permissions: `read_task`, `create_task`, `update_task`, `delete_task`, and
 `run_task` to start and cancel runs.
+
+## Webhooks
+
+Webhooks tell other services about events in Parlance, for example a CI pipeline
+that builds once translations are approved, or a chat channel. Admins set them up
+under **Webhooks** in the web app: a URL, the events it gets, a format, when it
+sends, and optionally a signing secret.
+
+The format decides the request body:
+
+- **JSON** posts the event with all its details, as below. Use it for your own
+  services.
+- **Slack** posts a short message as `{"text": …}`, for Slack and chat services
+  that take Slack's incoming webhooks, such as Mattermost.
+- **Discord** posts a short message as Discord's webhooks take it, with mentions
+  turned off.
+
+Chat services turn down other bodies (Discord answers 400, "Cannot send an empty
+message"). The web app picks the format when you type a Discord or Slack address.
+Deliveries keep the event and render the body when sent, so after changing the
+format, retries and **Send again** use the new one.
+
+| Event                                   | Sent when                                                                                                                                        | `data`                                                                                                    |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `translations.awaiting_approval`        | Translations become drafts: new or changed in the editor, by machine translation (in the editor or a task), or by an import that doesn't approve | `translations` (`id`, `entry_id`, `key`, `locale`, `translation`), `user`, and `task` for a task's drafts |
+| `translations.approved`                 | Translations are approved in the editor or by an approving import                                                                                | `translations` and `user`                                                                                 |
+| `translations.rejected`                 | A reviewer sends translations back                                                                                                               | The same, plus the reviewer's `comment`                                                                   |
+| `entries.created`                       | Entries are created in the app or by an import                                                                                                   | `entries` (`id`, `key`, `description`) and `user`                                                         |
+| `task_run.succeeded`, `task_run.failed` | A task run ends, including runs that stopped responding; canceled runs don't                                                                     | `task` (`id`, `name`, `type`) and `run` (`id`, `trigger`, `status`, times, `error`, `summary`, `user`)    |
+| `digest`                                | A webhook with a schedule sends what it collected                                                                                                | `since`, `count`, `events` (the bodies above, oldest first) and `truncated`                               |
+| `ping`                                  | Someone presses **Send test**                                                                                                                    | `webhook` (`id`, `name`, `events`)                                                                        |
+
+One action sends one event, however many translations or entries it touches: the
+lists hold the first 1000, `count` says how many there were and `truncated` whether
+some were left out. `user` is who did it, or `null`. In the editor, each saved
+translation is one action; a batch of machine translations, an import or a task
+run is one too.
+
+**Digests:** a webhook sends each event right away, or collects them and sends
+one `digest` on a schedule: a standard 5-field cron expression in UTC, picked as
+hourly, daily, weekly or custom in the app. Nothing is sent when nothing was
+collected. In the chat formats, a digest is one message with a line per kind of
+change, for example "12 translations submitted for approval (Rita, Task
+“Nightly”): …", and one per task run. A digest carries up to a megabyte of events;
+`count` holds them all. Removing the schedule sends what was collected right away;
+turning the webhook off drops it.
+
+In the JSON format, each event is posted like this:
+
+```http
+POST /hooks/parlance HTTP/1.1
+Content-Type: application/json
+User-Agent: Parlance-Webhook
+X-Parlance-Event: translations.approved
+X-Parlance-Delivery: 6f4a0281-b730-4d0a-bde3-15a61bb44519
+X-Parlance-Signature: sha256=5d2c9a…
+
+{"id":"29f4342d-…","event":"translations.approved","created_at":"2026-10-23T18:21:09.286Z",
+ "data":{"count":1,"translations":[{"id":"…","entry_id":"…","key":"button.save","locale":"de",
+ "translation":"Speichern"}],"truncated":false,"user":{"id":"…","name":"Rita"}}}
+```
+
+- **Ids:** the body's `id` names the event and is the same in every delivery of it,
+  to every webhook, retries and redeliveries included. `X-Parlance-Delivery` names
+  one delivery and stays the same across its retries.
+- **Signature:** with a secret, `X-Parlance-Signature` is `sha256=` followed by the
+  hex HMAC-SHA256 of the raw body as sent, keyed with the secret. Check it before trusting
+  the body, comparing in constant time:
+
+  ```js
+  import { createHmac, timingSafeEqual } from "node:crypto";
+
+  const expected = `sha256=${createHmac("sha256", secret).update(rawBody).digest("hex")}`;
+  const valid =
+    signature.length === expected.length &&
+    timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+  ```
+
+- **Answers:** any 2xx answer counts as delivered. Other answers, redirects (they
+  aren't followed) and no answer within 10 seconds count as failed.
+- **Retries:** a failed delivery is tried again after 1 minute, 10 minutes, 1 hour
+  and 6 hours, then given up. Deliveries can arrive out of order, and, as a server
+  may stop between sending and recording, more than once: skip event ids you have
+  seen.
+- **Testing:** **Send test** posts a `ping`, and **Send again** on a delivery posts
+  its body anew. Both send right away, once, also to webhooks that are off.
+- **Turning off** a webhook fails its pending deliveries and drops the events it
+  collected.
+- **History:** the last 100 deliveries of each webhook are kept, with the body sent
+  and the start of the answer.
+
+URLs may point into your own network, such as `http://jenkins:8080/…`; only users
+with the webhook permissions can set them. Secrets are stored encrypted, so they
+need `ENCRYPTION_KEY`.
+
+The dispatcher runs inside the API server (`internal/webhook`) and looks for due
+digests and deliveries every 5 seconds. Both are claimed with row locks, so several
+instances share the work; one whose server stopped while sending is sent again a
+minute later. Changes queue their events in their own transaction, so a change
+that fails sends nothing.
+
+Permissions: `read_webhook`, `create_webhook`, `update_webhook` (also to send
+tests and redeliver) and `delete_webhook`.
 
 ## API
 
