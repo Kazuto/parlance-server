@@ -1,134 +1,157 @@
 # Parlance Server
 
-Backend API server for Parlance - a powerful, developer-friendly translation management platform that streamlines localization workflows with AI-powered translations, custom terminology control, and flexible export options.
+The API of Parlance, a self-hosted translation management app: entries with
+translations per language, scopes, a glossary, import and export, users and roles,
+and optional machine translation.
 
-This repository contains the **Go backend server** built with Connect RPC. For the frontend client, see [parlance-client](https://github.com/criticaldevs/parlance).
+It is written in Go with [Connect RPC](https://connectrpc.com/), GORM and
+PostgreSQL. The web app lives in
+[parlance-web](https://github.com/Kazuto/parlance-web); its README explains how to use
+Parlance.
 
-## Table of Contents
+## Running the server
 
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Quick Start](#quick-start)
-- [Usage](#usage)
-- [Project Structure](#project-structure)
-- [Database Schema](#database-schema)
-- [Development Workflow](#development-workflow)
-- [Configuration](#configuration)
-- [Client Integration](#client-integration)
-- [API Integration](#api-integration)
-- [Implementation Phases](#implementation-phases)
-- [Roadmap](#roadmap)
-- [Why Connect RPC?](#why-connect-rpc)
-- [Security](#security)
-- [Testing](#testing)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-- [Documentation](#documentation)
+### With Docker Compose
 
-## Features
-
-### Core Functionality
-
-- **Connect RPC API** - Type-safe RPC framework with JSON/Protobuf support over HTTP
-- **Key-Based Translation System** - Manage translations with unique identifiers
-- **Multi-Locale Support** - Handle unlimited languages with PostgreSQL backing
-- **Machine Translation** - Suggestions from a self-hosted Hy-MT2 model, reviewed before saving
-- **Custom Terminology** - Glossary system to ensure consistent translations
-- **Scopes & Organization** - Group translations by context (frontend, validation, errors, etc.)
-
-### API Features
-
-- **Protocol Buffers** - Type-safe API definitions shared across clients
-- **Dual Protocol Support** - JSON over HTTP/1.1 and Binary Protobuf over HTTP/2
-- **Multiple Export Formats** - Export to Laravel, Vue i18n, JSON, and other frameworks
-- **Version Control** - Complete audit trail for all translation changes
-- **Search & Filter** - Full-text search across translations
-
-### Authentication & Security
-
-- **JWT Authentication** - Secure token-based authentication
-- **Role-Based Access Control** - Granular permissions for admins, translators, reviewers
-- **Audit Trail** - Track who changed what and when
-- **Input Validation** - Protobuf-based validation and sanitization
-
-## Tech Stack
-
-### Core
-- **Language**: Go 1.23+
-- **RPC Framework**: [Connect RPC](https://connectrpc.com/) - gRPC-compatible RPC over HTTP
-- **Protocol Buffers**: protobuf v3 for service definitions
-- **Database**: PostgreSQL 16+
-- **ORM**: [GORM](https://gorm.io/) or [sqlc](https://sqlc.dev/)
-- **Migrations**: [golang-migrate](https://github.com/golang-migrate/migrate)
-
-### Supporting Libraries
-- **Validation**: [go-playground/validator](https://github.com/go-playground/validator) + protobuf validation
-- **Configuration**: [viper](https://github.com/spf13/viper)
-- **Authentication**: JWT ([golang-jwt/jwt](https://github.com/golang-jwt/jwt))
-- **Logging**: [zap](https://github.com/uber-go/zap) or [zerolog](https://github.com/rs/zerolog)
-- **HTTP Client**: Standard library `net/http` (for DeepL API)
-- **Code Generation**: [Buf CLI](https://buf.build/)
-- **gRPC-Gateway**: (Optional) Traditional REST URLs from proto files
-
-### Containerization
-- **Runtime**: Docker
-- **Orchestration**: Docker Compose (dev), Kubernetes (prod)
-- **Base Images**: `golang:1.23-alpine` (build), `alpine:latest` (runtime)
-
-See [PLAN.md](PLAN.md) for detailed implementation plan and architecture.
-
-## Quick Start
-
-### Prerequisites
-
-- Go 1.23+
-- Docker & Docker Compose
-- PostgreSQL 16+ (or use Docker)
-- Buf CLI (for proto code generation)
-
-### Installation
+`docker/docker-compose.yml` starts the API with PostgreSQL and MinIO (S3-compatible
+storage for avatars):
 
 ```bash
-# Clone the repository
-git clone https://github.com/criticaldevs/parlance-server.git
-cd parlance-server
-
-# Install development tools
-make install-tools
-
-# Configure environment
-cp .env.example .env
-
-# Start services (PostgreSQL + API)
-docker-compose up -d
-
-# Run database migrations
-make migrate-up
-
-# Generate code from proto files
-make proto-gen
-
-# View logs
-docker-compose logs -f api
+make dev          # docker compose up -d
+make dev-logs     # follow the logs
+make dev-down     # stop and remove the containers
 ```
 
-### Development Setup (Local)
+The API listens on <http://localhost:8080>; `GET /health` answers once it runs. On
+start it creates or updates the database tables and the built-in permissions and
+roles.
+
+On a fresh database, the web app asks for the first administrator
+(`SetupService/Initialize`). To fill the database with demo data instead, run
+`make seed` (see [CONTRIBUTING.md](CONTRIBUTING.md#demo-data)).
+
+### Production
+
+Version tags publish the image `ghcr.io/kazuto/parlance-api`, which runs the API on
+port 8080. It needs PostgreSQL and S3-compatible storage, configured with the
+variables below.
+
+## Configuration
+
+Set these as environment variables or in a `.env` file (see `.env.example`):
+
+| Variable                                | Default                          | Description                                                                                                                                                          |
+| --------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                                  | `8080`                           | Port of the API                                                                                                                                                      |
+| `ENV`                                   | `development`                    | Name of the environment, shown in the log                                                                                                                            |
+| `DB_HOST`, `DB_PORT`                    | `localhost`, `5432`              | PostgreSQL server                                                                                                                                                    |
+| `DB_USER`, `DB_PASSWORD`, `DB_NAME`     | `parlance`, `secret`, `parlance` | PostgreSQL login and database                                                                                                                                        |
+| `DB_SSL_MODE`                           | `disable`                        | PostgreSQL `sslmode`                                                                                                                                                 |
+| `JWT_SECRET`                            | `change-this-secret`             | Signs the sign-in tokens. **Set your own.**                                                                                                                          |
+| `JWT_EXPIRY`                            | `24h`                            | How long a sign-in lasts; refresh tokens last 7 times as long                                                                                                        |
+| `ENCRYPTION_KEY`                        | (none)                           | Encrypts stored API keys of translation servers. Needed only to save such keys. Changing it makes saved keys unreadable. Generate one with `openssl rand -base64 32` |
+| `CORS_ALLOWED_ORIGINS`                  | `http://localhost:3000`          | Comma-separated addresses of the web apps allowed to call the API                                                                                                    |
+| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET` | (none)                           | S3-compatible storage for avatars                                                                                                                                    |
+| `S3_ACCESS_KEY`, `S3_SECRET_KEY`        | (none)                           | Credentials for that storage                                                                                                                                         |
+
+The Docker Compose file sets development values for all of them; set your own
+`JWT_SECRET` and `ENCRYPTION_KEY` anywhere else.
+
+## Machine translation
+
+Parlance can suggest translations with Tencent's
+[Hy-MT2](https://github.com/Tencent-Hunyuan/Hy-MT2) translation models. The
+suggestions are drafts in the editor; nothing is saved without review.
+
+### Running a model
+
+Any OpenAI-compatible server running a Hy-MT2 model works. The Compose file
+includes one, llama.cpp's `llama-server` with the 1.8B model (about 1.1 GB,
+downloaded on the first start):
 
 ```bash
-# Generate proto code
-make proto-gen
-
-# Run the server locally
-make run
-
-# Run tests
-make test
-
-# Lint proto files
-make proto-lint
+docker compose -f docker/docker-compose.yml --profile translation up -d translator
 ```
 
-## Usage
+It runs on the CPU. For a GPU, also an integrated one (Intel, AMD), use the Vulkan
+image and pass the device in a `docker-compose.override.yml` next to the Compose
+file:
+
+```yaml
+services:
+  translator:
+    image: ghcr.io/ggml-org/llama.cpp:server-vulkan
+    devices:
+      - /dev/dri:/dev/dri
+    command:
+      - -hf
+      - "tencent/Hy-MT2-1.8B-GGUF:Q4_K_M"
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --parallel
+      - "2"
+      - --ctx-size
+      - "8192"
+      - -ngl
+      - "99"
+```
+
+`TRANSLATOR_MODEL` picks another model, for example the better but slower
+`tencent/Hy-MT2-7B-GGUF:Q4_K_M`. vLLM and SGLang also serve the models, but need an
+NVIDIA GPU.
+
+### Connecting it
+
+1. In the web app, add the server under **Settings → Machine translation**, for
+   example `http://translator:8080/v1`, and press **Test**. Set "Requests at a
+   time" to the server's `--parallel`.
+2. Give the roles that may translate the permission `use_machine_translation`.
+
+You can add several servers: requests are spread over all enabled ones, each taking
+at most its number of requests at a time, and a request that fails on one server is
+tried on the others.
+
+### How it translates
+
+- **One language per request:** the model translates one text into one language,
+  so an entry with eight empty languages makes eight requests.
+- **Prompt:** every prompt asks for user interface style. Glossary terms that occur
+  in the text are sent along with their translation.
+- **Placeholders:** `{name}` placeholders are sent as `{1}`, `{2}`, which the model
+  keeps, and restored afterwards.
+- **Checks:** answers that are empty or far longer than the source are rejected.
+  Missing or extra placeholders, a different number of plural forms (`|`) and new
+  line breaks are flagged for review.
+- **Time limit:** a request for one entry ends after 100 seconds; languages not
+  done by then are reported as timed out.
+
+The code is in `internal/translate` (prompt, cleanup, client) and
+`internal/translators` (servers from the database).
+
+## API
+
+All endpoints are Connect RPC calls: `POST /parlance.v1.<Service>/<Method>` with a
+JSON (or binary protobuf) body. The definitions are in
+[`proto/parlance/v1/`](proto/parlance/v1/). `AuthService`, `SetupService` and
+reading languages work without signing in; every other call needs the access
+token from `AuthService/Login`:
+
+```bash
+curl -X POST http://localhost:8080/parlance.v1.AuthService/Login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@parlance.dev", "password": "admin123"}'
+# {"accessToken": "…", "refreshToken": "…", "user": {…}}
+
+curl -X POST http://localhost:8080/parlance.v1.EntryService/ListEntries \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -d '{"pagination": {"page": 1, "perPage": 20}}'
+```
+
+Every call checks the caller's permissions, such as `read_entry` or
+`update_locale`.
 
 ### Create and update requests
 
@@ -145,540 +168,55 @@ partial update:
 
 Lists and maps are wrapped because protobuf cannot tell an empty list or map
 from one that was not sent. Ids are validated, and changes to the record and its
-relations are persisted in one transaction.
+relations are saved in one transaction.
 
 ### Entry translation filters
 
-`ListEntries` accepts `scopeId`, `translationStatus` (`missing` or `complete`),
-and `targetLocaleIds`. Status is evaluated before pagination against active,
-non-empty saved translations. Missing means at least one target language lacks a
+`ListEntries` accepts `scopeIds`, `translationStatus` (`missing` or `complete`) and
+`targetLocaleIds`. Status is evaluated before pagination against active, non-empty
+saved translations. Missing means at least one target language lacks a
 translation; complete means none do. An empty target list checks all active
 locales. Omit `translationStatus` to include entries regardless of status.
 
-### JSON translation import
+### Import and export
 
-`ImportService/ImportJson` accepts both flat dotted keys and nested JSON objects.
-For example, `{"entries": {"create": "Create Entry"}}` is flattened into
-`{"entries.create": "Create Entry"}` before applying the selected import mode.
-Mixed flat/nested files are supported. Leaves must be strings (including empty
-strings); arrays, numbers, booleans, null values, empty keys, duplicate keys, and
-flattened-key collisions are rejected before any database changes. JSON export
-continues to produce flat key/value pairs.
+`ImportService` and `ExportService` handle JSON, PHP arrays (Laravel), gettext PO
+and ZIP files with one file per language. Imports take a `localeId`, optional
+`scopeIds`, a `filename`, a `mode` and the file as `fileContent` (base64 in JSON
+requests). The modes are create or update (the default), create only, update only,
+and replace all. Exports take a `localeCode` and optional `scopeIds`; without
+scopes they export all active entries. ZIP imports and exports cover all languages
+at once, so they take no language.
 
-### Gettext PO import/export
+**JSON:** imports accept flat dotted keys and nested objects, also mixed:
+`{"entries": {"create": "Create Entry"}}` becomes `{"entries.create": "Create Entry"}`.
+Values must be strings (empty ones too). Arrays, numbers, booleans, null, empty
+keys, duplicate keys and keys that collide once flattened are rejected before
+anything is saved. Exports are flat.
 
-The backend supports singular, key-based UTF-8 `.po` files through the protected
-Connect RPC endpoints:
-
-- `POST /parlance.v1.ImportService/ImportPo`
-- `POST /parlance.v1.ExportService/ExportPo`
-
-`msgid` maps to the entry key (for example `button.save`), and `msgstr` maps to the
-selected locale's translation. Import accepts `localeId`, optional `scopeIds`,
-`filename`, `mode`, and `fileContent` (base64-encoded bytes in JSON requests), just
-like the JSON/PHP import endpoints. An unspecified mode defaults to create-or-update.
-
-```json
-{
-  "localeCode": "de",
-  "scopeIds": ["optional-scope-id"]
-}
-```
-
-The export request above returns `format: "po"`, the PO text in `content`, and a
-suggested `.po` `filename`. Omit `scopeIds` to export all active entries; with several
-scopes, entries in any of them are exported once. Entries
-without a translation are included with empty `msgstr`. Exports are sorted by key,
-include UTF-8/language metadata, and include entry descriptions as `#.` comments.
+**PO:** singular, key-based UTF-8 files. `msgid` is the entry key and `msgstr` the
+translation:
 
 ```po
 msgid "button.save"
 msgstr "Speichern"
 ```
 
-Import understands multiline strings, escaping, comments, and an optional UTF-8
-BOM. Malformed syntax and non-UTF-8 files are rejected before database changes.
-Contextual (`msgctxt`), plural, fuzzy, and duplicate records are reported in
-`result.errors` and counted as failed. Obsolete records and empty/untranslated
-`msgstr` values are counted as skipped, preserving existing translations.
-Metadata and comments are not imported into the data model. Replace-all mode
-rejects files containing unsupported or duplicate records before removing any
-existing translations. Language selection is determined by `localeId`, rather
-than the PO file's Language header.
-
-### Frontend schema generation
-
-With the Nuxt frontend checked out at `../web` and its npm dependencies installed:
-
-```bash
-make proto-gen-web  # Generate Zod schemas and TS types in the frontend
-make proto-gen-all  # Generate Go/Connect code and frontend schemas
-```
-
-The local `cmd/protoc-gen-zod` Buf plugin reads compiled protobuf descriptors and
-generates schemas for the Connect JSON wire format. Configuration is in
-`buf.gen.web.yaml`. Generated files are isolated in
-`../web/app/lib/api/schemas/parlance/v1/`; regeneration removes stale files in
-`schemas/parlance/`. API endpoints use these generated schemas by default.
-See the frontend README for migration examples and wire-format conventions.
-
-### API Endpoints
-
-The server exposes Connect RPC endpoints at:
-
-```
-# Authentication
-POST /parlance.v1.AuthService/Login
-POST /parlance.v1.AuthService/Register
-POST /parlance.v1.AuthService/RefreshToken
-
-# Entries (Translation Keys)
-POST /parlance.v1.EntryService/CreateEntry
-POST /parlance.v1.EntryService/GetEntry
-POST /parlance.v1.EntryService/ListEntries
-POST /parlance.v1.EntryService/UpdateEntry
-POST /parlance.v1.EntryService/DeleteEntry
-
-# Localizations (Translations)
-POST /parlance.v1.LocalizationService/CreateLocalization
-POST /parlance.v1.LocalizationService/GetLocalization
-POST /parlance.v1.LocalizationService/ListLocalizations
-POST /parlance.v1.LocalizationService/UpdateLocalization
-POST /parlance.v1.LocalizationService/TranslateLocalization
-
-# Terminologies (Glossary)
-POST /parlance.v1.TerminologyService/CreateTerminology
-POST /parlance.v1.TerminologyService/ListTerminologies
-POST /parlance.v1.TerminologyService/UpdateTerminology
-
-# Scopes, Locales, Users, Export
-POST /parlance.v1.ScopeService/...
-POST /parlance.v1.LocaleService/...
-POST /parlance.v1.UserService/...
-POST /parlance.v1.ExportService/ExportTranslations
-
-... (all endpoints auto-generated from proto definitions)
-```
-
-### Example: Using Connect Client (TypeScript)
-
-```typescript
-import { createPromiseClient } from "@connectrpc/connect";
-import { createConnectTransport } from "@connectrpc/connect-web";
-import { EntryService } from "~/gen/parlance/v1/entry_connect";
-
-const transport = createConnectTransport({
-  baseUrl: "http://localhost:8080",
-});
-
-const client = createPromiseClient(EntryService, transport);
-
-// List entries
-const response = await client.listEntries({
-  pagination: { page: 1, perPage: 20 },
-  scopeId: "frontend",
-});
-
-// Create entry
-const entry = await client.createEntry({
-  key: "auth.login",
-  scopeId: "frontend",
-  description: "Login page title",
-});
-```
-
-### Example: Using cURL
-
-```bash
-# Login
-curl -X POST http://localhost:8080/parlance.v1.AuthService/Login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "password"}'
-
-# List entries
-curl -X POST http://localhost:8080/parlance.v1.EntryService/ListEntries \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{"pagination": {"page": 1, "perPage": 20}}'
-```
-
-## Project Structure
-
-```
-parlance-server/
-├── proto/                              # Protocol Buffer definitions
-│   └── parlance/v1/
-│       ├── entry.proto                # Entry service definitions
-│       ├── localization.proto         # Localization service
-│       ├── terminology.proto          # Terminology service
-│       ├── scope.proto                # Scope service
-│       ├── locale.proto               # Locale service
-│       ├── auth.proto                 # Authentication service
-│       ├── user.proto                 # User management service
-│       └── export.proto               # Export service
-├── gen/                                # Generated Go code from proto
-│   └── parlance/v1/                   # Auto-generated RPC stubs
-├── cmd/api/                           # Application entry point
-│   └── main.go                        # Server initialization
-├── internal/
-│   ├── config/                        # Configuration management
-│   │   └── config.go                  # Viper configuration
-│   ├── database/                      # Database layer
-│   │   ├── connection.go              # PostgreSQL connection
-│   │   └── migrations/                # SQL migration files
-│   ├── models/                        # GORM database models
-│   │   ├── entry.go, localization.go, terminology.go
-│   │   ├── user.go, role.go, permission.go
-│   │   └── ... (16 model files total)
-│   ├── server/                        # RPC service implementations
-│   │   ├── entry_server.go            # EntryService implementation
-│   │   ├── localization_server.go     # LocalizationService
-│   │   ├── auth_server.go             # AuthService
-│   │   └── ... (8 service files total)
-│   ├── services/                      # Business logic
-│   │   ├── translation.go             # Translation logic
-│   │   ├── export.go                  # Export format generation
-│   │   ├── history.go                 # History tracking
-│   │   └── scope.go                   # Scope management
-│   ├── interceptors/                  # Connect middleware
-│   │   ├── auth.go                    # JWT authentication
-│   │   ├── rbac.go                    # Role-based access control
-│   │   └── logging.go                 # Request/response logging
-│   └── converter/                     # Type conversion
-│       └── converter.go               # Proto ↔ DB model mapping
-├── pkg/utils/                         # Shared utilities
-│   ├── pagination.go                  # Pagination helpers
-│   └── validation.go                  # Validation utilities
-├── docker/                            # Docker configuration
-│   ├── Dockerfile                     # Multi-stage build
-│   └── docker-compose.yml             # Dev environment
-├── scripts/                           # Helper scripts
-│   ├── proto-gen.sh                   # Proto code generation
-│   └── migrate.sh                     # Migration runner
-├── buf.yaml                           # Buf linting config
-├── buf.gen.yaml                       # Buf code generation
-├── Makefile                           # Development commands
-├── go.mod                             # Go dependencies
-├── .env.example                       # Environment template
-└── PLAN.md                            # Implementation plan
-```
-
-## Database Schema
-
-The system uses a normalized PostgreSQL database structure:
-
-### Translation System
-- **entries** - Translation keys/identifiers with descriptions
-- **localizations** - Locale-specific translations (one per locale per entry)
-- **localization_history** - Historical versions of translations
-- **terminologies** - Custom terminology definitions (glossary terms)
-- **definitions** - Locale-specific terminology translations
-- **definition_history** - Historical versions of terminology
-- **scopes** - Organization categories (frontend, validation, errors, etc.)
-- **entry_scopes** - Many-to-many relationship between entries and scopes
-- **locales** - Supported languages with default locale support
-
-### Access Control (RBAC)
-- **users** - User accounts with email/password
-- **roles** - RBAC roles (admin, translator, reviewer, etc.)
-- **permissions** - Granular permissions (read, write, delete, etc.)
-- **role_permissions** - Many-to-many relationship
-- **user_roles** - Many-to-many relationship
-
-### Audit Strategy
-- **Soft Deletes** - `deleted_at` field on all core tables
-- **Audit Columns** - `created_by`, `updated_by` tracking via JWT context
-- **History Tables** - Dedicated tables for localization and terminology changes
-- **Constraints** - Unique indexes ensuring data integrity
-
-Full schema, migrations, and GORM models available in `internal/database/` and `internal/models/`
-
-## Development Workflow
-
-### Proto Development
-
-```bash
-# 1. Edit proto files in proto/parlance/v1/
-
-# 2. Lint proto files
-make proto-lint
-
-# 3. Check for breaking changes
-make proto-breaking
-
-# 4. Generate Go code
-make proto-gen
-
-# 5. Implement service in internal/server/
-
-# 6. Test
-make test
-```
-
-### Available Make Commands
-
-```bash
-make install-tools    # Install Buf CLI and other development tools
-make proto-gen        # Generate Go code from proto files
-make proto-lint       # Lint proto files
-make proto-breaking   # Check for breaking changes
-make dev              # Start development environment (docker-compose up)
-make build            # Build Docker images
-make run              # Build and run server locally
-make test             # Run all tests
-make lint             # Run Go linter (golangci-lint)
-make migrate-up       # Run database migrations
-make migrate-down     # Rollback database migrations
-```
-
-## Configuration
-
-Configure via environment variables (see `.env.example`):
-
-```bash
-# Server
-PORT=8080
-ENV=development
-
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=parlance
-DB_PASSWORD=secret
-DB_NAME=parlance
-DB_SSL_MODE=disable
-
-# JWT
-JWT_SECRET=your-secret-key
-JWT_EXPIRY=24h
-
-# Encrypts stored secrets such as translation server API keys
-ENCRYPTION_KEY=generate-with-openssl-rand-base64-32
-
-# CORS
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
-```
-
-## Client Integration
-
-### TypeScript/Nuxt Client
-
-Install dependencies:
-
-```bash
-npm install @connectrpc/connect @connectrpc/connect-web
-npm install -D @bufbuild/buf @bufbuild/protoc-gen-es @connectrpc/protoc-gen-connect-es
-```
-
-Generate TypeScript code from proto files:
-
-```bash
-buf generate
-```
-
-See [PLAN.md](PLAN.md) for complete client integration examples.
-
-## API Integration
-
-### Machine Translation
-
-`SuggestTranslations` translates an entry's default-locale text into the given
-locales and returns the results without saving them; the editor shows them as
-drafts to review. `BatchTranslate` saves translations for entries that have none
-yet in a locale.
-
-Both need at least one OpenAI-compatible server running one of Tencent's
-[Hy-MT2](https://github.com/Tencent-Hunyuan/Hy-MT2) models, added under Settings
-(`TranslationServerService`). Requests are spread over all enabled servers, each
-taking at most its configured number at once, and a request that fails on one
-server is tried on the others. API keys are stored encrypted with
-`ENCRYPTION_KEY` and never returned. llama.cpp's `llama-server` runs the 1.8B or 7B model on a CPU or
-an integrated GPU (Vulkan image `ghcr.io/ggml-org/llama.cpp:server-vulkan`); vLLM
-and SGLang need an NVIDIA GPU. The model translates one text into one language
-per request, so the server sends one request per locale. Every prompt asks for
-user interface style, matching glossary terms are included, and placeholders are
-sent as numbered `{1}`, `{2}` (the models keep those, but translate named ones) and
-restored afterwards. Every answer is checked for lost placeholders and plural
-forms (`internal/translate`).
-
-### Export Formats
-
-Support for multiple export formats:
-
-- **Laravel** - PHP array format
-- **Vue i18n** - JavaScript/JSON format
-- **JSON** - Standard key-value format
-
-## Implementation Phases
-
-### Phase 1: Foundation (Week 1) ✅
-- [x] Project structure and proto definitions
-- [x] Database schema design and migrations
-- [x] Docker and docker-compose setup
-- [x] Buf configuration for code generation
-
-### Phase 2: Core RPC Services (Week 2)
-- [ ] CRUD operations for all core entities
-- [ ] Proto-to-DB model converters
-- [ ] Input validation and error handling
-- [ ] Unit and integration tests
-
-### Phase 3: Authentication & Authorization (Week 3)
-- [ ] JWT authentication system
-- [ ] RBAC implementation with interceptors
-- [ ] User, role, and permission management
-- [ ] Auth middleware and context propagation
-
-### Phase 4: AI Integration (Week 4)
-- [x] Machine translation (Hy-MT2)
-- [ ] Custom terminology application
-- [ ] Batch translation operations
-- [ ] Translation quality validation
-
-### Phase 5: Advanced Features (Week 5)
-- [ ] Export formats (Laravel, Vue i18n, JSON)
-- [ ] History tracking with GORM hooks
-- [ ] Full-text search across translations
-- [ ] Audit trail and change logs
-
-### Phase 6: Production Ready (Week 6)
-- [ ] Error handling and recovery
-- [ ] Caching layer (Redis)
-- [ ] Observability (metrics, tracing, logging)
-- [ ] Security hardening and rate limiting
-- [ ] Performance optimization
-- [ ] Documentation and deployment guides
-
-See [PLAN.md](PLAN.md) for detailed task breakdown and architecture decisions.
-
-## Roadmap
-
-### Near-term (Post Phase 6)
-- [ ] Redis caching layer for frequently accessed translations
-- [ ] gRPC-Gateway for traditional REST API compatibility
-- [ ] OpenAPI/Swagger documentation generation
-- [ ] Batch operations and bulk import/export
-- [ ] Advanced full-text search with Elasticsearch
-
-### Mid-term
-- [ ] Real-time collaboration via WebSocket/Server-Sent Events
-- [ ] Translation memory and suggestion engine
-- [ ] Automated quality checks and validation rules
-- [ ] Machine translation post-editing workflow
-- [ ] Context screenshots for translators
-- [ ] Figma/Sketch plugin integration
-
-### Long-term
-- [ ] Multi-tenancy support for SaaS deployment
-- [ ] Plugin system for custom integrations
-- [ ] AI-powered translation quality scoring
-- [ ] Slack/Discord notifications and webhooks
-- [ ] Mobile apps (iOS/Android) with offline support
-- [ ] Advanced analytics and reporting dashboard
-
-## Why Connect RPC?
-
-Connect RPC provides several advantages over traditional REST:
-
-- ✅ **Type Safety** - Auto-generated TypeScript/Go types from proto files
-- ✅ **Single Source of Truth** - Proto definitions shared between server and clients
-- ✅ **Better DX** - Method calls instead of manual HTTP requests
-- ✅ **Dual Protocol** - JSON for browsers, Protobuf for performance
-- ✅ **Streaming Support** - Server/client streaming when needed
-- ✅ **No CORS Issues** - Works over standard HTTP
-- ✅ **Multi-Client Ready** - Web, Electron, mobile with same proto definitions
-
-See [PLAN.md](PLAN.md) for detailed comparison with REST and architecture decisions.
-
-## Security
-
-The server implements multiple security layers:
-
-- **Input Validation** - Protobuf validation + go-playground/validator on all endpoints
-- **SQL Injection Prevention** - Parameterized queries via GORM
-- **XSS Prevention** - Sanitized output and Content-Security-Policy headers
-- **CSRF Protection** - Token-based protection for state-changing operations
-- **Rate Limiting** - Per IP/user limits to prevent abuse
-- **Password Security** - bcrypt hashing with salt
-- **JWT Security** - Short-lived tokens with refresh mechanism
-- **HTTPS Only** - TLS required in production
-- **Security Headers** - HSTS, X-Frame-Options, X-Content-Type-Options
-- **Database Pooling** - Connection limits to prevent resource exhaustion
-
-See [PLAN.md](PLAN.md) for detailed security considerations and best practices.
-
-## Testing
-
-Comprehensive testing strategy across multiple levels:
-
-- **Unit Tests** - Service logic and business rules
-- **Integration Tests** - Database operations and RPC handlers
-- **E2E Tests** - Complete API workflows with real database
-- **Load Tests** - Performance validation with k6 or vegeta
-
-```bash
-# Run all tests
-make test
-
-# Run with coverage
-go test -v -cover ./...
-
-# Run integration tests only
-go test -v -tags=integration ./...
-```
-
-## Deployment
-
-### Production Considerations
-
-- **Database**: Managed PostgreSQL (AWS RDS, Google Cloud SQL, or similar)
-- **Container Registry**: Docker Hub, AWS ECR, or Google Container Registry
-- **Orchestration**: Kubernetes with Helm charts or Docker Swarm
-- **Monitoring**: Prometheus + Grafana for metrics and alerting
-- **Logging**: Centralized logging with ELK stack or similar
-- **CI/CD**: GitHub Actions, GitLab CI, or Jenkins for automated builds/deployments
-
-### Docker Build
-
-```bash
-# Build production image
-docker build -t parlance-server:latest .
-
-# Run container
-docker run -p 8080:8080 --env-file .env parlance-server:latest
-```
-
-### Environment Variables
-
-See [Configuration](#configuration) section for required environment variables.
-
-## Contributing
-
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+- **Import:** multiline strings, escapes, comments and a UTF-8 BOM are understood.
+  Broken syntax and non-UTF-8 files are rejected before anything is saved.
+  Context (`msgctxt`), plural, fuzzy and duplicate records are reported in
+  `result.errors` and counted as failed. Obsolete records and empty `msgstr` values
+  are skipped, keeping existing translations. Replace all rejects files with
+  unsupported or duplicate records before removing anything. The language comes
+  from `localeId`, not from the file's Language header.
+- **Export:** sorted by key, with UTF-8 and language headers and entry descriptions
+  as `#.` comments. Entries without a translation get an empty `msgstr`.
+
+## Development
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for tools, the proto workflow, tests and the
+project layout.
 
 ## License
 
-This project is licensed under the GNU General Public License - see the [LICENSE](LICENSE) file for details.
-
-## Documentation
-
-- [PLAN.md](PLAN.md) - Detailed implementation plan and architecture
-- [Proto Definitions](proto/parlance/v1/) - API service definitions
-- [Connect RPC Documentation](https://connectrpc.com/docs/go/getting-started)
-- [Buf CLI Documentation](https://buf.build/docs)
-
-## Acknowledgments
-
-- Inspired by modern translation management tools
-- Built with Go, Connect RPC, PostgreSQL, and Protocol Buffers
-- Frontend client built with Nuxt.js and TypeScript
-
-## Contact
-
-- Project Link: [https://github.com/criticaldevs/parlance-server](https://github.com/criticaldevs/parlance-server)
-- Issues: [https://github.com/criticaldevs/parlance-server/issues](https://github.com/criticaldevs/parlance-server/issues)
-- Frontend Client: [https://github.com/criticaldevs/parlance](https://github.com/criticaldevs/parlance)
-
----
-
-Made with ❤️ by developers, for developers
+GNU General Public License, see [LICENSE](LICENSE).
