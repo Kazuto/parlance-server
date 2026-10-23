@@ -6,9 +6,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
-	"github.com/kazuto/parlance-server/internal/permissions"
 	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
@@ -19,22 +17,16 @@ func (s *Server) GetEntry(
 	ctx context.Context,
 	req *connect.Request[pb.GetEntryRequest],
 ) (*connect.Response[pb.GetEntryResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.ReadEntry); err != nil {
-		return nil, err
-	}
-
 	if req.Msg.Id == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "entry id is required")
 	}
 
-	var entry models.Entry
-	if err := s.db.Preload("Localizations").Preload("Scopes").First(&entry, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrEntryNotFound, "entry not found")
+	entry, err := common.FindByID[models.Entry](s.db.WithContext(ctx).Preload("Localizations").Preload("Scopes"), req.Msg.Id, errors.ErrEntryNotFound, "entry not found")
+	if err != nil {
+		return nil, err
 	}
 
-	requestLocale := common.GetLocaleFromRequest(req)
-
 	return connect.NewResponse(&pb.GetEntryResponse{
-		Entry: converter.EntryToProto(&entry, requestLocale),
+		Entry: converter.EntryToProto(&entry),
 	}), nil
 }

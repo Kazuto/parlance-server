@@ -702,6 +702,8 @@ type GetDefinitionHistoryRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TerminologyId string                 `protobuf:"bytes,1,opt,name=terminology_id,json=terminologyId,proto3" json:"terminology_id,omitempty"`
 	Pagination    *PaginationRequest     `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	// Optional: only history of this locale
+	LocaleId      string `protobuf:"bytes,3,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -748,6 +750,13 @@ func (x *GetDefinitionHistoryRequest) GetPagination() *PaginationRequest {
 		return x.Pagination
 	}
 	return nil
+}
+
+func (x *GetDefinitionHistoryRequest) GetLocaleId() string {
+	if x != nil {
+		return x.LocaleId
+	}
+	return ""
 }
 
 type GetDefinitionHistoryResponse struct {
@@ -1121,12 +1130,13 @@ const file_parlance_v1_terminology_proto_rawDesc = "" +
 	"\x19RestoreTerminologyRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"X\n" +
 	"\x1aRestoreTerminologyResponse\x12:\n" +
-	"\vterminology\x18\x01 \x01(\v2\x18.parlance.v1.TerminologyR\vterminology\"\x84\x01\n" +
+	"\vterminology\x18\x01 \x01(\v2\x18.parlance.v1.TerminologyR\vterminology\"\xa1\x01\n" +
 	"\x1bGetDefinitionHistoryRequest\x12%\n" +
 	"\x0eterminology_id\x18\x01 \x01(\tR\rterminologyId\x12>\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
-	"pagination\"\x99\x01\n" +
+	"pagination\x12\x1b\n" +
+	"\tlocale_id\x18\x03 \x01(\tR\blocaleId\"\x99\x01\n" +
 	"\x1cGetDefinitionHistoryResponse\x128\n" +
 	"\ahistory\x18\x01 \x03(\v2\x1e.parlance.v1.DefinitionHistoryR\ahistory\x12?\n" +
 	"\n" +

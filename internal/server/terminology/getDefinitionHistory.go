@@ -7,6 +7,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -19,40 +20,22 @@ func (s *Server) GetDefinitionHistory(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "terminology id is required")
 	}
 
-	page := int32(1)
-	perPage := int32(50)
-
-	if req.Msg.Pagination != nil {
-		if req.Msg.Pagination.Page > 0 {
-			page = req.Msg.Pagination.Page
-		}
-		if req.Msg.Pagination.PerPage > 0 {
-			perPage = req.Msg.Pagination.PerPage
-		}
+	query := s.db.WithContext(ctx).Model(&models.DefinitionHistory{}).
+		Where("terminology_id = ?", req.Msg.TerminologyId).
+		Order("changed_at DESC")
+	if req.Msg.LocaleId != "" {
+		query = query.Where("locale_id = ?", req.Msg.LocaleId)
 	}
 
 	var history []models.DefinitionHistory
-	var total int64
 
-	offset := (page - 1) * perPage
-
-	query := s.db.Model(&models.DefinitionHistory{}).
-		Where("terminology_id = ?", req.Msg.TerminologyId)
-
-	if err := query.Count(&total).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, err.Error())
-	}
-
-	if err := query.Preload("User").
-		Order("changed_at DESC").
-		Limit(int(perPage)).
-		Offset(int(offset)).
-		Find(&history).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, err.Error())
+	pagination, err := common.Paginate(query, req.Msg.Pagination, &history, "User")
+	if err != nil {
+		return nil, err
 	}
 
 	return connect.NewResponse(&pb.GetDefinitionHistoryResponse{
 		History:    converter.DefinitionHistoriesToProto(history),
-		Pagination: converter.PaginationToProto(total, page, perPage),
+		Pagination: pagination,
 	}), nil
 }

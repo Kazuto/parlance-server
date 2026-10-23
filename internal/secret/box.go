@@ -32,18 +32,22 @@ func New(secret string) (*Box, error) {
 	if secret == "" {
 		return &Box{}, nil
 	}
+
 	key, err := hkdf.Key(sha256.New, []byte(secret), nil, "parlance secret box v1", 32)
 	if err != nil {
 		return nil, err
 	}
+
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}
+
 	aead, err := cipher.NewGCM(block)
 	if err != nil {
 		return nil, err
 	}
+
 	return &Box{aead: aead}, nil
 }
 
@@ -52,11 +56,14 @@ func (b *Box) Encrypt(plain string) (string, error) {
 	if b == nil || b.aead == nil {
 		return "", ErrNoKey
 	}
+
 	nonce := make([]byte, b.aead.NonceSize())
 	if _, err := rand.Read(nonce); err != nil {
 		return "", err
 	}
+
 	sealed := b.aead.Seal(nonce, nonce, []byte(plain), nil)
+
 	return prefix + base64.StdEncoding.EncodeToString(sealed), nil
 }
 
@@ -65,14 +72,18 @@ func (b *Box) Decrypt(encrypted string) (string, error) {
 	if b == nil || b.aead == nil {
 		return "", ErrNoKey
 	}
+
 	data, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(encrypted, prefix))
 	if !strings.HasPrefix(encrypted, prefix) || err != nil || len(data) < b.aead.NonceSize() {
 		return "", ErrInvalid
 	}
+
 	nonce, sealed := data[:b.aead.NonceSize()], data[b.aead.NonceSize():]
+
 	plain, err := b.aead.Open(nil, nonce, sealed, nil)
 	if err != nil {
 		return "", ErrInvalid
 	}
+
 	return string(plain), nil
 }

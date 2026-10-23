@@ -86,6 +86,8 @@ message RestoreTerminologyResponse {
 message GetDefinitionHistoryRequest {
   string terminology_id = 1;
   PaginationRequest pagination = 2;
+  // Optional: only history of this locale
+  string locale_id = 3;
 }
 
 message GetDefinitionHistoryResponse {

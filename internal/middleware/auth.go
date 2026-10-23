@@ -11,36 +11,51 @@ import (
 // ContextKey is a custom type for context keys to avoid collisions
 type ContextKey string
 
-const (
-	// ContextKeyUserID is the context key for user ID
-	ContextKeyUserID ContextKey = "user_id"
-	// ContextKeyUserEmail is the context key for user email
-	ContextKeyUserEmail ContextKey = "user_email"
-)
+// ContextKeyUserID is the context key for user ID
+const ContextKeyUserID ContextKey = "user_id"
+
+// UserID returns the signed-in user's ID, or "" without one
+func UserID(ctx context.Context) string {
+	userID, _ := ctx.Value(ContextKeyUserID).(string)
+
+	return userID
+}
+
+// UserIDPtr returns the signed-in user's ID for created_by/updated_by columns, or nil without one
+func UserIDPtr(ctx context.Context) *string {
+	if userID := UserID(ctx); userID != "" {
+		return &userID
+	}
+
+	return nil
+}
+
+// authenticate validates the request's bearer token and returns the request with the user in
+// its context. The message describes why authentication failed.
+func authenticate(r *http.Request, secret string) (*http.Request, string) {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return r, "authorization header required"
+	}
+
+	token, ok := strings.CutPrefix(authHeader, "Bearer ")
+	if !ok || token == "" || strings.Contains(token, " ") {
+		return r, "invalid authorization header format"
+	}
+
+	claims, err := auth.ValidateAccessToken(token, secret)
+	if err != nil {
+		return r, "invalid or expired token"
+	}
+
+	return r.WithContext(context.WithValue(r.Context(), ContextKeyUserID, claims.UserID)), ""
+}
 
 // AuthMiddleware validates JWT tokens and adds user info to context
 func AuthMiddleware(secret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			authHeader := r.Header.Get("Authorization")
-
-			if authHeader != "" {
-				// Extract token from "Bearer <token>" format
-				parts := strings.Split(authHeader, " ")
-				if len(parts) == 2 && parts[0] == "Bearer" {
-					token := parts[1]
-
-					// Validate token
-					claims, err := auth.ValidateToken(token, secret)
-					if err == nil {
-						// Add user info to context
-						ctx := context.WithValue(r.Context(), ContextKeyUserID, claims.UserID)
-						ctx = context.WithValue(ctx, ContextKeyUserEmail, claims.Email)
-						r = r.WithContext(ctx)
-					}
-				}
-			}
-
+			r, _ = authenticate(r, secret)
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -50,38 +65,14 @@ func AuthMiddleware(secret string) func(http.Handler) http.Handler {
 func RequireAuth(secret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			authHeader := r.Header.Get("Authorization")
-
-			if authHeader == "" {
+			r, failure := authenticate(r, secret)
+			if failure != "" {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusUnauthorized)
-				_, _ = w.Write([]byte(`{"code":"unauthenticated","message":"authorization header required"}`))
+				_, _ = w.Write([]byte(`{"code":"unauthenticated","message":"` + failure + `"}`))
 
 				return
 			}
-
-			parts := strings.Split(authHeader, " ")
-			if len(parts) != 2 || parts[0] != "Bearer" {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusUnauthorized)
-				_, _ = w.Write([]byte(`{"code":"unauthenticated","message":"invalid authorization header format"}`))
-
-				return
-			}
-
-			token := parts[1]
-			claims, err := auth.ValidateToken(token, secret)
-			if err != nil {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusUnauthorized)
-				_, _ = w.Write([]byte(`{"code":"unauthenticated","message":"invalid or expired token"}`))
-
-				return
-			}
-
-			ctx := context.WithValue(r.Context(), ContextKeyUserID, claims.UserID)
-			ctx = context.WithValue(ctx, ContextKeyUserEmail, claims.Email)
-			r = r.WithContext(ctx)
 
 			next.ServeHTTP(w, r)
 		})

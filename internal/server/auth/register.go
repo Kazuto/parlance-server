@@ -2,13 +2,10 @@ package auth
 
 import (
 	"context"
-	"time"
 
 	"connectrpc.com/connect"
-	authpkg "github.com/kazuto/parlance-server/internal/auth"
 	"github.com/kazuto/parlance-server/internal/converter"
-	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -18,59 +15,19 @@ func (s *Server) Register(
 	ctx context.Context,
 	req *connect.Request[pb.RegisterRequest],
 ) (*connect.Response[pb.RegisterResponse], error) {
-	if req.Msg.Email == "" {
-		return nil, errors.InvalidInput(errors.ErrInvalidInput, "email is required")
-	}
-
-	if req.Msg.Password == "" {
-		return nil, errors.InvalidInput(errors.ErrInvalidInput, "password is required")
-	}
-
-	if req.Msg.Name == "" {
-		return nil, errors.InvalidInput(errors.ErrInvalidInput, "name is required")
-	}
-
-	// Check if user already exists
-	var existingUser models.User
-	if err := s.db.Where("email = ?", req.Msg.Email).First(&existingUser).Error; err == nil {
-		return nil, errors.AlreadyExists(errors.ErrUserAlreadyExists, "user with this email already exists")
-	}
-
-	// Hash password
-	hashedPassword, err := authpkg.HashPassword(req.Msg.Password)
+	user, err := common.CreateUser(ctx, s.db.DB, common.NewUser{
+		Email:       req.Msg.Email,
+		Name:        req.Msg.Name,
+		Password:    req.Msg.Password,
+		DefaultRole: "viewer",
+	})
 	if err != nil {
-		return nil, errors.Internal(errors.ErrInternal, "failed to hash password")
+		return nil, err
 	}
 
-	user := &models.User{
-		Email:        req.Msg.Email,
-		PasswordHash: hashedPassword,
-		Name:         req.Msg.Name,
-	}
-
-	if err := s.db.Create(user).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, "failed to create user")
-	}
-
-	// Assign default viewer role
-	var viewerRole models.Role
-	if err := s.db.Where("name = ?", "viewer").First(&viewerRole).Error; err == nil {
-		_ = s.db.Model(user).Association("Roles").Append(&viewerRole)
-	}
-
-	// Load roles for response
-	s.db.Preload("Roles.Permissions").First(user, "id = ?", user.ID)
-
-	// Generate tokens
-	accessExpiry, err := time.ParseDuration(s.config.JWT.Expiry)
+	tokens, err := s.issueTokens(user)
 	if err != nil {
-		accessExpiry = 24 * time.Hour // Default to 24 hours
-	}
-	refreshExpiry := accessExpiry * 7
-
-	tokens, err := authpkg.GenerateTokenPair(user.ID, user.Email, s.config.JWT.Secret, accessExpiry, refreshExpiry)
-	if err != nil {
-		return nil, errors.Internal(errors.ErrInternal, "failed to generate tokens")
+		return nil, err
 	}
 
 	return connect.NewResponse(&pb.RegisterResponse{

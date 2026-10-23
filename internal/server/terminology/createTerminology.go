@@ -8,7 +8,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
-	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -17,24 +17,24 @@ func (s *Server) CreateTerminology(
 	ctx context.Context,
 	req *connect.Request[pb.CreateTerminologyRequest],
 ) (*connect.Response[pb.CreateTerminologyResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.CreateTerminology); err != nil {
-		return nil, err
-	}
-
 	if req.Msg.Term == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "term is required")
 	}
 
-	// Extract user ID from context
-	userID, _ := ctx.Value(middleware.ContextKeyUserID).(string)
+	// Terms stay unique across deleted terminologies too.
+	exists, err := common.Exists(s.db.WithContext(ctx).Unscoped().Model(&models.Terminology{}).Where("term = ?", req.Msg.Term))
+	if err != nil {
+		return nil, errors.InternalCause(err, "failed to check term")
+	}
+
+	if exists {
+		return nil, errors.AlreadyExists(errors.ErrTerminologyAlreadyExists, "a terminology with this term already exists")
+	}
 
 	terminology := &models.Terminology{
 		Term:        req.Msg.Term,
 		Description: req.Msg.Description,
-	}
-
-	if userID != "" {
-		terminology.CreatedBy = &userID
+		CreatedBy:   middleware.UserIDPtr(ctx),
 	}
 
 	if err := s.db.Create(terminology).Error; err != nil {

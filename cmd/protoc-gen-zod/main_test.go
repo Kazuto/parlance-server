@@ -44,12 +44,14 @@ func TestFieldTypeWireRepresentations(t *testing.T) {
 			Value: []*descriptorpb.EnumValueDescriptorProto{{Name: proto.String("STATE_UNSPECIFIED"), Number: proto.Int32(0)}},
 		}},
 	}
+
 	plugin, err := (protogen.Options{}).New(&pluginpb.CodeGeneratorRequest{
 		FileToGenerate: []string{"fixture.proto"}, ProtoFile: []*descriptorpb.FileDescriptorProto{file},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	want := []struct{ schema, typ string }{
 		{"NodeSchema", "Node"},
 		{"z.record(z.string(), z.string())", "Record<string, string>"},
@@ -58,12 +60,14 @@ func TestFieldTypeWireRepresentations(t *testing.T) {
 		{"StateSchema", "State"},
 		{`z.union([z.number(), z.enum(["NaN", "Infinity", "-Infinity"])])`, `number | "NaN" | "Infinity" | "-Infinity"`},
 	}
+
 	for i, field := range plugin.Files[0].Messages[0].Fields {
 		schema, typ, err := fieldType(field)
 		if err != nil || schema != want[i].schema || typ != want[i].typ {
 			t.Errorf("%s: got (%q, %q, %v), want (%q, %q)", field.Desc.Name(), schema, typ, err, want[i].schema, want[i].typ)
 		}
 	}
+
 	if got := messages(plugin.Files[0].Messages); len(got) != 1 {
 		t.Fatalf("map-entry messages must not be emitted: got %d messages", len(got))
 	}

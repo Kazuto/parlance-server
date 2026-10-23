@@ -11,9 +11,8 @@ import (
 	"github.com/kazuto/parlance-server/internal/auth"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
-	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"gorm.io/gorm"
@@ -24,29 +23,29 @@ func (s *Server) UpdateUser(
 	ctx context.Context,
 	req *connect.Request[pb.UpdateUserRequest],
 ) (*connect.Response[pb.UpdateUserResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.UpdateUser); err != nil {
-		return nil, err
-	}
-
 	if req.Msg.Id == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "user id is required")
 	}
+
 	if req.Msg.Email != nil && req.Msg.GetEmail() == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "email is required")
 	}
+
 	if req.Msg.Name != nil && req.Msg.GetName() == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "name is required")
 	}
+
 	if req.Msg.Password != nil && req.Msg.GetPassword() == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "password must not be empty")
 	}
+
 	if len(req.Msg.GetAvatar()) > 0 && req.Msg.GetAvatarMime() == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "avatar mime type is required")
 	}
 
-	var user models.User
-	if err := s.db.First(&user, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrUserNotFound, "user not found")
+	user, err := common.FindByID[models.User](s.db.WithContext(ctx), req.Msg.Id, errors.ErrUserNotFound, "user not found")
+	if err != nil {
+		return nil, err
 	}
 
 	if req.Msg.Email != nil {
@@ -88,11 +87,13 @@ func (s *Server) UpdateUser(
 	}
 
 	var roles []models.Role
+
 	if req.Msg.Roles != nil {
 		var err error
-		roles, err = s.GetRoles(req.Msg.Roles.GetIds())
+
+		roles, err = common.ResolveByIDs[models.Role](s.db.WithContext(ctx), req.Msg.Roles.GetIds(), errors.ErrRoleNotFound, "one or more roles do not exist")
 		if err != nil {
-			return nil, errors.Internal(errors.ErrInternal, "failed to get roles")
+			return nil, err
 		}
 	}
 
@@ -104,13 +105,16 @@ func (s *Server) UpdateUser(
 		if req.Msg.Roles != nil {
 			return tx.Model(&user).Association("Roles").Replace(roles)
 		}
+
 		return nil
 	}); err != nil {
 		return nil, errors.Internal(errors.ErrInternal, "failed to update user")
 	}
 
 	// Load roles for response
-	s.db.Preload("Roles.Permissions").First(&user, "id = ?", user.ID)
+	if err := s.db.Preload("Roles.Permissions").First(&user, "id = ?", user.ID).Error; err != nil {
+		return nil, errors.InternalCause(err, "failed to load updated user")
+	}
 
 	return connect.NewResponse(&pb.UpdateUserResponse{
 		User: converter.UserToProto(&user),

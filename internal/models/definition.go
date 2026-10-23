@@ -42,10 +42,17 @@ func (d *Definition) AfterDelete(tx *gorm.DB) error {
 }
 
 func recordDefinitionHistory(tx *gorm.DB, d *Definition, action string) error {
+	// Bulk statements (Where(...).Delete(&Model{})) carry no row; callers that need
+	// history load the rows and pass them instead.
+	if d.ID == "" {
+		return nil
+	}
+
 	userID := d.UpdatedBy
 	if action == "created" {
 		userID = d.CreatedBy
 	}
+
 	history := DefinitionHistory{
 		DefinitionID:  d.ID,
 		LocaleID:      d.LocaleID,
@@ -55,5 +62,6 @@ func recordDefinitionHistory(tx *gorm.DB, d *Definition, action string) error {
 		Action:        action,
 		ChangedAt:     time.Now(),
 	}
+
 	return tx.Create(&history).Error
 }

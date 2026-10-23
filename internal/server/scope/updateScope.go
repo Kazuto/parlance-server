@@ -6,9 +6,8 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
-	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -18,23 +17,21 @@ func (s *Server) UpdateScope(
 	ctx context.Context,
 	req *connect.Request[pb.UpdateScopeRequest],
 ) (*connect.Response[pb.UpdateScopeResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.UpdateScope); err != nil {
-		return nil, err
-	}
-
 	if req.Msg.Id == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "scope id is required")
 	}
+
 	if req.Msg.Name != nil && req.Msg.GetName() == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "scope name is required")
 	}
+
 	if req.Msg.Slug != nil && req.Msg.GetSlug() == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "scope slug is required")
 	}
 
-	var scope models.Scope
-	if err := s.db.First(&scope, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrScopeNotFound, "scope not found")
+	scope, err := common.FindByID[models.Scope](s.db.WithContext(ctx), req.Msg.Id, errors.ErrScopeNotFound, "scope not found")
+	if err != nil {
+		return nil, err
 	}
 
 	if req.Msg.Name != nil {

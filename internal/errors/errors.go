@@ -2,6 +2,7 @@ package errors
 
 import (
 	"fmt"
+	"log"
 
 	"connectrpc.com/connect"
 )
@@ -18,12 +19,11 @@ const (
 	ErrFailedPrecondition = "FAILED_PRECONDITION"
 
 	// Locale-specific errors
-	ErrLocaleNotFound           = "LOCALE_NOT_FOUND"
-	ErrLocaleAlreadyExists      = "LOCALE_ALREADY_EXISTS"
-	ErrLocaleDefaultDelete      = "LOCALE_DEFAULT_DELETE"
-	ErrLocaleDefaultDestroy     = "LOCALE_DEFAULT_DESTROY"
-	ErrLocaleMustBeSoftDeleted  = "LOCALE_MUST_BE_SOFT_DELETED"
-	ErrLocaleInsufficientAccess = "LOCALE_INSUFFICIENT_ACCESS"
+	ErrLocaleNotFound          = "LOCALE_NOT_FOUND"
+	ErrLocaleAlreadyExists     = "LOCALE_ALREADY_EXISTS"
+	ErrLocaleDefaultDelete     = "LOCALE_DEFAULT_DELETE"
+	ErrLocaleDefaultDestroy    = "LOCALE_DEFAULT_DESTROY"
+	ErrLocaleMustBeSoftDeleted = "LOCALE_MUST_BE_SOFT_DELETED"
 
 	// User-specific errors
 	ErrUserNotFound       = "USER_NOT_FOUND"
@@ -89,6 +89,14 @@ func AlreadyExists(errorCode string, message string) error {
 // Internal returns an internal error
 func Internal(errorCode string, message string) error {
 	return ErrorWithCode(connect.CodeInternal, errorCode, message)
+}
+
+// InternalCause logs the underlying error and returns an internal error carrying only the
+// generic message, so database details never reach clients.
+func InternalCause(cause error, message string) error {
+	log.Printf("%s: %v", message, cause)
+
+	return Internal(ErrInternal, message)
 }
 
 // Unauthenticated returns an unauthenticated error

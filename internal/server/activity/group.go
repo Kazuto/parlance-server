@@ -42,15 +42,19 @@ func groupChanges(changes []change, limit int) []*group {
 			last.Newest.UserID == c.UserID &&
 			last.Oldest.Sub(c.ChangedAt) <= maxGap {
 			last.add(c)
+
 			continue
 		}
+
 		if len(groups) == limit {
 			break
 		}
+
 		g := &group{Newest: c, Oldest: c.ChangedAt, Subjects: map[string]bool{}, Locales: map[string]bool{}}
 		g.add(c)
 		groups = append(groups, g)
 	}
+
 	return groups
 }
 
@@ -58,6 +62,7 @@ func lastGroup(groups []*group) *group {
 	if len(groups) == 0 {
 		return nil
 	}
+
 	return groups[len(groups)-1]
 }
 
@@ -65,8 +70,10 @@ func (g *group) add(c change) {
 	if c.ChangedAt.Before(g.Oldest) {
 		g.Oldest = c.ChangedAt
 	}
+
 	g.Subjects[c.SubjectID] = true
 	g.Locales[c.LocaleID] = true
+
 	switch c.Action {
 	case "created":
 		g.Created++

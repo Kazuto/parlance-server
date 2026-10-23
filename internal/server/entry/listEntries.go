@@ -8,7 +8,6 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
 	"github.com/kazuto/parlance-server/internal/server/common"
@@ -26,29 +25,32 @@ func (s *Server) ListEntries(
 	ctx context.Context,
 	req *connect.Request[pb.ListEntriesRequest],
 ) (*connect.Response[pb.ListEntriesResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.ReadEntry); err != nil {
-		return nil, err
-	}
-
 	if req.Msg.TranslationStatus != "" && req.Msg.TranslationStatus != "missing" && req.Msg.TranslationStatus != "complete" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "invalid translation status")
 	}
+
 	keyOrdered := req.Msg.Filter == nil || req.Msg.Filter.Sort == "" ||
 		(strings.EqualFold(req.Msg.Filter.Sort, "key") && !strings.EqualFold(req.Msg.Filter.Order, "desc"))
+
 	var afterKey string
+
 	if req.Msg.Cursor != "" {
 		if !keyOrdered {
 			return nil, errors.InvalidInput(errors.ErrInvalidInput, "cursor requires key ordering")
 		}
+
 		key, err := decodeCursor(req.Msg.Cursor)
 		if err != nil {
 			return nil, errors.InvalidInput(errors.ErrInvalidInput, "invalid cursor")
 		}
+
 		afterKey = key
 	}
+
 	page, perPage := converter.GetPaginationParams(req.Msg.Pagination)
 
 	var entries []models.Entry
+
 	var total int64
 
 	query := s.db.Model(&models.Entry{})
@@ -57,7 +59,9 @@ func (s *Server) ListEntries(
 	}
 
 	allowedSorts := map[string]bool{"key": true, "description": true, "created_at": true, "created_by": true, "updated_at": true, "updated_by": true}
+
 	query, err := common.NewFilter(query, req.Msg.Filter).
+		IncludeDeletedRequires(ctx, s.db, permissions.DeleteEntry).
 		AllowedSorts(allowedSorts).
 		DefaultSort("key ASC").
 		Search(func(query *gorm.DB, search string) *gorm.DB {
@@ -73,8 +77,9 @@ func (s *Server) ListEntries(
 	if req.Msg.ScopeId != "" {
 		scopeIDs = append(scopeIDs, req.Msg.ScopeId)
 	}
+
 	if len(scopeIDs) > 0 {
-		query = filterScopes(query, scopeIDs)
+		query = common.FilterEntriesByScopes(query, scopeIDs)
 	}
 
 	// Filter by locale if provided
@@ -82,29 +87,31 @@ func (s *Server) ListEntries(
 		query = query.Joins("JOIN localizations ON localizations.entry_id = entries.id").
 			Where("localizations.locale_id = ?", req.Msg.LocaleId)
 	}
+
 	if req.Msg.TranslationStatus != "" {
 		query = filterTranslationStatus(query, req.Msg.TranslationStatus, req.Msg.TargetLocaleIds)
 	}
 
 	var pagination *pb.PaginationResponse
+
 	if req.Msg.Cursor == "" {
 		if err := query.Count(&total).Error; err != nil {
 			return nil, errors.Internal(errors.ErrInternal, "failed to count entries")
 		}
+
 		pagination = converter.PaginationToProto(total, page, perPage)
 		query = query.Offset(int((page - 1) * perPage))
 	} else {
 		query = query.Where("entries.key > ?", afterKey)
-	}
-	if req.Msg.Filter == nil {
-		query = query.Order("key ASC")
 	}
 
 	// One extra row tells whether another page follows without a second count.
 	if err := query.Limit(int(perPage) + 1).Find(&entries).Error; err != nil {
 		return nil, errors.Internal(errors.ErrInternal, "failed to fetch entries")
 	}
+
 	nextCursor := ""
+
 	if len(entries) > int(perPage) {
 		entries = entries[:perPage]
 		if keyOrdered {
@@ -112,11 +119,12 @@ func (s *Server) ListEntries(
 		}
 	}
 
-	result := converter.EntriesToProto(entries, "en")
+	result := converter.EntriesToProto(entries)
 	if req.Msg.Summary {
 		if err := s.fillMissingLocales(result, req.Msg.TargetLocaleIds); err != nil {
 			return nil, err
 		}
+
 		if err := s.fillDefaultTranslations(result); err != nil {
 			return nil, err
 		}
@@ -139,11 +147,13 @@ func (s *Server) fillDefaultTranslations(entries []*pb.Entry) error {
 	if len(entries) == 0 {
 		return nil
 	}
-	var defaultLocale models.Locale
-	if err := s.db.Where("is_default = ?", true).Limit(1).Find(&defaultLocale).Error; err != nil {
-		return errors.Internal(errors.ErrInternal, "failed to load default locale")
+
+	defaultLocale, err := common.DefaultLocale(s.db.DB)
+	if err != nil {
+		return err
 	}
-	if defaultLocale.ID == "" {
+
+	if defaultLocale == nil {
 		return nil
 	}
 
@@ -151,11 +161,13 @@ func (s *Server) fillDefaultTranslations(entries []*pb.Entry) error {
 	for i, entry := range entries {
 		entryIDs[i] = entry.Id
 	}
+
 	var rows []struct {
 		EntryID     string
 		Translation string
 	}
-	err := s.db.Model(&models.Localization{}).
+
+	err = s.db.Model(&models.Localization{}).
 		Select("entry_id, translation").
 		Where("entry_id IN ? AND locale_id = ?", entryIDs, defaultLocale.ID).
 		Scan(&rows).Error
@@ -167,9 +179,11 @@ func (s *Server) fillDefaultTranslations(entries []*pb.Entry) error {
 	for _, row := range rows {
 		translations[row.EntryID] = shorten(strings.TrimSpace(row.Translation), maxDefaultTranslationLength)
 	}
+
 	for _, entry := range entries {
 		entry.DefaultTranslation = translations[entry.Id]
 	}
+
 	return nil
 }
 
@@ -179,6 +193,7 @@ func shorten(text string, limit int) string {
 	if len(runes) <= limit {
 		return text
 	}
+
 	return strings.TrimSpace(string(runes[:limit-1])) + "…"
 }
 
@@ -188,6 +203,7 @@ func encodeCursor(key string) string {
 
 func decodeCursor(cursor string) (string, error) {
 	key, err := base64.RawURLEncoding.DecodeString(cursor)
+
 	return string(key), err
 }
 
@@ -197,20 +213,24 @@ func (s *Server) fillMissingLocales(entries []*pb.Entry, targetLocaleIDs []strin
 	if len(entries) == 0 {
 		return nil
 	}
+
 	targets := targetLocaleIDs
 	if len(targets) == 0 {
 		if err := s.db.Model(&models.Locale{}).Pluck("id", &targets).Error; err != nil {
 			return errors.Internal(errors.ErrInternal, "failed to load locales")
 		}
 	}
+
 	entryIDs := make([]string, len(entries))
 	for i, entry := range entries {
 		entryIDs[i] = entry.Id
 	}
+
 	var present []struct {
 		EntryID  string
 		LocaleID string
 	}
+
 	if len(targets) > 0 {
 		err := s.db.Model(&models.Localization{}).
 			Select("entry_id, locale_id").
@@ -220,29 +240,29 @@ func (s *Server) fillMissingLocales(entries []*pb.Entry, targetLocaleIDs []strin
 			return errors.Internal(errors.ErrInternal, "failed to load translations")
 		}
 	}
+
 	translated := make(map[string]map[string]bool, len(entries))
 	for _, row := range present {
 		if translated[row.EntryID] == nil {
 			translated[row.EntryID] = map[string]bool{}
 		}
+
 		translated[row.EntryID][row.LocaleID] = true
 	}
+
 	for _, entry := range entries {
 		missing := make([]string, 0, len(targets))
+
 		for _, localeID := range targets {
 			if !translated[entry.Id][localeID] {
 				missing = append(missing, localeID)
 			}
 		}
+
 		entry.MissingLocaleIds = missing
 	}
-	return nil
-}
 
-// filterScopes keeps entries in any of the given scopes. A subquery instead of a
-// join keeps entries that belong to several selected scopes from repeating.
-func filterScopes(query *gorm.DB, scopeIDs []string) *gorm.DB {
-	return query.Where("entries.id IN (SELECT entry_id FROM entry_scopes WHERE scope_id IN ?)", scopeIDs)
+	return nil
 }
 
 // searchEntries keeps entries whose key, or whose translation in one of the given
@@ -256,6 +276,7 @@ func searchEntries(query *gorm.DB, search string, localeIDs []string) *gorm.DB {
 	if len(localeIDs) > 0 {
 		translations = translations.Where("localizations.locale_id IN ?", localeIDs)
 	}
+
 	return query.Where("(LOWER(entries.key) LIKE ? OR EXISTS (?))", pattern, translations)
 }
 
@@ -265,9 +286,11 @@ func filterTranslationStatus(query *gorm.DB, status string, localeIDs []string) 
 	if len(localeIDs) > 0 {
 		targets = targets.Where("locales.id IN ?", localeIDs)
 	}
+
 	targets = targets.Where("NOT EXISTS (SELECT 1 FROM localizations WHERE localizations.entry_id = entries.id AND localizations.locale_id = locales.id AND localizations.deleted_at IS NULL AND TRIM(localizations.translation) <> '')")
 	if status == "missing" {
 		return query.Where("EXISTS (?)", targets)
 	}
+
 	return query.Where("NOT EXISTS (?)", targets)
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/server/common"
 	"github.com/kazuto/parlance-server/internal/translate"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
@@ -25,15 +26,14 @@ func (s *Server) SuggestTerminologies(
 	}
 
 	// Verify target locale exists
-	var locale models.Locale
-	if err := s.db.First(&locale, "id = ?", req.Msg.TargetLocaleId).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrLocaleNotFound, "target locale not found")
+	if _, err := common.FindByID[models.Locale](s.db.WithContext(ctx), req.Msg.TargetLocaleId, errors.ErrLocaleNotFound, "target locale not found"); err != nil {
+		return nil, err
 	}
 
 	// Get all terminologies with their definitions
 	var terminologies []models.Terminology
 	if err := s.db.Preload("Definitions", "locale_id = ?", req.Msg.TargetLocaleId).Find(&terminologies).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, err.Error())
+		return nil, errors.InternalCause(err, "failed to fetch terminologies")
 	}
 
 	// Tokenize source text (simple word-based tokenization)
@@ -49,9 +49,11 @@ func (s *Server) SuggestTerminologies(
 		if len(matchedWords) > 0 {
 			// Get the definition for the target locale
 			var targetTranslation string
+
 			for _, def := range term.Definitions {
 				if def.LocaleID == req.Msg.TargetLocaleId {
 					targetTranslation = def.Translation
+
 					break
 				}
 			}

@@ -58,6 +58,7 @@ func TestUserToProto(t *testing.T) {
 				if result != nil {
 					t.Errorf("UserToProto() = %v, want nil", result)
 				}
+
 				return
 			}
 
@@ -81,5 +82,16 @@ func TestUserToProto(t *testing.T) {
 				t.Errorf("Roles length = %v, want %v", len(result.Roles), len(tt.user.Roles))
 			}
 		})
+	}
+}
+
+func TestUserToProtoMapsAvatar(t *testing.T) {
+	avatar := "https://example.com/avatar.png"
+	if result := UserToProto(&models.User{ID: "user", Avatar: &avatar}); result.Avatar != avatar {
+		t.Errorf("UserToProto() avatar = %q, want %q", result.Avatar, avatar)
+	}
+
+	if empty := UserToProto(&models.User{ID: "user"}); empty.Avatar != "" {
+		t.Errorf("UserToProto() with nil avatar = %q, want empty", empty.Avatar)
 	}
 }

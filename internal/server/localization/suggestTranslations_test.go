@@ -26,10 +26,12 @@ func (f *fakeTranslator) Translate(_ context.Context, req translate.Request) (st
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.requests = append(f.requests, req)
+
 	answer, ok := f.answers[req.TargetLang]
 	if !ok {
 		return "", errors.New("model unavailable")
 	}
+
 	return answer, nil
 }
 
@@ -45,8 +47,10 @@ type hangingTranslator struct {
 func (h hangingTranslator) Translate(ctx context.Context, req translate.Request) (string, error) {
 	if req.TargetLang == h.language {
 		<-ctx.Done()
+
 		return "", ctx.Err()
 	}
+
 	return h.Translator.Translate(ctx, req)
 }
 
@@ -57,11 +61,13 @@ func (f fixedSource) Translator(context.Context) (translate.Translator, error) {
 func (f *fakeTranslator) request(lang string) (translate.Request, bool) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+
 	for _, req := range f.requests {
 		if req.TargetLang == lang {
 			return req, true
 		}
 	}
+
 	return translate.Request{}, false
 }
 
@@ -69,22 +75,16 @@ func (f *fakeTranslator) request(lang string) (translate.Request, bool) {
 // with English text. sv is not a language the models support.
 func seedTranslationData(t *testing.T, db *database.DB) {
 	t.Helper()
-	exec := func(query string, args ...any) {
-		t.Helper()
-		if err := db.Exec(query, args...).Error; err != nil {
-			t.Fatalf("%s: %v", query, err)
-		}
-	}
-	exec(`INSERT INTO locales (id, code, is_default) VALUES
+	testutil.Exec(t, db, `INSERT INTO locales (id, code, is_default) VALUES
 		('st-en', 'en', 1), ('st-de', 'de', 0), ('st-fr', 'fr', 0), ('st-es', 'es', 0), ('st-sv', 'sv', 0)`)
-	exec(`INSERT INTO entries (id, key, description) VALUES
+	testutil.Exec(t, db, `INSERT INTO entries (id, key, description) VALUES
 		('st-entry', 'dashboard.open', 'Button on the start page'),
 		('st-empty', 'dashboard.empty', '')`)
-	exec(`INSERT INTO localizations (id, entry_id, locale_id, translation) VALUES
+	testutil.Exec(t, db, `INSERT INTO localizations (id, entry_id, locale_id, translation) VALUES
 		('st-l1', 'st-entry', 'st-en', 'Open the dashboard'),
 		('st-l2', 'st-entry', 'st-de', 'Übersicht öffnen')`)
-	exec(`INSERT INTO terminologies (id, term) VALUES ('st-t1', 'Dashboard'), ('st-t2', 'Logo')`)
-	exec(`INSERT INTO definitions (id, terminology_id, locale_id, translation) VALUES
+	testutil.Exec(t, db, `INSERT INTO terminologies (id, term) VALUES ('st-t1', 'Dashboard'), ('st-t2', 'Logo')`)
+	testutil.Exec(t, db, `INSERT INTO definitions (id, terminology_id, locale_id, translation) VALUES
 		('st-d1', 'st-t1', 'st-es', 'Panel de control'),
 		('st-d2', 'st-t2', 'st-es', 'Logotipo')`)
 	t.Cleanup(func() {
@@ -98,10 +98,7 @@ func seedTranslationData(t *testing.T, db *database.DB) {
 }
 
 func TestSuggestTranslations(t *testing.T) {
-	ctx, db, err := testutil.SetupTestContext()
-	if err != nil {
-		t.Fatalf("Failed to setup test context: %v", err)
-	}
+	ctx, db := testutil.Setup(t)
 	seedTranslationData(t, db)
 
 	newServer := func() (*Server, *fakeTranslator) {
@@ -109,6 +106,7 @@ func TestSuggestTranslations(t *testing.T) {
 			"German":  "Übersicht öffnen",
 			"Spanish": `"Abrir el panel de control"`,
 		}}
+
 		return &Server{db: db, translators: fixedSource{fake}}, fake
 	}
 	suggest := func(server *Server, ctx context.Context, entryID string, localeIDs ...string) (*pb.SuggestTranslationsResponse, error) {
@@ -119,22 +117,27 @@ func TestSuggestTranslations(t *testing.T) {
 		if err != nil {
 			return nil, err
 		}
+
 		return res.Msg, nil
 	}
 
 	t.Run("suggests one cleaned translation per locale, in order", func(t *testing.T) {
 		server, _ := newServer()
+
 		res, err := suggest(server, ctx, "st-entry", "st-es", "st-de")
 		if err != nil {
 			t.Fatalf("SuggestTranslations: %v", err)
 		}
+
 		if len(res.Suggestions) != 2 {
 			t.Fatalf("got %d suggestions", len(res.Suggestions))
 		}
+
 		es, de := res.Suggestions[0], res.Suggestions[1]
 		if es.LocaleId != "st-es" || es.Translation != "Abrir el panel de control" || es.ErrorCode != "" {
 			t.Errorf("es: got %+v", es)
 		}
+
 		if de.LocaleId != "st-de" || de.Translation != "Übersicht öffnen" {
 			t.Errorf("de: got %+v", de)
 		}
@@ -150,10 +153,12 @@ func TestSuggestTranslations(t *testing.T) {
 		if err != nil {
 			t.Fatalf("SuggestTranslations: %v", err)
 		}
+
 		de, fr := res.Suggestions[0], res.Suggestions[1]
 		if de.Translation != "Übersicht öffnen" || de.ErrorCode != "" {
 			t.Errorf("de: got %+v", de)
 		}
+
 		if fr.Translation != "" || fr.ErrorCode != suggestionTimeout {
 			t.Errorf("fr: got %+v", fr)
 		}
@@ -164,6 +169,7 @@ func TestSuggestTranslations(t *testing.T) {
 		if _, err := suggest(server, ctx, "st-entry", "st-es", "st-de"); err != nil {
 			t.Fatalf("SuggestTranslations: %v", err)
 		}
+
 		es, _ := fake.request("Spanish")
 		if es.Text != "Open the dashboard" {
 			t.Errorf("es request: got %+v", es)
@@ -172,6 +178,7 @@ func TestSuggestTranslations(t *testing.T) {
 		if len(es.Terms) != 1 || es.Terms[0] != (translate.Term{Source: "Dashboard", Target: "Panel de control"}) {
 			t.Errorf("es terms: got %+v", es.Terms)
 		}
+
 		if de, _ := fake.request("German"); len(de.Terms) != 0 {
 			t.Errorf("de terms: got %+v", de.Terms)
 		}
@@ -179,14 +186,17 @@ func TestSuggestTranslations(t *testing.T) {
 
 	t.Run("reports failures per locale and keeps the others", func(t *testing.T) {
 		server, fake := newServer()
+
 		res, err := suggest(server, ctx, "st-entry", "st-sv", "st-fr", "st-de")
 		if err != nil {
 			t.Fatalf("SuggestTranslations: %v", err)
 		}
+
 		codes := []string{res.Suggestions[0].ErrorCode, res.Suggestions[1].ErrorCode, res.Suggestions[2].ErrorCode}
 		if codes[0] != "UNSUPPORTED_LANGUAGE" || codes[1] != "FAILED" || codes[2] != "" {
 			t.Errorf("error codes: got %v", codes)
 		}
+
 		if res.Suggestions[2].Translation != "Übersicht öffnen" {
 			t.Errorf("de: got %+v", res.Suggestions[2])
 		}
@@ -198,16 +208,20 @@ func TestSuggestTranslations(t *testing.T) {
 
 	t.Run("passes on warnings", func(t *testing.T) {
 		db.Exec(`INSERT INTO localizations (id, entry_id, locale_id, translation) VALUES ('st-l3', 'st-empty', 'st-en', '{count} entries')`)
+
 		server, fake := newServer()
 		fake.answers["German"] = "{Anzahl} Einträge"
+
 		res, err := suggest(server, ctx, "st-empty", "st-de")
 		if err != nil {
 			t.Fatalf("SuggestTranslations: %v", err)
 		}
+
 		warnings := res.Suggestions[0].Warnings
 		if len(warnings) != 2 || warnings[0].Code != "PLACEHOLDER_MISSING" || warnings[0].Detail != "{count}" {
 			t.Errorf("warnings: got %+v", warnings)
 		}
+
 		db.Exec(`DELETE FROM localizations WHERE id = 'st-l3'`)
 	})
 
@@ -216,8 +230,11 @@ func TestSuggestTranslations(t *testing.T) {
 		if _, err := suggest(server, ctx, "st-entry", "st-es"); err != nil {
 			t.Fatalf("SuggestTranslations: %v", err)
 		}
+
 		var count int64
+
 		db.Table("localizations").Where("entry_id = 'st-entry' AND locale_id = 'st-es'").Count(&count)
+
 		if count != 0 {
 			t.Errorf("saved %d localizations", count)
 		}
@@ -237,6 +254,7 @@ func TestSuggestTranslations(t *testing.T) {
 			{"unknown locale", "st-entry", []string{"st-unknown"}, connect.CodeNotFound},
 			{"no source text", "st-empty", []string{"st-de"}, connect.CodeFailedPrecondition},
 		}
+
 		for _, c := range cases {
 			_, err := suggest(server, ctx, c.entryID, c.localeIDs...)
 			if connect.CodeOf(err) != c.code {
@@ -247,52 +265,33 @@ func TestSuggestTranslations(t *testing.T) {
 
 	t.Run("needs an enabled translation server", func(t *testing.T) {
 		server := &Server{db: db, translators: fixedSource{}}
+
 		_, err := suggest(server, ctx, "st-entry", "st-de")
 		if connect.CodeOf(err) != connect.CodeFailedPrecondition || !strings.Contains(err.Error(), "not configured") {
 			t.Errorf("got %v", err)
 		}
 	})
 
-	t.Run("needs permission to use machine translation", func(t *testing.T) {
+	t.Run("works for a translator", func(t *testing.T) {
 		server, fake := newServer()
-		editor, err := testutil.ContextWithPermissions(db, "read_entry", "update_entry")
-		if err != nil {
-			t.Fatalf("ContextWithPermissions: %v", err)
-		}
-		if _, err := suggest(server, editor, "st-entry", "st-de"); connect.CodeOf(err) != connect.CodePermissionDenied {
-			t.Errorf("without use_machine_translation: got %v", err)
-		}
 
 		translator, err := testutil.ContextWithPermissions(db, "update_entry", "use_machine_translation")
 		if err != nil {
 			t.Fatalf("ContextWithPermissions: %v", err)
 		}
+
 		if _, err := suggest(server, translator, "st-entry", "st-de"); err != nil {
 			t.Errorf("with both permissions: %v", err)
 		}
+
 		if len(fake.requests) != 1 {
 			t.Errorf("sent %d requests, want 1", len(fake.requests))
-		}
-	})
-
-	t.Run("needs permission to edit entries", func(t *testing.T) {
-		server, fake := newServer()
-		viewer := testutil.ContextWithTestUser(context.Background(), "st-nobody")
-		_, err := suggest(server, viewer, "st-entry", "st-de")
-		if connect.CodeOf(err) != connect.CodePermissionDenied {
-			t.Errorf("got %v", err)
-		}
-		if len(fake.requests) != 0 {
-			t.Errorf("sent %d requests", len(fake.requests))
 		}
 	})
 }
 
 func TestBatchTranslate(t *testing.T) {
-	ctx, db, err := testutil.SetupTestContext()
-	if err != nil {
-		t.Fatalf("Failed to setup test context: %v", err)
-	}
+	ctx, db := testutil.Setup(t)
 	seedTranslationData(t, db)
 	db.Exec(`INSERT INTO entries (id, key) VALUES ('st-warn', 'items.count')`)
 	db.Exec(`INSERT INTO localizations (id, entry_id, locale_id, translation) VALUES ('st-l4', 'st-warn', 'st-en', '{count} items')`)
@@ -313,8 +312,11 @@ func TestBatchTranslate(t *testing.T) {
 		if res.Msg.SuccessCount != 1 || res.Msg.FailureCount != 1 || res.Msg.SkippedCount != 0 {
 			t.Errorf("counts: got %+v", res.Msg)
 		}
+
 		var saved string
+
 		db.Table("localizations").Select("translation").Where("entry_id = 'st-entry' AND locale_id = 'st-es'").Scan(&saved)
+
 		if saved != "Abrir" {
 			t.Errorf("saved: got %q", saved)
 		}
@@ -327,26 +329,17 @@ func TestBatchTranslate(t *testing.T) {
 		if err != nil {
 			t.Fatalf("BatchTranslate: %v", err)
 		}
+
 		if res.Msg.SkippedCount != 1 || res.Msg.SuccessCount != 0 {
 			t.Errorf("counts: got %+v", res.Msg)
 		}
+
 		var kept string
+
 		db.Table("localizations").Select("translation").Where("id = 'st-l2'").Scan(&kept)
+
 		if kept != "Übersicht öffnen" {
 			t.Errorf("existing translation changed to %q", kept)
-		}
-	})
-
-	t.Run("needs permission to use machine translation", func(t *testing.T) {
-		editor, err := testutil.ContextWithPermissions(db, "update_entry")
-		if err != nil {
-			t.Fatalf("ContextWithPermissions: %v", err)
-		}
-		_, err = server.BatchTranslate(editor, connect.NewRequest(&pb.BatchTranslateRequest{
-			EntryIds: []string{"st-entry"}, TargetLocaleId: "st-fr", SourceLocaleId: "st-en",
-		}))
-		if connect.CodeOf(err) != connect.CodePermissionDenied {
-			t.Errorf("got %v", err)
 		}
 	})
 

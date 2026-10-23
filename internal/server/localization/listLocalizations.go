@@ -6,11 +6,9 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
 	"github.com/kazuto/parlance-server/internal/server/common"
-	"gorm.io/gorm"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -20,44 +18,31 @@ func (s *Server) ListLocalizations(
 	ctx context.Context,
 	req *connect.Request[pb.ListLocalizationsRequest],
 ) (*connect.Response[pb.ListLocalizationsResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.ReadEntry); err != nil {
-		return nil, err
-	}
-
 	if req.Msg.EntryId == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "entry id is required")
 	}
 
-	page, perPage := converter.GetPaginationParams(req.Msg.Pagination)
+	query := s.db.WithContext(ctx).Model(&models.Localization{}).Where("entry_id = ?", req.Msg.EntryId)
 
-	var localizations []models.Localization
-	var total int64
-
-	query := s.db.Model(&models.Localization{}).Where("entry_id = ?", req.Msg.EntryId)
-
-	allowedSorts := map[string]bool{"created_at": true, "created_by": true, "updated_at": true, "updated_by": true}
 	query, err := common.NewFilter(query, req.Msg.Filter).
-		AllowedSorts(allowedSorts).
+		IncludeDeletedRequires(ctx, s.db, permissions.UpdateEntry).
+		AllowedSorts(map[string]bool{"created_at": true, "created_by": true, "updated_at": true, "updated_by": true}).
 		DefaultSort("created_at DESC").
-		Search(func(query *gorm.DB, search string) *gorm.DB {
-			return query.Where("translation LIKE ?", "%"+search+"%")
-		}).
+		Search(common.SearchColumns("translation")).
 		Apply()
 	if err != nil {
 		return nil, err
 	}
 
-	if err := query.Count(&total).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, "failed to count localizations")
-	}
+	var localizations []models.Localization
 
-	offset := (page - 1) * perPage
-	if err := query.Offset(int(offset)).Limit(int(perPage)).Find(&localizations).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, "failed to fetch localizations")
+	pagination, err := common.Paginate(query, req.Msg.Pagination, &localizations)
+	if err != nil {
+		return nil, err
 	}
 
 	return connect.NewResponse(&pb.ListLocalizationsResponse{
 		Localizations: converter.LocalizationsToProto(localizations),
-		Pagination:    converter.PaginationToProto(total, page, perPage),
+		Pagination:    pagination,
 	}), nil
 }

@@ -6,9 +6,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
-	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -22,28 +21,15 @@ func (s *Server) SuggestTranslations(
 	ctx context.Context,
 	req *connect.Request[pb.SuggestTranslationsRequest],
 ) (*connect.Response[pb.SuggestTranslationsResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.UpdateEntry); err != nil {
-		return nil, err
-	}
-
-	// Translating loads the translation servers, so only some roles may ask for it.
-	if err := middleware.RequirePermission(ctx, s.db, permissions.UseMachineTranslation); err != nil {
-		return nil, err
-	}
-
 	if req.Msg.EntryId == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "entry id is required")
 	}
 
-	var localeIDs []string
-	for _, id := range req.Msg.TargetLocaleIds {
-		if id != "" && !slices.Contains(localeIDs, id) {
-			localeIDs = append(localeIDs, id)
-		}
-	}
+	localeIDs := common.UniqueIDs(req.Msg.TargetLocaleIds)
 	if len(localeIDs) == 0 {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "target locale ids are required")
 	}
+
 	if len(localeIDs) > maxSuggestionLocales {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "too many target locales")
 	}
@@ -53,17 +39,22 @@ func (s *Server) SuggestTranslations(
 		return nil, err
 	}
 
-	var entry models.Entry
-	if err := s.db.First(&entry, "id = ?", req.Msg.EntryId).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrEntryNotFound, "entry not found")
+	entry, err := common.FindByID[models.Entry](s.db.WithContext(ctx), req.Msg.EntryId, errors.ErrEntryNotFound, "entry not found")
+	if err != nil {
+		return nil, err
 	}
 
-	var defaultLocale models.Locale
-	if err := s.db.First(&defaultLocale, "is_default = ?", true).Error; err != nil {
+	defaultLocale, err := common.DefaultLocale(s.db.WithContext(ctx))
+	if err != nil {
+		return nil, err
+	}
+
+	if defaultLocale == nil {
 		return nil, errors.FailedPrecondition(errors.ErrFailedPrecondition, "no default locale is set")
 	}
 
 	var source models.Localization
+
 	err = s.db.First(&source, "entry_id = ? AND locale_id = ?", entry.ID, defaultLocale.ID).Error
 	if err != nil || source.Translation == "" {
 		return nil, errors.FailedPrecondition(errors.ErrFailedPrecondition, "the entry has no text in the default locale")
@@ -73,12 +64,15 @@ func (s *Server) SuggestTranslations(
 	if err := s.db.Where("id IN ?", localeIDs).Find(&found).Error; err != nil {
 		return nil, errors.Internal(errors.ErrInternal, "failed to load locales")
 	}
+
 	locales := make([]models.Locale, 0, len(localeIDs))
+
 	for _, id := range localeIDs {
 		index := slices.IndexFunc(found, func(locale models.Locale) bool { return locale.ID == id })
 		if index < 0 {
 			return nil, errors.NotFound(errors.ErrLocaleNotFound, "target locale not found")
 		}
+
 		locales = append(locales, found[index])
 	}
 

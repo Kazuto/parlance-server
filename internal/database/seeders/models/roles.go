@@ -28,16 +28,19 @@ func (i *RoleSeeder) Run(db *gorm.DB) error {
 
 	// Assign permissions to roles
 	var adminRole models.Role
+
 	db.Where("name = ?", "admin").Preload("Permissions").First(&adminRole)
 
 	var allPermissions []models.Permission
+
 	db.Find(&allPermissions)
+
 	if err := db.Model(&adminRole).Association("Permissions").Append(&allPermissions); err != nil {
 		return err
 	}
 
-	// Translations (localizations) are covered by the entry permissions; import and
-	// export need none.
+	// Translations (localizations), import and export are covered by the entry
+	// permissions; see rbac.Rules.
 	rolePermissions := map[string][]string{
 		"translator": {
 			permissions.ReadLocale,
@@ -73,6 +76,7 @@ func (i *RoleSeeder) Run(db *gorm.DB) error {
 		if err := db.Where("name IN ?", names).Find(&perms).Error; err != nil {
 			return err
 		}
+
 		if len(perms) != len(names) {
 			return fmt.Errorf("role %s: found %d of %d permissions", roleName, len(perms), len(names))
 		}

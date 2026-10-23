@@ -1,6 +1,8 @@
 package converter
 
 import (
+	"time"
+
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/models"
 )
@@ -11,24 +13,17 @@ func UserToProto(u *models.User) *pb.User {
 		return nil
 	}
 
-	roles := make([]*pb.Role, len(u.Roles))
-	for i, role := range u.Roles {
-		roles[i] = RoleToProto(&role)
-	}
-
-	deletedAt := ""
-	if u.DeletedAt.Valid {
-		deletedAt = u.DeletedAt.Time.Format("2006-01-02T15:04:05Z07:00")
-	}
-
 	return &pb.User{
-		Id:        u.ID,
-		Email:     u.Email,
-		Name:      u.Name,
-		Roles:     roles,
-		CreatedAt: u.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt: u.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		DeletedAt: deletedAt,
+		Id:    u.ID,
+		Email: u.Email,
+		Name:  u.Name,
+		// Locale stays unset: the column defaults to "en" for users who never chose one,
+		// which would override the language the web app picked for them.
+		Avatar:    derefString(u.Avatar),
+		Roles:     RolesToProto(u.Roles),
+		CreatedAt: u.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: u.UpdatedAt.Format(time.RFC3339),
+		DeletedAt: formatDeletedAt(u.DeletedAt),
 	}
 }
 
@@ -37,5 +32,6 @@ func UsersToProto(users []models.User) []*pb.User {
 	for i, user := range users {
 		result[i] = UserToProto(&user)
 	}
+
 	return result
 }

@@ -28,6 +28,7 @@ func GetPaginationParams(req *pb.PaginationRequest) (page, perPage int32) {
 		if req.Page > 0 {
 			page = req.Page
 		}
+
 		if req.PerPage > 0 {
 			perPage = req.PerPage
 		}

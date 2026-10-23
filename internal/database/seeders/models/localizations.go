@@ -13,15 +13,18 @@ func (i *LocalizationsSeeder) Name() string { return "Localizations" }
 
 func (i *LocalizationsSeeder) Run(db *gorm.DB) error {
 	var enLocale, deLocale, esLocale, frLocale models.Locale
+
 	db.Where("code = ?", "en").First(&enLocale)
 	db.Where("code = ?", "de").First(&deLocale)
 	db.Where("code = ?", "es").First(&esLocale)
 	db.Where("code = ?", "fr").First(&frLocale)
 
 	var translator models.User
+
 	db.Where("email = ?", "translator@parlance.dev").First(&translator)
 
 	var entries []models.Entry
+
 	db.Limit(20).Find(&entries)
 
 	translations := map[string]map[string]string{

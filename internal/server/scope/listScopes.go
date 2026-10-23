@@ -5,12 +5,9 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
-	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
 	"github.com/kazuto/parlance-server/internal/server/common"
-	"gorm.io/gorm"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -20,40 +17,25 @@ func (s *Server) ListScopes(
 	ctx context.Context,
 	req *connect.Request[pb.ListScopesRequest],
 ) (*connect.Response[pb.ListScopesResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.ReadScope); err != nil {
-		return nil, err
-	}
-
-	page, perPage := converter.GetPaginationParams(req.Msg.Pagination)
-
-	var scopes []models.Scope
-	var total int64
-
-	query := s.db.Model(&models.Scope{})
-
-	allowedSorts := map[string]bool{"name": true, "slug": true, "created_at": true, "updated_at": true}
-	query, err := common.NewFilter(query, req.Msg.Filter).
-		AllowedSorts(allowedSorts).
+	query, err := common.NewFilter(s.db.WithContext(ctx).Model(&models.Scope{}), req.Msg.Filter).
+		IncludeDeletedRequires(ctx, s.db, permissions.DeleteScope).
+		AllowedSorts(map[string]bool{"name": true, "slug": true, "created_at": true, "updated_at": true}).
 		DefaultSort("name ASC").
-		Search(func(query *gorm.DB, search string) *gorm.DB {
-			return query.Where("name ILIKE ? OR slug ILIKE ?", "%"+search+"%", "%"+search+"%")
-		}).
+		Search(common.SearchColumns("name", "slug")).
 		Apply()
 	if err != nil {
 		return nil, err
 	}
 
-	if err := query.Count(&total).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, "failed to count scopes")
-	}
+	var scopes []models.Scope
 
-	offset := (page - 1) * perPage
-	if err := query.Offset(int(offset)).Limit(int(perPage)).Find(&scopes).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, "failed to fetch scopes")
+	pagination, err := common.Paginate(query, req.Msg.Pagination, &scopes)
+	if err != nil {
+		return nil, err
 	}
 
 	return connect.NewResponse(&pb.ListScopesResponse{
 		Scopes:     converter.ScopesToProto(scopes),
-		Pagination: converter.PaginationToProto(total, page, perPage),
+		Pagination: pagination,
 	}), nil
 }

@@ -1,6 +1,8 @@
 package converter
 
 import (
+	"time"
+
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/models"
 )
@@ -20,8 +22,8 @@ func TranslationServerToProto(s *models.TranslationServer) *pb.TranslationServer
 		HasApiKey:      s.APIKey != "",
 		MaxConcurrency: int32(s.MaxConcurrency),
 		Enabled:        s.Enabled,
-		CreatedAt:      s.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt:      s.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		CreatedAt:      s.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:      s.UpdatedAt.Format(time.RFC3339),
 	}
 }
 

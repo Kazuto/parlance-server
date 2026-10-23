@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"time"
 
 	"connectrpc.com/connect"
 	authpkg "github.com/kazuto/parlance-server/internal/auth"
@@ -37,16 +36,9 @@ func (s *Server) Login(
 		return nil, errors.Unauthenticated(errors.ErrInvalidCredentials, "invalid email or password")
 	}
 
-	// Generate tokens
-	accessExpiry, err := time.ParseDuration(s.config.JWT.Expiry)
+	tokens, err := s.issueTokens(&user)
 	if err != nil {
-		accessExpiry = 24 * time.Hour // Default to 24 hours
-	}
-	refreshExpiry := accessExpiry * 7
-
-	tokens, err := authpkg.GenerateTokenPair(user.ID, user.Email, s.config.JWT.Secret, accessExpiry, refreshExpiry)
-	if err != nil {
-		return nil, errors.Internal(errors.ErrInternal, "failed to generate tokens")
+		return nil, err
 	}
 
 	return connect.NewResponse(&pb.LoginResponse{

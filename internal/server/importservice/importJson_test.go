@@ -1,16 +1,17 @@
 package importservice
 
 import (
-	"context"
 	"reflect"
 	"testing"
 
 	"connectrpc.com/connect"
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/server/testutil"
 )
 
 func TestParseJSONTranslations(t *testing.T) {
 	want := map[string]string{"entries.create": "Create Entry", "entries.form.key": "Key", "common.cancel": "Cancel", "empty": ""}
+
 	for _, content := range []string{
 		`{"entries.create":"Create Entry","entries.form.key":"Key","common.cancel":"Cancel","empty":""}`,
 		`{"entries":{"create":"Create Entry","form":{"key":"Key"}},"common":{"cancel":"Cancel"},"empty":""}`,
@@ -24,7 +25,9 @@ func TestParseJSONTranslations(t *testing.T) {
 }
 
 func TestImportJSONRejectsInvalidFilesBeforeDatabaseChanges(t *testing.T) {
-	server := &Server{} // Invalid input must fail before accessing the database.
+	ctx, db := testutil.Setup(t)
+	server := &Server{db: db} // Invalid input must fail before the database changes.
+
 	for _, content := range []string{
 		`{"a.b":"one","a":{"b":"two"}}`,
 		`{"a":{"b":"two"},"a.b":"one"}`,
@@ -34,7 +37,7 @@ func TestImportJSONRejectsInvalidFilesBeforeDatabaseChanges(t *testing.T) {
 		`{"": "value"}`, `null`, `[]`, `"text"`,
 		`{"key":"value"} {}`, `{"key":`,
 	} {
-		_, err := server.ImportJson(context.Background(), connect.NewRequest(&pb.ImportJsonRequest{LocaleId: "locale", FileContent: []byte(content)}))
+		_, err := server.ImportJson(ctx, connect.NewRequest(&pb.ImportJsonRequest{LocaleId: "locale", FileContent: []byte(content)}))
 		if connect.CodeOf(err) != connect.CodeInvalidArgument {
 			t.Errorf("%s: expected invalid argument, got %v", content, err)
 		}

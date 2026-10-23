@@ -59,6 +59,7 @@ func Load() *Config {
 
 	port := getEnv("PORT", "8080")
 	dbPort := 5432
+
 	if dbPortStr := getEnv("DB_PORT", "5432"); dbPortStr != "" {
 		if parsed, err := strconv.Atoi(dbPortStr); err == nil {
 			dbPort = parsed
@@ -103,6 +104,7 @@ func getEnv(key, defaultValue string) string {
 	if value == "" {
 		return defaultValue
 	}
+
 	return value
 }
 
@@ -112,7 +114,9 @@ func parseCommaSeparated(value string) []string {
 	}
 
 	var result []string
+
 	current := ""
+
 	for _, char := range value {
 		if char == ',' {
 			if current != "" {
@@ -123,6 +127,7 @@ func parseCommaSeparated(value string) []string {
 			current += string(char)
 		}
 	}
+
 	if current != "" {
 		result = append(result, current)
 	}

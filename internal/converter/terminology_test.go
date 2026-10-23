@@ -76,6 +76,7 @@ func TestTerminologyToProto(t *testing.T) {
 				if result != nil {
 					t.Errorf("TerminologyToProto() = %v, want nil", result)
 				}
+
 				return
 			}
 

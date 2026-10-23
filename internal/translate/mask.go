@@ -11,12 +11,14 @@ import (
 // {count} into {Anzahl}. The same placeholder gets the same number each time.
 func Mask(text string) (string, func(string) string) {
 	var names []string
+
 	masked := placeholderPattern.ReplaceAllStringFunc(text, func(name string) string {
 		index := slices.Index(names, name)
 		if index < 0 {
 			names = append(names, name)
 			index = len(names) - 1
 		}
+
 		return fmt.Sprintf("{%d}", index+1)
 	})
 
@@ -26,11 +28,14 @@ func Mask(text string) (string, func(string) string) {
 			if _, err := fmt.Sscanf(token, "{%d}", &number); err != nil || fmt.Sprintf("{%d}", number) != token {
 				return token
 			}
+
 			if number < 1 || number > len(names) {
 				return token
 			}
+
 			return names[number-1]
 		})
 	}
+
 	return masked, unmask
 }

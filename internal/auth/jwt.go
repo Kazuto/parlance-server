@@ -7,9 +7,17 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// Token types, stored in the "typ" claim so a refresh token cannot be used as an access token
+// and vice versa.
+const (
+	TokenTypeAccess  = "access"
+	TokenTypeRefresh = "refresh"
+)
+
 type Claims struct {
-	UserID string `json:"user_id"`
-	Email  string `json:"email"`
+	UserID    string `json:"user_id"`
+	Email     string `json:"email"`
+	TokenType string `json:"typ"`
 	jwt.RegisteredClaims
 }
 
@@ -20,12 +28,12 @@ type TokenPair struct {
 
 // GenerateTokenPair generates both access and refresh tokens
 func GenerateTokenPair(userID, email, secret string, accessExpiry, refreshExpiry time.Duration) (*TokenPair, error) {
-	accessToken, err := generateToken(userID, email, secret, accessExpiry)
+	accessToken, err := generateToken(userID, email, TokenTypeAccess, secret, accessExpiry)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate access token: %w", err)
 	}
 
-	refreshToken, err := generateToken(userID, email, secret, refreshExpiry)
+	refreshToken, err := generateToken(userID, email, TokenTypeRefresh, secret, refreshExpiry)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate refresh token: %w", err)
 	}
@@ -37,10 +45,11 @@ func GenerateTokenPair(userID, email, secret string, accessExpiry, refreshExpiry
 }
 
 // generateToken creates a JWT token
-func generateToken(userID, email, secret string, expiry time.Duration) (string, error) {
+func generateToken(userID, email, tokenType, secret string, expiry time.Duration) (string, error) {
 	claims := &Claims{
-		UserID: userID,
-		Email:  email,
+		UserID:    userID,
+		Email:     email,
+		TokenType: tokenType,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiry)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -72,4 +81,27 @@ func ValidateToken(tokenString, secret string) (*Claims, error) {
 	}
 
 	return nil, fmt.Errorf("invalid token")
+}
+
+// ValidateAccessToken validates a JWT token and requires it to be an access token
+func ValidateAccessToken(tokenString, secret string) (*Claims, error) {
+	return validateTokenOfType(tokenString, secret, TokenTypeAccess)
+}
+
+// ValidateRefreshToken validates a JWT token and requires it to be a refresh token
+func ValidateRefreshToken(tokenString, secret string) (*Claims, error) {
+	return validateTokenOfType(tokenString, secret, TokenTypeRefresh)
+}
+
+func validateTokenOfType(tokenString, secret, tokenType string) (*Claims, error) {
+	claims, err := ValidateToken(tokenString, secret)
+	if err != nil {
+		return nil, err
+	}
+
+	if claims.TokenType != tokenType {
+		return nil, fmt.Errorf("expected %s token", tokenType)
+	}
+
+	return claims, nil
 }

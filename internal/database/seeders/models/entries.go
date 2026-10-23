@@ -13,9 +13,11 @@ func (i *EntriesSeeder) Name() string { return "Entries" }
 
 func (i *EntriesSeeder) Run(db *gorm.DB) error {
 	var adminUser models.User
+
 	db.Where("email = ?", "admin@parlance.dev").First(&adminUser)
 
 	var frontendScope, backendScope, mobileScope models.Scope
+
 	db.Where("name = ?", "Frontend").First(&frontendScope)
 	db.Where("name = ?", "Backend").First(&backendScope)
 	db.Where("name = ?", "Mobile").First(&mobileScope)

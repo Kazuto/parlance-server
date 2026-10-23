@@ -24,5 +24,6 @@ func PermissionsToProto(Permissions []models.Permission) []*pb.Permission {
 	for i, Permission := range Permissions {
 		result[i] = PermissionToProto(&Permission)
 	}
+
 	return result
 }

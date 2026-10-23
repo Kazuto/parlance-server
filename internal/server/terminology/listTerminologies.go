@@ -6,8 +6,6 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
-	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
 	"github.com/kazuto/parlance-server/internal/server/common"
@@ -20,30 +18,9 @@ func (s *Server) ListTerminologies(
 	ctx context.Context,
 	req *connect.Request[pb.ListTerminologiesRequest],
 ) (*connect.Response[pb.ListTerminologiesResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.ReadTerminology); err != nil {
-		return nil, err
-	}
-
-	page := int32(1)
-	perPage := int32(50)
-
-	if req.Msg.Pagination != nil {
-		if req.Msg.Pagination.Page > 0 {
-			page = req.Msg.Pagination.Page
-		}
-		if req.Msg.Pagination.PerPage > 0 {
-			perPage = req.Msg.Pagination.PerPage
-		}
-	}
-
-	var terminologies []models.Terminology
-	var total int64
-
-	query := s.db.Model(&models.Terminology{})
-
-	allowedSorts := map[string]bool{"term": true, "created_at": true, "updated_at": true}
-	query, err := common.NewFilter(query, req.Msg.Filter).
-		AllowedSorts(allowedSorts).
+	query, err := common.NewFilter(s.db.WithContext(ctx).Model(&models.Terminology{}), req.Msg.Filter).
+		IncludeDeletedRequires(ctx, s.db, permissions.DeleteTerminology).
+		AllowedSorts(map[string]bool{"term": true, "created_at": true, "updated_at": true}).
 		DefaultSort("term ASC").
 		Search(func(query *gorm.DB, search string) *gorm.DB {
 			return searchTerminologies(query, search, req.Msg.TargetLocaleIds)
@@ -53,21 +30,16 @@ func (s *Server) ListTerminologies(
 		return nil, err
 	}
 
-	if err := query.Count(&total).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, err.Error())
-	}
+	var terminologies []models.Terminology
 
-	offset := (page - 1) * perPage
-	if err := query.Preload("Definitions").
-		Limit(int(perPage)).
-		Offset(int(offset)).
-		Find(&terminologies).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, err.Error())
+	pagination, err := common.Paginate(query, req.Msg.Pagination, &terminologies, "Definitions")
+	if err != nil {
+		return nil, err
 	}
 
 	return connect.NewResponse(&pb.ListTerminologiesResponse{
 		Terminologies: converter.TerminologiesToProto(terminologies),
-		Pagination:    converter.PaginationToProto(total, page, perPage),
+		Pagination:    pagination,
 	}), nil
 }
 
@@ -83,6 +55,7 @@ func searchTerminologies(query *gorm.DB, search string, localeIDs []string) *gor
 	if len(localeIDs) > 0 {
 		definitions = definitions.Where("definitions.locale_id IN ?", localeIDs)
 	}
+
 	return query.Where(
 		"(LOWER(terminologies.term) LIKE ? OR LOWER(terminologies.description) LIKE ? OR EXISTS (?))",
 		pattern, pattern, definitions,

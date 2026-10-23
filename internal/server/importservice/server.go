@@ -7,9 +7,8 @@ import (
 
 type Server struct {
 	db *database.DB
-	parlancev1connect.UnimplementedImportServiceHandler
 }
 
-func NewServer(db *database.DB) *Server {
+func NewServer(db *database.DB) parlancev1connect.ImportServiceHandler {
 	return &Server{db: db}
 }

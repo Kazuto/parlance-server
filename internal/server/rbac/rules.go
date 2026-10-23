@@ -1,0 +1,134 @@
+package rbac
+
+import (
+	"context"
+
+	"connectrpc.com/connect"
+
+	"github.com/kazuto/parlance-server/gen/parlance/v1/parlancev1connect"
+	"github.com/kazuto/parlance-server/internal/database"
+	"github.com/kazuto/parlance-server/internal/middleware"
+	"github.com/kazuto/parlance-server/internal/permissions"
+)
+
+// Rules lists the permissions each protected procedure needs; the user must hold all of
+// them. Import and export have no permissions of their own and use the entry permissions;
+// REPLACE_ALL imports also need delete_entry, which the handler checks.
+var Rules = map[string][]string{
+	// ActivityService
+	parlancev1connect.ActivityServiceListRecentActivityProcedure: {permissions.ReadEntry},
+
+	// DefinitionService
+	parlancev1connect.DefinitionServiceCreateDefinitionProcedure:  {permissions.CreateDefinition},
+	parlancev1connect.DefinitionServiceDeleteDefinitionProcedure:  {permissions.DeleteDefinition},
+	parlancev1connect.DefinitionServiceGetDefinitionProcedure:     {permissions.ReadDefinition},
+	parlancev1connect.DefinitionServiceListDefinitionsProcedure:   {permissions.ReadDefinition},
+	parlancev1connect.DefinitionServiceRestoreDefinitionProcedure: {permissions.DeleteDefinition},
+	parlancev1connect.DefinitionServiceUpdateDefinitionProcedure:  {permissions.UpdateDefinition},
+
+	// EntryService
+	parlancev1connect.EntryServiceCreateEntryProcedure:         {permissions.CreateEntry},
+	parlancev1connect.EntryServiceDeleteEntryProcedure:         {permissions.DeleteEntry},
+	parlancev1connect.EntryServiceGetEntryProcedure:            {permissions.ReadEntry},
+	parlancev1connect.EntryServiceGetEntryHistoryProcedure:     {permissions.ReadEntry},
+	parlancev1connect.EntryServiceListEntriesProcedure:         {permissions.ReadEntry},
+	parlancev1connect.EntryServiceRestoreEntryProcedure:        {permissions.DeleteEntry},
+	parlancev1connect.EntryServiceSearchEntriesProcedure:       {permissions.ReadEntry},
+	parlancev1connect.EntryServiceUpdateEntriesScopesProcedure: {permissions.UpdateEntry},
+	parlancev1connect.EntryServiceUpdateEntryProcedure:         {permissions.UpdateEntry},
+
+	// ExportService
+	parlancev1connect.ExportServiceExportJsonProcedure: {permissions.ReadEntry},
+	parlancev1connect.ExportServiceExportPhpProcedure:  {permissions.ReadEntry},
+	parlancev1connect.ExportServiceExportPoProcedure:   {permissions.ReadEntry},
+	parlancev1connect.ExportServiceExportZipProcedure:  {permissions.ReadEntry},
+
+	// ImportService
+	parlancev1connect.ImportServiceImportJsonProcedure: {permissions.CreateEntry, permissions.UpdateEntry},
+	parlancev1connect.ImportServiceImportPhpProcedure:  {permissions.CreateEntry, permissions.UpdateEntry},
+	parlancev1connect.ImportServiceImportPoProcedure:   {permissions.CreateEntry, permissions.UpdateEntry},
+	parlancev1connect.ImportServiceImportZipProcedure:  {permissions.CreateEntry, permissions.UpdateEntry},
+
+	// LocaleService
+	parlancev1connect.LocaleServiceCreateLocaleProcedure:     {permissions.CreateLocale},
+	parlancev1connect.LocaleServiceDeleteLocaleProcedure:     {permissions.DeleteLocale},
+	parlancev1connect.LocaleServiceDestroyLocaleProcedure:    {permissions.PermanentDeleteLocale},
+	parlancev1connect.LocaleServiceGetDefaultLocaleProcedure: {permissions.ReadLocale},
+	parlancev1connect.LocaleServiceGetLocaleProcedure:        {permissions.ReadLocale},
+	parlancev1connect.LocaleServiceListLocalesProcedure:      {permissions.ReadLocale},
+	parlancev1connect.LocaleServiceRestoreLocaleProcedure:    {permissions.DeleteLocale},
+	parlancev1connect.LocaleServiceSetDefaultLocaleProcedure: {permissions.UpdateLocale},
+	parlancev1connect.LocaleServiceUpdateLocaleProcedure:     {permissions.UpdateLocale},
+
+	// LocalizationService
+	parlancev1connect.LocalizationServiceBatchTranslateProcedure:      {permissions.UpdateEntry, permissions.UseMachineTranslation},
+	parlancev1connect.LocalizationServiceCreateLocalizationProcedure:  {permissions.UpdateEntry},
+	parlancev1connect.LocalizationServiceDeleteLocalizationProcedure:  {permissions.UpdateEntry},
+	parlancev1connect.LocalizationServiceGetLocalizationProcedure:     {permissions.ReadEntry},
+	parlancev1connect.LocalizationServiceListLocalizationsProcedure:   {permissions.ReadEntry},
+	parlancev1connect.LocalizationServiceRestoreLocalizationProcedure: {permissions.UpdateEntry},
+	parlancev1connect.LocalizationServiceSuggestTranslationsProcedure: {permissions.UpdateEntry, permissions.UseMachineTranslation},
+	parlancev1connect.LocalizationServiceUpdateLocalizationProcedure:  {permissions.UpdateEntry},
+
+	// PermissionService
+	parlancev1connect.PermissionServiceGetPermissionProcedure:   {permissions.ReadPermission},
+	parlancev1connect.PermissionServiceListPermissionsProcedure: {permissions.ReadPermission},
+
+	// RoleService
+	parlancev1connect.RoleServiceCreateRoleProcedure:  {permissions.CreateRole},
+	parlancev1connect.RoleServiceDeleteRoleProcedure:  {permissions.DeleteRole},
+	parlancev1connect.RoleServiceGetRoleProcedure:     {permissions.ReadRole},
+	parlancev1connect.RoleServiceListRolesProcedure:   {permissions.ReadRole},
+	parlancev1connect.RoleServiceRestoreRoleProcedure: {permissions.DeleteRole},
+	parlancev1connect.RoleServiceUpdateRoleProcedure:  {permissions.UpdateRole},
+
+	// ScopeService
+	parlancev1connect.ScopeServiceAddScopeToEntryProcedure:      {permissions.UpdateEntry},
+	parlancev1connect.ScopeServiceCreateScopeProcedure:          {permissions.CreateScope},
+	parlancev1connect.ScopeServiceDeleteScopeProcedure:          {permissions.DeleteScope},
+	parlancev1connect.ScopeServiceGetEntryScopesProcedure:       {permissions.ReadScope},
+	parlancev1connect.ScopeServiceGetScopeProcedure:             {permissions.ReadScope},
+	parlancev1connect.ScopeServiceListScopesProcedure:           {permissions.ReadScope},
+	parlancev1connect.ScopeServiceRemoveScopeFromEntryProcedure: {permissions.UpdateEntry},
+	parlancev1connect.ScopeServiceRestoreScopeProcedure:         {permissions.DeleteScope},
+	parlancev1connect.ScopeServiceUpdateScopeProcedure:          {permissions.UpdateScope},
+
+	// StatsService
+	parlancev1connect.StatsServiceGetStatsProcedure: {permissions.ReadEntry},
+
+	// TerminologyService
+	parlancev1connect.TerminologyServiceCreateTerminologyProcedure:    {permissions.CreateTerminology},
+	parlancev1connect.TerminologyServiceDeleteTerminologyProcedure:    {permissions.DeleteTerminology},
+	parlancev1connect.TerminologyServiceGetDefinitionHistoryProcedure: {permissions.ReadDefinition},
+	parlancev1connect.TerminologyServiceGetTerminologyProcedure:       {permissions.ReadTerminology},
+	parlancev1connect.TerminologyServiceListTerminologiesProcedure:    {permissions.ReadTerminology},
+	parlancev1connect.TerminologyServiceRestoreTerminologyProcedure:   {permissions.DeleteTerminology},
+	parlancev1connect.TerminologyServiceSuggestTerminologiesProcedure: {permissions.ReadTerminology},
+	parlancev1connect.TerminologyServiceUpdateTerminologyProcedure:    {permissions.UpdateTerminology},
+
+	// TranslationServerService
+	parlancev1connect.TranslationServerServiceCreateTranslationServerProcedure: {permissions.CreateTranslationServer},
+	parlancev1connect.TranslationServerServiceDeleteTranslationServerProcedure: {permissions.DeleteTranslationServer},
+	parlancev1connect.TranslationServerServiceListTranslationServersProcedure:  {permissions.ReadTranslationServer},
+	parlancev1connect.TranslationServerServiceTestTranslationServerProcedure:   {permissions.UpdateTranslationServer},
+	parlancev1connect.TranslationServerServiceUpdateTranslationServerProcedure: {permissions.UpdateTranslationServer},
+
+	// UserService
+	parlancev1connect.UserServiceAssignRoleProcedure:  {permissions.UpdateUser},
+	parlancev1connect.UserServiceCreateUserProcedure:  {permissions.CreateUser},
+	parlancev1connect.UserServiceDeleteUserProcedure:  {permissions.DeleteUser},
+	parlancev1connect.UserServiceGetUserProcedure:     {permissions.ReadUser},
+	parlancev1connect.UserServiceListUsersProcedure:   {permissions.ReadUser},
+	parlancev1connect.UserServiceRestoreUserProcedure: {permissions.DeleteUser},
+	parlancev1connect.UserServiceUpdateUserProcedure:  {permissions.UpdateUser},
+}
+
+// Interceptor enforces Rules on the services it is installed on
+func Interceptor(db *database.DB) connect.UnaryInterceptorFunc {
+	return middleware.NewRBACInterceptor(db, Rules)
+}
+
+// Authorize checks the Rules for a procedure as the interceptor does
+func Authorize(ctx context.Context, db *database.DB, procedure string) (context.Context, error) {
+	return middleware.Authorize(ctx, db, Rules, procedure)
+}

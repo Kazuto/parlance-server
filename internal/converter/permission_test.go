@@ -37,6 +37,7 @@ func TestPermissionToProto(t *testing.T) {
 				if result != nil {
 					t.Errorf("PermissionToProto() = %v, want nil", result)
 				}
+
 				return
 			}
 

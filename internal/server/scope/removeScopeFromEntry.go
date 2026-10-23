@@ -5,9 +5,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
-	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -17,10 +16,6 @@ func (s *Server) RemoveScopeFromEntry(
 	ctx context.Context,
 	req *connect.Request[pb.RemoveScopeFromEntryRequest],
 ) (*connect.Response[pb.RemoveScopeFromEntryResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.UpdateEntry); err != nil {
-		return nil, err
-	}
-
 	if req.Msg.EntryId == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "entry id is required")
 	}
@@ -29,14 +24,14 @@ func (s *Server) RemoveScopeFromEntry(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "scope id is required")
 	}
 
-	var entry models.Entry
-	if err := s.db.First(&entry, "id = ?", req.Msg.EntryId).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrEntryNotFound, "entry not found")
+	entry, err := common.FindByID[models.Entry](s.db.WithContext(ctx), req.Msg.EntryId, errors.ErrEntryNotFound, "entry not found")
+	if err != nil {
+		return nil, err
 	}
 
-	var scope models.Scope
-	if err := s.db.First(&scope, "id = ?", req.Msg.ScopeId).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrScopeNotFound, "scope not found")
+	scope, err := common.FindByID[models.Scope](s.db.WithContext(ctx), req.Msg.ScopeId, errors.ErrScopeNotFound, "scope not found")
+	if err != nil {
+		return nil, err
 	}
 
 	if err := s.db.Model(&entry).Association("Scopes").Delete(&scope); err != nil {

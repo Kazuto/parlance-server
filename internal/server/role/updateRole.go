@@ -6,9 +6,8 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
-	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"gorm.io/gorm"
@@ -19,20 +18,17 @@ func (s *Server) UpdateRole(
 	ctx context.Context,
 	req *connect.Request[pb.UpdateRoleRequest],
 ) (*connect.Response[pb.UpdateRoleResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.UpdateRole); err != nil {
-		return nil, err
-	}
-
 	if req.Msg.Id == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "role id is required")
 	}
+
 	if req.Msg.Name != nil && req.Msg.GetName() == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "name is required")
 	}
 
-	var role models.Role
-	if err := s.db.Preload("Permissions").First(&role, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrRoleNotFound, "role not found")
+	role, err := common.FindByID[models.Role](s.db.WithContext(ctx).Preload("Permissions"), req.Msg.Id, errors.ErrRoleNotFound, "role not found")
+	if err != nil {
+		return nil, err
 	}
 
 	if req.Msg.Name != nil {
@@ -44,11 +40,13 @@ func (s *Server) UpdateRole(
 	}
 
 	var permissions []models.Permission
+
 	if req.Msg.Permissions != nil {
 		var err error
-		permissions, err = s.GetPermissions(req.Msg.Permissions.GetIds())
+
+		permissions, err = common.ResolveByIDs[models.Permission](s.db.WithContext(ctx), req.Msg.Permissions.GetIds(), errors.ErrPermissionNotFound, "one or more permissions do not exist")
 		if err != nil {
-			return nil, errors.Internal(errors.ErrInternal, "failed to get permissions")
+			return nil, err
 		}
 	}
 
@@ -60,6 +58,7 @@ func (s *Server) UpdateRole(
 		if req.Msg.Permissions != nil {
 			return tx.Model(&role).Association("Permissions").Replace(permissions)
 		}
+
 		return nil
 	}); err != nil {
 		return nil, errors.Internal(errors.ErrInternal, "failed to update Role")

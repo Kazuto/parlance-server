@@ -9,7 +9,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
-	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -19,17 +19,13 @@ func (s *Server) UpdateTranslationServer(
 	ctx context.Context,
 	req *connect.Request[pb.UpdateTranslationServerRequest],
 ) (*connect.Response[pb.UpdateTranslationServerResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.UpdateTranslationServer); err != nil {
-		return nil, err
-	}
-
 	if req.Msg.Id == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "translation server id is required")
 	}
 
-	var server models.TranslationServer
-	if err := s.db.First(&server, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrTranslationServerNotFound, "translation server not found")
+	server, err := common.FindByID[models.TranslationServer](s.db.WithContext(ctx), req.Msg.Id, errors.ErrTranslationServerNotFound, "translation server not found")
+	if err != nil {
+		return nil, err
 	}
 
 	if req.Msg.Name != nil {
@@ -37,6 +33,7 @@ func (s *Server) UpdateTranslationServer(
 		if name == "" {
 			return nil, errors.InvalidInput(errors.ErrInvalidInput, "name is required")
 		}
+
 		server.Name = name
 	}
 
@@ -45,6 +42,7 @@ func (s *Server) UpdateTranslationServer(
 		if err := validateBaseURL(baseURL); err != nil {
 			return nil, err
 		}
+
 		server.BaseURL = baseURL
 	}
 
@@ -57,6 +55,7 @@ func (s *Server) UpdateTranslationServer(
 		if err != nil {
 			return nil, err
 		}
+
 		server.APIKey = apiKey
 	}
 
@@ -64,6 +63,7 @@ func (s *Server) UpdateTranslationServer(
 		if err := validateMaxConcurrency(req.Msg.GetMaxConcurrency()); err != nil {
 			return nil, err
 		}
+
 		server.MaxConcurrency = int(req.Msg.GetMaxConcurrency())
 	}
 
@@ -71,9 +71,7 @@ func (s *Server) UpdateTranslationServer(
 		server.Enabled = req.Msg.GetEnabled()
 	}
 
-	if userID, _ := ctx.Value(middleware.ContextKeyUserID).(string); userID != "" {
-		server.UpdatedBy = &userID
-	}
+	server.UpdatedBy = middleware.UserIDPtr(ctx)
 
 	if err := s.db.Save(&server).Error; err != nil {
 		return nil, errors.Internal(errors.ErrInternal, "failed to update translation server")

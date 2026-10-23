@@ -2,6 +2,7 @@ package converter
 
 import (
 	"encoding/json"
+	"time"
 
 	"gorm.io/datatypes"
 
@@ -28,6 +29,7 @@ func LocaleToProto(l *models.Locale, requestLocale string) *pb.Locale {
 
 	// Get localized name based on request locale, fallback to English, then first available
 	localizedName := names["en"] // Default to English
+
 	if requestLocale != "" {
 		if name, ok := names[requestLocale]; ok {
 			localizedName = name
@@ -37,13 +39,9 @@ func LocaleToProto(l *models.Locale, requestLocale string) *pb.Locale {
 	if localizedName == "" {
 		for _, name := range names {
 			localizedName = name
+
 			break
 		}
-	}
-
-	deletedAt := ""
-	if l.DeletedAt.Valid {
-		deletedAt = l.DeletedAt.Time.Format("2006-01-02T15:04:05Z07:00")
 	}
 
 	return &pb.Locale{
@@ -52,9 +50,9 @@ func LocaleToProto(l *models.Locale, requestLocale string) *pb.Locale {
 		Name:      localizedName,
 		Names:     names,
 		IsDefault: l.IsDefault,
-		CreatedAt: l.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt: l.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		DeletedAt: deletedAt,
+		CreatedAt: l.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: l.UpdatedAt.Format(time.RFC3339),
+		DeletedAt: formatDeletedAt(l.DeletedAt),
 	}
 }
 
@@ -64,6 +62,7 @@ func LocalesToProto(locales []models.Locale, requestLocale string) []*pb.Locale 
 	for i, locale := range locales {
 		result[i] = LocaleToProto(&locale, requestLocale)
 	}
+
 	return result
 }
 
@@ -72,9 +71,11 @@ func NamesMapToJSON(names map[string]string) (datatypes.JSON, error) {
 	if names == nil {
 		names = make(map[string]string)
 	}
+
 	data, err := json.Marshal(names)
 	if err != nil {
 		return nil, err
 	}
+
 	return datatypes.JSON(data), nil
 }

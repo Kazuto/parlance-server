@@ -56,9 +56,11 @@ func TestValidateTokenErrors(t *testing.T) {
 				if err == nil {
 					t.Error("ValidateToken() expected error, got nil")
 				}
+
 				if tt.errContains != "" && !strings.Contains(err.Error(), tt.errContains) {
 					t.Errorf("ValidateToken() error = %v, should contain %v", err, tt.errContains)
 				}
+
 				if claims != nil {
 					t.Error("ValidateToken() expected nil claims on error")
 				}
@@ -120,6 +122,7 @@ func TestValidateTokenInvalidClaims(t *testing.T) {
 	if claims.UserID != "" {
 		t.Errorf("UserID = %v, want empty", claims.UserID)
 	}
+
 	if claims.Email != "" {
 		t.Errorf("Email = %v, want empty", claims.Email)
 	}
@@ -199,11 +202,13 @@ func TestGenerateTokenPairWithEdgeCases(t *testing.T) {
 				if err == nil {
 					t.Error("GenerateTokenPair() expected error, got nil")
 				}
+
 				return
 			}
 
 			if err != nil {
 				t.Errorf("GenerateTokenPair() unexpected error = %v", err)
+
 				return
 			}
 
@@ -229,6 +234,7 @@ func TestGenerateTokenPairWithEdgeCases(t *testing.T) {
 				if claims.UserID != tt.userID {
 					t.Errorf("UserID = %v, want %v", claims.UserID, tt.userID)
 				}
+
 				if claims.Email != tt.email {
 					t.Errorf("Email = %v, want %v", claims.Email, tt.email)
 				}
@@ -241,7 +247,6 @@ func TestValidateTokenNotYetValid(t *testing.T) {
 	// This test verifies the NotBefore claim
 	// In our implementation, NotBefore is set to Now(), so token is always immediately valid
 	// But we test that the claim is set correctly
-
 	secret := "test-secret"
 	userID := "test-user"
 	email := "test@example.com"

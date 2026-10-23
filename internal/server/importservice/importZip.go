@@ -18,14 +18,9 @@ func (s *Server) ImportZip(
 	ctx context.Context,
 	req *connect.Request[pb.ImportZipRequest],
 ) (*connect.Response[pb.ImportZipResponse], error) {
-	if len(req.Msg.FileContent) == 0 {
-		return nil, errors.InvalidInput(errors.ErrInvalidInput, "file_content is required")
-	}
-
-	// Set default mode if not specified
-	mode := req.Msg.Mode
-	if mode == pb.ImportMode_IMPORT_MODE_UNSPECIFIED {
-		mode = pb.ImportMode_IMPORT_MODE_CREATE_OR_UPDATE
+	mode, err := s.startImport(ctx, req.Msg.Mode, req.Msg.FileContent)
+	if err != nil {
+		return nil, err
 	}
 
 	// Open ZIP archive
@@ -61,6 +56,7 @@ func (s *Server) ImportZip(
 				LocaleCode: localeCode,
 				Error:      fmt.Sprintf("locale not found: %s", localeCode),
 			})
+
 			continue
 		}
 
@@ -71,18 +67,22 @@ func (s *Server) ImportZip(
 				LocaleCode: localeCode,
 				Error:      fmt.Sprintf("failed to open file: %v", err),
 			})
+
 			continue
 		}
 
 		buf := new(bytes.Buffer)
 		if _, err := buf.ReadFrom(reader); err != nil {
 			reader.Close()
+
 			response.Results = append(response.Results, &pb.LocaleImportResult{
 				LocaleCode: localeCode,
 				Error:      fmt.Sprintf("failed to read file: %v", err),
 			})
+
 			continue
 		}
+
 		reader.Close()
 
 		// Parse JSON content
@@ -92,6 +92,7 @@ func (s *Server) ImportZip(
 				LocaleCode: localeCode,
 				Error:      fmt.Sprintf("invalid JSON format: %v", err),
 			})
+
 			continue
 		}
 
@@ -102,6 +103,7 @@ func (s *Server) ImportZip(
 				LocaleCode: localeCode,
 				Error:      err.Error(),
 			})
+
 			continue
 		}
 

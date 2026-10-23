@@ -9,7 +9,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
-	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"gorm.io/gorm"
@@ -23,23 +23,22 @@ func (s *Server) UpdateEntriesScopes(
 	ctx context.Context,
 	req *connect.Request[pb.UpdateEntriesScopesRequest],
 ) (*connect.Response[pb.UpdateEntriesScopesResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.UpdateEntry); err != nil {
-		return nil, err
-	}
-
-	entryIDs := uniqueIDs(req.Msg.EntryIds)
-	addIDs := uniqueIDs(req.Msg.AddScopeIds)
-	removeIDs := uniqueIDs(req.Msg.RemoveScopeIds)
+	entryIDs := common.UniqueIDs(req.Msg.EntryIds)
+	addIDs := common.UniqueIDs(req.Msg.AddScopeIds)
+	removeIDs := common.UniqueIDs(req.Msg.RemoveScopeIds)
 
 	if len(entryIDs) == 0 {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "at least one entry id is required")
 	}
+
 	if len(entryIDs) > maxBulkEntries {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "too many entries in one request")
 	}
+
 	if len(addIDs) == 0 && len(removeIDs) == 0 {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "no scopes to add or remove")
 	}
+
 	for _, id := range addIDs {
 		if slices.Contains(removeIDs, id) {
 			return nil, errors.InvalidInput(errors.ErrInvalidInput, "a scope cannot be added and removed at once")
@@ -47,23 +46,23 @@ func (s *Server) UpdateEntriesScopes(
 	}
 
 	db := s.db.WithContext(ctx)
+
 	var count int64
+
 	if err := db.Model(&models.Entry{}).Where("id IN ?", entryIDs).Count(&count).Error; err != nil {
 		return nil, errors.Internal(errors.ErrInternal, "failed to find entries")
 	}
+
 	if int(count) != len(entryIDs) {
 		return nil, errors.NotFound(errors.ErrEntryNotFound, "one or more entries do not exist")
 	}
 
-	scopes, err := resolveScopes(db, addIDs)
+	scopes, err := common.ResolveByIDs[models.Scope](db, addIDs, errors.ErrScopeNotFound, "one or more scopes do not exist")
 	if err != nil {
 		return nil, err
 	}
 
-	var userID *string
-	if id, _ := ctx.Value(middleware.ContextKeyUserID).(string); id != "" {
-		userID = &id
-	}
+	userID := middleware.UserIDPtr(ctx)
 
 	if err := db.Transaction(func(tx *gorm.DB) error {
 		if len(removeIDs) > 0 {
@@ -109,16 +108,4 @@ func (s *Server) UpdateEntriesScopes(
 	}
 
 	return connect.NewResponse(&pb.UpdateEntriesScopesResponse{}), nil
-}
-
-func uniqueIDs(ids []string) []string {
-	seen := map[string]bool{}
-	var unique []string
-	for _, id := range ids {
-		if id != "" && !seen[id] {
-			seen[id] = true
-			unique = append(unique, id)
-		}
-	}
-	return unique
 }

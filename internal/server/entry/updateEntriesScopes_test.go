@@ -12,10 +12,7 @@ import (
 )
 
 func TestUpdateEntriesScopesValidation(t *testing.T) {
-	ctx, db, err := testutil.SetupTestContext()
-	if err != nil {
-		t.Fatalf("Failed to setup test context: %v", err)
-	}
+	ctx, db := testutil.Setup(t)
 
 	server := &Server{db: db}
 	cases := map[string]*pb.UpdateEntriesScopesRequest{
@@ -23,6 +20,7 @@ func TestUpdateEntriesScopesValidation(t *testing.T) {
 		"no scopes":      {EntryIds: []string{"entry"}},
 		"add and remove": {EntryIds: []string{"entry"}, AddScopeIds: []string{"scope"}, RemoveScopeIds: []string{"scope"}},
 	}
+
 	for name, msg := range cases {
 		_, err := server.UpdateEntriesScopes(ctx, connect.NewRequest(msg))
 		if connect.CodeOf(err) != connect.CodeInvalidArgument {
@@ -32,10 +30,7 @@ func TestUpdateEntriesScopesValidation(t *testing.T) {
 }
 
 func TestUpdateEntriesScopesAddsAndRemoves(t *testing.T) {
-	ctx, db, err := testutil.SetupTestContext()
-	if err != nil {
-		t.Fatalf("Failed to setup test context: %v", err)
-	}
+	ctx, db := testutil.Setup(t)
 
 	server := &Server{db: db}
 	first, second := insertEntry(t, db), insertEntry(t, db)
@@ -61,10 +56,7 @@ func TestUpdateEntriesScopesAddsAndRemoves(t *testing.T) {
 }
 
 func TestUpdateEntriesScopesRejectsUnknownIds(t *testing.T) {
-	ctx, db, err := testutil.SetupTestContext()
-	if err != nil {
-		t.Fatalf("Failed to setup test context: %v", err)
-	}
+	ctx, db := testutil.Setup(t)
 
 	server := &Server{db: db}
 	entry, scope := insertEntry(t, db), insertScope(t, db)
@@ -85,29 +77,35 @@ func TestUpdateEntriesScopesRejectsUnknownIds(t *testing.T) {
 			t.Errorf("%s: expected %v, got %v", name, tc.code, err)
 		}
 	}
+
 	assertScopes(t, db, entry)
 }
 
 func insertEntry(t *testing.T, db *database.DB) string {
 	t.Helper()
+
 	id := uuid.NewString()
 	if err := db.Exec("INSERT INTO entries (id, key) VALUES (?, ?)", id, "key."+id).Error; err != nil {
 		t.Fatalf("insert entry: %v", err)
 	}
+
 	return id
 }
 
 func insertScope(t *testing.T, db *database.DB) string {
 	t.Helper()
+
 	id := uuid.NewString()
 	if err := db.Exec("INSERT INTO scopes (id, name, slug) VALUES (?, ?, ?)", id, id, id).Error; err != nil {
 		t.Fatalf("insert scope: %v", err)
 	}
+
 	return id
 }
 
 func linkScope(t *testing.T, db *database.DB, entryID, scopeID string) {
 	t.Helper()
+
 	if err := db.Exec("INSERT INTO entry_scopes (id, entry_id, scope_id) VALUES (?, ?, ?)", uuid.NewString(), entryID, scopeID).Error; err != nil {
 		t.Fatalf("link scope: %v", err)
 	}
@@ -115,15 +113,19 @@ func linkScope(t *testing.T, db *database.DB, entryID, scopeID string) {
 
 func assertScopes(t *testing.T, db *database.DB, entryID string, want ...string) {
 	t.Helper()
+
 	var got []string
 	if err := db.Raw("SELECT scope_id FROM entry_scopes WHERE entry_id = ?", entryID).Scan(&got).Error; err != nil {
 		t.Fatalf("load scopes: %v", err)
 	}
+
 	sort.Strings(got)
 	sort.Strings(want)
+
 	if len(got) != len(want) {
 		t.Fatalf("entry %s: got scopes %v, want %v", entryID, got, want)
 	}
+
 	for i := range got {
 		if got[i] != want[i] {
 			t.Fatalf("entry %s: got scopes %v, want %v", entryID, got, want)

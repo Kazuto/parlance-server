@@ -16,6 +16,7 @@ func (i *UserSeeder) Name() string { return "Users" }
 
 func (i *UserSeeder) Run(db *gorm.DB) error {
 	var adminRole, translatorRole, viewerRole models.Role
+
 	db.Where("name = ?", "admin").First(&adminRole)
 	db.Where("name = ?", "translator").First(&translatorRole)
 	db.Where("name = ?", "viewer").First(&viewerRole)
@@ -38,8 +39,10 @@ func (i *UserSeeder) Run(db *gorm.DB) error {
 		hashedPassword, err := auth.HashPassword(userData.password)
 		if err != nil {
 			log.Printf("Failed to hash password for %s: %v", userData.email, err)
+
 			continue
 		}
+
 		user := models.User{
 			Email:        userData.email,
 			PasswordHash: hashedPassword,

@@ -17,13 +17,13 @@ func (s *Server) GetStats(
 	// Count total entries
 	var totalEntries int64
 	if err := s.db.Model(&models.Entry{}).Count(&totalEntries).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, err.Error())
+		return nil, errors.InternalCause(err, "failed to count entries")
 	}
 
 	// Count total locales
 	var totalLocales int64
 	if err := s.db.Model(&models.Locale{}).Count(&totalLocales).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, err.Error())
+		return nil, errors.InternalCause(err, "failed to count locales")
 	}
 
 	// Calculate total possible translations
@@ -35,7 +35,7 @@ func (s *Server) GetStats(
 		Joins("JOIN entries ON entries.id = localizations.entry_id AND entries.deleted_at IS NULL").
 		Joins("JOIN locales ON locales.id = localizations.locale_id AND locales.deleted_at IS NULL").
 		Count(&completedTranslations).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, err.Error())
+		return nil, errors.InternalCause(err, "failed to count translations")
 	}
 
 	// Calculate missing translations
@@ -43,6 +43,7 @@ func (s *Server) GetStats(
 
 	// Count fully translated entries (entries that have translations in all locales)
 	var fullyTranslatedEntries int64
+
 	if totalLocales > 0 {
 		// Get entries that have exactly totalLocales localizations (excluding soft-deleted)
 		var result struct{ Count int64 }
@@ -58,19 +59,21 @@ func (s *Server) GetStats(
 				HAVING COUNT(DISTINCT l.locale_id) = ?
 			) AS fully_translated
 		`, totalLocales).Scan(&result).Error; err != nil {
-			return nil, errors.Internal(errors.ErrInternal, err.Error())
+			return nil, errors.InternalCause(err, "failed to count fully translated entries")
 		}
+
 		fullyTranslatedEntries = result.Count
 	}
 
 	// Get all locales for per-locale stats
 	var locales []models.Locale
 	if err := s.db.Find(&locales).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, err.Error())
+		return nil, errors.InternalCause(err, "failed to fetch locales")
 	}
 
 	// Build per-locale stats
 	byLocale := make([]*pb.LocaleStats, 0, len(locales))
+
 	for _, locale := range locales {
 		// Count completed translations for this locale (excluding soft-deleted entries)
 		var completed int64
@@ -78,10 +81,11 @@ func (s *Server) GetStats(
 			Joins("JOIN entries ON entries.id = localizations.entry_id AND entries.deleted_at IS NULL").
 			Where("localizations.locale_id = ?", locale.ID).
 			Count(&completed).Error; err != nil {
-			return nil, errors.Internal(errors.ErrInternal, err.Error())
+			return nil, errors.InternalCause(err, "failed to count locale translations")
 		}
 
 		missing := totalEntries - completed
+
 		var percentage int32
 		if totalEntries > 0 {
 			percentage = int32((completed * 100) / totalEntries)

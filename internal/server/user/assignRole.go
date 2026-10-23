@@ -6,9 +6,8 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
-	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -18,10 +17,6 @@ func (s *Server) AssignRole(
 	ctx context.Context,
 	req *connect.Request[pb.AssignRoleRequest],
 ) (*connect.Response[pb.AssignRoleResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.UpdateUser); err != nil {
-		return nil, err
-	}
-
 	if req.Msg.UserId == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "user id is required")
 	}
@@ -30,14 +25,14 @@ func (s *Server) AssignRole(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "role id is required")
 	}
 
-	var user models.User
-	if err := s.db.First(&user, "id = ?", req.Msg.UserId).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrUserNotFound, "user not found")
+	user, err := common.FindByID[models.User](s.db.WithContext(ctx), req.Msg.UserId, errors.ErrUserNotFound, "user not found")
+	if err != nil {
+		return nil, err
 	}
 
-	var role models.Role
-	if err := s.db.First(&role, "id = ?", req.Msg.RoleId).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrRoleNotFound, "role not found")
+	role, err := common.FindByID[models.Role](s.db.WithContext(ctx), req.Msg.RoleId, errors.ErrRoleNotFound, "role not found")
+	if err != nil {
+		return nil, err
 	}
 
 	if err := s.db.Model(&user).Association("Roles").Append(&role); err != nil {
@@ -45,7 +40,9 @@ func (s *Server) AssignRole(
 	}
 
 	// Load updated roles for response
-	s.db.Preload("Roles.Permissions").First(&user, "id = ?", user.ID)
+	if err := s.db.Preload("Roles.Permissions").First(&user, "id = ?", user.ID).Error; err != nil {
+		return nil, errors.InternalCause(err, "failed to load user")
+	}
 
 	return connect.NewResponse(&pb.AssignRoleResponse{
 		User: converter.UserToProto(&user),

@@ -12,15 +12,18 @@ import (
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/server/common"
 )
 
 func (s *Server) ExportZip(
 	ctx context.Context,
 	req *connect.Request[pb.ExportZipRequest],
 ) (*connect.Response[pb.ExportZipResponse], error) {
-	// Get all locales
+	db := s.db.WithContext(ctx)
+
 	var locales []models.Locale
-	if err := s.db.Find(&locales).Error; err != nil {
+
+	if err := db.Order("code").Find(&locales).Error; err != nil {
 		return nil, errors.Internal(errors.ErrInternal, "failed to query locales")
 	}
 
@@ -32,7 +35,7 @@ func (s *Server) ExportZip(
 	buf := new(bytes.Buffer)
 	zipWriter := zip.NewWriter(buf)
 
-	scopeIDs := requestedScopeIDs(req.Msg.ScopeIds)
+	scopeIDs := common.UniqueIDs(req.Msg.ScopeIds)
 
 	// Create manifest
 	manifest := map[string]interface{}{
@@ -48,28 +51,12 @@ func (s *Server) ExportZip(
 
 	// Export each locale as a JSON file
 	for _, locale := range locales {
-		// Build query for entries
-		query := s.db.Model(&models.Entry{}).Preload("Localizations", "locale_id = ?", locale.ID)
-		query = filterByScopes(s.db.WithContext(ctx), query, scopeIDs)
-
-		var entries []models.Entry
-		if err := query.Find(&entries).Error; err != nil {
-			return nil, errors.Internal(errors.ErrInternal, fmt.Sprintf("failed to query entries for locale %s", locale.Code))
+		entries, err := loadEntries(db, locale.ID, scopeIDs)
+		if err != nil {
+			return nil, err
 		}
 
-		// Build flat JSON structure
-		translations := make(map[string]string)
-		for _, entry := range entries {
-			for _, loc := range entry.Localizations {
-				if loc.LocaleID == locale.ID {
-					translations[entry.Key] = loc.Translation
-					break
-				}
-			}
-		}
-
-		// Marshal to JSON with indentation
-		contentBytes, err := json.MarshalIndent(translations, "", "  ")
+		contentBytes, err := json.MarshalIndent(translationMap(entries), "", "  ")
 		if err != nil {
 			return nil, errors.Internal(errors.ErrInternal, fmt.Sprintf("failed to marshal JSON for locale %s", locale.Code))
 		}
@@ -77,6 +64,7 @@ func (s *Server) ExportZip(
 		// Add JSON file to ZIP
 		filename := locale.Code + ".json"
 		writer, err := zipWriter.Create(filename)
+
 		if err != nil {
 			return nil, errors.Internal(errors.ErrInternal, fmt.Sprintf("failed to create ZIP entry for %s", filename))
 		}
@@ -87,6 +75,7 @@ func (s *Server) ExportZip(
 
 		localeCodes = append(localeCodes, locale.Code)
 	}
+
 	manifest["locales"] = localeCodes
 
 	// Add manifest.json to ZIP
@@ -109,16 +98,13 @@ func (s *Server) ExportZip(
 		return nil, errors.Internal(errors.ErrInternal, "failed to close ZIP archive")
 	}
 
-	// Generate filename with timestamp
-	timestamp := time.Now().Format("2006-01-02")
-	filename := fmt.Sprintf("translations-%s.zip", timestamp)
-	if len(scopeIDs) > 0 {
-		// Include scope names in filename if filtering by scopes
-		var names []string
-		if err := s.db.Model(&models.Scope{}).Where("id IN ?", scopeIDs).Order("name").Pluck("name", &names).Error; err == nil && len(names) > 0 {
-			filename = fmt.Sprintf("translations-%s-%s.zip", names[0], timestamp)
-		}
+	// e.g. "translations-backend-shared-2006-01-02.zip"
+	filename := "translations-"
+	if names := scopeNames(db, scopeIDs); names != "" {
+		filename += names + "-"
 	}
+
+	filename += time.Now().Format("2006-01-02") + ".zip"
 
 	return connect.NewResponse(&pb.ExportZipResponse{
 		Format:   "zip",

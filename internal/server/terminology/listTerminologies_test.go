@@ -10,24 +10,15 @@ import (
 )
 
 func TestListTerminologiesSearch(t *testing.T) {
-	ctx, db, err := testutil.SetupTestContext()
-	if err != nil {
-		t.Fatalf("Failed to setup test context: %v", err)
-	}
+	ctx, db := testutil.Setup(t)
 	server := &Server{db: db}
 
-	exec := func(query string, args ...any) {
-		t.Helper()
-		if err := db.Exec(query, args...).Error; err != nil {
-			t.Fatalf("%s: %v", query, err)
-		}
-	}
-	exec(`INSERT INTO terminologies (id, term, description) VALUES
+	testutil.Exec(t, db, `INSERT INTO terminologies (id, term, description) VALUES
 		('ts-1', 'Workspace', 'Where a team keeps its projects'),
 		('ts-2', 'Board', NULL),
 		('ts-3', 'Ticket', 'A unit of work'),
 		('ts-4', 'Archive', NULL)`)
-	exec(`INSERT INTO definitions (id, terminology_id, locale_id, translation, deleted_at) VALUES
+	testutil.Exec(t, db, `INSERT INTO definitions (id, terminology_id, locale_id, translation, deleted_at) VALUES
 		('ts-d1', 'ts-1', 'ts-de', 'Arbeitsbereich', NULL),
 		('ts-d2', 'ts-2', 'ts-de', 'Tafel', NULL),
 		('ts-d3', 'ts-2', 'ts-fr', 'Tableau', NULL),
@@ -39,6 +30,7 @@ func TestListTerminologiesSearch(t *testing.T) {
 
 	search := func(term string, localeIDs ...string) []string {
 		t.Helper()
+
 		res, err := server.ListTerminologies(ctx, connect.NewRequest(&pb.ListTerminologiesRequest{
 			Filter:          &pb.FilterRequest{Search: term},
 			TargetLocaleIds: localeIDs,
@@ -46,12 +38,15 @@ func TestListTerminologiesSearch(t *testing.T) {
 		if err != nil {
 			t.Fatalf("ListTerminologies: %v", err)
 		}
+
 		terms := []string{}
+
 		for _, terminology := range res.Msg.Terminologies {
 			if strings.HasPrefix(terminology.Id, "ts-") {
 				terms = append(terms, terminology.Term)
 			}
 		}
+
 		return terms
 	}
 

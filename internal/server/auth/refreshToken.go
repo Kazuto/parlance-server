@@ -2,13 +2,13 @@ package auth
 
 import (
 	"context"
-	"time"
 
 	"connectrpc.com/connect"
 	authpkg "github.com/kazuto/parlance-server/internal/auth"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -23,27 +23,20 @@ func (s *Server) RefreshToken(
 	}
 
 	// Validate refresh token
-	claims, err := authpkg.ValidateToken(req.Msg.RefreshToken, s.config.JWT.Secret)
+	claims, err := authpkg.ValidateRefreshToken(req.Msg.RefreshToken, s.config.JWT.Secret)
 	if err != nil {
 		return nil, errors.Unauthenticated(errors.ErrUnauthenticated, "invalid refresh token")
 	}
 
 	// Get user
-	var user models.User
-	if err := s.db.Preload("Roles.Permissions").First(&user, "id = ?", claims.UserID).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrUserNotFound, "user not found")
+	user, err := common.FindByID[models.User](s.db.WithContext(ctx).Preload("Roles.Permissions"), claims.UserID, errors.ErrUserNotFound, "user not found")
+	if err != nil {
+		return nil, err
 	}
 
-	// Generate new tokens
-	accessExpiry, err := time.ParseDuration(s.config.JWT.Expiry)
+	tokens, err := s.issueTokens(&user)
 	if err != nil {
-		accessExpiry = 24 * time.Hour // Default to 24 hours
-	}
-	refreshExpiry := accessExpiry * 7
-
-	tokens, err := authpkg.GenerateTokenPair(user.ID, user.Email, s.config.JWT.Secret, accessExpiry, refreshExpiry)
-	if err != nil {
-		return nil, errors.Internal(errors.ErrInternal, "failed to generate tokens")
+		return nil, err
 	}
 
 	return connect.NewResponse(&pb.RefreshTokenResponse{

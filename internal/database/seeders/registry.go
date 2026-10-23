@@ -23,7 +23,9 @@ func (r *SeederRegistry) Register(initializer Seeder) error {
 	if _, exists := r.seeders[initializer.Name()]; exists {
 		return fmt.Errorf("initializer %s already registered", initializer.Name())
 	}
+
 	r.seeders[initializer.Name()] = initializer
+
 	return nil
 }
 
@@ -32,6 +34,7 @@ func (r *SeederRegistry) All() []Seeder {
 	for _, init := range r.seeders {
 		result = append(result, init)
 	}
+
 	return result
 }
 
@@ -39,6 +42,7 @@ func (r *SeederRegistry) Run(seeder Seeder, db *gorm.DB) error {
 	if err := seeder.Run(db); err != nil {
 		return fmt.Errorf("seeder %s failed: %w", seeder.Name(), err)
 	}
+
 	return nil
 }
 
@@ -48,5 +52,6 @@ func (r *SeederRegistry) RunAll(db *gorm.DB) error {
 			return fmt.Errorf("seeder %s failed: %w", init.Name(), err)
 		}
 	}
+
 	return nil
 }

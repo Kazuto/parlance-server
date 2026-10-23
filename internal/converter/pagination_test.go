@@ -83,12 +83,15 @@ func TestPaginationToProto(t *testing.T) {
 			if result.Total != tt.expected.Total {
 				t.Errorf("Total = %v, want %v", result.Total, tt.expected.Total)
 			}
+
 			if result.Page != tt.expected.Page {
 				t.Errorf("Page = %v, want %v", result.Page, tt.expected.Page)
 			}
+
 			if result.PerPage != tt.expected.PerPage {
 				t.Errorf("PerPage = %v, want %v", result.PerPage, tt.expected.PerPage)
 			}
+
 			if result.TotalPages != tt.expected.TotalPages {
 				t.Errorf("TotalPages = %v, want %v", result.TotalPages, tt.expected.TotalPages)
 			}

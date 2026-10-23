@@ -1,60 +1,37 @@
 package converter
 
 import (
+	"time"
+
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/models"
 )
 
 // EntryToProto converts a database Entry model to protobuf
-func EntryToProto(e *models.Entry, requestLocale string) *pb.Entry {
+func EntryToProto(e *models.Entry) *pb.Entry {
 	if e == nil {
 		return nil
-	}
-
-	localizations := make([]*pb.Localization, len(e.Localizations))
-	for i, loc := range e.Localizations {
-		localizations[i] = LocalizationToProto(&loc)
-	}
-
-	scopes := make([]*pb.Scope, len(e.Scopes))
-	for i, scope := range e.Scopes {
-		scopes[i] = ScopeToProto(&scope)
-	}
-
-	createdBy := ""
-	if e.CreatedBy != nil {
-		createdBy = *e.CreatedBy
-	}
-
-	updatedBy := ""
-	if e.UpdatedBy != nil {
-		updatedBy = *e.UpdatedBy
-	}
-
-	deletedAt := ""
-	if e.DeletedAt.Valid {
-		deletedAt = e.DeletedAt.Time.Format("2006-01-02T15:04:05Z07:00")
 	}
 
 	return &pb.Entry{
 		Id:            e.ID,
 		Key:           e.Key,
 		Description:   e.Description,
-		CreatedAt:     e.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt:     e.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		DeletedAt:     deletedAt,
-		CreatedBy:     createdBy,
-		UpdatedBy:     updatedBy,
-		Localizations: localizations,
-		Scopes:        scopes,
+		CreatedAt:     e.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:     e.UpdatedAt.Format(time.RFC3339),
+		DeletedAt:     formatDeletedAt(e.DeletedAt),
+		CreatedBy:     derefString(e.CreatedBy),
+		UpdatedBy:     derefString(e.UpdatedBy),
+		Localizations: LocalizationsToProto(e.Localizations),
+		Scopes:        ScopesToProto(e.Scopes),
 	}
 }
 
 // EntriesToProto converts a slice of Entry models to protobuf
-func EntriesToProto(entries []models.Entry, requestLocale string) []*pb.Entry {
+func EntriesToProto(entries []models.Entry) []*pb.Entry {
 	result := make([]*pb.Entry, len(entries))
 	for i, entry := range entries {
-		result[i] = EntryToProto(&entry, requestLocale)
+		result[i] = EntryToProto(&entry)
 	}
 
 	return result
@@ -66,25 +43,15 @@ func LocalizationToProto(l *models.Localization) *pb.Localization {
 		return nil
 	}
 
-	createdBy := ""
-	if l.CreatedBy != nil {
-		createdBy = *l.CreatedBy
-	}
-
-	updatedBy := ""
-	if l.UpdatedBy != nil {
-		updatedBy = *l.UpdatedBy
-	}
-
 	return &pb.Localization{
 		Id:          l.ID,
 		EntryId:     l.EntryID,
 		LocaleId:    l.LocaleID,
 		Translation: l.Translation,
-		CreatedAt:   l.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt:   l.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		CreatedBy:   createdBy,
-		UpdatedBy:   updatedBy,
+		CreatedAt:   l.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   l.UpdatedAt.Format(time.RFC3339),
+		CreatedBy:   derefString(l.CreatedBy),
+		UpdatedBy:   derefString(l.UpdatedBy),
 	}
 }
 
@@ -104,20 +71,15 @@ func LocalizationHistoryToProto(h *models.LocalizationHistory) *pb.LocalizationH
 		return nil
 	}
 
-	userID := ""
-	if h.UserID != nil {
-		userID = *h.UserID
-	}
-
 	return &pb.LocalizationHistory{
 		Id:             h.ID,
 		LocalizationId: h.LocalizationID,
 		LocaleId:       h.LocaleID,
 		EntryId:        h.EntryID,
-		UserId:         userID,
+		UserId:         derefString(h.UserID),
 		Translation:    h.Translation,
 		Action:         h.Action,
-		ChangedAt:      h.ChangedAt.Format("2006-01-02T15:04:05Z07:00"),
+		ChangedAt:      h.ChangedAt.Format(time.RFC3339),
 		User:           UserToProto(h.User),
 	}
 }

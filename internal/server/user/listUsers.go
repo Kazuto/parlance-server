@@ -5,10 +5,9 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
-	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -18,33 +17,25 @@ func (s *Server) ListUsers(
 	ctx context.Context,
 	req *connect.Request[pb.ListUsersRequest],
 ) (*connect.Response[pb.ListUsersResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.ReadUser); err != nil {
+	query, err := common.NewFilter(s.db.WithContext(ctx).Model(&models.User{}), req.Msg.Filter).
+		IncludeDeletedRequires(ctx, s.db, permissions.DeleteUser).
+		AllowedSorts(map[string]bool{"name": true, "email": true, "created_at": true, "updated_at": true}).
+		DefaultSort("name ASC").
+		Search(common.SearchColumns("name", "email")).
+		Apply()
+	if err != nil {
 		return nil, err
 	}
 
-	page, perPage := converter.GetPaginationParams(req.Msg.Pagination)
-
 	var users []models.User
-	var total int64
 
-	query := s.db.Model(&models.User{})
-
-	if err := query.Count(&total).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, "failed to count users")
-	}
-
-	offset := (page - 1) * perPage
-	if err := query.Preload("Roles.Permissions").Offset(int(offset)).Limit(int(perPage)).Order("name ASC").Find(&users).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, "failed to fetch users")
-	}
-
-	usersProto := make([]*pb.User, len(users))
-	for i, user := range users {
-		usersProto[i] = converter.UserToProto(&user)
+	pagination, err := common.Paginate(query, req.Msg.Pagination, &users, "Roles.Permissions")
+	if err != nil {
+		return nil, err
 	}
 
 	return connect.NewResponse(&pb.ListUsersResponse{
-		Users:      usersProto,
-		Pagination: converter.PaginationToProto(total, page, perPage),
+		Users:      converter.UsersToProto(users),
+		Pagination: pagination,
 	}), nil
 }

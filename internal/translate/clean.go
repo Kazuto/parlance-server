@@ -43,29 +43,36 @@ func Clean(source, answer string) (string, []Warning, error) {
 	text := strings.TrimSpace(answer)
 	text = stripFence(source, text)
 	text = stripQuotes(source, text)
+
 	if text == "" {
 		return "", nil, ErrEmptyAnswer
 	}
+
 	if utf8.RuneCountInString(text) > maxLengthRatio*utf8.RuneCountInString(source)+20 {
 		return "", nil, ErrAnswerTooLong
 	}
 
 	var warnings []Warning
+
 	want := placeholderPattern.FindAllString(source, -1)
 	got := placeholderPattern.FindAllString(text, -1)
+
 	for _, placeholder := range uniq(want) {
 		if !slices.Contains(got, placeholder) {
 			warnings = append(warnings, Warning{Code: WarningPlaceholderMissing, Detail: placeholder})
 		}
 	}
+
 	for _, placeholder := range uniq(got) {
 		if !slices.Contains(want, placeholder) {
 			warnings = append(warnings, Warning{Code: WarningPlaceholderUnexpected, Detail: placeholder})
 		}
 	}
+
 	if strings.Count(source, "|") != strings.Count(text, "|") {
 		warnings = append(warnings, Warning{Code: WarningPluralForms})
 	}
+
 	if !strings.Contains(source, "\n") && strings.Contains(text, "\n") {
 		warnings = append(warnings, Warning{Code: WarningLineBreaks})
 	}
@@ -78,26 +85,31 @@ func stripFence(source, text string) string {
 	if !strings.HasPrefix(text, "```") || strings.HasPrefix(strings.TrimSpace(source), "```") {
 		return text
 	}
+
 	text = strings.TrimSuffix(strings.TrimPrefix(text, "```"), "```")
 	// Drop a language tag such as ```text on the first line.
 	if first, rest, ok := strings.Cut(text, "\n"); ok && !strings.Contains(strings.TrimSpace(first), " ") {
 		text = rest
 	}
+
 	return strings.TrimSpace(text)
 }
 
 // stripQuotes removes quotes around the whole answer, unless the source has them.
 func stripQuotes(source, text string) string {
 	source = strings.TrimSpace(source)
+
 	for _, pair := range quotePairs {
 		opening, closing := pair[0], pair[1]
 		if strings.HasPrefix(source, opening) && strings.HasSuffix(source, closing) {
 			continue
 		}
+
 		if len(text) >= len(opening)+len(closing) && strings.HasPrefix(text, opening) && strings.HasSuffix(text, closing) {
 			return strings.TrimSpace(text[len(opening) : len(text)-len(closing)])
 		}
 	}
+
 	return text
 }
 
@@ -109,5 +121,6 @@ func uniq(values []string) []string {
 			out = append(out, value)
 		}
 	}
+
 	return out
 }

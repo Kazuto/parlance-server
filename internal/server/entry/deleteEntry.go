@@ -5,9 +5,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
-	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -17,20 +16,16 @@ func (s *Server) DeleteEntry(
 	ctx context.Context,
 	req *connect.Request[pb.DeleteEntryRequest],
 ) (*connect.Response[pb.DeleteEntryResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.DeleteEntry); err != nil {
-		return nil, err
-	}
-
 	if req.Msg.Id == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "entry id is required")
 	}
 
-	var entry models.Entry
-	if err := s.db.First(&entry, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrEntryNotFound, "entry not found")
+	entry, err := common.FindByID[models.Entry](s.db.WithContext(ctx), req.Msg.Id, errors.ErrEntryNotFound, "entry not found")
+	if err != nil {
+		return nil, err
 	}
 
-	if err := s.db.Delete(&entry).Error; err != nil {
+	if err := common.DeleteRow(ctx, s.db.DB, &entry); err != nil {
 		return nil, errors.Internal(errors.ErrInternal, "failed to delete entry")
 	}
 

@@ -25,6 +25,7 @@ func LanguageName(code string) (string, bool) {
 	if len(parts) == 0 {
 		return "", false
 	}
+
 	if parts[0] == "zh" {
 		for _, part := range parts[1:] {
 			// Taiwan, Hong Kong and Macau write in traditional characters.
@@ -33,6 +34,8 @@ func LanguageName(code string) (string, bool) {
 			}
 		}
 	}
+
 	name, ok := languageNames[parts[0]]
+
 	return name, ok
 }

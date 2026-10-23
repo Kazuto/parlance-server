@@ -59,6 +59,7 @@ type chatResponse struct {
 func (c *Client) Translate(ctx context.Context, req Request) (string, error) {
 	masked, unmask := Mask(req.Text)
 	req.Text = masked
+
 	body, err := json.Marshal(chatRequest{
 		Model:             c.model,
 		Messages:          []chatMessage{{Role: "user", Content: Prompt(req)}},
@@ -76,7 +77,9 @@ func (c *Client) Translate(ctx context.Context, req Request) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	httpReq.Header.Set("Content-Type", "application/json")
+
 	if c.apiKey != "" {
 		httpReq.Header.Set("Authorization", "Bearer "+c.apiKey)
 	}
@@ -85,6 +88,7 @@ func (c *Client) Translate(ctx context.Context, req Request) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	defer func() { _ = res.Body.Close() }()
 
 	if res.StatusCode != http.StatusOK {
@@ -92,6 +96,7 @@ func (c *Client) Translate(ctx context.Context, req Request) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("translation server answered %s", res.Status)
 		}
+
 		return "", fmt.Errorf("translation server answered %s: %s", res.Status, strings.TrimSpace(string(detail)))
 	}
 
@@ -99,8 +104,10 @@ func (c *Client) Translate(ctx context.Context, req Request) (string, error) {
 	if err := json.NewDecoder(res.Body).Decode(&parsed); err != nil {
 		return "", fmt.Errorf("decode translation answer: %w", err)
 	}
+
 	if len(parsed.Choices) == 0 {
 		return "", ErrEmptyAnswer
 	}
+
 	return unmask(parsed.Choices[0].Message.Content), nil
 }

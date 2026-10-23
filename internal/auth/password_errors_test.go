@@ -70,14 +70,17 @@ func TestHashPasswordErrors(t *testing.T) {
 				if err == nil {
 					t.Error("HashPassword() expected error, got nil")
 				}
+
 				if tt.errContains != "" && !strings.Contains(err.Error(), tt.errContains) {
 					t.Errorf("HashPassword() error = %v, should contain %v", err, tt.errContains)
 				}
+
 				return
 			}
 
 			if err != nil {
 				t.Errorf("HashPassword() unexpected error = %v", err)
+
 				return
 			}
 
@@ -191,9 +194,11 @@ func TestPasswordHashingConsistency(t *testing.T) {
 	if err := CheckPassword(password, hash1); err != nil {
 		t.Errorf("hash1 should validate password: %v", err)
 	}
+
 	if err := CheckPassword(password, hash2); err != nil {
 		t.Errorf("hash2 should validate password: %v", err)
 	}
+
 	if err := CheckPassword(password, hash3); err != nil {
 		t.Errorf("hash3 should validate password: %v", err)
 	}
@@ -220,6 +225,7 @@ func TestPasswordCaseSensitivity(t *testing.T) {
 			if tt.wantErr && err == nil {
 				t.Error("CheckPassword() expected error for wrong case")
 			}
+
 			if !tt.wantErr && err != nil {
 				t.Errorf("CheckPassword() unexpected error = %v", err)
 			}
@@ -272,6 +278,7 @@ func TestCheckPasswordWithDifferentCosts(t *testing.T) {
 func TestPasswordWithNullBytes(t *testing.T) {
 	// Test password containing null bytes
 	password := "pass\x00word"
+
 	hash, err := HashPassword(password)
 	if err != nil {
 		t.Fatalf("HashPassword() error = %v", err)

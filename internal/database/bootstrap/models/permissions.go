@@ -31,6 +31,7 @@ func (i *PermissionInitializer) Run(db *gorm.DB) error {
 		parts := strings.SplitN(permName, "_", 2)
 		if len(parts) != 2 {
 			log.Printf("Warning: Invalid permission name format: %s", permName)
+
 			continue
 		}
 

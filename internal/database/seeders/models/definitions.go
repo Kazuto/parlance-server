@@ -15,12 +15,15 @@ func (i *DefinitionSeeder) Name() string { return "Definitions" }
 
 func (i *DefinitionSeeder) Run(db *gorm.DB) error {
 	var translator models.User
+
 	db.Where("email = ?", "translator@parlance.dev").First(&translator)
 
 	var terminologies []models.Terminology
+
 	db.Find(&terminologies)
 
 	var enLocale, deLocale, esLocale, frLocale models.Locale
+
 	db.Where("code = ?", "en").First(&enLocale)
 	db.Where("code = ?", "de").First(&deLocale)
 	db.Where("code = ?", "es").First(&esLocale)
@@ -113,6 +116,7 @@ func (i *DefinitionSeeder) Run(db *gorm.DB) error {
 					return err
 				}
 			}
+
 			log.Printf("    Created definitions for: %s", terminology.Term)
 		}
 	}

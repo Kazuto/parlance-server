@@ -17,6 +17,7 @@ func Words(text string) []string {
 // word, or for a term of several words, as that sequence of words.
 func FindTerm(term string, words []string) []string {
 	termLower := strings.ToLower(term)
+
 	var matches []string
 
 	for _, word := range words {
@@ -29,12 +30,15 @@ func FindTerm(term string, words []string) []string {
 	if len(termWords) > 1 {
 		for i := 0; i <= len(words)-len(termWords); i++ {
 			allMatch := true
+
 			for j, termWord := range termWords {
 				if words[i+j] != termWord {
 					allMatch = false
+
 					break
 				}
 			}
+
 			if allMatch {
 				matches = append(matches, strings.Join(words[i:i+len(termWords)], " "))
 			}

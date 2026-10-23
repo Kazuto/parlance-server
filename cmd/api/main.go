@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"time"
 
+	"connectrpc.com/connect"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
@@ -27,10 +28,11 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/definition"
 	"github.com/kazuto/parlance-server/internal/server/entry"
 	"github.com/kazuto/parlance-server/internal/server/export"
-	importservice "github.com/kazuto/parlance-server/internal/server/import"
+	"github.com/kazuto/parlance-server/internal/server/importservice"
 	"github.com/kazuto/parlance-server/internal/server/locale"
 	"github.com/kazuto/parlance-server/internal/server/localization"
 	"github.com/kazuto/parlance-server/internal/server/permission"
+	"github.com/kazuto/parlance-server/internal/server/rbac"
 	"github.com/kazuto/parlance-server/internal/server/role"
 	"github.com/kazuto/parlance-server/internal/server/scope"
 	"github.com/kazuto/parlance-server/internal/server/setup"
@@ -51,6 +53,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
+
 	defer func() {
 		if err := db.Close(); err != nil {
 			log.Printf("Failed to close database: %v", err)
@@ -77,6 +80,7 @@ func main() {
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
+
 		if _, err := w.Write([]byte(`{"status":"ok","service":"parlance-api"}`)); err != nil {
 			log.Printf("Failed to write health response: %v", err)
 		}
@@ -84,109 +88,84 @@ func main() {
 
 	authMiddleware := middleware.AuthMiddleware(cfg.JWT.Secret)
 
-	// Register Connect RPC services
-	// Setup service (public - no auth required)
-	setupServer := setup.NewServer(db, cfg)
-	setupPath, setupHandler := parlancev1connect.NewSetupServiceHandler(setupServer)
-	mux.Handle(setupPath, setupHandler)
-
-	log.Println("✓ Registered SetupService (public)")
-
-	localeServer := locale.NewServer(db)
-	localePath, localeHandler := parlancev1connect.NewLocaleServiceHandler(localeServer)
-	mux.Handle(localePath, localeHandler)
-
-	log.Println("✓ Registered LocaleService")
-
-	authServer := auth.NewServer(db, cfg)
-	authPath, authHandler := parlancev1connect.NewAuthServiceHandler(authServer)
-	mux.Handle(authPath, authHandler)
-
-	log.Println("✓ Registered AuthService")
-
-	scopeServer := scope.NewServer(db)
-	scopePath, scopeHandler := parlancev1connect.NewScopeServiceHandler(scopeServer)
-	mux.Handle(scopePath, middleware.RequireAuth(cfg.JWT.Secret)(scopeHandler))
-
-	log.Println("✓ Registered ScopeService (protected)")
-
-	userServer := user.NewServer(db, s3Client, cfg.S3)
-	userPath, userHandler := parlancev1connect.NewUserServiceHandler(userServer)
-	mux.Handle(userPath, middleware.RequireAuth(cfg.JWT.Secret)(userHandler))
-
-	log.Println("✓ Registered UserService (protected)")
-
-	entryServer := entry.NewServer(db)
-	entryPath, entryHandler := parlancev1connect.NewEntryServiceHandler(entryServer)
-	mux.Handle(entryPath, middleware.RequireAuth(cfg.JWT.Secret)(entryHandler))
-
-	log.Println("✓ Registered EntryService (protected)")
-
-	activityServer := activity.NewServer(db)
-	activityPath, activityHandler := parlancev1connect.NewActivityServiceHandler(activityServer)
-	mux.Handle(activityPath, middleware.RequireAuth(cfg.JWT.Secret)(activityHandler))
-
-	log.Println("✓ Registered ActivityService (protected)")
-
 	secretBox, err := secret.New(cfg.Secrets.EncryptionKey)
 	if err != nil {
 		log.Fatalf("Failed to set up encryption: %v", err)
 	}
+
 	translatorSource := translators.NewDBSource(db, secretBox)
 
-	localizationServer := localization.NewServer(db, cfg, translatorSource)
-	localizationPath, localizationHandler := parlancev1connect.NewLocalizationServiceHandler(localizationServer)
-	mux.Handle(localizationPath, middleware.RequireAuth(cfg.JWT.Secret)(localizationHandler))
+	// Protected services require a valid token and the permissions rbac.Rules lists.
+	requireAuth := middleware.RequireAuth(cfg.JWT.Secret)
+	authorized := connect.WithInterceptors(rbac.Interceptor(db))
 
-	log.Println("✓ Registered LocalizationService (protected)")
+	services := []struct {
+		name      string
+		register  func(...connect.HandlerOption) (string, http.Handler)
+		protected bool
+	}{
+		{"SetupService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewSetupServiceHandler(setup.NewServer(db, cfg), o...)
+		}, false},
+		{"AuthService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewAuthServiceHandler(auth.NewServer(db, cfg), o...)
+		}, false},
+		{"LocaleService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewLocaleServiceHandler(locale.NewServer(db), o...)
+		}, true},
+		{"ScopeService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewScopeServiceHandler(scope.NewServer(db), o...)
+		}, true},
+		{"UserService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewUserServiceHandler(user.NewServer(db, s3Client, cfg.S3), o...)
+		}, true},
+		{"EntryService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewEntryServiceHandler(entry.NewServer(db), o...)
+		}, true},
+		{"ActivityService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewActivityServiceHandler(activity.NewServer(db), o...)
+		}, true},
+		{"LocalizationService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewLocalizationServiceHandler(localization.NewServer(db, cfg, translatorSource), o...)
+		}, true},
+		{"TranslationServerService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewTranslationServerServiceHandler(translationserver.NewServer(db, secretBox), o...)
+		}, true},
+		{"TerminologyService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewTerminologyServiceHandler(terminology.NewServer(db), o...)
+		}, true},
+		{"DefinitionService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewDefinitionServiceHandler(definition.NewServer(db), o...)
+		}, true},
+		{"PermissionService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewPermissionServiceHandler(permission.NewServer(db), o...)
+		}, true},
+		{"RoleService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewRoleServiceHandler(role.NewServer(db), o...)
+		}, true},
+		{"ExportService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewExportServiceHandler(export.NewServer(db), o...)
+		}, true},
+		{"ImportService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewImportServiceHandler(importservice.NewServer(db), o...)
+		}, true},
+		{"StatsService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewStatsServiceHandler(stats.NewServer(db), o...)
+		}, true},
+	}
 
-	translationServerServer := translationserver.NewServer(db, secretBox)
-	translationServerPath, translationServerHandler := parlancev1connect.NewTranslationServerServiceHandler(translationServerServer)
-	mux.Handle(translationServerPath, middleware.RequireAuth(cfg.JWT.Secret)(translationServerHandler))
+	for _, service := range services {
+		if !service.protected {
+			mux.Handle(service.register())
+			log.Printf("✓ Registered %s (public)", service.name)
 
-	log.Println("✓ Registered TranslationServerService (protected)")
+			continue
+		}
 
-	terminologyServer := terminology.NewServer(db)
-	terminologyPath, terminologyHandler := parlancev1connect.NewTerminologyServiceHandler(terminologyServer)
-	mux.Handle(terminologyPath, middleware.RequireAuth(cfg.JWT.Secret)(terminologyHandler))
-
-	log.Println("✓ Registered TerminologyService (protected)")
-
-	definitionServer := definition.NewServer(db)
-	definitionPath, definitionHandler := parlancev1connect.NewDefinitionServiceHandler(definitionServer)
-	mux.Handle(definitionPath, middleware.RequireAuth(cfg.JWT.Secret)(definitionHandler))
-
-	log.Println("✓ Registered DefinitionService (protected)")
-
-	permissionServer := permission.NewServer(db)
-	permissionPath, permissionHandler := parlancev1connect.NewPermissionServiceHandler(permissionServer)
-	mux.Handle(permissionPath, middleware.RequireAuth(cfg.JWT.Secret)(permissionHandler))
-
-	log.Println("✓ Registered PermissionService (protected)")
-
-	roleServer := role.NewServer(db)
-	rolePath, roleHandler := parlancev1connect.NewRoleServiceHandler(roleServer)
-	mux.Handle(rolePath, middleware.RequireAuth(cfg.JWT.Secret)(roleHandler))
-
-	log.Println("✓ Registered RoleService (protected)")
-
-	exportServer := export.NewServer(db)
-	exportPath, exportHandler := parlancev1connect.NewExportServiceHandler(exportServer)
-	mux.Handle(exportPath, middleware.RequireAuth(cfg.JWT.Secret)(exportHandler))
-
-	log.Println("✓ Registered ExportService (protected)")
-
-	importServer := importservice.NewServer(db)
-	importPath, importHandler := parlancev1connect.NewImportServiceHandler(importServer)
-	mux.Handle(importPath, middleware.RequireAuth(cfg.JWT.Secret)(importHandler))
-
-	log.Println("✓ Registered ImportService (protected)")
-
-	statsServer := stats.NewServer(db)
-	statsPath, statsHandler := parlancev1connect.NewStatsServiceHandler(statsServer)
-	mux.Handle(statsPath, middleware.RequireAuth(cfg.JWT.Secret)(statsHandler))
-
-	log.Println("✓ Registered StatsService (protected)")
+		path, handler := service.register(authorized)
+		mux.Handle(path, requireAuth(handler))
+		log.Printf("✓ Registered %s (protected)", service.name)
+	}
 
 	// Create server with h2c (HTTP/2 without TLS for development)
 	addr := fmt.Sprintf(":%s", cfg.Server.Port)
@@ -202,6 +181,7 @@ func main() {
 	go func() {
 		log.Printf("Server listening on %s", addr)
 		log.Printf("Health check: http://localhost%s/health", addr)
+
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server failed: %v", err)
 		}
@@ -213,6 +193,7 @@ func main() {
 	<-quit
 
 	log.Println("Shutting down server...")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -230,9 +211,11 @@ func corsMiddleware(next http.Handler, allowedOrigins []string) http.Handler {
 
 		// Check if origin is allowed
 		allowed := false
+
 		for _, allowedOrigin := range allowedOrigins {
 			if origin == allowedOrigin || allowedOrigin == "*" {
 				allowed = true
+
 				break
 			}
 		}
@@ -249,6 +232,7 @@ func corsMiddleware(next http.Handler, allowedOrigins []string) http.Handler {
 		// Handle preflight requests
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusNoContent)
+
 			return
 		}
 

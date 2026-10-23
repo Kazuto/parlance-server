@@ -97,3 +97,28 @@ func TestValidateExpiredToken(t *testing.T) {
 		t.Error("ValidateToken() with expired token should return error")
 	}
 }
+
+func TestTokenTypesAreNotInterchangeable(t *testing.T) {
+	secret := "test-secret-key"
+
+	tokens, err := GenerateTokenPair("test-user-id", "test@example.com", secret, 15*time.Minute, 7*24*time.Hour)
+	if err != nil {
+		t.Fatalf("GenerateTokenPair() error = %v", err)
+	}
+
+	if _, err := ValidateAccessToken(tokens.AccessToken, secret); err != nil {
+		t.Errorf("ValidateAccessToken(access) error = %v", err)
+	}
+
+	if _, err := ValidateRefreshToken(tokens.RefreshToken, secret); err != nil {
+		t.Errorf("ValidateRefreshToken(refresh) error = %v", err)
+	}
+
+	if _, err := ValidateAccessToken(tokens.RefreshToken, secret); err == nil {
+		t.Error("ValidateAccessToken() accepted a refresh token")
+	}
+
+	if _, err := ValidateRefreshToken(tokens.AccessToken, secret); err == nil {
+		t.Error("ValidateRefreshToken() accepted an access token")
+	}
+}

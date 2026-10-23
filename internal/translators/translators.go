@@ -39,15 +39,19 @@ func (s *DBSource) Translator(ctx context.Context) (translate.Translator, error)
 	}
 
 	endpoints := make([]translate.Endpoint, 0, len(servers))
+
 	for _, server := range servers {
 		endpoint, err := Endpoint(server, s.box)
 		if err != nil {
 			// E.g. the encryption key changed; the other servers still work.
 			log.Printf("skip translation server %s: %v", server.Name, err)
+
 			continue
 		}
+
 		endpoints = append(endpoints, endpoint)
 	}
+
 	return s.pools.Get(endpoints), nil
 }
 
@@ -60,19 +64,24 @@ func Endpoint(server models.TranslationServer, box *secret.Box) (translate.Endpo
 		MaxConcurrency: server.MaxConcurrency,
 		Version:        strconv.FormatInt(server.UpdatedAt.UnixNano(), 10),
 	}
+
 	if server.APIKey != "" {
 		key, err := box.Decrypt(server.APIKey)
 		if err != nil {
 			return translate.Endpoint{}, fmt.Errorf("decrypt API key: %w", err)
 		}
+
 		endpoint.APIKey = key
 	}
+
 	return endpoint, nil
 }
 
 // Enabled reports whether any translation server is enabled.
 func Enabled(ctx context.Context, db *database.DB) bool {
 	var count int64
+
 	db.WithContext(ctx).Model(&models.TranslationServer{}).Where("enabled = ?", true).Count(&count)
+
 	return count > 0
 }

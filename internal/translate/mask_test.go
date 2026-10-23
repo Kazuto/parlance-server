@@ -27,6 +27,7 @@ func TestMask(t *testing.T) {
 		if masked != tt.masked {
 			t.Errorf("Mask(%q) = %q, want %q", tt.text, masked, tt.masked)
 		}
+
 		if got := unmask(tt.answer); got != tt.want {
 			t.Errorf("unmask(%q) for %q = %q, want %q", tt.answer, tt.text, got, tt.want)
 		}

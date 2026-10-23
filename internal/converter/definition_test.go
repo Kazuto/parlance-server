@@ -57,6 +57,7 @@ func TestDefinitionToProto(t *testing.T) {
 				if result != nil {
 					t.Errorf("DefinitionToProto() = %v, want nil", result)
 				}
+
 				return
 			}
 
@@ -186,6 +187,7 @@ func TestDefinitionHistoryToProto(t *testing.T) {
 				if result != nil {
 					t.Errorf("DefinitionHistoryToProto() = %v, want nil", result)
 				}
+
 				return
 			}
 

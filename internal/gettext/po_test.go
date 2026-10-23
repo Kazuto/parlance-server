@@ -10,17 +10,21 @@ func TestRoundTrip(t *testing.T) {
 		{ID: "z.key", Translation: "Grüße \"world\"\nsecond\t\\line\x00\a", Description: "Context\nmore context"},
 		{ID: "a.key"},
 	}
+
 	encoded := Marshal("de-DE", input)
 	if !strings.Contains(encoded, `"Language: de-DE\n"`) || !strings.Contains(encoded, "#. Context\n#. more context") {
 		t.Fatalf("missing metadata/comments: %s", encoded)
 	}
+
 	parsed, err := Parse([]byte(encoded))
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if len(parsed) != 2 || parsed[0].ID != "a.key" || parsed[1].Translation != input[0].Translation {
 		t.Fatalf("incorrect round trip: %+v", parsed)
 	}
+
 	if encoded != Marshal("de-DE", []Entry{input[1], input[0]}) {
 		t.Fatal("export must be deterministic")
 	}
@@ -59,10 +63,12 @@ msgstr[1] "Dateien"
 #~ msgid "old"
 #~ msgstr "Alt"
 `
+
 	entries, err := Parse([]byte(input))
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if len(entries) != 5 || entries[0].ID != "button.save" || entries[0].Translation != "Speichern" || !entries[1].Fuzzy || !entries[2].Context || !entries[3].Plural || !entries[4].Obsolete {
 		t.Fatalf("unexpected records: %+v", entries)
 	}

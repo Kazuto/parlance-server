@@ -54,10 +54,12 @@ func TestAuthMiddleware(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a test handler that checks context
 			var contextUserID string
+
 			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if uid, ok := r.Context().Value(ContextKeyUserID).(string); ok {
 					contextUserID = uid
 				}
+
 				w.WriteHeader(http.StatusOK)
 			})
 
@@ -140,14 +142,17 @@ func TestRequireAuth(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var handlerCalled bool
+
 			var contextUserID string
 
 			// Create a test handler
 			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				handlerCalled = true
+
 				if uid, ok := r.Context().Value(ContextKeyUserID).(string); ok {
 					contextUserID = uid
 				}
+
 				w.WriteHeader(http.StatusOK)
 			})
 
@@ -175,6 +180,7 @@ func TestRequireAuth(t *testing.T) {
 				if !handlerCalled {
 					t.Error("Handler was not called with valid token")
 				}
+
 				if contextUserID != userID {
 					t.Errorf("Context user_id = %v, want %v", contextUserID, userID)
 				}
@@ -225,10 +231,12 @@ func TestExtractUserIDFromContext(t *testing.T) {
 
 	// Test with user_id in context
 	ctxWithUser := context.WithValue(ctx, ContextKeyUserID, userID)
+
 	extractedID, ok := ctxWithUser.Value(ContextKeyUserID).(string)
 	if !ok {
 		t.Fatal("Failed to extract user_id from context")
 	}
+
 	if extractedID != userID {
 		t.Errorf("Extracted user_id = %v, want %v", extractedID, userID)
 	}

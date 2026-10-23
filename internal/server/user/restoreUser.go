@@ -6,10 +6,8 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
-	"github.com/kazuto/parlance-server/internal/permissions"
-	"gorm.io/gorm"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -19,22 +17,13 @@ func (s *Server) RestoreUser(
 	ctx context.Context,
 	req *connect.Request[pb.RestoreUserRequest],
 ) (*connect.Response[pb.RestoreUserResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.DeleteUser); err != nil {
-		return nil, err
-	}
-
 	if req.Msg.Id == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "user id is required")
 	}
 
-	var user models.User
-	if err := s.db.Unscoped().Preload("Roles.Permissions").First(&user, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrUserNotFound, "user not found")
-	}
-
-	user.DeletedAt = gorm.DeletedAt{Valid: false}
-	if err := s.db.Save(&user).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, "failed to restore user")
+	user, err := common.Restore[models.User](ctx, s.db.Preload("Roles.Permissions"), req.Msg.Id, errors.ErrUserNotFound, "user not found")
+	if err != nil {
+		return nil, err
 	}
 
 	return connect.NewResponse(&pb.RestoreUserResponse{

@@ -7,6 +7,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -20,9 +21,9 @@ func (s *Server) GetEntryScopes(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "entry id is required")
 	}
 
-	var entry models.Entry
-	if err := s.db.Preload("Scopes").First(&entry, "id = ?", req.Msg.EntryId).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrEntryNotFound, "entry not found")
+	entry, err := common.FindByID[models.Entry](s.db.WithContext(ctx).Preload("Scopes"), req.Msg.EntryId, errors.ErrEntryNotFound, "entry not found")
+	if err != nil {
+		return nil, err
 	}
 
 	return connect.NewResponse(&pb.GetEntryScopesResponse{

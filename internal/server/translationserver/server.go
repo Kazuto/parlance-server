@@ -36,6 +36,7 @@ func validateBaseURL(value string) error {
 	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" {
 		return errors.InvalidInput(errors.ErrInvalidInput, "base url must be an http or https URL")
 	}
+
 	return nil
 }
 
@@ -43,6 +44,7 @@ func validateMaxConcurrency(value int32) error {
 	if value < 1 || value > maxConcurrencyLimit {
 		return errors.InvalidInput(errors.ErrInvalidInput, "max concurrency must be between 1 and 64")
 	}
+
 	return nil
 }
 
@@ -51,9 +53,11 @@ func (s *Server) encryptAPIKey(key string) (string, error) {
 	if key == "" {
 		return "", nil
 	}
+
 	encrypted, err := s.box.Encrypt(key)
 	if err != nil {
 		return "", errors.FailedPrecondition(errors.ErrEncryptionKeyMissing, "set ENCRYPTION_KEY on the server to store API keys")
 	}
+
 	return encrypted, nil
 }

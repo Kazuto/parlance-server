@@ -1,6 +1,8 @@
 package converter
 
 import (
+	"time"
+
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/models"
 )
@@ -11,20 +13,15 @@ func ScopeToProto(s *models.Scope) *pb.Scope {
 		return nil
 	}
 
-	deletedAt := ""
-	if s.DeletedAt.Valid {
-		deletedAt = s.DeletedAt.Time.Format("2006-01-02T15:04:05Z07:00")
-	}
-
 	return &pb.Scope{
 		Id:          s.ID,
 		Name:        s.Name,
 		Slug:        s.Slug,
 		Description: s.Description,
 		Color:       s.Color,
-		CreatedAt:   s.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt:   s.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		DeletedAt:   deletedAt,
+		CreatedAt:   s.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   s.UpdatedAt.Format(time.RFC3339),
+		DeletedAt:   formatDeletedAt(s.DeletedAt),
 	}
 }
 

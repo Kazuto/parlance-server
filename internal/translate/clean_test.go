@@ -45,9 +45,11 @@ func TestClean(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
+
 			if got != tt.want {
 				t.Errorf("text: got %q, want %q", got, tt.want)
 			}
+
 			if !reflect.DeepEqual(warnings, tt.warnings) {
 				t.Errorf("warnings: got %v, want %v", warnings, tt.warnings)
 			}

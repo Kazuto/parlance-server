@@ -41,6 +41,7 @@ func TestScopeToProto(t *testing.T) {
 				if result != nil {
 					t.Errorf("ScopeToProto() = %v, want nil", result)
 				}
+
 				return
 			}
 

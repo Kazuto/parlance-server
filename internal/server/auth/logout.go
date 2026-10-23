@@ -14,6 +14,5 @@ func (s *Server) Logout(
 ) (*connect.Response[pb.LogoutResponse], error) {
 	// In a stateless JWT system, logout is typically handled client-side by discarding the token
 	// For a more robust solution, implement token blacklisting with Redis
-
 	return connect.NewResponse(&pb.LogoutResponse{}), nil
 }

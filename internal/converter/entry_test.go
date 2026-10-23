@@ -12,10 +12,9 @@ func TestEntryToProto(t *testing.T) {
 	userID := "user-123"
 
 	tests := []struct {
-		name          string
-		entry         *models.Entry
-		requestLocale string
-		wantNil       bool
+		name    string
+		entry   *models.Entry
+		wantNil bool
 	}{
 		{
 			name:    "nil entry",
@@ -31,8 +30,7 @@ func TestEntryToProto(t *testing.T) {
 				CreatedAt:   now,
 				UpdatedAt:   now,
 			},
-			requestLocale: "en",
-			wantNil:       false,
+			wantNil: false,
 		},
 		{
 			name: "entry with user tracking",
@@ -45,8 +43,7 @@ func TestEntryToProto(t *testing.T) {
 				CreatedAt:   now,
 				UpdatedAt:   now,
 			},
-			requestLocale: "en",
-			wantNil:       false,
+			wantNil: false,
 		},
 		{
 			name: "entry with localizations and scopes",
@@ -76,19 +73,19 @@ func TestEntryToProto(t *testing.T) {
 					},
 				},
 			},
-			requestLocale: "en",
-			wantNil:       false,
+			wantNil: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := EntryToProto(tt.entry, tt.requestLocale)
+			result := EntryToProto(tt.entry)
 
 			if tt.wantNil {
 				if result != nil {
 					t.Errorf("EntryToProto() = %v, want nil", result)
 				}
+
 				return
 			}
 
@@ -125,11 +122,14 @@ func TestLocalizationHistoryIncludesUser(t *testing.T) {
 		UserID: &userID,
 		User:   &models.User{ID: userID, Name: "Translator", Email: "translator@example.com"},
 	}
+
 	result := LocalizationHistoryToProto(history)
 	if result.User == nil || result.User.Id != userID || result.User.Name != "Translator" {
 		t.Fatalf("expected history author, got %+v", result.User)
 	}
+
 	history.User = nil
+
 	result = LocalizationHistoryToProto(history)
 	if result.User != nil || result.UserId != userID {
 		t.Fatal("missing user relationship must preserve user ID")
@@ -187,6 +187,7 @@ func TestLocalizationToProto(t *testing.T) {
 				if result != nil {
 					t.Errorf("LocalizationToProto() = %v, want nil", result)
 				}
+
 				return
 			}
 
@@ -233,7 +234,7 @@ func TestEntriesToProto(t *testing.T) {
 		},
 	}
 
-	result := EntriesToProto(entries, "en")
+	result := EntriesToProto(entries)
 
 	if len(result) != 2 {
 		t.Fatalf("EntriesToProto() length = %v, want 2", len(result))

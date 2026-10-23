@@ -93,6 +93,7 @@ func TestLocaleToProto(t *testing.T) {
 				if result != nil {
 					t.Errorf("LocaleToProto() = %v, want nil", result)
 				}
+
 				return
 			}
 

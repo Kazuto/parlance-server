@@ -31,10 +31,13 @@ func Prompt(req Request) string {
 	}
 
 	var refs strings.Builder
+
 	refs.WriteString("Reference the following translations:\n")
+
 	for _, term := range req.Terms {
 		fmt.Fprintf(&refs, "%s translates to %s\n", term.Source, term.Target)
 	}
+
 	return refs.String() + "\n" + prompt
 }
 

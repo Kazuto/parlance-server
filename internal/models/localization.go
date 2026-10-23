@@ -42,10 +42,17 @@ func (l *Localization) AfterDelete(tx *gorm.DB) error {
 }
 
 func recordLocalizationHistory(tx *gorm.DB, l *Localization, action string) error {
+	// Bulk statements (Where(...).Delete(&Model{})) carry no row; callers that need
+	// history load the rows and pass them instead.
+	if l.ID == "" {
+		return nil
+	}
+
 	userID := l.UpdatedBy
 	if action == "created" {
 		userID = l.CreatedBy
 	}
+
 	history := LocalizationHistory{
 		LocalizationID: l.ID,
 		LocaleID:       l.LocaleID,
@@ -55,5 +62,6 @@ func recordLocalizationHistory(tx *gorm.DB, l *Localization, action string) erro
 		Action:         action,
 		ChangedAt:      time.Now(),
 	}
+
 	return tx.Create(&history).Error
 }

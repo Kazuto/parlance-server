@@ -28,8 +28,10 @@ func (r *InitializerRegistry) Register(initializer Initializer) error {
 	if _, exists := r.initializers[initializer.Name()]; exists {
 		return fmt.Errorf("initializer %s already registered", initializer.Name())
 	}
+
 	r.initializers[initializer.Name()] = initializer
 	r.order = append(r.order, initializer.Name())
+
 	return nil
 }
 
@@ -38,6 +40,7 @@ func (r *InitializerRegistry) All() []Initializer {
 	for _, name := range r.order {
 		result = append(result, r.initializers[name])
 	}
+
 	return result
 }
 
@@ -47,5 +50,6 @@ func (r *InitializerRegistry) RunAll(db *gorm.DB) error {
 			return fmt.Errorf("initializer %s failed: %w", init.Name(), err)
 		}
 	}
+
 	return nil
 }

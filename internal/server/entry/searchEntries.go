@@ -5,10 +5,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
-	"github.com/kazuto/parlance-server/internal/errors"
-	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
-	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -18,42 +16,24 @@ func (s *Server) SearchEntries(
 	ctx context.Context,
 	req *connect.Request[pb.SearchEntriesRequest],
 ) (*connect.Response[pb.SearchEntriesResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.ReadEntry); err != nil {
+	query := s.db.WithContext(ctx).Model(&models.Entry{}).Order("key ASC")
+	if req.Msg.Query != "" {
+		query = common.SearchColumns("key", "description")(query, req.Msg.Query)
+	}
+
+	if req.Msg.ScopeId != "" {
+		query = common.FilterEntriesByScopes(query, []string{req.Msg.ScopeId})
+	}
+
+	var entries []models.Entry
+
+	pagination, err := common.Paginate(query, req.Msg.Pagination, &entries, "Localizations", "Scopes")
+	if err != nil {
 		return nil, err
 	}
 
-	page, perPage := converter.GetPaginationParams(req.Msg.Pagination)
-
-	var entries []models.Entry
-	var total int64
-
-	query := s.db.Model(&models.Entry{}).
-		Preload("Localizations").
-		Preload("Scopes")
-
-	// Search in key and description
-	if req.Msg.Query != "" {
-		searchPattern := "%" + req.Msg.Query + "%"
-		query = query.Where("key ILIKE ? OR description ILIKE ?", searchPattern, searchPattern)
-	}
-
-	// Filter by scope if provided
-	if req.Msg.ScopeId != "" {
-		query = query.Joins("JOIN entry_scopes ON entry_scopes.entry_id = entries.id").
-			Where("entry_scopes.scope_id = ?", req.Msg.ScopeId)
-	}
-
-	if err := query.Count(&total).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, "failed to count entries")
-	}
-
-	offset := (page - 1) * perPage
-	if err := query.Offset(int(offset)).Limit(int(perPage)).Order("key ASC").Find(&entries).Error; err != nil {
-		return nil, errors.Internal(errors.ErrInternal, "failed to search entries")
-	}
-
 	return connect.NewResponse(&pb.SearchEntriesResponse{
-		Entries:    converter.EntriesToProto(entries, "en"),
-		Pagination: converter.PaginationToProto(total, page, perPage),
+		Entries:    converter.EntriesToProto(entries),
+		Pagination: pagination,
 	}), nil
 }

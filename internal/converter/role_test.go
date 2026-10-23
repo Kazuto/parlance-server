@@ -51,6 +51,7 @@ func TestRoleToProto(t *testing.T) {
 				if result != nil {
 					t.Errorf("RoleToProto() = %v, want nil", result)
 				}
+
 				return
 			}
 

@@ -1,6 +1,8 @@
 package converter
 
 import (
+	"time"
+
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/models"
 )
@@ -11,24 +13,14 @@ func RoleToProto(r *models.Role) *pb.Role {
 		return nil
 	}
 
-	permissions := make([]*pb.Permission, len(r.Permissions))
-	for i, perm := range r.Permissions {
-		permissions[i] = PermissionToProto(&perm)
-	}
-
-	deletedAt := ""
-	if r.DeletedAt.Valid {
-		deletedAt = r.DeletedAt.Time.Format("2006-01-02T15:04:05Z07:00")
-	}
-
 	return &pb.Role{
 		Id:          r.ID,
 		Name:        r.Name,
 		Description: r.Description,
-		Permissions: permissions,
-		CreatedAt:   r.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt:   r.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		DeletedAt:   deletedAt,
+		Permissions: PermissionsToProto(r.Permissions),
+		CreatedAt:   r.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   r.UpdatedAt.Format(time.RFC3339),
+		DeletedAt:   formatDeletedAt(r.DeletedAt),
 	}
 }
 
@@ -37,5 +29,6 @@ func RolesToProto(roles []models.Role) []*pb.Role {
 	for i, role := range roles {
 		result[i] = RoleToProto(&role)
 	}
+
 	return result
 }

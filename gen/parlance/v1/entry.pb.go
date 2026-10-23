@@ -1013,9 +1013,11 @@ func (x *SearchEntriesResponse) GetPagination() *PaginationResponse {
 }
 
 type GetEntryHistoryRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	EntryId       string                 `protobuf:"bytes,1,opt,name=entry_id,json=entryId,proto3" json:"entry_id,omitempty"`
-	Pagination    *PaginationRequest     `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	EntryId    string                 `protobuf:"bytes,1,opt,name=entry_id,json=entryId,proto3" json:"entry_id,omitempty"`
+	Pagination *PaginationRequest     `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	// Optional: only history of this locale
+	LocaleId      string `protobuf:"bytes,3,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1062,6 +1064,13 @@ func (x *GetEntryHistoryRequest) GetPagination() *PaginationRequest {
 		return x.Pagination
 	}
 	return nil
+}
+
+func (x *GetEntryHistoryRequest) GetLocaleId() string {
+	if x != nil {
+		return x.LocaleId
+	}
+	return ""
 }
 
 type GetEntryHistoryResponse struct {
@@ -1308,12 +1317,13 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\aentries\x18\x01 \x03(\v2\x12.parlance.v1.EntryR\aentries\x12?\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1f.parlance.v1.PaginationResponseR\n" +
-	"pagination\"s\n" +
+	"pagination\"\x90\x01\n" +
 	"\x16GetEntryHistoryRequest\x12\x19\n" +
 	"\bentry_id\x18\x01 \x01(\tR\aentryId\x12>\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
-	"pagination\"\x96\x01\n" +
+	"pagination\x12\x1b\n" +
+	"\tlocale_id\x18\x03 \x01(\tR\blocaleId\"\x96\x01\n" +
 	"\x17GetEntryHistoryResponse\x12:\n" +
 	"\ahistory\x18\x01 \x03(\v2 .parlance.v1.LocalizationHistoryR\ahistory\x12?\n" +
 	"\n" +

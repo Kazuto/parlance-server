@@ -43,21 +43,24 @@ func (s *Server) ListRecentActivity(
 	if limit <= 0 {
 		limit = defaultLimit
 	}
+
 	limit = min(limit, maxLimit)
 
 	userID := ""
 	if req.Msg.OnlyMine {
-		userID, _ = ctx.Value(middleware.ContextKeyUserID).(string)
+		userID = middleware.UserID(ctx)
 		if userID == "" {
 			return nil, errors.Unauthenticated(errors.ErrUnauthenticated, "user not authenticated")
 		}
 	}
 
 	db := s.db.WithContext(ctx)
+
 	translations, err := recentRows(db, "localization_history", "entry_id", userID)
 	if err != nil {
 		return nil, err
 	}
+
 	definitions, err := recentRows(db, "definition_history", "terminology_id", userID)
 	if err != nil {
 		return nil, err
@@ -70,6 +73,7 @@ func (s *Server) ListRecentActivity(
 
 	// Where a history table was cut off: groups reaching back that far may be incomplete.
 	edges := map[pb.ActivityKind]time.Time{}
+
 	for kind, rows := range map[pb.ActivityKind][]historyRow{
 		pb.ActivityKind_ACTIVITY_KIND_TRANSLATION: translations,
 		pb.ActivityKind_ACTIVITY_KIND_DEFINITION:  definitions,
@@ -80,15 +84,18 @@ func (s *Server) ListRecentActivity(
 	}
 
 	groups := groupChanges(changes, limit)
+
 	items, err := s.toItems(db, groups, edges, common.GetLocaleFromRequest(req))
 	if err != nil {
 		return nil, err
 	}
+
 	return connect.NewResponse(&pb.ListRecentActivityResponse{Items: items}), nil
 }
 
 func recentRows(db *gorm.DB, table, subjectColumn, userID string) ([]historyRow, error) {
 	var rows []historyRow
+
 	query := db.Table(table).
 		Select("id, action, user_id, locale_id, " + subjectColumn + " AS subject_id, changed_at").
 		Order("changed_at DESC").
@@ -96,9 +103,11 @@ func recentRows(db *gorm.DB, table, subjectColumn, userID string) ([]historyRow,
 	if userID != "" {
 		query = query.Where("user_id = ?", userID)
 	}
+
 	if err := query.Scan(&rows).Error; err != nil {
 		return nil, errors.Internal(errors.ErrInternal, fmt.Sprintf("failed to load %s", table))
 	}
+
 	return rows, nil
 }
 
@@ -108,6 +117,7 @@ func appendChanges(changes []change, rows []historyRow, kind pb.ActivityKind) []
 		if row.UserID != nil {
 			userID = *row.UserID
 		}
+
 		changes = append(changes, change{
 			ID:        row.ID,
 			Kind:      kind,
@@ -118,6 +128,7 @@ func appendChanges(changes []change, rows []historyRow, kind pb.ActivityKind) []
 			ChangedAt: row.ChangedAt,
 		})
 	}
+
 	return changes
 }
 
@@ -129,13 +140,16 @@ func (s *Server) toItems(
 	requestLocale string,
 ) ([]*pb.ActivityItem, error) {
 	userIDs, localeIDs, entryIDs, termIDs := map[string]bool{}, map[string]bool{}, map[string]bool{}, map[string]bool{}
+
 	for _, g := range groups {
 		if g.Newest.UserID != "" {
 			userIDs[g.Newest.UserID] = true
 		}
+
 		for localeID := range g.Locales {
 			localeIDs[localeID] = true
 		}
+
 		if len(g.Subjects) == 1 {
 			if g.Newest.Kind == pb.ActivityKind_ACTIVITY_KIND_TRANSLATION {
 				entryIDs[g.Newest.SubjectID] = true
@@ -146,8 +160,11 @@ func (s *Server) toItems(
 	}
 
 	var users []models.User
+
 	var locales []models.Locale
+
 	var entries []models.Entry
+
 	var terms []models.Terminology
 	// Deleted records keep their names so older activity stays readable.
 	for _, lookup := range []struct {
@@ -157,6 +174,7 @@ func (s *Server) toItems(
 		if len(lookup.ids) == 0 {
 			continue
 		}
+
 		if err := db.Unscoped().Where("id IN ?", keys(lookup.ids)).Find(lookup.dest).Error; err != nil {
 			return nil, errors.Internal(errors.ErrInternal, "failed to load activity details")
 		}
@@ -166,19 +184,23 @@ func (s *Server) toItems(
 	for _, u := range users {
 		userNames[u.ID] = u.Name
 	}
+
 	localeByID := map[string]*pb.Locale{}
 	for i := range locales {
 		localeByID[locales[i].ID] = converter.LocaleToProto(&locales[i], requestLocale)
 	}
+
 	labels := map[string]string{}
 	for _, e := range entries {
 		labels[e.ID] = e.Key
 	}
+
 	for _, term := range terms {
 		labels[term.ID] = term.Term
 	}
 
 	items := make([]*pb.ActivityItem, 0, len(groups))
+
 	for _, g := range groups {
 		item := &pb.ActivityItem{
 			Id:           g.Newest.ID,
@@ -196,6 +218,7 @@ func (s *Server) toItems(
 		if edge, ok := edges[g.Newest.Kind]; ok && !g.Oldest.After(edge) {
 			item.Partial = true
 		}
+
 		if len(g.Locales) == 1 {
 			item.LocaleId = g.Newest.LocaleID
 			if locale := localeByID[g.Newest.LocaleID]; locale != nil {
@@ -203,12 +226,15 @@ func (s *Server) toItems(
 				item.LocaleName = locale.Name
 			}
 		}
+
 		if len(g.Subjects) == 1 {
 			item.SubjectId = g.Newest.SubjectID
 			item.SubjectLabel = labels[g.Newest.SubjectID]
 		}
+
 		items = append(items, item)
 	}
+
 	return items, nil
 }
 
@@ -217,5 +243,6 @@ func keys(set map[string]bool) []string {
 	for key := range set {
 		out = append(out, key)
 	}
+
 	return out
 }

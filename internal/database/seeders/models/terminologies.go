@@ -13,6 +13,7 @@ func (i *TerminologySeeder) Name() string { return "Terminologies" }
 
 func (i *TerminologySeeder) Run(db *gorm.DB) error {
 	var adminUser models.User
+
 	db.Where("email = ?", "admin@parlance.dev").First(&adminUser)
 
 	terminologies := []struct {

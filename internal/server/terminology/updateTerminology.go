@@ -8,7 +8,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
-	"github.com/kazuto/parlance-server/internal/permissions"
+	"github.com/kazuto/parlance-server/internal/server/common"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -17,27 +17,21 @@ func (s *Server) UpdateTerminology(
 	ctx context.Context,
 	req *connect.Request[pb.UpdateTerminologyRequest],
 ) (*connect.Response[pb.UpdateTerminologyResponse], error) {
-	if err := middleware.RequirePermission(ctx, s.db, permissions.UpdateTerminology); err != nil {
-		return nil, err
-	}
-
 	if req.Msg.Id == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "terminology id is required")
 	}
+
 	if req.Msg.Term != nil && req.Msg.GetTerm() == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "term is required")
 	}
 
-	var terminology models.Terminology
-	if err := s.db.First(&terminology, "id = ?", req.Msg.Id).Error; err != nil {
-		return nil, errors.NotFound(errors.ErrTerminologyNotFound, "terminology not found")
+	terminology, err := common.FindByID[models.Terminology](s.db.WithContext(ctx), req.Msg.Id, errors.ErrTerminologyNotFound, "terminology not found")
+	if err != nil {
+		return nil, err
 	}
 
 	// Extract user ID from context
-	userID, _ := ctx.Value(middleware.ContextKeyUserID).(string)
-	if userID != "" {
-		terminology.UpdatedBy = &userID
-	}
+	terminology.UpdatedBy = middleware.UserIDPtr(ctx)
 
 	if req.Msg.Term != nil {
 		terminology.Term = req.Msg.GetTerm()

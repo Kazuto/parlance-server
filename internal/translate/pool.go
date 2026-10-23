@@ -50,28 +50,36 @@ func NewPool(endpoints []Endpoint, newTranslator func(Endpoint) Translator) *Poo
 			slots:      make(chan struct{}, max(endpoint.MaxConcurrency, 1)),
 		})
 	}
+
 	return pool
 }
 
 func (p *Pool) Translate(ctx context.Context, req Request) (string, error) {
 	tried := make([]bool, len(p.members))
+
 	var lastErr error
+
 	for range p.members {
 		index, err := p.acquire(ctx, tried)
 		if err != nil {
 			return "", err
 		}
+
 		answer, err := p.members[index].translator.Translate(ctx, req)
 		<-p.members[index].slots
+
 		if err == nil {
 			return answer, nil
 		}
+
 		if ctx.Err() != nil {
 			return "", err
 		}
+
 		tried[index] = true
 		lastErr = err
 	}
+
 	return "", lastErr
 }
 
@@ -80,21 +88,26 @@ func (p *Pool) Translate(ctx context.Context, req Request) (string, error) {
 func (p *Pool) acquire(ctx context.Context, tried []bool) (int, error) {
 	cases := []reflect.SelectCase{{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ctx.Done())}}
 	indexes := []int{-1}
+
 	for i, m := range p.members {
 		if tried[i] {
 			continue
 		}
+
 		cases = append(cases, reflect.SelectCase{
 			Dir:  reflect.SelectSend,
 			Chan: reflect.ValueOf(m.slots),
 			Send: reflect.ValueOf(struct{}{}),
 		})
+
 		indexes = append(indexes, i)
 	}
+
 	chosen, _, _ := reflect.Select(cases)
 	if chosen == 0 {
 		return -1, ctx.Err()
 	}
+
 	return indexes[chosen], nil
 }
 
@@ -118,17 +131,21 @@ func (p *Pools) Get(endpoints []Endpoint) Translator {
 	if len(endpoints) == 0 {
 		return nil
 	}
+
 	parts := make([]string, len(endpoints))
 	for i, endpoint := range endpoints {
 		parts[i] = endpoint.ID + "@" + endpoint.Version
 	}
+
 	key := strings.Join(parts, ",")
 
 	p.mu.Lock()
 	defer p.mu.Unlock()
+
 	if p.pool == nil || p.key != key {
 		p.pool = NewPool(endpoints, p.newTranslator)
 		p.key = key
 	}
+
 	return p.pool
 }
