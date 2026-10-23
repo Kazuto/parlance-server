@@ -77,6 +77,12 @@ const (
 	ReadWebhook   = "read_webhook"
 	UpdateWebhook = "update_webhook"
 	DeleteWebhook = "delete_webhook"
+
+	// Single sign-on provider permissions; testing needs update_sso_provider
+	CreateSSOProvider = "create_sso_provider"
+	ReadSSOProvider   = "read_sso_provider"
+	UpdateSSOProvider = "update_sso_provider"
+	DeleteSSOProvider = "delete_sso_provider"
 )
 
 // AllPermissions returns all defined permissions
@@ -130,6 +136,10 @@ func AllPermissions() []string {
 		ReadWebhook,
 		UpdateWebhook,
 		DeleteWebhook,
+		CreateSSOProvider,
+		ReadSSOProvider,
+		UpdateSSOProvider,
+		DeleteSSOProvider,
 	}
 }
 

@@ -273,6 +273,38 @@ func SetupTestDB() (*database.DB, error) {
 			created_by TEXT,
 			updated_by TEXT
 		)`,
+		`CREATE TABLE IF NOT EXISTS sso_providers (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			issuer_url TEXT NOT NULL,
+			client_id TEXT NOT NULL,
+			client_secret TEXT,
+			default_role_id TEXT,
+			enabled INTEGER NOT NULL DEFAULT 0,
+			created_at DATETIME,
+			updated_at DATETIME,
+			created_by TEXT,
+			updated_by TEXT
+		)`,
+		`CREATE TABLE IF NOT EXISTS sso_identities (
+			id TEXT PRIMARY KEY,
+			provider_id TEXT NOT NULL,
+			subject TEXT NOT NULL,
+			user_id TEXT NOT NULL,
+			email TEXT NOT NULL DEFAULT '',
+			created_at DATETIME,
+			last_login_at DATETIME
+		)`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS idx_sso_identities_subject ON sso_identities (provider_id, subject)`,
+		`CREATE TABLE IF NOT EXISTS sso_logins (
+			state TEXT PRIMARY KEY,
+			provider_id TEXT NOT NULL,
+			nonce TEXT NOT NULL,
+			code_verifier TEXT NOT NULL,
+			redirect_uri TEXT NOT NULL,
+			expires_at DATETIME NOT NULL,
+			created_at DATETIME
+		)`,
 		`CREATE TABLE IF NOT EXISTS webhook_deliveries (
 			id TEXT PRIMARY KEY,
 			webhook_id TEXT NOT NULL,

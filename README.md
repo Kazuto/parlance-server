@@ -40,19 +40,19 @@ variables below.
 
 Set these as environment variables or in a `.env` file (see `.env.example`):
 
-| Variable                                | Default                          | Description                                                                                                                                                                                                             |
-| --------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PORT`                                  | `8080`                           | Port of the API                                                                                                                                                                                                         |
-| `ENV`                                   | `development`                    | Name of the environment, shown in the log                                                                                                                                                                               |
-| `DB_HOST`, `DB_PORT`                    | `localhost`, `5432`              | PostgreSQL server                                                                                                                                                                                                       |
-| `DB_USER`, `DB_PASSWORD`, `DB_NAME`     | `parlance`, `secret`, `parlance` | PostgreSQL login and database                                                                                                                                                                                           |
-| `DB_SSL_MODE`                           | `disable`                        | PostgreSQL `sslmode`                                                                                                                                                                                                    |
-| `JWT_SECRET`                            | `change-this-secret`             | Signs the sign-in tokens. **Set your own.**                                                                                                                                                                             |
-| `JWT_EXPIRY`                            | `24h`                            | How long a sign-in lasts; refresh tokens last 7 times as long                                                                                                                                                           |
-| `ENCRYPTION_KEY`                        | (none)                           | Encrypts stored API keys of translation servers, access tokens of tasks and signing secrets of webhooks. Needed only to save them. Changing it makes saved ones unreadable. Generate one with `openssl rand -base64 32` |
-| `CORS_ALLOWED_ORIGINS`                  | `http://localhost:3000`          | Comma-separated addresses of the web apps allowed to call the API                                                                                                                                                       |
-| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET` | (none)                           | S3-compatible storage for avatars                                                                                                                                                                                       |
-| `S3_ACCESS_KEY`, `S3_SECRET_KEY`        | (none)                           | Credentials for that storage                                                                                                                                                                                            |
+| Variable                                | Default                          | Description                                                                                                                                                                                                                                                      |
+| --------------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                                  | `8080`                           | Port of the API                                                                                                                                                                                                                                                  |
+| `ENV`                                   | `development`                    | Name of the environment, shown in the log                                                                                                                                                                                                                        |
+| `DB_HOST`, `DB_PORT`                    | `localhost`, `5432`              | PostgreSQL server                                                                                                                                                                                                                                                |
+| `DB_USER`, `DB_PASSWORD`, `DB_NAME`     | `parlance`, `secret`, `parlance` | PostgreSQL login and database                                                                                                                                                                                                                                    |
+| `DB_SSL_MODE`                           | `disable`                        | PostgreSQL `sslmode`                                                                                                                                                                                                                                             |
+| `JWT_SECRET`                            | `change-this-secret`             | Signs the sign-in tokens. **Set your own.**                                                                                                                                                                                                                      |
+| `JWT_EXPIRY`                            | `24h`                            | How long a sign-in lasts; refresh tokens last 7 times as long                                                                                                                                                                                                    |
+| `ENCRYPTION_KEY`                        | (none)                           | Encrypts stored API keys of translation servers, access tokens of tasks and signing secrets of webhooks, and client secrets of sign-in providers. Needed only to save them. Changing it makes saved ones unreadable. Generate one with `openssl rand -base64 32` |
+| `CORS_ALLOWED_ORIGINS`                  | `http://localhost:3000`          | Comma-separated addresses of the web apps allowed to call the API; single sign-on only returns to these                                                                                                                                                          |
+| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET` | (none)                           | S3-compatible storage for avatars                                                                                                                                                                                                                                |
+| `S3_ACCESS_KEY`, `S3_SECRET_KEY`        | (none)                           | Credentials for that storage                                                                                                                                                                                                                                     |
 
 The Docker Compose file sets development values for all of them; set your own
 `JWT_SECRET` and `ENCRYPTION_KEY` anywhere else.
@@ -269,12 +269,51 @@ that fails sends nothing.
 Permissions: `read_webhook`, `create_webhook`, `update_webhook` (also to send
 tests and redeliver) and `delete_webhook`.
 
+## Single sign-on
+
+Besides email and password, people can sign in with OpenID Connect providers such
+as Keycloak, Authentik, Authelia, Zitadel, Microsoft Entra ID, Google or Okta.
+Admins set them up under **Settings → Single sign-on** in the web app:
+
+1. At the provider, create a confidential client (or a public one, without a
+   secret) for the authorization code flow, and register the redirect URI the
+   settings show: the web app's address followed by `/sso/callback`. The web app's
+   address must be in `CORS_ALLOWED_ORIGINS`.
+2. In Parlance, add the provider with its issuer URL, exactly as the provider names
+   it (Authentik's ends in a slash), the client ID and secret, and press **Test**.
+   The secret is stored encrypted, so it needs `ENCRYPTION_KEY`.
+3. Choose what happens to people who have no account yet: create one with a role,
+   or create none, so only users an admin added can sign in.
+
+The sign-in page then offers "Sign in with …" for each enabled provider.
+
+- **Flow:** authorization code with PKCE, asking for `openid profile email`. The
+  API keeps the state, nonce and verifier of each sign-in for ten minutes and uses
+  them once, verifies the ID token's signature, issuer, audience and nonce, and
+  then issues the usual Parlance tokens. Provider sessions aren't tracked:
+  signing out of Parlance doesn't sign out of the provider.
+- **Accounts:** the first sign-in with an account at the provider finds the
+  Parlance user by email, ignoring case, and links them; later sign-ins find them
+  by the provider's id of the account (`sub`), even after the email changed. An
+  email the provider marks as unverified (`email_verified: false`) is refused.
+  Without an email in the ID token, the userinfo endpoint is asked.
+- **New accounts** get the provider's role, the name from the `name` or
+  `preferred_username` claim, and no password, so they can only sign in through a
+  provider until an admin sets one. Deleted users can't sign in.
+- **Passwords** keep working for everyone who has one, so a provider that is down
+  locks nobody out. Deleting a provider removes its links to users; accounts it
+  created stay, but need a password from an admin to sign in.
+
+Permissions: `read_sso_provider`, `create_sso_provider`, `update_sso_provider`
+(also to test) and `delete_sso_provider`. The code is in `internal/sso`, with a
+test provider in `internal/sso/ssotest`.
+
 ## API
 
 All endpoints are Connect RPC calls: `POST /parlance.v1.<Service>/<Method>` with a
 JSON (or binary protobuf) body. The definitions are in
-[`proto/parlance/v1/`](proto/parlance/v1/). `AuthService`, `SetupService` and
-reading languages work without signing in; every other call needs the access
+[`proto/parlance/v1/`](proto/parlance/v1/). `AuthService` (including the single sign-on
+calls), `SetupService` and reading languages work without signing in; every other call needs the access
 token from `AuthService/Login`:
 
 ```bash

@@ -20,6 +20,8 @@ type NewUser struct {
 	Roles    []models.Role
 	// DefaultRole names a role every new user gets when it exists, e.g. "viewer"
 	DefaultRole string
+	// External users sign in with a single sign-on provider and have no password.
+	External bool
 }
 
 // CreateUser creates a user with an unused email, returning it with its roles and their
@@ -29,7 +31,7 @@ func CreateUser(ctx context.Context, db *gorm.DB, input NewUser) (*models.User, 
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "email is required")
 	}
 
-	if input.Password == "" {
+	if input.Password == "" && !input.External {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "password is required")
 	}
 
@@ -37,9 +39,14 @@ func CreateUser(ctx context.Context, db *gorm.DB, input NewUser) (*models.User, 
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "name is required")
 	}
 
-	hashedPassword, err := auth.HashPassword(input.Password)
-	if err != nil {
-		return nil, errors.InternalCause(err, "failed to hash password")
+	// Without a hash, no password matches.
+	hashedPassword := ""
+
+	if !input.External {
+		var err error
+		if hashedPassword, err = auth.HashPassword(input.Password); err != nil {
+			return nil, errors.InternalCause(err, "failed to hash password")
+		}
 	}
 
 	user := &models.User{
@@ -49,7 +56,7 @@ func CreateUser(ctx context.Context, db *gorm.DB, input NewUser) (*models.User, 
 		Roles:        input.Roles,
 	}
 
-	err = db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		exists, err := Exists(tx.Model(&models.User{}).Where("email = ?", input.Email))
 		if err != nil {
 			return err

@@ -53,7 +53,7 @@ issues:
         - unparam
 
     # Test fakes skip checks the tests don't need, e.g. on request bodies they built
-    - path: forgetest/
+    - path: (forgetest|ssotest)/
       linters:
         - errcheck
 

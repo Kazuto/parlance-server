@@ -36,12 +36,14 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/role"
 	"github.com/kazuto/parlance-server/internal/server/scope"
 	"github.com/kazuto/parlance-server/internal/server/setup"
+	"github.com/kazuto/parlance-server/internal/server/ssoprovider"
 	"github.com/kazuto/parlance-server/internal/server/stats"
 	"github.com/kazuto/parlance-server/internal/server/task"
 	"github.com/kazuto/parlance-server/internal/server/terminology"
 	"github.com/kazuto/parlance-server/internal/server/translationserver"
 	"github.com/kazuto/parlance-server/internal/server/user"
 	"github.com/kazuto/parlance-server/internal/server/webhookservice"
+	"github.com/kazuto/parlance-server/internal/sso"
 	"github.com/kazuto/parlance-server/internal/taskrunner"
 	"github.com/kazuto/parlance-server/internal/translators"
 	"github.com/kazuto/parlance-server/internal/webhook"
@@ -99,6 +101,9 @@ func main() {
 
 	translatorSource := translators.NewDBSource(db, secretBox)
 
+	// Signs users in with the single sign-on providers admins set up in the app.
+	ssoClient := sso.New(db.DB, secretBox, nil)
+
 	// The task runner runs scheduled, triggered and requested task runs. Admins
 	// pause and resume tasks in the app. With several instances of the server,
 	// each run still happens once.
@@ -129,7 +134,7 @@ func main() {
 			return parlancev1connect.NewSetupServiceHandler(setup.NewServer(db, cfg), o...)
 		}, false},
 		{"AuthService", func(o ...connect.HandlerOption) (string, http.Handler) {
-			return parlancev1connect.NewAuthServiceHandler(auth.NewServer(db, cfg), o...)
+			return parlancev1connect.NewAuthServiceHandler(auth.NewServer(db, cfg, ssoClient), o...)
 		}, false},
 		{"LocaleService", func(o ...connect.HandlerOption) (string, http.Handler) {
 			return parlancev1connect.NewLocaleServiceHandler(locale.NewServer(db), o...)
@@ -175,6 +180,9 @@ func main() {
 		}, true},
 		{"StatsService", func(o ...connect.HandlerOption) (string, http.Handler) {
 			return parlancev1connect.NewStatsServiceHandler(stats.NewServer(db), o...)
+		}, true},
+		{"SsoProviderService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewSsoProviderServiceHandler(ssoprovider.NewServer(db, secretBox, ssoClient.Check), o...)
 		}, true},
 		{"WebhookService", func(o ...connect.HandlerOption) (string, http.Handler) {
 			return parlancev1connect.NewWebhookServiceHandler(webhookservice.NewServer(db, secretBox, webhookSender), o...)

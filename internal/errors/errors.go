@@ -70,6 +70,18 @@ const (
 	// Webhook errors
 	ErrWebhookNotFound         = "WEBHOOK_NOT_FOUND"
 	ErrWebhookDeliveryNotFound = "WEBHOOK_DELIVERY_NOT_FOUND"
+
+	// Single sign-on errors
+	ErrSSOProviderNotFound = "SSO_PROVIDER_NOT_FOUND"
+	// The sign-in expired, or its code was used already.
+	ErrSSOLoginExpired = "SSO_LOGIN_EXPIRED"
+	// The provider turned the sign-in down, or its ID token isn't valid.
+	ErrSSOFailed          = "SSO_FAILED"
+	ErrSSONoEmail         = "SSO_NO_EMAIL"
+	ErrSSOEmailUnverified = "SSO_EMAIL_UNVERIFIED"
+	// Nobody has the email, and the provider creates no accounts.
+	ErrSSONoAccount      = "SSO_NO_ACCOUNT"
+	ErrSSOAccountDeleted = "SSO_ACCOUNT_DELETED"
 	// Saving an API key needs ENCRYPTION_KEY.
 	ErrEncryptionKeyMissing = "ENCRYPTION_KEY_MISSING"
 )

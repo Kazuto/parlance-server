@@ -45,6 +45,13 @@ const (
 	// AuthServiceGetCurrentUserProcedure is the fully-qualified name of the AuthService's
 	// GetCurrentUser RPC.
 	AuthServiceGetCurrentUserProcedure = "/parlance.v1.AuthService/GetCurrentUser"
+	// AuthServiceListSignInProvidersProcedure is the fully-qualified name of the AuthService's
+	// ListSignInProviders RPC.
+	AuthServiceListSignInProvidersProcedure = "/parlance.v1.AuthService/ListSignInProviders"
+	// AuthServiceStartSsoProcedure is the fully-qualified name of the AuthService's StartSso RPC.
+	AuthServiceStartSsoProcedure = "/parlance.v1.AuthService/StartSso"
+	// AuthServiceFinishSsoProcedure is the fully-qualified name of the AuthService's FinishSso RPC.
+	AuthServiceFinishSsoProcedure = "/parlance.v1.AuthService/FinishSso"
 )
 
 // AuthServiceClient is a client for the parlance.v1.AuthService service.
@@ -54,6 +61,13 @@ type AuthServiceClient interface {
 	RefreshToken(context.Context, *connect.Request[v1.RefreshTokenRequest]) (*connect.Response[v1.RefreshTokenResponse], error)
 	Logout(context.Context, *connect.Request[v1.LogoutRequest]) (*connect.Response[v1.LogoutResponse], error)
 	GetCurrentUser(context.Context, *connect.Request[v1.GetCurrentUserRequest]) (*connect.Response[v1.GetCurrentUserResponse], error)
+	// The single sign-on providers the sign-in page offers.
+	ListSignInProviders(context.Context, *connect.Request[v1.ListSignInProvidersRequest]) (*connect.Response[v1.ListSignInProvidersResponse], error)
+	// Starts signing in with a provider: returns where to send the browser. The
+	// provider sends it back to the redirect URI with a code and the state.
+	StartSso(context.Context, *connect.Request[v1.StartSsoRequest]) (*connect.Response[v1.StartSsoResponse], error)
+	// Finishes signing in with what the provider sent back, like Login.
+	FinishSso(context.Context, *connect.Request[v1.FinishSsoRequest]) (*connect.Response[v1.FinishSsoResponse], error)
 }
 
 // NewAuthServiceClient constructs a client for the parlance.v1.AuthService service. By default, it
@@ -97,16 +111,37 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(authServiceMethods.ByName("GetCurrentUser")),
 			connect.WithClientOptions(opts...),
 		),
+		listSignInProviders: connect.NewClient[v1.ListSignInProvidersRequest, v1.ListSignInProvidersResponse](
+			httpClient,
+			baseURL+AuthServiceListSignInProvidersProcedure,
+			connect.WithSchema(authServiceMethods.ByName("ListSignInProviders")),
+			connect.WithClientOptions(opts...),
+		),
+		startSso: connect.NewClient[v1.StartSsoRequest, v1.StartSsoResponse](
+			httpClient,
+			baseURL+AuthServiceStartSsoProcedure,
+			connect.WithSchema(authServiceMethods.ByName("StartSso")),
+			connect.WithClientOptions(opts...),
+		),
+		finishSso: connect.NewClient[v1.FinishSsoRequest, v1.FinishSsoResponse](
+			httpClient,
+			baseURL+AuthServiceFinishSsoProcedure,
+			connect.WithSchema(authServiceMethods.ByName("FinishSso")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // authServiceClient implements AuthServiceClient.
 type authServiceClient struct {
-	register       *connect.Client[v1.RegisterRequest, v1.RegisterResponse]
-	login          *connect.Client[v1.LoginRequest, v1.LoginResponse]
-	refreshToken   *connect.Client[v1.RefreshTokenRequest, v1.RefreshTokenResponse]
-	logout         *connect.Client[v1.LogoutRequest, v1.LogoutResponse]
-	getCurrentUser *connect.Client[v1.GetCurrentUserRequest, v1.GetCurrentUserResponse]
+	register            *connect.Client[v1.RegisterRequest, v1.RegisterResponse]
+	login               *connect.Client[v1.LoginRequest, v1.LoginResponse]
+	refreshToken        *connect.Client[v1.RefreshTokenRequest, v1.RefreshTokenResponse]
+	logout              *connect.Client[v1.LogoutRequest, v1.LogoutResponse]
+	getCurrentUser      *connect.Client[v1.GetCurrentUserRequest, v1.GetCurrentUserResponse]
+	listSignInProviders *connect.Client[v1.ListSignInProvidersRequest, v1.ListSignInProvidersResponse]
+	startSso            *connect.Client[v1.StartSsoRequest, v1.StartSsoResponse]
+	finishSso           *connect.Client[v1.FinishSsoRequest, v1.FinishSsoResponse]
 }
 
 // Register calls parlance.v1.AuthService.Register.
@@ -134,6 +169,21 @@ func (c *authServiceClient) GetCurrentUser(ctx context.Context, req *connect.Req
 	return c.getCurrentUser.CallUnary(ctx, req)
 }
 
+// ListSignInProviders calls parlance.v1.AuthService.ListSignInProviders.
+func (c *authServiceClient) ListSignInProviders(ctx context.Context, req *connect.Request[v1.ListSignInProvidersRequest]) (*connect.Response[v1.ListSignInProvidersResponse], error) {
+	return c.listSignInProviders.CallUnary(ctx, req)
+}
+
+// StartSso calls parlance.v1.AuthService.StartSso.
+func (c *authServiceClient) StartSso(ctx context.Context, req *connect.Request[v1.StartSsoRequest]) (*connect.Response[v1.StartSsoResponse], error) {
+	return c.startSso.CallUnary(ctx, req)
+}
+
+// FinishSso calls parlance.v1.AuthService.FinishSso.
+func (c *authServiceClient) FinishSso(ctx context.Context, req *connect.Request[v1.FinishSsoRequest]) (*connect.Response[v1.FinishSsoResponse], error) {
+	return c.finishSso.CallUnary(ctx, req)
+}
+
 // AuthServiceHandler is an implementation of the parlance.v1.AuthService service.
 type AuthServiceHandler interface {
 	Register(context.Context, *connect.Request[v1.RegisterRequest]) (*connect.Response[v1.RegisterResponse], error)
@@ -141,6 +191,13 @@ type AuthServiceHandler interface {
 	RefreshToken(context.Context, *connect.Request[v1.RefreshTokenRequest]) (*connect.Response[v1.RefreshTokenResponse], error)
 	Logout(context.Context, *connect.Request[v1.LogoutRequest]) (*connect.Response[v1.LogoutResponse], error)
 	GetCurrentUser(context.Context, *connect.Request[v1.GetCurrentUserRequest]) (*connect.Response[v1.GetCurrentUserResponse], error)
+	// The single sign-on providers the sign-in page offers.
+	ListSignInProviders(context.Context, *connect.Request[v1.ListSignInProvidersRequest]) (*connect.Response[v1.ListSignInProvidersResponse], error)
+	// Starts signing in with a provider: returns where to send the browser. The
+	// provider sends it back to the redirect URI with a code and the state.
+	StartSso(context.Context, *connect.Request[v1.StartSsoRequest]) (*connect.Response[v1.StartSsoResponse], error)
+	// Finishes signing in with what the provider sent back, like Login.
+	FinishSso(context.Context, *connect.Request[v1.FinishSsoRequest]) (*connect.Response[v1.FinishSsoResponse], error)
 }
 
 // NewAuthServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -180,6 +237,24 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(authServiceMethods.ByName("GetCurrentUser")),
 		connect.WithHandlerOptions(opts...),
 	)
+	authServiceListSignInProvidersHandler := connect.NewUnaryHandler(
+		AuthServiceListSignInProvidersProcedure,
+		svc.ListSignInProviders,
+		connect.WithSchema(authServiceMethods.ByName("ListSignInProviders")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceStartSsoHandler := connect.NewUnaryHandler(
+		AuthServiceStartSsoProcedure,
+		svc.StartSso,
+		connect.WithSchema(authServiceMethods.ByName("StartSso")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceFinishSsoHandler := connect.NewUnaryHandler(
+		AuthServiceFinishSsoProcedure,
+		svc.FinishSso,
+		connect.WithSchema(authServiceMethods.ByName("FinishSso")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/parlance.v1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AuthServiceRegisterProcedure:
@@ -192,6 +267,12 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 			authServiceLogoutHandler.ServeHTTP(w, r)
 		case AuthServiceGetCurrentUserProcedure:
 			authServiceGetCurrentUserHandler.ServeHTTP(w, r)
+		case AuthServiceListSignInProvidersProcedure:
+			authServiceListSignInProvidersHandler.ServeHTTP(w, r)
+		case AuthServiceStartSsoProcedure:
+			authServiceStartSsoHandler.ServeHTTP(w, r)
+		case AuthServiceFinishSsoProcedure:
+			authServiceFinishSsoHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -219,4 +300,16 @@ func (UnimplementedAuthServiceHandler) Logout(context.Context, *connect.Request[
 
 func (UnimplementedAuthServiceHandler) GetCurrentUser(context.Context, *connect.Request[v1.GetCurrentUserRequest]) (*connect.Response[v1.GetCurrentUserResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.AuthService.GetCurrentUser is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) ListSignInProviders(context.Context, *connect.Request[v1.ListSignInProvidersRequest]) (*connect.Response[v1.ListSignInProvidersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.AuthService.ListSignInProviders is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) StartSso(context.Context, *connect.Request[v1.StartSsoRequest]) (*connect.Response[v1.StartSsoResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.AuthService.StartSso is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) FinishSso(context.Context, *connect.Request[v1.FinishSsoRequest]) (*connect.Response[v1.FinishSsoResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.AuthService.FinishSso is not implemented"))
 }

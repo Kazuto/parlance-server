@@ -518,6 +518,350 @@ func (x *GetCurrentUserResponse) GetTranslationEnabled() bool {
 	return false
 }
 
+type SignInProvider struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Shown as "Sign in with <name>".
+	Name          string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SignInProvider) Reset() {
+	*x = SignInProvider{}
+	mi := &file_parlance_v1_auth_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SignInProvider) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SignInProvider) ProtoMessage() {}
+
+func (x *SignInProvider) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_auth_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SignInProvider.ProtoReflect.Descriptor instead.
+func (*SignInProvider) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_auth_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *SignInProvider) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SignInProvider) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type ListSignInProvidersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSignInProvidersRequest) Reset() {
+	*x = ListSignInProvidersRequest{}
+	mi := &file_parlance_v1_auth_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSignInProvidersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSignInProvidersRequest) ProtoMessage() {}
+
+func (x *ListSignInProvidersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_auth_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSignInProvidersRequest.ProtoReflect.Descriptor instead.
+func (*ListSignInProvidersRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_auth_proto_rawDescGZIP(), []int{11}
+}
+
+type ListSignInProvidersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Providers     []*SignInProvider      `protobuf:"bytes,1,rep,name=providers,proto3" json:"providers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSignInProvidersResponse) Reset() {
+	*x = ListSignInProvidersResponse{}
+	mi := &file_parlance_v1_auth_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSignInProvidersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSignInProvidersResponse) ProtoMessage() {}
+
+func (x *ListSignInProvidersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_auth_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSignInProvidersResponse.ProtoReflect.Descriptor instead.
+func (*ListSignInProvidersResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_auth_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ListSignInProvidersResponse) GetProviders() []*SignInProvider {
+	if x != nil {
+		return x.Providers
+	}
+	return nil
+}
+
+type StartSsoRequest struct {
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	ProviderId string                 `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	// The web app's page the provider sends the browser back to; it must be
+	// registered at the provider.
+	RedirectUri   string `protobuf:"bytes,2,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartSsoRequest) Reset() {
+	*x = StartSsoRequest{}
+	mi := &file_parlance_v1_auth_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartSsoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartSsoRequest) ProtoMessage() {}
+
+func (x *StartSsoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_auth_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartSsoRequest.ProtoReflect.Descriptor instead.
+func (*StartSsoRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_auth_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *StartSsoRequest) GetProviderId() string {
+	if x != nil {
+		return x.ProviderId
+	}
+	return ""
+}
+
+func (x *StartSsoRequest) GetRedirectUri() string {
+	if x != nil {
+		return x.RedirectUri
+	}
+	return ""
+}
+
+type StartSsoResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The provider's sign-in page.
+	AuthorizationUrl string `protobuf:"bytes,1,opt,name=authorization_url,json=authorizationUrl,proto3" json:"authorization_url,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *StartSsoResponse) Reset() {
+	*x = StartSsoResponse{}
+	mi := &file_parlance_v1_auth_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartSsoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartSsoResponse) ProtoMessage() {}
+
+func (x *StartSsoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_auth_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartSsoResponse.ProtoReflect.Descriptor instead.
+func (*StartSsoResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_auth_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *StartSsoResponse) GetAuthorizationUrl() string {
+	if x != nil {
+		return x.AuthorizationUrl
+	}
+	return ""
+}
+
+type FinishSsoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	State         string                 `protobuf:"bytes,1,opt,name=state,proto3" json:"state,omitempty"`
+	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FinishSsoRequest) Reset() {
+	*x = FinishSsoRequest{}
+	mi := &file_parlance_v1_auth_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FinishSsoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FinishSsoRequest) ProtoMessage() {}
+
+func (x *FinishSsoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_auth_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FinishSsoRequest.ProtoReflect.Descriptor instead.
+func (*FinishSsoRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_auth_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *FinishSsoRequest) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *FinishSsoRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+type FinishSsoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	RefreshToken  string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	User          *User                  `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FinishSsoResponse) Reset() {
+	*x = FinishSsoResponse{}
+	mi := &file_parlance_v1_auth_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FinishSsoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FinishSsoResponse) ProtoMessage() {}
+
+func (x *FinishSsoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_auth_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FinishSsoResponse.ProtoReflect.Descriptor instead.
+func (*FinishSsoResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_auth_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *FinishSsoResponse) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *FinishSsoResponse) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+func (x *FinishSsoResponse) GetUser() *User {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
 var File_parlance_v1_auth_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_auth_proto_rawDesc = "" +
@@ -549,13 +893,35 @@ const file_parlance_v1_auth_proto_rawDesc = "" +
 	"\x15GetCurrentUserRequest\"p\n" +
 	"\x16GetCurrentUserResponse\x12%\n" +
 	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\x12/\n" +
-	"\x13translation_enabled\x18\x02 \x01(\bR\x12translationEnabled2\x89\x03\n" +
+	"\x13translation_enabled\x18\x02 \x01(\bR\x12translationEnabled\"4\n" +
+	"\x0eSignInProvider\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"\x1c\n" +
+	"\x1aListSignInProvidersRequest\"X\n" +
+	"\x1bListSignInProvidersResponse\x129\n" +
+	"\tproviders\x18\x01 \x03(\v2\x1b.parlance.v1.SignInProviderR\tproviders\"U\n" +
+	"\x0fStartSsoRequest\x12\x1f\n" +
+	"\vprovider_id\x18\x01 \x01(\tR\n" +
+	"providerId\x12!\n" +
+	"\fredirect_uri\x18\x02 \x01(\tR\vredirectUri\"?\n" +
+	"\x10StartSsoResponse\x12+\n" +
+	"\x11authorization_url\x18\x01 \x01(\tR\x10authorizationUrl\"<\n" +
+	"\x10FinishSsoRequest\x12\x14\n" +
+	"\x05state\x18\x01 \x01(\tR\x05state\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\"\x82\x01\n" +
+	"\x11FinishSsoResponse\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
+	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12%\n" +
+	"\x04user\x18\x03 \x01(\v2\x11.parlance.v1.UserR\x04user2\x88\x05\n" +
 	"\vAuthService\x12G\n" +
 	"\bRegister\x12\x1c.parlance.v1.RegisterRequest\x1a\x1d.parlance.v1.RegisterResponse\x12>\n" +
 	"\x05Login\x12\x19.parlance.v1.LoginRequest\x1a\x1a.parlance.v1.LoginResponse\x12S\n" +
 	"\fRefreshToken\x12 .parlance.v1.RefreshTokenRequest\x1a!.parlance.v1.RefreshTokenResponse\x12A\n" +
 	"\x06Logout\x12\x1a.parlance.v1.LogoutRequest\x1a\x1b.parlance.v1.LogoutResponse\x12Y\n" +
-	"\x0eGetCurrentUser\x12\".parlance.v1.GetCurrentUserRequest\x1a#.parlance.v1.GetCurrentUserResponseB\xa7\x01\n" +
+	"\x0eGetCurrentUser\x12\".parlance.v1.GetCurrentUserRequest\x1a#.parlance.v1.GetCurrentUserResponse\x12h\n" +
+	"\x13ListSignInProviders\x12'.parlance.v1.ListSignInProvidersRequest\x1a(.parlance.v1.ListSignInProvidersResponse\x12G\n" +
+	"\bStartSso\x12\x1c.parlance.v1.StartSsoRequest\x1a\x1d.parlance.v1.StartSsoResponse\x12J\n" +
+	"\tFinishSso\x12\x1d.parlance.v1.FinishSsoRequest\x1a\x1e.parlance.v1.FinishSsoResponseB\xa7\x01\n" +
 	"\x0fcom.parlance.v1B\tAuthProtoP\x01Z<github.com/kazuto/parlance-server/gen/parlance/v1;parlancev1\xa2\x02\x03PXX\xaa\x02\vParlance.V1\xca\x02\vParlance\\V1\xe2\x02\x17Parlance\\V1\\GPBMetadata\xea\x02\fParlance::V1b\x06proto3"
 
 var (
@@ -570,40 +936,55 @@ func file_parlance_v1_auth_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_auth_proto_rawDescData
 }
 
-var file_parlance_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_parlance_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_parlance_v1_auth_proto_goTypes = []any{
-	(*RegisterRequest)(nil),        // 0: parlance.v1.RegisterRequest
-	(*RegisterResponse)(nil),       // 1: parlance.v1.RegisterResponse
-	(*LoginRequest)(nil),           // 2: parlance.v1.LoginRequest
-	(*LoginResponse)(nil),          // 3: parlance.v1.LoginResponse
-	(*RefreshTokenRequest)(nil),    // 4: parlance.v1.RefreshTokenRequest
-	(*RefreshTokenResponse)(nil),   // 5: parlance.v1.RefreshTokenResponse
-	(*LogoutRequest)(nil),          // 6: parlance.v1.LogoutRequest
-	(*LogoutResponse)(nil),         // 7: parlance.v1.LogoutResponse
-	(*GetCurrentUserRequest)(nil),  // 8: parlance.v1.GetCurrentUserRequest
-	(*GetCurrentUserResponse)(nil), // 9: parlance.v1.GetCurrentUserResponse
-	(*User)(nil),                   // 10: parlance.v1.User
+	(*RegisterRequest)(nil),             // 0: parlance.v1.RegisterRequest
+	(*RegisterResponse)(nil),            // 1: parlance.v1.RegisterResponse
+	(*LoginRequest)(nil),                // 2: parlance.v1.LoginRequest
+	(*LoginResponse)(nil),               // 3: parlance.v1.LoginResponse
+	(*RefreshTokenRequest)(nil),         // 4: parlance.v1.RefreshTokenRequest
+	(*RefreshTokenResponse)(nil),        // 5: parlance.v1.RefreshTokenResponse
+	(*LogoutRequest)(nil),               // 6: parlance.v1.LogoutRequest
+	(*LogoutResponse)(nil),              // 7: parlance.v1.LogoutResponse
+	(*GetCurrentUserRequest)(nil),       // 8: parlance.v1.GetCurrentUserRequest
+	(*GetCurrentUserResponse)(nil),      // 9: parlance.v1.GetCurrentUserResponse
+	(*SignInProvider)(nil),              // 10: parlance.v1.SignInProvider
+	(*ListSignInProvidersRequest)(nil),  // 11: parlance.v1.ListSignInProvidersRequest
+	(*ListSignInProvidersResponse)(nil), // 12: parlance.v1.ListSignInProvidersResponse
+	(*StartSsoRequest)(nil),             // 13: parlance.v1.StartSsoRequest
+	(*StartSsoResponse)(nil),            // 14: parlance.v1.StartSsoResponse
+	(*FinishSsoRequest)(nil),            // 15: parlance.v1.FinishSsoRequest
+	(*FinishSsoResponse)(nil),           // 16: parlance.v1.FinishSsoResponse
+	(*User)(nil),                        // 17: parlance.v1.User
 }
 var file_parlance_v1_auth_proto_depIdxs = []int32{
-	10, // 0: parlance.v1.RegisterResponse.user:type_name -> parlance.v1.User
-	10, // 1: parlance.v1.LoginResponse.user:type_name -> parlance.v1.User
-	10, // 2: parlance.v1.RefreshTokenResponse.user:type_name -> parlance.v1.User
-	10, // 3: parlance.v1.GetCurrentUserResponse.user:type_name -> parlance.v1.User
-	0,  // 4: parlance.v1.AuthService.Register:input_type -> parlance.v1.RegisterRequest
-	2,  // 5: parlance.v1.AuthService.Login:input_type -> parlance.v1.LoginRequest
-	4,  // 6: parlance.v1.AuthService.RefreshToken:input_type -> parlance.v1.RefreshTokenRequest
-	6,  // 7: parlance.v1.AuthService.Logout:input_type -> parlance.v1.LogoutRequest
-	8,  // 8: parlance.v1.AuthService.GetCurrentUser:input_type -> parlance.v1.GetCurrentUserRequest
-	1,  // 9: parlance.v1.AuthService.Register:output_type -> parlance.v1.RegisterResponse
-	3,  // 10: parlance.v1.AuthService.Login:output_type -> parlance.v1.LoginResponse
-	5,  // 11: parlance.v1.AuthService.RefreshToken:output_type -> parlance.v1.RefreshTokenResponse
-	7,  // 12: parlance.v1.AuthService.Logout:output_type -> parlance.v1.LogoutResponse
-	9,  // 13: parlance.v1.AuthService.GetCurrentUser:output_type -> parlance.v1.GetCurrentUserResponse
-	9,  // [9:14] is the sub-list for method output_type
-	4,  // [4:9] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	17, // 0: parlance.v1.RegisterResponse.user:type_name -> parlance.v1.User
+	17, // 1: parlance.v1.LoginResponse.user:type_name -> parlance.v1.User
+	17, // 2: parlance.v1.RefreshTokenResponse.user:type_name -> parlance.v1.User
+	17, // 3: parlance.v1.GetCurrentUserResponse.user:type_name -> parlance.v1.User
+	10, // 4: parlance.v1.ListSignInProvidersResponse.providers:type_name -> parlance.v1.SignInProvider
+	17, // 5: parlance.v1.FinishSsoResponse.user:type_name -> parlance.v1.User
+	0,  // 6: parlance.v1.AuthService.Register:input_type -> parlance.v1.RegisterRequest
+	2,  // 7: parlance.v1.AuthService.Login:input_type -> parlance.v1.LoginRequest
+	4,  // 8: parlance.v1.AuthService.RefreshToken:input_type -> parlance.v1.RefreshTokenRequest
+	6,  // 9: parlance.v1.AuthService.Logout:input_type -> parlance.v1.LogoutRequest
+	8,  // 10: parlance.v1.AuthService.GetCurrentUser:input_type -> parlance.v1.GetCurrentUserRequest
+	11, // 11: parlance.v1.AuthService.ListSignInProviders:input_type -> parlance.v1.ListSignInProvidersRequest
+	13, // 12: parlance.v1.AuthService.StartSso:input_type -> parlance.v1.StartSsoRequest
+	15, // 13: parlance.v1.AuthService.FinishSso:input_type -> parlance.v1.FinishSsoRequest
+	1,  // 14: parlance.v1.AuthService.Register:output_type -> parlance.v1.RegisterResponse
+	3,  // 15: parlance.v1.AuthService.Login:output_type -> parlance.v1.LoginResponse
+	5,  // 16: parlance.v1.AuthService.RefreshToken:output_type -> parlance.v1.RefreshTokenResponse
+	7,  // 17: parlance.v1.AuthService.Logout:output_type -> parlance.v1.LogoutResponse
+	9,  // 18: parlance.v1.AuthService.GetCurrentUser:output_type -> parlance.v1.GetCurrentUserResponse
+	12, // 19: parlance.v1.AuthService.ListSignInProviders:output_type -> parlance.v1.ListSignInProvidersResponse
+	14, // 20: parlance.v1.AuthService.StartSso:output_type -> parlance.v1.StartSsoResponse
+	16, // 21: parlance.v1.AuthService.FinishSso:output_type -> parlance.v1.FinishSsoResponse
+	14, // [14:22] is the sub-list for method output_type
+	6,  // [6:14] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_auth_proto_init() }
@@ -618,7 +999,7 @@ func file_parlance_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_auth_proto_rawDesc), len(file_parlance_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -9,19 +9,23 @@ import (
 	"github.com/kazuto/parlance-server/internal/database"
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/sso"
 )
 
 // Server implements the AuthService
 type Server struct {
 	db     *database.DB
 	config *config.Config
+	// sso signs users in with single sign-on providers.
+	sso *sso.Client
 }
 
 // NewServer creates a new AuthService server
-func NewServer(db *database.DB, cfg *config.Config) parlancev1connect.AuthServiceHandler {
+func NewServer(db *database.DB, cfg *config.Config, ssoClient *sso.Client) parlancev1connect.AuthServiceHandler {
 	return &Server{
 		db:     db,
 		config: cfg,
+		sso:    ssoClient,
 	}
 }
 

@@ -98,6 +98,13 @@ var Rules = map[string][]string{
 	// StatsService
 	parlancev1connect.StatsServiceGetStatsProcedure: {permissions.ReadEntry},
 
+	// SsoProviderService
+	parlancev1connect.SsoProviderServiceCreateSsoProviderProcedure: {permissions.CreateSSOProvider},
+	parlancev1connect.SsoProviderServiceDeleteSsoProviderProcedure: {permissions.DeleteSSOProvider},
+	parlancev1connect.SsoProviderServiceListSsoProvidersProcedure:  {permissions.ReadSSOProvider},
+	parlancev1connect.SsoProviderServiceTestSsoProviderProcedure:   {permissions.UpdateSSOProvider},
+	parlancev1connect.SsoProviderServiceUpdateSsoProviderProcedure: {permissions.UpdateSSOProvider},
+
 	// TaskService
 	parlancev1connect.TaskServiceCancelTaskRunProcedure:      {permissions.RunTask},
 	parlancev1connect.TaskServiceCheckTaskAccessProcedure:    {permissions.UpdateTask},
