@@ -5,6 +5,7 @@ import (
 	stderrors "errors"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
@@ -16,12 +17,17 @@ import (
 // maxParallelTranslations limits the requests one call sends to the model at once.
 const maxParallelTranslations = 4
 
+// suggestTimeout limits one call, queueing included. It stays below the HTTP
+// server's write timeout, so the languages done in time still reach the client.
+var suggestTimeout = 100 * time.Second
+
 // Error codes of a TranslationSuggestion.
 const (
 	suggestionUnsupportedLanguage = "UNSUPPORTED_LANGUAGE"
 	suggestionEmptyAnswer         = "EMPTY_ANSWER"
 	suggestionAnswerTooLong       = "ANSWER_TOO_LONG"
 	suggestionFailed              = "FAILED"
+	suggestionTimeout             = "TIMEOUT"
 )
 
 // translator returns the translator of the enabled servers, and fails while
@@ -41,7 +47,8 @@ func (s *Server) translator(ctx context.Context) (translate.Translator, error) {
 }
 
 // suggest translates source into each locale, at most a few at once. The result
-// has one suggestion per locale, in the same order.
+// has one suggestion per locale, in the same order; locales not done within
+// suggestTimeout report a timeout.
 func (s *Server) suggest(
 	ctx context.Context,
 	translator translate.Translator,
@@ -49,6 +56,9 @@ func (s *Server) suggest(
 	locales []models.Locale,
 	terms map[string][]translate.Term,
 ) []*pb.TranslationSuggestion {
+	ctx, cancel := context.WithTimeout(ctx, suggestTimeout)
+	defer cancel()
+
 	suggestions := make([]*pb.TranslationSuggestion, len(locales))
 	limit := make(chan struct{}, maxParallelTranslations)
 	var wg sync.WaitGroup
@@ -88,6 +98,9 @@ func suggestOne(
 	if err != nil {
 		log.Printf("translate into %s: %v", locale.Code, err)
 		suggestion.ErrorCode = suggestionFailed
+		if isTimeout(ctx, err) {
+			suggestion.ErrorCode = suggestionTimeout
+		}
 		return suggestion
 	}
 
@@ -109,6 +122,16 @@ func suggestOne(
 		}
 	}
 	return suggestion
+}
+
+// isTimeout tells whether err means the call or the request to the model took too
+// long, as opposed to the model failing.
+func isTimeout(ctx context.Context, err error) bool {
+	if stderrors.Is(ctx.Err(), context.DeadlineExceeded) || stderrors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+	var timeout interface{ Timeout() bool }
+	return stderrors.As(err, &timeout) && timeout.Timeout()
 }
 
 // glossaryTerms returns, per locale, the glossary terms that occur in source and

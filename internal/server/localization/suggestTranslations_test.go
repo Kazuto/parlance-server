@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
@@ -34,6 +35,20 @@ func (f *fakeTranslator) Translate(_ context.Context, req translate.Request) (st
 
 // fixedSource always returns the same translator.
 type fixedSource struct{ translator translate.Translator }
+
+// hangingTranslator never answers for one language, like an overloaded server.
+type hangingTranslator struct {
+	translate.Translator
+	language string
+}
+
+func (h hangingTranslator) Translate(ctx context.Context, req translate.Request) (string, error) {
+	if req.TargetLang == h.language {
+		<-ctx.Done()
+		return "", ctx.Err()
+	}
+	return h.Translator.Translate(ctx, req)
+}
 
 func (f fixedSource) Translator(context.Context) (translate.Translator, error) {
 	return f.translator, nil
@@ -122,6 +137,25 @@ func TestSuggestTranslations(t *testing.T) {
 		}
 		if de.LocaleId != "st-de" || de.Translation != "Übersicht öffnen" {
 			t.Errorf("de: got %+v", de)
+		}
+	})
+
+	t.Run("returns the languages done in time when the call runs out of time", func(t *testing.T) {
+		defer func(timeout time.Duration) { suggestTimeout = timeout }(suggestTimeout)
+		suggestTimeout = 50 * time.Millisecond
+		_, fake := newServer()
+		server := &Server{db: db, translators: fixedSource{hangingTranslator{fake, "French"}}}
+
+		res, err := suggest(server, ctx, "st-entry", "st-de", "st-fr")
+		if err != nil {
+			t.Fatalf("SuggestTranslations: %v", err)
+		}
+		de, fr := res.Suggestions[0], res.Suggestions[1]
+		if de.Translation != "Übersicht öffnen" || de.ErrorCode != "" {
+			t.Errorf("de: got %+v", de)
+		}
+		if fr.Translation != "" || fr.ErrorCode != suggestionTimeout {
+			t.Errorf("fr: got %+v", fr)
 		}
 	})
 

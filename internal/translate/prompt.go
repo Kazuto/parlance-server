@@ -16,9 +16,14 @@ const uiStyle = "software user interface text"
 
 // Prompt builds the prompt for a request: the style template, after the glossary
 // terms that occur in the text. Placeholders are masked by the caller, see Mask.
+//
+// The style template ends with the default template's "only output" sentence.
+// Without it the models take a short text that reads like an instruction as one:
+// they answered "Translate" with "Please translate" and "Language" in Portuguese
+// with a translation of the prompt.
 func Prompt(req Request) string {
 	prompt := fmt.Sprintf(
-		"Please translate the following text into %s. Note that the translation style must strictly conform to [%s]:\n\n%s",
+		"Please translate the following text into %s. Note that the translation style must strictly conform to [%s]. Only output the translated result without any additional explanation:\n\n%s",
 		req.TargetLang, uiStyle, req.Text,
 	)
 	if len(req.Terms) == 0 {
