@@ -125,6 +125,53 @@ func TestSummaryDefaultTranslation(t *testing.T) {
 	}
 }
 
+func TestListDeletedEntries(t *testing.T) {
+	ctx, db := testutil.Setup(t)
+	server := &Server{db: db}
+
+	testutil.Exec(t, db, `INSERT INTO entries (id, key, deleted_at) VALUES
+		('gone-1', 'gone.live', NULL),
+		('gone-2', 'gone.old', '2026-01-01 00:00:00'),
+		('gone-3', 'gone.recent', '2026-02-01 00:00:00')`)
+	t.Cleanup(func() {
+		db.Exec(`DELETE FROM entries WHERE id LIKE 'gone-%'`)
+	})
+
+	req := &pb.ListEntriesRequest{
+		DeletedOnly: true,
+		Filter:      &pb.FilterRequest{Search: "gone.", Sort: "deleted_at", Order: "desc"},
+	}
+
+	res, err := server.ListEntries(ctx, connect.NewRequest(req))
+	if err != nil {
+		t.Fatalf("ListEntries: %v", err)
+	}
+
+	var keys []string
+
+	for _, entry := range res.Msg.Entries {
+		if entry.DeletedAt == "" {
+			t.Errorf("%s: deleted_at not set", entry.Key)
+		}
+
+		keys = append(keys, entry.Key)
+	}
+
+	if strings.Join(keys, ",") != "gone.recent,gone.old" {
+		t.Errorf("deleted entries = %v, want the most recently deleted first", keys)
+	}
+
+	// Listing them is for restoring them, which takes delete_entry.
+	reader, err := testutil.ContextWithPermissions(db, "read_entry")
+	if err != nil {
+		t.Fatalf("create user: %v", err)
+	}
+
+	if _, err := server.ListEntries(reader, connect.NewRequest(req)); connect.CodeOf(err) != connect.CodePermissionDenied {
+		t.Errorf("without delete_entry: got %v, want permission denied", err)
+	}
+}
+
 func TestSearchEntries(t *testing.T) {
 	ctx, db := testutil.Setup(t)
 	server := &Server{db: db}

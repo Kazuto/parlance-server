@@ -22,6 +22,7 @@ func (s *Server) ReviewLocalizations(
 		ParentColumn:  "entry_id",
 		ApprovedEvent: models.EventTranslationsApproved,
 		Webhooks:      true,
+		SkipApproved:  req.Msg.SkipApproved,
 	}, req.Msg.Decision, req.Msg.Comment)
 	if err != nil {
 		return nil, err

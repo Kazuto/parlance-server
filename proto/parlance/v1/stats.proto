@@ -16,6 +16,7 @@ message LocaleStats {
   int32 missing = 4;
   int32 percentage = 5;  // 0-100
   int32 drafts = 6;      // translations awaiting approval
+  int32 approved = 7;    // approved translations
 }
 
 message GetStatsResponse {

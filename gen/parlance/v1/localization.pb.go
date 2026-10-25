@@ -1098,7 +1098,9 @@ type ReviewLocalizationsRequest struct {
 	LocaleIds []string       `protobuf:"bytes,3,rep,name=locale_ids,json=localeIds,proto3" json:"locale_ids,omitempty"`
 	Decision  ReviewDecision `protobuf:"varint,4,opt,name=decision,proto3,enum=parlance.v1.ReviewDecision" json:"decision,omitempty"`
 	// Required when rejecting: what should change.
-	Comment       string `protobuf:"bytes,5,opt,name=comment,proto3" json:"comment,omitempty"`
+	Comment string `protobuf:"bytes,5,opt,name=comment,proto3" json:"comment,omitempty"`
+	// Leave approved translations as they are, so rejecting only sends drafts back.
+	SkipApproved  bool `protobuf:"varint,6,opt,name=skip_approved,json=skipApproved,proto3" json:"skip_approved,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1166,6 +1168,13 @@ func (x *ReviewLocalizationsRequest) GetComment() string {
 		return x.Comment
 	}
 	return ""
+}
+
+func (x *ReviewLocalizationsRequest) GetSkipApproved() bool {
+	if x != nil {
+		return x.SkipApproved
+	}
+	return false
 }
 
 type ReviewLocalizationsResponse struct {
@@ -1296,14 +1305,15 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\rlocalizations\x18\x01 \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations\x12#\n" +
 	"\rsuccess_count\x18\x02 \x01(\x05R\fsuccessCount\x12#\n" +
 	"\rfailure_count\x18\x03 \x01(\x05R\ffailureCount\x12#\n" +
-	"\rskipped_count\x18\x04 \x01(\x05R\fskippedCount\"\xd6\x01\n" +
+	"\rskipped_count\x18\x04 \x01(\x05R\fskippedCount\"\xfb\x01\n" +
 	"\x1aReviewLocalizationsRequest\x12)\n" +
 	"\x10localization_ids\x18\x01 \x03(\tR\x0flocalizationIds\x12\x1b\n" +
 	"\tentry_ids\x18\x02 \x03(\tR\bentryIds\x12\x1d\n" +
 	"\n" +
 	"locale_ids\x18\x03 \x03(\tR\tlocaleIds\x127\n" +
 	"\bdecision\x18\x04 \x01(\x0e2\x1b.parlance.v1.ReviewDecisionR\bdecision\x12\x18\n" +
-	"\acomment\x18\x05 \x01(\tR\acomment\"^\n" +
+	"\acomment\x18\x05 \x01(\tR\acomment\x12#\n" +
+	"\rskip_approved\x18\x06 \x01(\bR\fskipApproved\"^\n" +
 	"\x1bReviewLocalizationsResponse\x12?\n" +
 	"\rlocalizations\x18\x01 \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations2\xa5\a\n" +
 	"\x13LocalizationService\x12b\n" +

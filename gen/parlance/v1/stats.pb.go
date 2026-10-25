@@ -65,6 +65,7 @@ type LocaleStats struct {
 	Missing       int32                  `protobuf:"varint,4,opt,name=missing,proto3" json:"missing,omitempty"`
 	Percentage    int32                  `protobuf:"varint,5,opt,name=percentage,proto3" json:"percentage,omitempty"` // 0-100
 	Drafts        int32                  `protobuf:"varint,6,opt,name=drafts,proto3" json:"drafts,omitempty"`         // translations awaiting approval
+	Approved      int32                  `protobuf:"varint,7,opt,name=approved,proto3" json:"approved,omitempty"`     // approved translations
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -137,6 +138,13 @@ func (x *LocaleStats) GetPercentage() int32 {
 func (x *LocaleStats) GetDrafts() int32 {
 	if x != nil {
 		return x.Drafts
+	}
+	return 0
+}
+
+func (x *LocaleStats) GetApproved() int32 {
+	if x != nil {
+		return x.Approved
 	}
 	return 0
 }
@@ -246,7 +254,7 @@ var File_parlance_v1_stats_proto protoreflect.FileDescriptor
 const file_parlance_v1_stats_proto_rawDesc = "" +
 	"\n" +
 	"\x17parlance/v1/stats.proto\x12\vparlance.v1\"\x11\n" +
-	"\x0fGetStatsRequest\"\xbb\x01\n" +
+	"\x0fGetStatsRequest\"\xd7\x01\n" +
 	"\vLocaleStats\x12\x1b\n" +
 	"\tlocale_id\x18\x01 \x01(\tR\blocaleId\x12\x1f\n" +
 	"\vlocale_code\x18\x02 \x01(\tR\n" +
@@ -256,7 +264,8 @@ const file_parlance_v1_stats_proto_rawDesc = "" +
 	"\n" +
 	"percentage\x18\x05 \x01(\x05R\n" +
 	"percentage\x12\x16\n" +
-	"\x06drafts\x18\x06 \x01(\x05R\x06drafts\"\xa6\x03\n" +
+	"\x06drafts\x18\x06 \x01(\x05R\x06drafts\x12\x1a\n" +
+	"\bapproved\x18\a \x01(\x05R\bapproved\"\xa6\x03\n" +
 	"\x10GetStatsResponse\x12#\n" +
 	"\rtotal_entries\x18\x01 \x01(\x05R\ftotalEntries\x12#\n" +
 	"\rtotal_locales\x18\x02 \x01(\x05R\ftotalLocales\x12>\n" +

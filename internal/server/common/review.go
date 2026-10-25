@@ -33,6 +33,8 @@ type ReviewSelection struct {
 	// Whether reviews are sent to webhooks, as translations.approved or
 	// translations.rejected; only translations are
 	Webhooks bool
+	// Leave approved rows out when rejecting too, so only drafts are sent back
+	SkipApproved bool
 }
 
 // ValidateReview checks a review request before rows are loaded
@@ -60,7 +62,7 @@ func ValidateReview(selection ReviewSelection, decision pb.ReviewDecision, comme
 
 // ReviewRows loads the selected rows and approves or rejects them in one transaction,
 // recording each review in their history. Rows that don't exist, and approved rows when
-// approving, are skipped.
+// approving or with SkipApproved, are skipped.
 func ReviewRows[T any, P interface {
 	*T
 	Reviewable
@@ -87,7 +89,7 @@ func ReviewRows[T any, P interface {
 		}
 
 		// Approving leaves approved rows as they are, so their reviewer and history stay.
-		if decision == pb.ReviewDecision_REVIEW_DECISION_APPROVE {
+		if decision == pb.ReviewDecision_REVIEW_DECISION_APPROVE || selection.SkipApproved {
 			query = query.Where("status = ?", models.StatusDraft)
 		}
 

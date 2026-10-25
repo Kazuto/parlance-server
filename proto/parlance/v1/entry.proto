@@ -18,6 +18,7 @@ service EntryService {
   rpc SearchEntries(SearchEntriesRequest) returns (SearchEntriesResponse);
   rpc GetEntryHistory(GetEntryHistoryRequest) returns (GetEntryHistoryResponse);
   rpc UpdateEntriesScopes(UpdateEntriesScopesRequest) returns (UpdateEntriesScopesResponse);
+  rpc DeleteEntries(DeleteEntriesRequest) returns (DeleteEntriesResponse);
 }
 
 message Entry {
@@ -57,6 +58,8 @@ message ListEntriesRequest {
   // Return only id, key, missing_locale_ids and default_translation instead of
   // localizations and scopes.
   bool summary = 9;
+  // Only deleted entries, to restore them. Requires delete_entry.
+  bool deleted_only = 10;
 }
 
 message ListEntriesResponse {
@@ -111,6 +114,15 @@ message DeleteEntryRequest {
 }
 
 message DeleteEntryResponse {}
+
+message DeleteEntriesRequest {
+  repeated string ids = 1;
+}
+
+message DeleteEntriesResponse {
+  // Entries already deleted, or that don't exist, are skipped and not counted.
+  int32 deleted_count = 1;
+}
 
 message RestoreEntryRequest {
   string id = 1;

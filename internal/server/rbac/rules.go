@@ -33,6 +33,7 @@ var Rules = map[string][]string{
 
 	// EntryService
 	parlancev1connect.EntryServiceCreateEntryProcedure:         {permissions.CreateEntry},
+	parlancev1connect.EntryServiceDeleteEntriesProcedure:       {permissions.DeleteEntry},
 	parlancev1connect.EntryServiceDeleteEntryProcedure:         {permissions.DeleteEntry},
 	parlancev1connect.EntryServiceGetEntryProcedure:            {permissions.ReadEntry},
 	parlancev1connect.EntryServiceGetEntryHistoryProcedure:     {permissions.ReadEntry},

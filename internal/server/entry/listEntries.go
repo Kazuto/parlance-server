@@ -9,6 +9,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
 	"github.com/kazuto/parlance-server/internal/server/common"
@@ -28,6 +29,13 @@ func (s *Server) ListEntries(
 ) (*connect.Response[pb.ListEntriesResponse], error) {
 	if !slices.Contains([]string{"", "missing", "complete", "review"}, req.Msg.TranslationStatus) {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "invalid translation status")
+	}
+
+	// Deleted entries are listed to restore them, which takes the same permission.
+	if req.Msg.DeletedOnly {
+		if err := middleware.RequirePermission(ctx, s.db, permissions.DeleteEntry); err != nil {
+			return nil, err
+		}
 	}
 
 	keyOrdered := req.Msg.Filter == nil || req.Msg.Filter.Sort == "" ||
@@ -59,7 +67,7 @@ func (s *Server) ListEntries(
 		query = query.Preload("Localizations").Preload("Scopes")
 	}
 
-	allowedSorts := map[string]bool{"key": true, "description": true, "created_at": true, "created_by": true, "updated_at": true, "updated_by": true}
+	allowedSorts := map[string]bool{"key": true, "description": true, "created_at": true, "created_by": true, "updated_at": true, "updated_by": true, "deleted_at": true}
 
 	query, err := common.NewFilter(query, req.Msg.Filter).
 		IncludeDeletedRequires(ctx, s.db, permissions.DeleteEntry).
@@ -71,6 +79,10 @@ func (s *Server) ListEntries(
 		Apply()
 	if err != nil {
 		return nil, err
+	}
+
+	if req.Msg.DeletedOnly {
+		query = query.Unscoped().Where("entries.deleted_at IS NOT NULL")
 	}
 
 	// Filter by scopes if provided; an entry matches when it is in any of them.

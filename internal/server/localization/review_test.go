@@ -120,6 +120,47 @@ func TestReviewLocalizations(t *testing.T) {
 	})
 }
 
+func TestRejectingCanSkipApproved(t *testing.T) {
+	ctx, db := testutil.Setup(t)
+	server := &Server{db: db}
+	seedReviewData(t, server)
+
+	// rv-1 has a German draft and an approved English text.
+	reject := func(skipApproved bool) []*pb.Localization {
+		t.Helper()
+
+		reviewed, err := review(ctx, server, &pb.ReviewLocalizationsRequest{
+			EntryIds:     []string{"rv-1"},
+			LocaleIds:    []string{"rv-en", "rv-de"},
+			Decision:     pb.ReviewDecision_REVIEW_DECISION_REJECT,
+			Comment:      "Check the tone",
+			SkipApproved: skipApproved,
+		})
+		if err != nil {
+			t.Fatalf("ReviewLocalizations: %v", err)
+		}
+
+		return reviewed
+	}
+
+	if reviewed := reject(true); len(reviewed) != 1 || reviewed[0].Id != "rv-l1" {
+		t.Errorf("skipping approved: rejected %+v, want only the draft", reviewed)
+	}
+
+	var statuses []string
+
+	db.Table("localizations").Where("id = ?", "rv-l3").Pluck("status", &statuses)
+
+	if len(statuses) != 1 || statuses[0] != models.StatusApproved {
+		t.Errorf("approved translation's status = %v, want approved", statuses)
+	}
+
+	// Without it, approved translations are sent back too.
+	if reviewed := reject(false); len(reviewed) != 2 {
+		t.Errorf("rejected %d translations, want 2", len(reviewed))
+	}
+}
+
 func TestChangedTextNeedsReviewAgain(t *testing.T) {
 	ctx, db := testutil.Setup(t)
 	server := &Server{db: db}

@@ -139,6 +139,8 @@ message ReviewLocalizationsRequest {
   ReviewDecision decision = 4;
   // Required when rejecting: what should change.
   string comment = 5;
+  // Leave approved translations as they are, so rejecting only sends drafts back.
+  bool skip_approved = 6;
 }
 
 message ReviewLocalizationsResponse {

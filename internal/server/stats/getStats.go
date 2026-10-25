@@ -65,29 +65,35 @@ func (s *Server) GetStats(
 		fullyTranslatedEntries = result.Count
 	}
 
-	// Count translations awaiting review per locale
-	var draftRows []struct {
+	// Count translations awaiting review, and approved ones, per locale
+	var statusRows []struct {
 		LocaleID string
+		Status   string
 		Count    int64
 	}
 
 	if err := s.db.Model(&models.Localization{}).
-		Select("localizations.locale_id, COUNT(*) AS count").
+		Select("localizations.locale_id, localizations.status, COUNT(*) AS count").
 		Joins("JOIN entries ON entries.id = localizations.entry_id AND entries.deleted_at IS NULL").
 		Joins("JOIN locales ON locales.id = localizations.locale_id AND locales.deleted_at IS NULL").
-		Where("localizations.status = ?", models.StatusDraft).
-		Group("localizations.locale_id").
-		Scan(&draftRows).Error; err != nil {
-		return nil, errors.InternalCause(err, "failed to count drafts")
+		Group("localizations.locale_id, localizations.status").
+		Scan(&statusRows).Error; err != nil {
+		return nil, errors.InternalCause(err, "failed to count review statuses")
 	}
 
-	drafts := make(map[string]int64, len(draftRows))
+	drafts := map[string]int64{}
+	approved := map[string]int64{}
 
 	var draftTranslations int64
 
-	for _, row := range draftRows {
-		drafts[row.LocaleID] = row.Count
-		draftTranslations += row.Count
+	for _, row := range statusRows {
+		switch row.Status {
+		case models.StatusDraft:
+			drafts[row.LocaleID] = row.Count
+			draftTranslations += row.Count
+		case models.StatusApproved:
+			approved[row.LocaleID] = row.Count
+		}
 	}
 
 	// Get all locales for per-locale stats
@@ -123,6 +129,7 @@ func (s *Server) GetStats(
 			Missing:    int32(missing),
 			Percentage: percentage,
 			Drafts:     int32(drafts[locale.ID]),
+			Approved:   int32(approved[locale.ID]),
 		})
 	}
 
