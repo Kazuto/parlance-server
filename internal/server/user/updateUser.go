@@ -7,6 +7,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/auth"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
+	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
 
@@ -38,6 +39,13 @@ func (s *Server) UpdateUser(
 	user, err := common.FindByID[models.User](s.db.WithContext(ctx), req.Msg.Id, errors.ErrUserNotFound, "user not found")
 	if err != nil {
 		return nil, err
+	}
+
+	// As in AccountService, an API token may not change how its own user signs in.
+	if user.ID == middleware.UserID(ctx) && (req.Msg.Password != nil || req.Msg.Email != nil && req.Msg.GetEmail() != user.Email) {
+		if err := middleware.RequireSignIn(ctx); err != nil {
+			return nil, err
+		}
 	}
 
 	if req.Msg.Email != nil {

@@ -12,6 +12,15 @@ service AccountService {
   // Needs the current password, unless the account has none yet, like accounts
   // single sign-on created.
   rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse);
+  // API tokens let scripts and CI call the API as the user, with the user's
+  // permissions: send one as "Authorization: Bearer <token>". Managing them,
+  // changing the password and changing the email need a sign-in, not a token.
+  rpc ListApiTokens(ListApiTokensRequest) returns (ListApiTokensResponse);
+  // Returns the token itself this once; only a hash of it is stored. A user has
+  // at most 50.
+  rpc CreateApiToken(CreateApiTokenRequest) returns (CreateApiTokenResponse);
+  // Revokes the token at once.
+  rpc DeleteApiToken(DeleteApiTokenRequest) returns (DeleteApiTokenResponse);
 }
 
 message UpdateAccountRequest {
@@ -33,3 +42,36 @@ message ChangePasswordRequest {
 }
 
 message ChangePasswordResponse {}
+
+message ApiToken {
+  string id = 1;
+  string name = 2;
+  // The token's start, e.g. "plc_x3Fk9a", to tell it apart.
+  string prefix = 3;
+  string created_at = 4;
+  optional string last_used_at = 5;  // Recorded every few minutes at most
+  optional string expires_at = 6;    // Unset for a token that never expires
+}
+
+message ListApiTokensRequest {}
+
+message ListApiTokensResponse {
+  repeated ApiToken tokens = 1;  // Newest first
+}
+
+message CreateApiTokenRequest {
+  string name = 1;  // Up to 100 characters
+  // 1 to 3650; 0 for a token that never expires.
+  int32 expires_in_days = 2;
+}
+
+message CreateApiTokenResponse {
+  ApiToken token = 1;
+  string secret = 2;  // The token, shown only now
+}
+
+message DeleteApiTokenRequest {
+  string id = 1;
+}
+
+message DeleteApiTokenResponse {}

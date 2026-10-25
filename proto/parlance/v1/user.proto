@@ -14,6 +14,10 @@ service UserService {
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
   rpc RestoreUser(RestoreUserRequest) returns (RestoreUserResponse);
   rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse);
+  // Whether anyone may create an account with AuthService's Register, which gives
+  // it the viewer role.
+  rpc GetRegistrationSettings(GetRegistrationSettingsRequest) returns (GetRegistrationSettingsResponse);
+  rpc UpdateRegistrationSettings(UpdateRegistrationSettingsRequest) returns (UpdateRegistrationSettingsResponse);
 }
 
 message User {
@@ -105,4 +109,25 @@ message AssignRoleRequest {
 
 message AssignRoleResponse {
   User user = 1;
+}
+
+message RegistrationSettings {
+  // Open until an admin closes it; admins still add users while closed.
+  bool open = 1;
+  // When the settings last changed, if ever.
+  optional string updated_at = 2;
+}
+
+message GetRegistrationSettingsRequest {}
+
+message GetRegistrationSettingsResponse {
+  RegistrationSettings settings = 1;
+}
+
+message UpdateRegistrationSettingsRequest {
+  bool open = 1;
+}
+
+message UpdateRegistrationSettingsResponse {
+  RegistrationSettings settings = 1;
 }

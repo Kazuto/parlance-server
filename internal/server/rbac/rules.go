@@ -18,6 +18,9 @@ var Rules = map[string][]string{
 	// AccountService: everyone signed in manages their own account.
 	parlancev1connect.AccountServiceChangePasswordProcedure: {},
 	parlancev1connect.AccountServiceUpdateAccountProcedure:  {},
+	parlancev1connect.AccountServiceListApiTokensProcedure:  {},
+	parlancev1connect.AccountServiceCreateApiTokenProcedure: {},
+	parlancev1connect.AccountServiceDeleteApiTokenProcedure: {},
 
 	// ActivityService
 	parlancev1connect.ActivityServiceListRecentActivityProcedure: {permissions.ReadEntry},
@@ -150,6 +153,9 @@ var Rules = map[string][]string{
 	parlancev1connect.UserServiceListUsersProcedure:   {permissions.ReadUser},
 	parlancev1connect.UserServiceRestoreUserProcedure: {permissions.DeleteUser},
 	parlancev1connect.UserServiceUpdateUserProcedure:  {permissions.UpdateUser},
+	// Opening registration lets anyone create a user.
+	parlancev1connect.UserServiceGetRegistrationSettingsProcedure:    {permissions.ReadUser},
+	parlancev1connect.UserServiceUpdateRegistrationSettingsProcedure: {permissions.CreateUser},
 
 	// WebhookService
 	parlancev1connect.WebhookServiceCreateWebhookProcedure:            {permissions.CreateWebhook},

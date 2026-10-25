@@ -340,6 +340,32 @@ the current one, unless the account has none yet, like accounts single sign-on
 created. Avatars are PNG, JPEG, WebP or GIF images of up to 2 MB; their type is
 read from the image.
 
+`AuthService/Register` creates an account with the viewer role. It is open until
+an admin closes it in the app under **Settings → Registration**, or with `UserService/UpdateRegistrationSettings`
+(`create_user`); while closed, admins still add users.
+
+### API tokens
+
+Scripts and CI use an API token instead of signing in. Create one in the app under
+**My account → API tokens**, or with `AccountService/CreateApiToken`, and send it
+like an access token:
+
+```bash
+curl -X POST http://localhost:8080/parlance.v1.ExportService/ExportJson \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer plc_…" \
+  -d '{"localeCode": "de"}'
+```
+
+- **Permissions:** a token acts as the user who created it, with that user's
+  permissions as they are at each request.
+- **Secret:** the token is shown once; only its SHA-256 hash is stored. Its first
+  characters (`plc_` and six more) tell tokens apart.
+- **Lifetime:** 1 to 3650 days, or no expiry. Revoking one takes effect at once,
+  and deleting a user revokes theirs. A user has at most 50.
+- **Limits:** a request made with a token can't list, create or revoke tokens, and
+  can't change its user's password or email; those need a sign-in.
+
 ### Create and update requests
 
 Create and update requests share the same shape. Every `Update…` request is a

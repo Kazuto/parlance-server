@@ -8,6 +8,17 @@ Table users {
   deleted_at timestamp [null]
 }
 
+Table api_tokens {
+  id uuid [primary key]
+  user_id uuid [not null]
+  name varchar(100) [not null]
+  token_hash char(64) [not null, unique]  // SHA-256 of the token, which is shown once
+  prefix varchar(16) [not null]  // The token's start, to tell it apart
+  last_used_at timestamp [null]  // Recorded every few minutes at most
+  expires_at timestamp [null]  // Null for a token that never expires
+  created_at timestamp
+}
+
 Table roles {
   id integer [primary key]
   name varchar(50) [not null, unique]
@@ -219,6 +230,7 @@ Table definition_history {
 // > many-to-one; < one-to-many; - one-to-one; <> many-to-many
 // Foreign key relationships
 Ref: user_roles.user_id > users.id [delete: cascade]
+Ref: api_tokens.user_id > users.id [delete: cascade]
 Ref: user_roles.role_id > roles.id [delete: cascade]
 
 Ref: role_permissions.role_id > roles.id [delete: cascade]

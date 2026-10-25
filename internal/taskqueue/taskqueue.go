@@ -3,12 +3,12 @@
 package taskqueue
 
 import (
-	"encoding/json"
 	stderrors "errors"
 	"slices"
 	"time"
 
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/settings"
 	"github.com/robfig/cron/v3"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -110,34 +110,12 @@ func Emit(tx *gorm.DB, event string) error {
 // Paused tells whether tasks are paused, an admin's setting. Nothing is scheduled
 // or run while they are; triggers still queue runs, which start once resumed.
 func Paused(db *gorm.DB) (bool, time.Time, error) {
-	var settings []models.Setting
-	if err := db.Where("key = ?", models.SettingTasksPaused).Limit(1).Find(&settings).Error; err != nil {
-		return false, time.Time{}, err
-	}
-
-	if len(settings) == 0 {
-		return false, time.Time{}, nil
-	}
-
-	var paused bool
-	if err := json.Unmarshal(settings[0].Value, &paused); err != nil {
-		return false, time.Time{}, err
-	}
-
-	return paused, settings[0].UpdatedAt, nil
+	return settings.Bool(db, models.SettingTasksPaused, false)
 }
 
 // SetPaused pauses or resumes all tasks.
 func SetPaused(db *gorm.DB, paused bool, by *string) error {
-	value, err := json.Marshal(paused)
-	if err != nil {
-		return err
-	}
-
-	return db.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "key"}},
-		DoUpdates: clause.AssignmentColumns([]string{"value", "updated_at", "updated_by"}),
-	}).Create(&models.Setting{Key: models.SettingTasksPaused, Value: value, UpdatedBy: by}).Error
+	return settings.SetBool(db, models.SettingTasksPaused, paused, by)
 }
 
 // ErrNotCancelable is returned for runs that have ended.

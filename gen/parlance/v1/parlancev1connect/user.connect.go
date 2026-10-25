@@ -47,6 +47,12 @@ const (
 	UserServiceRestoreUserProcedure = "/parlance.v1.UserService/RestoreUser"
 	// UserServiceAssignRoleProcedure is the fully-qualified name of the UserService's AssignRole RPC.
 	UserServiceAssignRoleProcedure = "/parlance.v1.UserService/AssignRole"
+	// UserServiceGetRegistrationSettingsProcedure is the fully-qualified name of the UserService's
+	// GetRegistrationSettings RPC.
+	UserServiceGetRegistrationSettingsProcedure = "/parlance.v1.UserService/GetRegistrationSettings"
+	// UserServiceUpdateRegistrationSettingsProcedure is the fully-qualified name of the UserService's
+	// UpdateRegistrationSettings RPC.
+	UserServiceUpdateRegistrationSettingsProcedure = "/parlance.v1.UserService/UpdateRegistrationSettings"
 )
 
 // UserServiceClient is a client for the parlance.v1.UserService service.
@@ -58,6 +64,10 @@ type UserServiceClient interface {
 	DeleteUser(context.Context, *connect.Request[v1.DeleteUserRequest]) (*connect.Response[v1.DeleteUserResponse], error)
 	RestoreUser(context.Context, *connect.Request[v1.RestoreUserRequest]) (*connect.Response[v1.RestoreUserResponse], error)
 	AssignRole(context.Context, *connect.Request[v1.AssignRoleRequest]) (*connect.Response[v1.AssignRoleResponse], error)
+	// Whether anyone may create an account with AuthService's Register, which gives
+	// it the viewer role.
+	GetRegistrationSettings(context.Context, *connect.Request[v1.GetRegistrationSettingsRequest]) (*connect.Response[v1.GetRegistrationSettingsResponse], error)
+	UpdateRegistrationSettings(context.Context, *connect.Request[v1.UpdateRegistrationSettingsRequest]) (*connect.Response[v1.UpdateRegistrationSettingsResponse], error)
 }
 
 // NewUserServiceClient constructs a client for the parlance.v1.UserService service. By default, it
@@ -113,18 +123,32 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(userServiceMethods.ByName("AssignRole")),
 			connect.WithClientOptions(opts...),
 		),
+		getRegistrationSettings: connect.NewClient[v1.GetRegistrationSettingsRequest, v1.GetRegistrationSettingsResponse](
+			httpClient,
+			baseURL+UserServiceGetRegistrationSettingsProcedure,
+			connect.WithSchema(userServiceMethods.ByName("GetRegistrationSettings")),
+			connect.WithClientOptions(opts...),
+		),
+		updateRegistrationSettings: connect.NewClient[v1.UpdateRegistrationSettingsRequest, v1.UpdateRegistrationSettingsResponse](
+			httpClient,
+			baseURL+UserServiceUpdateRegistrationSettingsProcedure,
+			connect.WithSchema(userServiceMethods.ByName("UpdateRegistrationSettings")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // userServiceClient implements UserServiceClient.
 type userServiceClient struct {
-	listUsers   *connect.Client[v1.ListUsersRequest, v1.ListUsersResponse]
-	getUser     *connect.Client[v1.GetUserRequest, v1.GetUserResponse]
-	createUser  *connect.Client[v1.CreateUserRequest, v1.CreateUserResponse]
-	updateUser  *connect.Client[v1.UpdateUserRequest, v1.UpdateUserResponse]
-	deleteUser  *connect.Client[v1.DeleteUserRequest, v1.DeleteUserResponse]
-	restoreUser *connect.Client[v1.RestoreUserRequest, v1.RestoreUserResponse]
-	assignRole  *connect.Client[v1.AssignRoleRequest, v1.AssignRoleResponse]
+	listUsers                  *connect.Client[v1.ListUsersRequest, v1.ListUsersResponse]
+	getUser                    *connect.Client[v1.GetUserRequest, v1.GetUserResponse]
+	createUser                 *connect.Client[v1.CreateUserRequest, v1.CreateUserResponse]
+	updateUser                 *connect.Client[v1.UpdateUserRequest, v1.UpdateUserResponse]
+	deleteUser                 *connect.Client[v1.DeleteUserRequest, v1.DeleteUserResponse]
+	restoreUser                *connect.Client[v1.RestoreUserRequest, v1.RestoreUserResponse]
+	assignRole                 *connect.Client[v1.AssignRoleRequest, v1.AssignRoleResponse]
+	getRegistrationSettings    *connect.Client[v1.GetRegistrationSettingsRequest, v1.GetRegistrationSettingsResponse]
+	updateRegistrationSettings *connect.Client[v1.UpdateRegistrationSettingsRequest, v1.UpdateRegistrationSettingsResponse]
 }
 
 // ListUsers calls parlance.v1.UserService.ListUsers.
@@ -162,6 +186,16 @@ func (c *userServiceClient) AssignRole(ctx context.Context, req *connect.Request
 	return c.assignRole.CallUnary(ctx, req)
 }
 
+// GetRegistrationSettings calls parlance.v1.UserService.GetRegistrationSettings.
+func (c *userServiceClient) GetRegistrationSettings(ctx context.Context, req *connect.Request[v1.GetRegistrationSettingsRequest]) (*connect.Response[v1.GetRegistrationSettingsResponse], error) {
+	return c.getRegistrationSettings.CallUnary(ctx, req)
+}
+
+// UpdateRegistrationSettings calls parlance.v1.UserService.UpdateRegistrationSettings.
+func (c *userServiceClient) UpdateRegistrationSettings(ctx context.Context, req *connect.Request[v1.UpdateRegistrationSettingsRequest]) (*connect.Response[v1.UpdateRegistrationSettingsResponse], error) {
+	return c.updateRegistrationSettings.CallUnary(ctx, req)
+}
+
 // UserServiceHandler is an implementation of the parlance.v1.UserService service.
 type UserServiceHandler interface {
 	ListUsers(context.Context, *connect.Request[v1.ListUsersRequest]) (*connect.Response[v1.ListUsersResponse], error)
@@ -171,6 +205,10 @@ type UserServiceHandler interface {
 	DeleteUser(context.Context, *connect.Request[v1.DeleteUserRequest]) (*connect.Response[v1.DeleteUserResponse], error)
 	RestoreUser(context.Context, *connect.Request[v1.RestoreUserRequest]) (*connect.Response[v1.RestoreUserResponse], error)
 	AssignRole(context.Context, *connect.Request[v1.AssignRoleRequest]) (*connect.Response[v1.AssignRoleResponse], error)
+	// Whether anyone may create an account with AuthService's Register, which gives
+	// it the viewer role.
+	GetRegistrationSettings(context.Context, *connect.Request[v1.GetRegistrationSettingsRequest]) (*connect.Response[v1.GetRegistrationSettingsResponse], error)
+	UpdateRegistrationSettings(context.Context, *connect.Request[v1.UpdateRegistrationSettingsRequest]) (*connect.Response[v1.UpdateRegistrationSettingsResponse], error)
 }
 
 // NewUserServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -222,6 +260,18 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(userServiceMethods.ByName("AssignRole")),
 		connect.WithHandlerOptions(opts...),
 	)
+	userServiceGetRegistrationSettingsHandler := connect.NewUnaryHandler(
+		UserServiceGetRegistrationSettingsProcedure,
+		svc.GetRegistrationSettings,
+		connect.WithSchema(userServiceMethods.ByName("GetRegistrationSettings")),
+		connect.WithHandlerOptions(opts...),
+	)
+	userServiceUpdateRegistrationSettingsHandler := connect.NewUnaryHandler(
+		UserServiceUpdateRegistrationSettingsProcedure,
+		svc.UpdateRegistrationSettings,
+		connect.WithSchema(userServiceMethods.ByName("UpdateRegistrationSettings")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/parlance.v1.UserService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case UserServiceListUsersProcedure:
@@ -238,6 +288,10 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 			userServiceRestoreUserHandler.ServeHTTP(w, r)
 		case UserServiceAssignRoleProcedure:
 			userServiceAssignRoleHandler.ServeHTTP(w, r)
+		case UserServiceGetRegistrationSettingsProcedure:
+			userServiceGetRegistrationSettingsHandler.ServeHTTP(w, r)
+		case UserServiceUpdateRegistrationSettingsProcedure:
+			userServiceUpdateRegistrationSettingsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -273,4 +327,12 @@ func (UnimplementedUserServiceHandler) RestoreUser(context.Context, *connect.Req
 
 func (UnimplementedUserServiceHandler) AssignRole(context.Context, *connect.Request[v1.AssignRoleRequest]) (*connect.Response[v1.AssignRoleResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.UserService.AssignRole is not implemented"))
+}
+
+func (UnimplementedUserServiceHandler) GetRegistrationSettings(context.Context, *connect.Request[v1.GetRegistrationSettingsRequest]) (*connect.Response[v1.GetRegistrationSettingsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.UserService.GetRegistrationSettings is not implemented"))
+}
+
+func (UnimplementedUserServiceHandler) UpdateRegistrationSettings(context.Context, *connect.Request[v1.UpdateRegistrationSettingsRequest]) (*connect.Response[v1.UpdateRegistrationSettingsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.UserService.UpdateRegistrationSettings is not implemented"))
 }

@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/kazuto/parlance-server/gen/parlance/v1/parlancev1connect"
+	"github.com/kazuto/parlance-server/internal/apitoken"
 	"github.com/kazuto/parlance-server/internal/avatar"
 	"github.com/kazuto/parlance-server/internal/config"
 	"github.com/kazuto/parlance-server/internal/database"
@@ -104,7 +105,9 @@ func main() {
 		}
 	})
 
-	authMiddleware := middleware.AuthMiddleware(cfg.JWT.Secret)
+	// Requests carry a sign-in token, or an API token for scripts and CI.
+	apiTokens := apitoken.NewAuthenticator(db.DB)
+	authMiddleware := middleware.AuthMiddleware(cfg.JWT.Secret, apiTokens)
 
 	secretBox, err := secret.New(cfg.Secrets.EncryptionKey)
 	if err != nil {
@@ -134,7 +137,7 @@ func main() {
 	dispatcherDone := webhook.NewDispatcher(db.DB, webhookSender).Start(dispatcherCtx)
 
 	// Protected services require a valid token and the permissions rbac.Rules lists.
-	requireAuth := middleware.RequireAuth(cfg.JWT.Secret)
+	requireAuth := middleware.RequireAuth(cfg.JWT.Secret, apiTokens)
 	authorized := connect.WithInterceptors(rbac.Interceptor(db))
 
 	services := []struct {

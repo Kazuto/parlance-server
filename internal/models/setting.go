@@ -10,6 +10,9 @@ import (
 const (
 	// SettingTasksPaused holds whether tasks are paused: nothing is scheduled or run.
 	SettingTasksPaused = "tasks.paused"
+	// SettingRegistrationOpen holds whether anyone may create an account; it is open
+	// until an admin closes it.
+	SettingRegistrationOpen = "auth.registration_open"
 )
 
 // Setting is an instance-wide setting admins change in the app, stored as JSON.

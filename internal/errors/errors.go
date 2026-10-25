@@ -86,6 +86,15 @@ const (
 	ErrSSOAccountDeleted = "SSO_ACCOUNT_DELETED"
 	// Saving an API key needs ENCRYPTION_KEY.
 	ErrEncryptionKeyMissing = "ENCRYPTION_KEY_MISSING"
+
+	// API token errors
+	ErrAPITokenNotFound = "API_TOKEN_NOT_FOUND"
+	// A user has as many API tokens as they may.
+	ErrAPITokenLimit = "API_TOKEN_LIMIT"
+	// Managing API tokens and changing how one signs in need a sign-in, not an API token.
+	ErrAPITokenNotAllowed = "API_TOKEN_NOT_ALLOWED"
+	// An admin turned registration off.
+	ErrRegistrationClosed = "REGISTRATION_CLOSED"
 )
 
 // ErrorWithCode creates a Connect error with an error code in the message

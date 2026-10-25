@@ -863,6 +863,228 @@ func (x *AssignRoleResponse) GetUser() *User {
 	return nil
 }
 
+type RegistrationSettings struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Open until an admin closes it; admins still add users while closed.
+	Open bool `protobuf:"varint,1,opt,name=open,proto3" json:"open,omitempty"`
+	// When the settings last changed, if ever.
+	UpdatedAt     *string `protobuf:"bytes,2,opt,name=updated_at,json=updatedAt,proto3,oneof" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegistrationSettings) Reset() {
+	*x = RegistrationSettings{}
+	mi := &file_parlance_v1_user_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegistrationSettings) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegistrationSettings) ProtoMessage() {}
+
+func (x *RegistrationSettings) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_user_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegistrationSettings.ProtoReflect.Descriptor instead.
+func (*RegistrationSettings) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_user_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *RegistrationSettings) GetOpen() bool {
+	if x != nil {
+		return x.Open
+	}
+	return false
+}
+
+func (x *RegistrationSettings) GetUpdatedAt() string {
+	if x != nil && x.UpdatedAt != nil {
+		return *x.UpdatedAt
+	}
+	return ""
+}
+
+type GetRegistrationSettingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRegistrationSettingsRequest) Reset() {
+	*x = GetRegistrationSettingsRequest{}
+	mi := &file_parlance_v1_user_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRegistrationSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRegistrationSettingsRequest) ProtoMessage() {}
+
+func (x *GetRegistrationSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_user_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRegistrationSettingsRequest.ProtoReflect.Descriptor instead.
+func (*GetRegistrationSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_user_proto_rawDescGZIP(), []int{16}
+}
+
+type GetRegistrationSettingsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Settings      *RegistrationSettings  `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRegistrationSettingsResponse) Reset() {
+	*x = GetRegistrationSettingsResponse{}
+	mi := &file_parlance_v1_user_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRegistrationSettingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRegistrationSettingsResponse) ProtoMessage() {}
+
+func (x *GetRegistrationSettingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_user_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRegistrationSettingsResponse.ProtoReflect.Descriptor instead.
+func (*GetRegistrationSettingsResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_user_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GetRegistrationSettingsResponse) GetSettings() *RegistrationSettings {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
+type UpdateRegistrationSettingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Open          bool                   `protobuf:"varint,1,opt,name=open,proto3" json:"open,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateRegistrationSettingsRequest) Reset() {
+	*x = UpdateRegistrationSettingsRequest{}
+	mi := &file_parlance_v1_user_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateRegistrationSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateRegistrationSettingsRequest) ProtoMessage() {}
+
+func (x *UpdateRegistrationSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_user_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateRegistrationSettingsRequest.ProtoReflect.Descriptor instead.
+func (*UpdateRegistrationSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_user_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *UpdateRegistrationSettingsRequest) GetOpen() bool {
+	if x != nil {
+		return x.Open
+	}
+	return false
+}
+
+type UpdateRegistrationSettingsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Settings      *RegistrationSettings  `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateRegistrationSettingsResponse) Reset() {
+	*x = UpdateRegistrationSettingsResponse{}
+	mi := &file_parlance_v1_user_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateRegistrationSettingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateRegistrationSettingsResponse) ProtoMessage() {}
+
+func (x *UpdateRegistrationSettingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_user_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateRegistrationSettingsResponse.ProtoReflect.Descriptor instead.
+func (*UpdateRegistrationSettingsResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_user_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *UpdateRegistrationSettingsResponse) GetSettings() *RegistrationSettings {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
 var File_parlance_v1_user_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_user_proto_rawDesc = "" +
@@ -934,7 +1156,19 @@ const file_parlance_v1_user_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x17\n" +
 	"\arole_id\x18\x02 \x01(\tR\x06roleId\";\n" +
 	"\x12AssignRoleResponse\x12%\n" +
-	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user2\xad\x04\n" +
+	"\x04user\x18\x01 \x01(\v2\x11.parlance.v1.UserR\x04user\"]\n" +
+	"\x14RegistrationSettings\x12\x12\n" +
+	"\x04open\x18\x01 \x01(\bR\x04open\x12\"\n" +
+	"\n" +
+	"updated_at\x18\x02 \x01(\tH\x00R\tupdatedAt\x88\x01\x01B\r\n" +
+	"\v_updated_at\" \n" +
+	"\x1eGetRegistrationSettingsRequest\"`\n" +
+	"\x1fGetRegistrationSettingsResponse\x12=\n" +
+	"\bsettings\x18\x01 \x01(\v2!.parlance.v1.RegistrationSettingsR\bsettings\"7\n" +
+	"!UpdateRegistrationSettingsRequest\x12\x12\n" +
+	"\x04open\x18\x01 \x01(\bR\x04open\"c\n" +
+	"\"UpdateRegistrationSettingsResponse\x12=\n" +
+	"\bsettings\x18\x01 \x01(\v2!.parlance.v1.RegistrationSettingsR\bsettings2\xa2\x06\n" +
 	"\vUserService\x12J\n" +
 	"\tListUsers\x12\x1d.parlance.v1.ListUsersRequest\x1a\x1e.parlance.v1.ListUsersResponse\x12D\n" +
 	"\aGetUser\x12\x1b.parlance.v1.GetUserRequest\x1a\x1c.parlance.v1.GetUserResponse\x12M\n" +
@@ -946,7 +1180,9 @@ const file_parlance_v1_user_proto_rawDesc = "" +
 	"DeleteUser\x12\x1e.parlance.v1.DeleteUserRequest\x1a\x1f.parlance.v1.DeleteUserResponse\x12P\n" +
 	"\vRestoreUser\x12\x1f.parlance.v1.RestoreUserRequest\x1a .parlance.v1.RestoreUserResponse\x12M\n" +
 	"\n" +
-	"AssignRole\x12\x1e.parlance.v1.AssignRoleRequest\x1a\x1f.parlance.v1.AssignRoleResponseB\xa7\x01\n" +
+	"AssignRole\x12\x1e.parlance.v1.AssignRoleRequest\x1a\x1f.parlance.v1.AssignRoleResponse\x12t\n" +
+	"\x17GetRegistrationSettings\x12+.parlance.v1.GetRegistrationSettingsRequest\x1a,.parlance.v1.GetRegistrationSettingsResponse\x12}\n" +
+	"\x1aUpdateRegistrationSettings\x12..parlance.v1.UpdateRegistrationSettingsRequest\x1a/.parlance.v1.UpdateRegistrationSettingsResponseB\xa7\x01\n" +
 	"\x0fcom.parlance.v1B\tUserProtoP\x01Z<github.com/kazuto/parlance-server/gen/parlance/v1;parlancev1\xa2\x02\x03PXX\xaa\x02\vParlance.V1\xca\x02\vParlance\\V1\xe2\x02\x17Parlance\\V1\\GPBMetadata\xea\x02\fParlance::V1b\x06proto3"
 
 var (
@@ -961,61 +1197,72 @@ func file_parlance_v1_user_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_user_proto_rawDescData
 }
 
-var file_parlance_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_parlance_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_parlance_v1_user_proto_goTypes = []any{
-	(*User)(nil),                // 0: parlance.v1.User
-	(*ListUsersRequest)(nil),    // 1: parlance.v1.ListUsersRequest
-	(*ListUsersResponse)(nil),   // 2: parlance.v1.ListUsersResponse
-	(*GetUserRequest)(nil),      // 3: parlance.v1.GetUserRequest
-	(*GetUserResponse)(nil),     // 4: parlance.v1.GetUserResponse
-	(*CreateUserRequest)(nil),   // 5: parlance.v1.CreateUserRequest
-	(*CreateUserResponse)(nil),  // 6: parlance.v1.CreateUserResponse
-	(*UpdateUserRequest)(nil),   // 7: parlance.v1.UpdateUserRequest
-	(*UpdateUserResponse)(nil),  // 8: parlance.v1.UpdateUserResponse
-	(*DeleteUserRequest)(nil),   // 9: parlance.v1.DeleteUserRequest
-	(*DeleteUserResponse)(nil),  // 10: parlance.v1.DeleteUserResponse
-	(*RestoreUserRequest)(nil),  // 11: parlance.v1.RestoreUserRequest
-	(*RestoreUserResponse)(nil), // 12: parlance.v1.RestoreUserResponse
-	(*AssignRoleRequest)(nil),   // 13: parlance.v1.AssignRoleRequest
-	(*AssignRoleResponse)(nil),  // 14: parlance.v1.AssignRoleResponse
-	(*Role)(nil),                // 15: parlance.v1.Role
-	(*PaginationRequest)(nil),   // 16: parlance.v1.PaginationRequest
-	(*FilterRequest)(nil),       // 17: parlance.v1.FilterRequest
-	(*PaginationResponse)(nil),  // 18: parlance.v1.PaginationResponse
-	(*IdSelection)(nil),         // 19: parlance.v1.IdSelection
+	(*User)(nil),                               // 0: parlance.v1.User
+	(*ListUsersRequest)(nil),                   // 1: parlance.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),                  // 2: parlance.v1.ListUsersResponse
+	(*GetUserRequest)(nil),                     // 3: parlance.v1.GetUserRequest
+	(*GetUserResponse)(nil),                    // 4: parlance.v1.GetUserResponse
+	(*CreateUserRequest)(nil),                  // 5: parlance.v1.CreateUserRequest
+	(*CreateUserResponse)(nil),                 // 6: parlance.v1.CreateUserResponse
+	(*UpdateUserRequest)(nil),                  // 7: parlance.v1.UpdateUserRequest
+	(*UpdateUserResponse)(nil),                 // 8: parlance.v1.UpdateUserResponse
+	(*DeleteUserRequest)(nil),                  // 9: parlance.v1.DeleteUserRequest
+	(*DeleteUserResponse)(nil),                 // 10: parlance.v1.DeleteUserResponse
+	(*RestoreUserRequest)(nil),                 // 11: parlance.v1.RestoreUserRequest
+	(*RestoreUserResponse)(nil),                // 12: parlance.v1.RestoreUserResponse
+	(*AssignRoleRequest)(nil),                  // 13: parlance.v1.AssignRoleRequest
+	(*AssignRoleResponse)(nil),                 // 14: parlance.v1.AssignRoleResponse
+	(*RegistrationSettings)(nil),               // 15: parlance.v1.RegistrationSettings
+	(*GetRegistrationSettingsRequest)(nil),     // 16: parlance.v1.GetRegistrationSettingsRequest
+	(*GetRegistrationSettingsResponse)(nil),    // 17: parlance.v1.GetRegistrationSettingsResponse
+	(*UpdateRegistrationSettingsRequest)(nil),  // 18: parlance.v1.UpdateRegistrationSettingsRequest
+	(*UpdateRegistrationSettingsResponse)(nil), // 19: parlance.v1.UpdateRegistrationSettingsResponse
+	(*Role)(nil),                               // 20: parlance.v1.Role
+	(*PaginationRequest)(nil),                  // 21: parlance.v1.PaginationRequest
+	(*FilterRequest)(nil),                      // 22: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),                 // 23: parlance.v1.PaginationResponse
+	(*IdSelection)(nil),                        // 24: parlance.v1.IdSelection
 }
 var file_parlance_v1_user_proto_depIdxs = []int32{
-	15, // 0: parlance.v1.User.roles:type_name -> parlance.v1.Role
-	16, // 1: parlance.v1.ListUsersRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	17, // 2: parlance.v1.ListUsersRequest.filter:type_name -> parlance.v1.FilterRequest
+	20, // 0: parlance.v1.User.roles:type_name -> parlance.v1.Role
+	21, // 1: parlance.v1.ListUsersRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	22, // 2: parlance.v1.ListUsersRequest.filter:type_name -> parlance.v1.FilterRequest
 	0,  // 3: parlance.v1.ListUsersResponse.users:type_name -> parlance.v1.User
-	18, // 4: parlance.v1.ListUsersResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	23, // 4: parlance.v1.ListUsersResponse.pagination:type_name -> parlance.v1.PaginationResponse
 	0,  // 5: parlance.v1.GetUserResponse.user:type_name -> parlance.v1.User
-	19, // 6: parlance.v1.CreateUserRequest.roles:type_name -> parlance.v1.IdSelection
+	24, // 6: parlance.v1.CreateUserRequest.roles:type_name -> parlance.v1.IdSelection
 	0,  // 7: parlance.v1.CreateUserResponse.user:type_name -> parlance.v1.User
-	19, // 8: parlance.v1.UpdateUserRequest.roles:type_name -> parlance.v1.IdSelection
+	24, // 8: parlance.v1.UpdateUserRequest.roles:type_name -> parlance.v1.IdSelection
 	0,  // 9: parlance.v1.UpdateUserResponse.user:type_name -> parlance.v1.User
 	0,  // 10: parlance.v1.RestoreUserResponse.user:type_name -> parlance.v1.User
 	0,  // 11: parlance.v1.AssignRoleResponse.user:type_name -> parlance.v1.User
-	1,  // 12: parlance.v1.UserService.ListUsers:input_type -> parlance.v1.ListUsersRequest
-	3,  // 13: parlance.v1.UserService.GetUser:input_type -> parlance.v1.GetUserRequest
-	5,  // 14: parlance.v1.UserService.CreateUser:input_type -> parlance.v1.CreateUserRequest
-	7,  // 15: parlance.v1.UserService.UpdateUser:input_type -> parlance.v1.UpdateUserRequest
-	9,  // 16: parlance.v1.UserService.DeleteUser:input_type -> parlance.v1.DeleteUserRequest
-	11, // 17: parlance.v1.UserService.RestoreUser:input_type -> parlance.v1.RestoreUserRequest
-	13, // 18: parlance.v1.UserService.AssignRole:input_type -> parlance.v1.AssignRoleRequest
-	2,  // 19: parlance.v1.UserService.ListUsers:output_type -> parlance.v1.ListUsersResponse
-	4,  // 20: parlance.v1.UserService.GetUser:output_type -> parlance.v1.GetUserResponse
-	6,  // 21: parlance.v1.UserService.CreateUser:output_type -> parlance.v1.CreateUserResponse
-	8,  // 22: parlance.v1.UserService.UpdateUser:output_type -> parlance.v1.UpdateUserResponse
-	10, // 23: parlance.v1.UserService.DeleteUser:output_type -> parlance.v1.DeleteUserResponse
-	12, // 24: parlance.v1.UserService.RestoreUser:output_type -> parlance.v1.RestoreUserResponse
-	14, // 25: parlance.v1.UserService.AssignRole:output_type -> parlance.v1.AssignRoleResponse
-	19, // [19:26] is the sub-list for method output_type
-	12, // [12:19] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	15, // 12: parlance.v1.GetRegistrationSettingsResponse.settings:type_name -> parlance.v1.RegistrationSettings
+	15, // 13: parlance.v1.UpdateRegistrationSettingsResponse.settings:type_name -> parlance.v1.RegistrationSettings
+	1,  // 14: parlance.v1.UserService.ListUsers:input_type -> parlance.v1.ListUsersRequest
+	3,  // 15: parlance.v1.UserService.GetUser:input_type -> parlance.v1.GetUserRequest
+	5,  // 16: parlance.v1.UserService.CreateUser:input_type -> parlance.v1.CreateUserRequest
+	7,  // 17: parlance.v1.UserService.UpdateUser:input_type -> parlance.v1.UpdateUserRequest
+	9,  // 18: parlance.v1.UserService.DeleteUser:input_type -> parlance.v1.DeleteUserRequest
+	11, // 19: parlance.v1.UserService.RestoreUser:input_type -> parlance.v1.RestoreUserRequest
+	13, // 20: parlance.v1.UserService.AssignRole:input_type -> parlance.v1.AssignRoleRequest
+	16, // 21: parlance.v1.UserService.GetRegistrationSettings:input_type -> parlance.v1.GetRegistrationSettingsRequest
+	18, // 22: parlance.v1.UserService.UpdateRegistrationSettings:input_type -> parlance.v1.UpdateRegistrationSettingsRequest
+	2,  // 23: parlance.v1.UserService.ListUsers:output_type -> parlance.v1.ListUsersResponse
+	4,  // 24: parlance.v1.UserService.GetUser:output_type -> parlance.v1.GetUserResponse
+	6,  // 25: parlance.v1.UserService.CreateUser:output_type -> parlance.v1.CreateUserResponse
+	8,  // 26: parlance.v1.UserService.UpdateUser:output_type -> parlance.v1.UpdateUserResponse
+	10, // 27: parlance.v1.UserService.DeleteUser:output_type -> parlance.v1.DeleteUserResponse
+	12, // 28: parlance.v1.UserService.RestoreUser:output_type -> parlance.v1.RestoreUserResponse
+	14, // 29: parlance.v1.UserService.AssignRole:output_type -> parlance.v1.AssignRoleResponse
+	17, // 30: parlance.v1.UserService.GetRegistrationSettings:output_type -> parlance.v1.GetRegistrationSettingsResponse
+	19, // 31: parlance.v1.UserService.UpdateRegistrationSettings:output_type -> parlance.v1.UpdateRegistrationSettingsResponse
+	23, // [23:32] is the sub-list for method output_type
+	14, // [14:23] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_user_proto_init() }
@@ -1026,13 +1273,14 @@ func file_parlance_v1_user_proto_init() {
 	file_parlance_v1_common_proto_init()
 	file_parlance_v1_role_proto_init()
 	file_parlance_v1_user_proto_msgTypes[7].OneofWrappers = []any{}
+	file_parlance_v1_user_proto_msgTypes[15].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_user_proto_rawDesc), len(file_parlance_v1_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   15,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

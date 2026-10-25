@@ -223,6 +223,356 @@ func (*ChangePasswordResponse) Descriptor() ([]byte, []int) {
 	return file_parlance_v1_account_proto_rawDescGZIP(), []int{3}
 }
 
+type ApiToken struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name  string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	// The token's start, e.g. "plc_x3Fk9a", to tell it apart.
+	Prefix        string  `protobuf:"bytes,3,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	CreatedAt     string  `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	LastUsedAt    *string `protobuf:"bytes,5,opt,name=last_used_at,json=lastUsedAt,proto3,oneof" json:"last_used_at,omitempty"` // Recorded every few minutes at most
+	ExpiresAt     *string `protobuf:"bytes,6,opt,name=expires_at,json=expiresAt,proto3,oneof" json:"expires_at,omitempty"`      // Unset for a token that never expires
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApiToken) Reset() {
+	*x = ApiToken{}
+	mi := &file_parlance_v1_account_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApiToken) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApiToken) ProtoMessage() {}
+
+func (x *ApiToken) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_account_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApiToken.ProtoReflect.Descriptor instead.
+func (*ApiToken) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_account_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ApiToken) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ApiToken) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ApiToken) GetPrefix() string {
+	if x != nil {
+		return x.Prefix
+	}
+	return ""
+}
+
+func (x *ApiToken) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *ApiToken) GetLastUsedAt() string {
+	if x != nil && x.LastUsedAt != nil {
+		return *x.LastUsedAt
+	}
+	return ""
+}
+
+func (x *ApiToken) GetExpiresAt() string {
+	if x != nil && x.ExpiresAt != nil {
+		return *x.ExpiresAt
+	}
+	return ""
+}
+
+type ListApiTokensRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListApiTokensRequest) Reset() {
+	*x = ListApiTokensRequest{}
+	mi := &file_parlance_v1_account_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListApiTokensRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListApiTokensRequest) ProtoMessage() {}
+
+func (x *ListApiTokensRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_account_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListApiTokensRequest.ProtoReflect.Descriptor instead.
+func (*ListApiTokensRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_account_proto_rawDescGZIP(), []int{5}
+}
+
+type ListApiTokensResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tokens        []*ApiToken            `protobuf:"bytes,1,rep,name=tokens,proto3" json:"tokens,omitempty"` // Newest first
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListApiTokensResponse) Reset() {
+	*x = ListApiTokensResponse{}
+	mi := &file_parlance_v1_account_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListApiTokensResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListApiTokensResponse) ProtoMessage() {}
+
+func (x *ListApiTokensResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_account_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListApiTokensResponse.ProtoReflect.Descriptor instead.
+func (*ListApiTokensResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_account_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ListApiTokensResponse) GetTokens() []*ApiToken {
+	if x != nil {
+		return x.Tokens
+	}
+	return nil
+}
+
+type CreateApiTokenRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"` // Up to 100 characters
+	// 1 to 3650; 0 for a token that never expires.
+	ExpiresInDays int32 `protobuf:"varint,2,opt,name=expires_in_days,json=expiresInDays,proto3" json:"expires_in_days,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateApiTokenRequest) Reset() {
+	*x = CreateApiTokenRequest{}
+	mi := &file_parlance_v1_account_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateApiTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateApiTokenRequest) ProtoMessage() {}
+
+func (x *CreateApiTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_account_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateApiTokenRequest.ProtoReflect.Descriptor instead.
+func (*CreateApiTokenRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_account_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *CreateApiTokenRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateApiTokenRequest) GetExpiresInDays() int32 {
+	if x != nil {
+		return x.ExpiresInDays
+	}
+	return 0
+}
+
+type CreateApiTokenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Token         *ApiToken              `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	Secret        string                 `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"` // The token, shown only now
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateApiTokenResponse) Reset() {
+	*x = CreateApiTokenResponse{}
+	mi := &file_parlance_v1_account_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateApiTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateApiTokenResponse) ProtoMessage() {}
+
+func (x *CreateApiTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_account_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateApiTokenResponse.ProtoReflect.Descriptor instead.
+func (*CreateApiTokenResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_account_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *CreateApiTokenResponse) GetToken() *ApiToken {
+	if x != nil {
+		return x.Token
+	}
+	return nil
+}
+
+func (x *CreateApiTokenResponse) GetSecret() string {
+	if x != nil {
+		return x.Secret
+	}
+	return ""
+}
+
+type DeleteApiTokenRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteApiTokenRequest) Reset() {
+	*x = DeleteApiTokenRequest{}
+	mi := &file_parlance_v1_account_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteApiTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteApiTokenRequest) ProtoMessage() {}
+
+func (x *DeleteApiTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_account_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteApiTokenRequest.ProtoReflect.Descriptor instead.
+func (*DeleteApiTokenRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_account_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *DeleteApiTokenRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type DeleteApiTokenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteApiTokenResponse) Reset() {
+	*x = DeleteApiTokenResponse{}
+	mi := &file_parlance_v1_account_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteApiTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteApiTokenResponse) ProtoMessage() {}
+
+func (x *DeleteApiTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_account_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteApiTokenResponse.ProtoReflect.Descriptor instead.
+func (*DeleteApiTokenResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_account_proto_rawDescGZIP(), []int{10}
+}
+
 var File_parlance_v1_account_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_account_proto_rawDesc = "" +
@@ -242,10 +592,37 @@ const file_parlance_v1_account_proto_rawDesc = "" +
 	"\x15ChangePasswordRequest\x12)\n" +
 	"\x10current_password\x18\x01 \x01(\tR\x0fcurrentPassword\x12!\n" +
 	"\fnew_password\x18\x02 \x01(\tR\vnewPassword\"\x18\n" +
-	"\x16ChangePasswordResponse2\xc3\x01\n" +
+	"\x16ChangePasswordResponse\"\xd0\x01\n" +
+	"\bApiToken\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
+	"\x06prefix\x18\x03 \x01(\tR\x06prefix\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x04 \x01(\tR\tcreatedAt\x12%\n" +
+	"\flast_used_at\x18\x05 \x01(\tH\x00R\n" +
+	"lastUsedAt\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"expires_at\x18\x06 \x01(\tH\x01R\texpiresAt\x88\x01\x01B\x0f\n" +
+	"\r_last_used_atB\r\n" +
+	"\v_expires_at\"\x16\n" +
+	"\x14ListApiTokensRequest\"F\n" +
+	"\x15ListApiTokensResponse\x12-\n" +
+	"\x06tokens\x18\x01 \x03(\v2\x15.parlance.v1.ApiTokenR\x06tokens\"S\n" +
+	"\x15CreateApiTokenRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12&\n" +
+	"\x0fexpires_in_days\x18\x02 \x01(\x05R\rexpiresInDays\"]\n" +
+	"\x16CreateApiTokenResponse\x12+\n" +
+	"\x05token\x18\x01 \x01(\v2\x15.parlance.v1.ApiTokenR\x05token\x12\x16\n" +
+	"\x06secret\x18\x02 \x01(\tR\x06secret\"'\n" +
+	"\x15DeleteApiTokenRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\x18\n" +
+	"\x16DeleteApiTokenResponse2\xd1\x03\n" +
 	"\x0eAccountService\x12V\n" +
 	"\rUpdateAccount\x12!.parlance.v1.UpdateAccountRequest\x1a\".parlance.v1.UpdateAccountResponse\x12Y\n" +
-	"\x0eChangePassword\x12\".parlance.v1.ChangePasswordRequest\x1a#.parlance.v1.ChangePasswordResponseB\xaa\x01\n" +
+	"\x0eChangePassword\x12\".parlance.v1.ChangePasswordRequest\x1a#.parlance.v1.ChangePasswordResponse\x12V\n" +
+	"\rListApiTokens\x12!.parlance.v1.ListApiTokensRequest\x1a\".parlance.v1.ListApiTokensResponse\x12Y\n" +
+	"\x0eCreateApiToken\x12\".parlance.v1.CreateApiTokenRequest\x1a#.parlance.v1.CreateApiTokenResponse\x12Y\n" +
+	"\x0eDeleteApiToken\x12\".parlance.v1.DeleteApiTokenRequest\x1a#.parlance.v1.DeleteApiTokenResponseB\xaa\x01\n" +
 	"\x0fcom.parlance.v1B\fAccountProtoP\x01Z<github.com/kazuto/parlance-server/gen/parlance/v1;parlancev1\xa2\x02\x03PXX\xaa\x02\vParlance.V1\xca\x02\vParlance\\V1\xe2\x02\x17Parlance\\V1\\GPBMetadata\xea\x02\fParlance::V1b\x06proto3"
 
 var (
@@ -260,25 +637,40 @@ func file_parlance_v1_account_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_account_proto_rawDescData
 }
 
-var file_parlance_v1_account_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_parlance_v1_account_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_parlance_v1_account_proto_goTypes = []any{
 	(*UpdateAccountRequest)(nil),   // 0: parlance.v1.UpdateAccountRequest
 	(*UpdateAccountResponse)(nil),  // 1: parlance.v1.UpdateAccountResponse
 	(*ChangePasswordRequest)(nil),  // 2: parlance.v1.ChangePasswordRequest
 	(*ChangePasswordResponse)(nil), // 3: parlance.v1.ChangePasswordResponse
-	(*User)(nil),                   // 4: parlance.v1.User
+	(*ApiToken)(nil),               // 4: parlance.v1.ApiToken
+	(*ListApiTokensRequest)(nil),   // 5: parlance.v1.ListApiTokensRequest
+	(*ListApiTokensResponse)(nil),  // 6: parlance.v1.ListApiTokensResponse
+	(*CreateApiTokenRequest)(nil),  // 7: parlance.v1.CreateApiTokenRequest
+	(*CreateApiTokenResponse)(nil), // 8: parlance.v1.CreateApiTokenResponse
+	(*DeleteApiTokenRequest)(nil),  // 9: parlance.v1.DeleteApiTokenRequest
+	(*DeleteApiTokenResponse)(nil), // 10: parlance.v1.DeleteApiTokenResponse
+	(*User)(nil),                   // 11: parlance.v1.User
 }
 var file_parlance_v1_account_proto_depIdxs = []int32{
-	4, // 0: parlance.v1.UpdateAccountResponse.user:type_name -> parlance.v1.User
-	0, // 1: parlance.v1.AccountService.UpdateAccount:input_type -> parlance.v1.UpdateAccountRequest
-	2, // 2: parlance.v1.AccountService.ChangePassword:input_type -> parlance.v1.ChangePasswordRequest
-	1, // 3: parlance.v1.AccountService.UpdateAccount:output_type -> parlance.v1.UpdateAccountResponse
-	3, // 4: parlance.v1.AccountService.ChangePassword:output_type -> parlance.v1.ChangePasswordResponse
-	3, // [3:5] is the sub-list for method output_type
-	1, // [1:3] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	11, // 0: parlance.v1.UpdateAccountResponse.user:type_name -> parlance.v1.User
+	4,  // 1: parlance.v1.ListApiTokensResponse.tokens:type_name -> parlance.v1.ApiToken
+	4,  // 2: parlance.v1.CreateApiTokenResponse.token:type_name -> parlance.v1.ApiToken
+	0,  // 3: parlance.v1.AccountService.UpdateAccount:input_type -> parlance.v1.UpdateAccountRequest
+	2,  // 4: parlance.v1.AccountService.ChangePassword:input_type -> parlance.v1.ChangePasswordRequest
+	5,  // 5: parlance.v1.AccountService.ListApiTokens:input_type -> parlance.v1.ListApiTokensRequest
+	7,  // 6: parlance.v1.AccountService.CreateApiToken:input_type -> parlance.v1.CreateApiTokenRequest
+	9,  // 7: parlance.v1.AccountService.DeleteApiToken:input_type -> parlance.v1.DeleteApiTokenRequest
+	1,  // 8: parlance.v1.AccountService.UpdateAccount:output_type -> parlance.v1.UpdateAccountResponse
+	3,  // 9: parlance.v1.AccountService.ChangePassword:output_type -> parlance.v1.ChangePasswordResponse
+	6,  // 10: parlance.v1.AccountService.ListApiTokens:output_type -> parlance.v1.ListApiTokensResponse
+	8,  // 11: parlance.v1.AccountService.CreateApiToken:output_type -> parlance.v1.CreateApiTokenResponse
+	10, // 12: parlance.v1.AccountService.DeleteApiToken:output_type -> parlance.v1.DeleteApiTokenResponse
+	8,  // [8:13] is the sub-list for method output_type
+	3,  // [3:8] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_account_proto_init() }
@@ -288,13 +680,14 @@ func file_parlance_v1_account_proto_init() {
 	}
 	file_parlance_v1_user_proto_init()
 	file_parlance_v1_account_proto_msgTypes[0].OneofWrappers = []any{}
+	file_parlance_v1_account_proto_msgTypes[4].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_account_proto_rawDesc), len(file_parlance_v1_account_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

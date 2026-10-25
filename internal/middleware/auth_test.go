@@ -2,11 +2,14 @@ package middleware
 
 import (
 	"context"
+	stderrors "errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"connectrpc.com/connect"
+	"github.com/kazuto/parlance-server/internal/apitoken"
 	"github.com/kazuto/parlance-server/internal/auth"
 )
 
@@ -64,7 +67,7 @@ func TestAuthMiddleware(t *testing.T) {
 			})
 
 			// Wrap with auth middleware
-			middleware := AuthMiddleware(secret)
+			middleware := AuthMiddleware(secret, nil)
 			wrappedHandler := middleware(handler)
 
 			// Create request
@@ -157,7 +160,7 @@ func TestRequireAuth(t *testing.T) {
 			})
 
 			// Wrap with RequireAuth
-			middleware := RequireAuth(secret)
+			middleware := RequireAuth(secret, nil)
 			wrappedHandler := middleware(handler)
 
 			// Create request
@@ -211,7 +214,7 @@ func TestRequireAuthWithExpiredToken(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	middleware := RequireAuth(secret)
+	middleware := RequireAuth(secret, nil)
 	wrappedHandler := middleware(handler)
 
 	req := httptest.NewRequest("GET", "/test", nil)
@@ -245,5 +248,98 @@ func TestExtractUserIDFromContext(t *testing.T) {
 	_, ok = ctx.Value(ContextKeyUserID).(string)
 	if ok {
 		t.Error("Should not find user_id in empty context")
+	}
+}
+
+// fakeTokens knows the API token "plc_good", and fails with err when set
+type fakeTokens struct {
+	calls int
+	err   error
+}
+
+func (f *fakeTokens) Authenticate(_ context.Context, secret string) (string, string, error) {
+	f.calls++
+
+	switch {
+	case f.err != nil:
+		return "", "", f.err
+	case secret != "plc_good":
+		return "", "", apitoken.ErrInvalid
+	}
+
+	return "token-1", "user-1", nil
+}
+
+func TestAPITokens(t *testing.T) {
+	secret := "test-secret"
+
+	signIn, err := auth.GenerateTokenPair("user-2", "user@example.com", secret, 15*time.Minute, time.Hour)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name     string
+		bearer   string
+		tokens   *fakeTokens
+		status   int
+		userID   string
+		viaToken bool
+	}{
+		{"API token", "plc_good", &fakeTokens{}, http.StatusOK, "user-1", true},
+		{"sign-in token", signIn.AccessToken, &fakeTokens{}, http.StatusOK, "user-2", false},
+		{"unknown API token", "plc_bad", &fakeTokens{}, http.StatusUnauthorized, "", false},
+		{"failing check", "plc_good", &fakeTokens{err: stderrors.New("database down")}, http.StatusInternalServerError, "", false},
+		{"API token without an authenticator", "plc_good", nil, http.StatusUnauthorized, "", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var userID string
+
+			var viaToken bool
+
+			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				userID = UserID(r.Context())
+				viaToken = ViaAPIToken(r.Context())
+			})
+
+			var tokens TokenAuthenticator
+			if tt.tokens != nil {
+				tokens = tt.tokens
+			}
+
+			// As the server chains them: the optional check for every request, then the
+			// required one for protected services.
+			chain := AuthMiddleware(secret, tokens)(RequireAuth(secret, tokens)(handler))
+
+			req := httptest.NewRequest("POST", "/parlance.v1.ExportService/ExportJson", nil)
+			req.Header.Set("Authorization", "Bearer "+tt.bearer)
+
+			rec := httptest.NewRecorder()
+			chain.ServeHTTP(rec, req)
+
+			if rec.Code != tt.status || userID != tt.userID || viaToken != tt.viaToken {
+				t.Errorf("status %d, user %q, via token %v; want %d, %q, %v", rec.Code, userID, viaToken, tt.status, tt.userID, tt.viaToken)
+			}
+
+			// The required check reuses the optional one's user.
+			if tt.tokens != nil && tt.status == http.StatusOK && tt.viaToken && tt.tokens.calls != 1 {
+				t.Errorf("token checked %d times, want once", tt.tokens.calls)
+			}
+		})
+	}
+}
+
+func TestRequireSignIn(t *testing.T) {
+	signedIn := context.WithValue(context.Background(), ContextKeyUserID, "user-1")
+
+	if err := RequireSignIn(signedIn); err != nil {
+		t.Errorf("signed in: %v", err)
+	}
+
+	err := RequireSignIn(context.WithValue(signedIn, ContextKeyAPIToken, "token-1"))
+	if connect.CodeOf(err) != connect.CodePermissionDenied {
+		t.Errorf("with an API token: %v, want permission denied", err)
 	}
 }

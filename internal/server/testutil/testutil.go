@@ -76,6 +76,16 @@ func SetupTestDB() (*database.DB, error) {
 			updated_at DATETIME,
 			deleted_at DATETIME
 		)`,
+		`CREATE TABLE IF NOT EXISTS api_tokens (
+			id TEXT PRIMARY KEY,
+			user_id TEXT NOT NULL,
+			name TEXT NOT NULL,
+			token_hash TEXT NOT NULL UNIQUE,
+			prefix TEXT NOT NULL,
+			last_used_at DATETIME,
+			expires_at DATETIME,
+			created_at DATETIME
+		)`,
 		`CREATE TABLE IF NOT EXISTS roles (
 			id TEXT PRIMARY KEY,
 			name TEXT NOT NULL UNIQUE,

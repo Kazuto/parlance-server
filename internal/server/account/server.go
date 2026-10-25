@@ -50,6 +50,13 @@ func (s *Server) UpdateAccount(
 	}
 
 	if req.Msg.Email != nil {
+		// A leaked API token mustn't take the account over.
+		if strings.TrimSpace(req.Msg.GetEmail()) != user.Email {
+			if err := middleware.RequireSignIn(ctx); err != nil {
+				return nil, err
+			}
+		}
+
 		if user.Email, err = s.newEmail(ctx, &user, req.Msg.GetEmail()); err != nil {
 			return nil, err
 		}
@@ -81,11 +88,15 @@ func (s *Server) UpdateAccount(
 }
 
 // ChangePassword sets the signed-in user's password, checking the current one if
-// there is one
+// there is one. It needs a sign-in, not an API token.
 func (s *Server) ChangePassword(
 	ctx context.Context,
 	req *connect.Request[pb.ChangePasswordRequest],
 ) (*connect.Response[pb.ChangePasswordResponse], error) {
+	if err := middleware.RequireSignIn(ctx); err != nil {
+		return nil, err
+	}
+
 	if req.Msg.NewPassword == "" {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "the new password must not be empty")
 	}

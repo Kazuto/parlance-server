@@ -7,6 +7,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
+	"gorm.io/gorm"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -25,7 +26,15 @@ func (s *Server) DeleteUser(
 		return nil, err
 	}
 
-	if err := common.DeleteRow(ctx, s.db.DB, &user); err != nil {
+	// Their API tokens are revoked, and don't come back if the user is restored.
+	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := common.DeleteRow(ctx, tx, &user); err != nil {
+			return err
+		}
+
+		return tx.Where("user_id = ?", user.ID).Delete(&models.APIToken{}).Error
+	})
+	if err != nil {
 		return nil, errors.Internal(errors.ErrInternal, "failed to delete user")
 	}
 

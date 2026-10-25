@@ -39,6 +39,15 @@ const (
 	// AccountServiceChangePasswordProcedure is the fully-qualified name of the AccountService's
 	// ChangePassword RPC.
 	AccountServiceChangePasswordProcedure = "/parlance.v1.AccountService/ChangePassword"
+	// AccountServiceListApiTokensProcedure is the fully-qualified name of the AccountService's
+	// ListApiTokens RPC.
+	AccountServiceListApiTokensProcedure = "/parlance.v1.AccountService/ListApiTokens"
+	// AccountServiceCreateApiTokenProcedure is the fully-qualified name of the AccountService's
+	// CreateApiToken RPC.
+	AccountServiceCreateApiTokenProcedure = "/parlance.v1.AccountService/CreateApiToken"
+	// AccountServiceDeleteApiTokenProcedure is the fully-qualified name of the AccountService's
+	// DeleteApiToken RPC.
+	AccountServiceDeleteApiTokenProcedure = "/parlance.v1.AccountService/DeleteApiToken"
 )
 
 // AccountServiceClient is a client for the parlance.v1.AccountService service.
@@ -47,6 +56,15 @@ type AccountServiceClient interface {
 	// Needs the current password, unless the account has none yet, like accounts
 	// single sign-on created.
 	ChangePassword(context.Context, *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error)
+	// API tokens let scripts and CI call the API as the user, with the user's
+	// permissions: send one as "Authorization: Bearer <token>". Managing them,
+	// changing the password and changing the email need a sign-in, not a token.
+	ListApiTokens(context.Context, *connect.Request[v1.ListApiTokensRequest]) (*connect.Response[v1.ListApiTokensResponse], error)
+	// Returns the token itself this once; only a hash of it is stored. A user has
+	// at most 50.
+	CreateApiToken(context.Context, *connect.Request[v1.CreateApiTokenRequest]) (*connect.Response[v1.CreateApiTokenResponse], error)
+	// Revokes the token at once.
+	DeleteApiToken(context.Context, *connect.Request[v1.DeleteApiTokenRequest]) (*connect.Response[v1.DeleteApiTokenResponse], error)
 }
 
 // NewAccountServiceClient constructs a client for the parlance.v1.AccountService service. By
@@ -72,6 +90,24 @@ func NewAccountServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(accountServiceMethods.ByName("ChangePassword")),
 			connect.WithClientOptions(opts...),
 		),
+		listApiTokens: connect.NewClient[v1.ListApiTokensRequest, v1.ListApiTokensResponse](
+			httpClient,
+			baseURL+AccountServiceListApiTokensProcedure,
+			connect.WithSchema(accountServiceMethods.ByName("ListApiTokens")),
+			connect.WithClientOptions(opts...),
+		),
+		createApiToken: connect.NewClient[v1.CreateApiTokenRequest, v1.CreateApiTokenResponse](
+			httpClient,
+			baseURL+AccountServiceCreateApiTokenProcedure,
+			connect.WithSchema(accountServiceMethods.ByName("CreateApiToken")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteApiToken: connect.NewClient[v1.DeleteApiTokenRequest, v1.DeleteApiTokenResponse](
+			httpClient,
+			baseURL+AccountServiceDeleteApiTokenProcedure,
+			connect.WithSchema(accountServiceMethods.ByName("DeleteApiToken")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -79,6 +115,9 @@ func NewAccountServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 type accountServiceClient struct {
 	updateAccount  *connect.Client[v1.UpdateAccountRequest, v1.UpdateAccountResponse]
 	changePassword *connect.Client[v1.ChangePasswordRequest, v1.ChangePasswordResponse]
+	listApiTokens  *connect.Client[v1.ListApiTokensRequest, v1.ListApiTokensResponse]
+	createApiToken *connect.Client[v1.CreateApiTokenRequest, v1.CreateApiTokenResponse]
+	deleteApiToken *connect.Client[v1.DeleteApiTokenRequest, v1.DeleteApiTokenResponse]
 }
 
 // UpdateAccount calls parlance.v1.AccountService.UpdateAccount.
@@ -91,12 +130,36 @@ func (c *accountServiceClient) ChangePassword(ctx context.Context, req *connect.
 	return c.changePassword.CallUnary(ctx, req)
 }
 
+// ListApiTokens calls parlance.v1.AccountService.ListApiTokens.
+func (c *accountServiceClient) ListApiTokens(ctx context.Context, req *connect.Request[v1.ListApiTokensRequest]) (*connect.Response[v1.ListApiTokensResponse], error) {
+	return c.listApiTokens.CallUnary(ctx, req)
+}
+
+// CreateApiToken calls parlance.v1.AccountService.CreateApiToken.
+func (c *accountServiceClient) CreateApiToken(ctx context.Context, req *connect.Request[v1.CreateApiTokenRequest]) (*connect.Response[v1.CreateApiTokenResponse], error) {
+	return c.createApiToken.CallUnary(ctx, req)
+}
+
+// DeleteApiToken calls parlance.v1.AccountService.DeleteApiToken.
+func (c *accountServiceClient) DeleteApiToken(ctx context.Context, req *connect.Request[v1.DeleteApiTokenRequest]) (*connect.Response[v1.DeleteApiTokenResponse], error) {
+	return c.deleteApiToken.CallUnary(ctx, req)
+}
+
 // AccountServiceHandler is an implementation of the parlance.v1.AccountService service.
 type AccountServiceHandler interface {
 	UpdateAccount(context.Context, *connect.Request[v1.UpdateAccountRequest]) (*connect.Response[v1.UpdateAccountResponse], error)
 	// Needs the current password, unless the account has none yet, like accounts
 	// single sign-on created.
 	ChangePassword(context.Context, *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error)
+	// API tokens let scripts and CI call the API as the user, with the user's
+	// permissions: send one as "Authorization: Bearer <token>". Managing them,
+	// changing the password and changing the email need a sign-in, not a token.
+	ListApiTokens(context.Context, *connect.Request[v1.ListApiTokensRequest]) (*connect.Response[v1.ListApiTokensResponse], error)
+	// Returns the token itself this once; only a hash of it is stored. A user has
+	// at most 50.
+	CreateApiToken(context.Context, *connect.Request[v1.CreateApiTokenRequest]) (*connect.Response[v1.CreateApiTokenResponse], error)
+	// Revokes the token at once.
+	DeleteApiToken(context.Context, *connect.Request[v1.DeleteApiTokenRequest]) (*connect.Response[v1.DeleteApiTokenResponse], error)
 }
 
 // NewAccountServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -118,12 +181,36 @@ func NewAccountServiceHandler(svc AccountServiceHandler, opts ...connect.Handler
 		connect.WithSchema(accountServiceMethods.ByName("ChangePassword")),
 		connect.WithHandlerOptions(opts...),
 	)
+	accountServiceListApiTokensHandler := connect.NewUnaryHandler(
+		AccountServiceListApiTokensProcedure,
+		svc.ListApiTokens,
+		connect.WithSchema(accountServiceMethods.ByName("ListApiTokens")),
+		connect.WithHandlerOptions(opts...),
+	)
+	accountServiceCreateApiTokenHandler := connect.NewUnaryHandler(
+		AccountServiceCreateApiTokenProcedure,
+		svc.CreateApiToken,
+		connect.WithSchema(accountServiceMethods.ByName("CreateApiToken")),
+		connect.WithHandlerOptions(opts...),
+	)
+	accountServiceDeleteApiTokenHandler := connect.NewUnaryHandler(
+		AccountServiceDeleteApiTokenProcedure,
+		svc.DeleteApiToken,
+		connect.WithSchema(accountServiceMethods.ByName("DeleteApiToken")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/parlance.v1.AccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AccountServiceUpdateAccountProcedure:
 			accountServiceUpdateAccountHandler.ServeHTTP(w, r)
 		case AccountServiceChangePasswordProcedure:
 			accountServiceChangePasswordHandler.ServeHTTP(w, r)
+		case AccountServiceListApiTokensProcedure:
+			accountServiceListApiTokensHandler.ServeHTTP(w, r)
+		case AccountServiceCreateApiTokenProcedure:
+			accountServiceCreateApiTokenHandler.ServeHTTP(w, r)
+		case AccountServiceDeleteApiTokenProcedure:
+			accountServiceDeleteApiTokenHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -139,4 +226,16 @@ func (UnimplementedAccountServiceHandler) UpdateAccount(context.Context, *connec
 
 func (UnimplementedAccountServiceHandler) ChangePassword(context.Context, *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.AccountService.ChangePassword is not implemented"))
+}
+
+func (UnimplementedAccountServiceHandler) ListApiTokens(context.Context, *connect.Request[v1.ListApiTokensRequest]) (*connect.Response[v1.ListApiTokensResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.AccountService.ListApiTokens is not implemented"))
+}
+
+func (UnimplementedAccountServiceHandler) CreateApiToken(context.Context, *connect.Request[v1.CreateApiTokenRequest]) (*connect.Response[v1.CreateApiTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.AccountService.CreateApiToken is not implemented"))
+}
+
+func (UnimplementedAccountServiceHandler) DeleteApiToken(context.Context, *connect.Request[v1.DeleteApiTokenRequest]) (*connect.Response[v1.DeleteApiTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.AccountService.DeleteApiToken is not implemented"))
 }

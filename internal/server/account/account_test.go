@@ -52,6 +52,9 @@ func TestAnyoneSignedInMayManageTheirAccount(t *testing.T) {
 	for _, procedure := range []string{
 		parlancev1connect.AccountServiceUpdateAccountProcedure,
 		parlancev1connect.AccountServiceChangePasswordProcedure,
+		parlancev1connect.AccountServiceListApiTokensProcedure,
+		parlancev1connect.AccountServiceCreateApiTokenProcedure,
+		parlancev1connect.AccountServiceDeleteApiTokenProcedure,
 	} {
 		if _, err := rbac.Authorize(ctx, server.db, procedure); err != nil {
 			t.Errorf("%s: %v, want it allowed without permissions", procedure, err)
