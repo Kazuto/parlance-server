@@ -111,6 +111,7 @@ Table localizations {
     created_by
     updated_by
     locale_id // where outdated_at is not null and deleted_at is null
+    translation // gin trigram index (pg_trgm) where deleted_at is null, for the translation memory
   }
 }
 

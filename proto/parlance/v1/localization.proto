@@ -17,6 +17,9 @@ service LocalizationService {
   rpc BatchTranslate(BatchTranslateRequest) returns (BatchTranslateResponse);
   // Approves or rejects translations, picked by id or by entry and locale.
   rpc ReviewLocalizations(ReviewLocalizationsRequest) returns (ReviewLocalizationsResponse);
+  // Finds approved, current translations of entries whose default text is like the
+  // given one: the translation memory.
+  rpc SearchTranslationMemory(SearchTranslationMemoryRequest) returns (SearchTranslationMemoryResponse);
 }
 
 message Localization {
@@ -154,4 +157,34 @@ message ReviewLocalizationsRequest {
 
 message ReviewLocalizationsResponse {
   repeated Localization localizations = 1;
+}
+
+message SearchTranslationMemoryRequest {
+  // A default-locale text, e.g. the one being edited with unsaved changes. Texts
+  // shorter than 3 or longer than 2000 characters find nothing.
+  string source_text = 1;
+  // The locale of the translations to find; not the default locale.
+  string target_locale_id = 2;
+  // Optional: leave out this entry, e.g. the one being edited.
+  string exclude_entry_id = 3;
+  // At most this many matches: 5 when unset, never more than 20.
+  int32 limit = 4;
+}
+
+message TranslationMemoryMatch {
+  string entry_id = 1;
+  string key = 2;
+  // The entry's default-locale text.
+  string source_text = 3;
+  // Its approved translation in the target locale.
+  string translation = 4;
+  // How alike source_text is to the searched text, from 0.6 to 1: the share of
+  // characters that stay when editing one into the other, ignoring case.
+  float similarity = 5;
+}
+
+message SearchTranslationMemoryResponse {
+  // The most similar first. A source text with the same translation in several
+  // entries is listed once, with the first key.
+  repeated TranslationMemoryMatch matches = 1;
 }

@@ -37,6 +37,12 @@ func SetupPostgresDB(t *testing.T) *database.DB {
 		t.Fatalf("create uuid extension: %v", err)
 	}
 
+	// Created here, in public: the migration would otherwise put it in the test's
+	// schema, and dropping that schema would drop it for every other test.
+	if err := admin.Exec(`CREATE EXTENSION IF NOT EXISTS pg_trgm`).Error; err != nil {
+		t.Fatalf("create pg_trgm extension: %v", err)
+	}
+
 	schema := "test_" + strings.ReplaceAll(uuid.New().String(), "-", "")
 	if err := admin.Exec("CREATE SCHEMA " + schema).Error; err != nil {
 		t.Fatalf("create schema: %v", err)

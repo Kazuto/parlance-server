@@ -70,6 +70,11 @@ func (db *DB) AutoMigrate() error {
 		return fmt.Errorf("failed to create uuid extension: %w", err)
 	}
 
+	// Trigram similarity finds translations of similar texts for the translation memory
+	if err := db.Exec("CREATE EXTENSION IF NOT EXISTS pg_trgm").Error; err != nil {
+		return fmt.Errorf("failed to create pg_trgm extension: %w", err)
+	}
+
 	// Translations from before review states were added count as approved; new
 	// rows start as drafts.
 	reviewed := []any{&models.Localization{}, &models.Definition{}}
@@ -120,6 +125,9 @@ func (db *DB) AutoMigrate() error {
 	// Add unique constraints that GORM doesn't handle well
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_locales_default ON locales (is_default) WHERE is_default = true AND deleted_at IS NULL")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_localizations_entry_locale ON localizations (entry_id, locale_id) WHERE deleted_at IS NULL")
+	// The translation memory compares default texts by their trigrams. Built without
+	// CONCURRENTLY: a failed build would leave an invalid index that IF NOT EXISTS skips.
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_localizations_translation_trgm ON localizations USING gin (translation gin_trgm_ops) WHERE deleted_at IS NULL")
 	// Outdated translations are few; the filter and the stats count them per locale.
 	db.Exec("CREATE INDEX IF NOT EXISTS idx_localizations_outdated ON localizations (locale_id) WHERE outdated_at IS NOT NULL AND deleted_at IS NULL")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_definitions_term_locale ON definitions (terminology_id, locale_id) WHERE deleted_at IS NULL")

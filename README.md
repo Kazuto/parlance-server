@@ -36,6 +36,11 @@ Version tags publish the image `ghcr.io/kazuto/parlance-api`, which runs the API
 port 8080. It needs PostgreSQL and S3-compatible storage, configured with the
 variables below.
 
+PostgreSQL must be version 13 or later and offer the `pg_trgm` extension, as the
+official images do; the translation memory compares texts with it. The API creates
+the extension on start, which needs the `CREATE` privilege on the database; the
+database's owner has it. Without it, the API does not start.
+
 ## Configuration
 
 Set these as environment variables or in a `.env` file (see `.env.example`):
@@ -354,11 +359,17 @@ relations are saved in one transaction.
 
 ### Entry translation filters
 
-`ListEntries` accepts `scopeIds`, `translationStatus` (`missing` or `complete`) and
-`targetLocaleIds`. Status is evaluated before pagination against active, non-empty
-saved translations. Missing means at least one target language lacks a
-translation; complete means none do. An empty target list checks all active
-locales. Omit `translationStatus` to include entries regardless of status.
+`ListEntries` accepts `scopeIds`, `translationStatus` and `targetLocaleIds`. Status
+is evaluated before pagination against active, non-empty saved translations:
+
+- `missing`: at least one target language lacks a translation.
+- `complete`: none do.
+- `review`: at least one translation is a draft awaiting approval.
+- `outdated`: at least one translation's default text changed since it was written
+  or approved.
+
+An empty target list checks all active locales. Omit `translationStatus` to include
+entries regardless of status.
 
 ### Import and export
 

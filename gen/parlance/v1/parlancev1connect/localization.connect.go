@@ -60,6 +60,9 @@ const (
 	// LocalizationServiceReviewLocalizationsProcedure is the fully-qualified name of the
 	// LocalizationService's ReviewLocalizations RPC.
 	LocalizationServiceReviewLocalizationsProcedure = "/parlance.v1.LocalizationService/ReviewLocalizations"
+	// LocalizationServiceSearchTranslationMemoryProcedure is the fully-qualified name of the
+	// LocalizationService's SearchTranslationMemory RPC.
+	LocalizationServiceSearchTranslationMemoryProcedure = "/parlance.v1.LocalizationService/SearchTranslationMemory"
 )
 
 // LocalizationServiceClient is a client for the parlance.v1.LocalizationService service.
@@ -75,6 +78,9 @@ type LocalizationServiceClient interface {
 	BatchTranslate(context.Context, *connect.Request[v1.BatchTranslateRequest]) (*connect.Response[v1.BatchTranslateResponse], error)
 	// Approves or rejects translations, picked by id or by entry and locale.
 	ReviewLocalizations(context.Context, *connect.Request[v1.ReviewLocalizationsRequest]) (*connect.Response[v1.ReviewLocalizationsResponse], error)
+	// Finds approved, current translations of entries whose default text is like the
+	// given one: the translation memory.
+	SearchTranslationMemory(context.Context, *connect.Request[v1.SearchTranslationMemoryRequest]) (*connect.Response[v1.SearchTranslationMemoryResponse], error)
 }
 
 // NewLocalizationServiceClient constructs a client for the parlance.v1.LocalizationService service.
@@ -142,20 +148,27 @@ func NewLocalizationServiceClient(httpClient connect.HTTPClient, baseURL string,
 			connect.WithSchema(localizationServiceMethods.ByName("ReviewLocalizations")),
 			connect.WithClientOptions(opts...),
 		),
+		searchTranslationMemory: connect.NewClient[v1.SearchTranslationMemoryRequest, v1.SearchTranslationMemoryResponse](
+			httpClient,
+			baseURL+LocalizationServiceSearchTranslationMemoryProcedure,
+			connect.WithSchema(localizationServiceMethods.ByName("SearchTranslationMemory")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // localizationServiceClient implements LocalizationServiceClient.
 type localizationServiceClient struct {
-	listLocalizations   *connect.Client[v1.ListLocalizationsRequest, v1.ListLocalizationsResponse]
-	getLocalization     *connect.Client[v1.GetLocalizationRequest, v1.GetLocalizationResponse]
-	createLocalization  *connect.Client[v1.CreateLocalizationRequest, v1.CreateLocalizationResponse]
-	updateLocalization  *connect.Client[v1.UpdateLocalizationRequest, v1.UpdateLocalizationResponse]
-	deleteLocalization  *connect.Client[v1.DeleteLocalizationRequest, v1.DeleteLocalizationResponse]
-	restoreLocalization *connect.Client[v1.RestoreLocalizationRequest, v1.RestoreLocalizationResponse]
-	suggestTranslations *connect.Client[v1.SuggestTranslationsRequest, v1.SuggestTranslationsResponse]
-	batchTranslate      *connect.Client[v1.BatchTranslateRequest, v1.BatchTranslateResponse]
-	reviewLocalizations *connect.Client[v1.ReviewLocalizationsRequest, v1.ReviewLocalizationsResponse]
+	listLocalizations       *connect.Client[v1.ListLocalizationsRequest, v1.ListLocalizationsResponse]
+	getLocalization         *connect.Client[v1.GetLocalizationRequest, v1.GetLocalizationResponse]
+	createLocalization      *connect.Client[v1.CreateLocalizationRequest, v1.CreateLocalizationResponse]
+	updateLocalization      *connect.Client[v1.UpdateLocalizationRequest, v1.UpdateLocalizationResponse]
+	deleteLocalization      *connect.Client[v1.DeleteLocalizationRequest, v1.DeleteLocalizationResponse]
+	restoreLocalization     *connect.Client[v1.RestoreLocalizationRequest, v1.RestoreLocalizationResponse]
+	suggestTranslations     *connect.Client[v1.SuggestTranslationsRequest, v1.SuggestTranslationsResponse]
+	batchTranslate          *connect.Client[v1.BatchTranslateRequest, v1.BatchTranslateResponse]
+	reviewLocalizations     *connect.Client[v1.ReviewLocalizationsRequest, v1.ReviewLocalizationsResponse]
+	searchTranslationMemory *connect.Client[v1.SearchTranslationMemoryRequest, v1.SearchTranslationMemoryResponse]
 }
 
 // ListLocalizations calls parlance.v1.LocalizationService.ListLocalizations.
@@ -203,6 +216,11 @@ func (c *localizationServiceClient) ReviewLocalizations(ctx context.Context, req
 	return c.reviewLocalizations.CallUnary(ctx, req)
 }
 
+// SearchTranslationMemory calls parlance.v1.LocalizationService.SearchTranslationMemory.
+func (c *localizationServiceClient) SearchTranslationMemory(ctx context.Context, req *connect.Request[v1.SearchTranslationMemoryRequest]) (*connect.Response[v1.SearchTranslationMemoryResponse], error) {
+	return c.searchTranslationMemory.CallUnary(ctx, req)
+}
+
 // LocalizationServiceHandler is an implementation of the parlance.v1.LocalizationService service.
 type LocalizationServiceHandler interface {
 	ListLocalizations(context.Context, *connect.Request[v1.ListLocalizationsRequest]) (*connect.Response[v1.ListLocalizationsResponse], error)
@@ -216,6 +234,9 @@ type LocalizationServiceHandler interface {
 	BatchTranslate(context.Context, *connect.Request[v1.BatchTranslateRequest]) (*connect.Response[v1.BatchTranslateResponse], error)
 	// Approves or rejects translations, picked by id or by entry and locale.
 	ReviewLocalizations(context.Context, *connect.Request[v1.ReviewLocalizationsRequest]) (*connect.Response[v1.ReviewLocalizationsResponse], error)
+	// Finds approved, current translations of entries whose default text is like the
+	// given one: the translation memory.
+	SearchTranslationMemory(context.Context, *connect.Request[v1.SearchTranslationMemoryRequest]) (*connect.Response[v1.SearchTranslationMemoryResponse], error)
 }
 
 // NewLocalizationServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -279,6 +300,12 @@ func NewLocalizationServiceHandler(svc LocalizationServiceHandler, opts ...conne
 		connect.WithSchema(localizationServiceMethods.ByName("ReviewLocalizations")),
 		connect.WithHandlerOptions(opts...),
 	)
+	localizationServiceSearchTranslationMemoryHandler := connect.NewUnaryHandler(
+		LocalizationServiceSearchTranslationMemoryProcedure,
+		svc.SearchTranslationMemory,
+		connect.WithSchema(localizationServiceMethods.ByName("SearchTranslationMemory")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/parlance.v1.LocalizationService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case LocalizationServiceListLocalizationsProcedure:
@@ -299,6 +326,8 @@ func NewLocalizationServiceHandler(svc LocalizationServiceHandler, opts ...conne
 			localizationServiceBatchTranslateHandler.ServeHTTP(w, r)
 		case LocalizationServiceReviewLocalizationsProcedure:
 			localizationServiceReviewLocalizationsHandler.ServeHTTP(w, r)
+		case LocalizationServiceSearchTranslationMemoryProcedure:
+			localizationServiceSearchTranslationMemoryHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -342,4 +371,8 @@ func (UnimplementedLocalizationServiceHandler) BatchTranslate(context.Context, *
 
 func (UnimplementedLocalizationServiceHandler) ReviewLocalizations(context.Context, *connect.Request[v1.ReviewLocalizationsRequest]) (*connect.Response[v1.ReviewLocalizationsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.LocalizationService.ReviewLocalizations is not implemented"))
+}
+
+func (UnimplementedLocalizationServiceHandler) SearchTranslationMemory(context.Context, *connect.Request[v1.SearchTranslationMemoryRequest]) (*connect.Response[v1.SearchTranslationMemoryResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.LocalizationService.SearchTranslationMemory is not implemented"))
 }
