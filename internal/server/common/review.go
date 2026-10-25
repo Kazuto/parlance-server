@@ -35,6 +35,9 @@ type ReviewSelection struct {
 	Webhooks bool
 	// Leave approved rows out when rejecting too, so only drafts are sent back
 	SkipApproved bool
+	// Also approve approved rows that are outdated, confirming they still fit their
+	// source text; only for rows with an outdated_at column
+	ConfirmOutdated bool
 }
 
 // ValidateReview checks a review request before rows are loaded
@@ -62,7 +65,8 @@ func ValidateReview(selection ReviewSelection, decision pb.ReviewDecision, comme
 
 // ReviewRows loads the selected rows and approves or rejects them in one transaction,
 // recording each review in their history. Rows that don't exist, and approved rows when
-// approving or with SkipApproved, are skipped.
+// approving or with SkipApproved, are skipped; ConfirmOutdated approves the outdated
+// ones of those again. Approving a row clears its outdated mark.
 func ReviewRows[T any, P interface {
 	*T
 	Reviewable
@@ -88,8 +92,12 @@ func ReviewRows[T any, P interface {
 			query = query.Where(selection.ParentColumn+" IN ? AND locale_id IN ?", parentIDs, selection.LocaleIDs)
 		}
 
-		// Approving leaves approved rows as they are, so their reviewer and history stay.
-		if decision == pb.ReviewDecision_REVIEW_DECISION_APPROVE || selection.SkipApproved {
+		// Approving leaves approved rows as they are, so their reviewer and history stay,
+		// unless it confirms they still fit their changed source text.
+		switch {
+		case decision == pb.ReviewDecision_REVIEW_DECISION_APPROVE && selection.ConfirmOutdated:
+			query = query.Where("(status = ? OR outdated_at IS NOT NULL)", models.StatusDraft)
+		case decision == pb.ReviewDecision_REVIEW_DECISION_APPROVE || selection.SkipApproved:
 			query = query.Where("status = ?", models.StatusDraft)
 		}
 
@@ -111,14 +119,22 @@ func ReviewRows[T any, P interface {
 		for i := range rows {
 			row := P(&rows[i])
 			review := row.ReviewState()
+			columns := []any{"reviewed_by", "reviewed_at", "review_comment", "updated_at"}
 
 			if action == models.ActionApproved {
 				review.Approve(reviewer, now)
+
+				// The reviewer accepts the text for the source text as it is now.
+				if outdated, ok := any(row).(outdatable); ok {
+					outdated.ClearOutdated()
+
+					columns = append(columns, "outdated_at")
+				}
 			} else {
 				review.Reject(reviewer, now, strings.TrimSpace(comment))
 			}
 
-			if err := save.Model(row).Select("status", "reviewed_by", "reviewed_at", "review_comment", "updated_at").Updates(row).Error; err != nil {
+			if err := save.Model(row).Select("status", columns...).Updates(row).Error; err != nil {
 				return err
 			}
 

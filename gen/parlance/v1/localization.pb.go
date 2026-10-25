@@ -37,6 +37,12 @@ type Localization struct {
 	ReviewedAt  string                 `protobuf:"bytes,12,opt,name=reviewed_at,json=reviewedAt,proto3" json:"reviewed_at,omitempty"`
 	// Why a reviewer sent the translation back; cleared once it is approved.
 	ReviewComment string `protobuf:"bytes,13,opt,name=review_comment,json=reviewComment,proto3" json:"review_comment,omitempty"`
+	// The default locale's text changed since this one was written or approved; editing
+	// or approving it clears this.
+	Outdated bool `protobuf:"varint,14,opt,name=outdated,proto3" json:"outdated,omitempty"`
+	// When the default text first changed, in RFC 3339 with fractions of a second; pass
+	// it as GetEntryHistory's before to get the default text this one was based on.
+	OutdatedAt    string `protobuf:"bytes,15,opt,name=outdated_at,json=outdatedAt,proto3" json:"outdated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -158,6 +164,20 @@ func (x *Localization) GetReviewedAt() string {
 func (x *Localization) GetReviewComment() string {
 	if x != nil {
 		return x.ReviewComment
+	}
+	return ""
+}
+
+func (x *Localization) GetOutdated() bool {
+	if x != nil {
+		return x.Outdated
+	}
+	return false
+}
+
+func (x *Localization) GetOutdatedAt() string {
+	if x != nil {
+		return x.OutdatedAt
 	}
 	return ""
 }
@@ -1100,9 +1120,12 @@ type ReviewLocalizationsRequest struct {
 	// Required when rejecting: what should change.
 	Comment string `protobuf:"bytes,5,opt,name=comment,proto3" json:"comment,omitempty"`
 	// Leave approved translations as they are, so rejecting only sends drafts back.
-	SkipApproved  bool `protobuf:"varint,6,opt,name=skip_approved,json=skipApproved,proto3" json:"skip_approved,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	SkipApproved bool `protobuf:"varint,6,opt,name=skip_approved,json=skipApproved,proto3" json:"skip_approved,omitempty"`
+	// When approving, also approve outdated translations that are approved already,
+	// confirming they still fit the default text. Otherwise they are skipped.
+	ConfirmOutdated bool `protobuf:"varint,7,opt,name=confirm_outdated,json=confirmOutdated,proto3" json:"confirm_outdated,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *ReviewLocalizationsRequest) Reset() {
@@ -1177,6 +1200,13 @@ func (x *ReviewLocalizationsRequest) GetSkipApproved() bool {
 	return false
 }
 
+func (x *ReviewLocalizationsRequest) GetConfirmOutdated() bool {
+	if x != nil {
+		return x.ConfirmOutdated
+	}
+	return false
+}
+
 type ReviewLocalizationsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Localizations []*Localization        `protobuf:"bytes,1,rep,name=localizations,proto3" json:"localizations,omitempty"`
@@ -1225,7 +1255,7 @@ var File_parlance_v1_localization_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\n" +
-	"\x1eparlance/v1/localization.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\xaf\x03\n" +
+	"\x1eparlance/v1/localization.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\xec\x03\n" +
 	"\fLocalization\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bentry_id\x18\x02 \x01(\tR\aentryId\x12\x1b\n" +
@@ -1247,7 +1277,10 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"reviewedBy\x12\x1f\n" +
 	"\vreviewed_at\x18\f \x01(\tR\n" +
 	"reviewedAt\x12%\n" +
-	"\x0ereview_comment\x18\r \x01(\tR\rreviewComment\"\xa9\x01\n" +
+	"\x0ereview_comment\x18\r \x01(\tR\rreviewComment\x12\x1a\n" +
+	"\boutdated\x18\x0e \x01(\bR\boutdated\x12\x1f\n" +
+	"\voutdated_at\x18\x0f \x01(\tR\n" +
+	"outdatedAt\"\xa9\x01\n" +
 	"\x18ListLocalizationsRequest\x12\x19\n" +
 	"\bentry_id\x18\x01 \x01(\tR\aentryId\x12>\n" +
 	"\n" +
@@ -1305,7 +1338,7 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\rlocalizations\x18\x01 \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations\x12#\n" +
 	"\rsuccess_count\x18\x02 \x01(\x05R\fsuccessCount\x12#\n" +
 	"\rfailure_count\x18\x03 \x01(\x05R\ffailureCount\x12#\n" +
-	"\rskipped_count\x18\x04 \x01(\x05R\fskippedCount\"\xfb\x01\n" +
+	"\rskipped_count\x18\x04 \x01(\x05R\fskippedCount\"\xa6\x02\n" +
 	"\x1aReviewLocalizationsRequest\x12)\n" +
 	"\x10localization_ids\x18\x01 \x03(\tR\x0flocalizationIds\x12\x1b\n" +
 	"\tentry_ids\x18\x02 \x03(\tR\bentryIds\x12\x1d\n" +
@@ -1313,7 +1346,8 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"locale_ids\x18\x03 \x03(\tR\tlocaleIds\x127\n" +
 	"\bdecision\x18\x04 \x01(\x0e2\x1b.parlance.v1.ReviewDecisionR\bdecision\x12\x18\n" +
 	"\acomment\x18\x05 \x01(\tR\acomment\x12#\n" +
-	"\rskip_approved\x18\x06 \x01(\bR\fskipApproved\"^\n" +
+	"\rskip_approved\x18\x06 \x01(\bR\fskipApproved\x12)\n" +
+	"\x10confirm_outdated\x18\a \x01(\bR\x0fconfirmOutdated\"^\n" +
 	"\x1bReviewLocalizationsResponse\x12?\n" +
 	"\rlocalizations\x18\x01 \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations2\xa5\a\n" +
 	"\x13LocalizationService\x12b\n" +

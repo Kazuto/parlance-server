@@ -2,6 +2,7 @@ package localization
 
 import (
 	"context"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
@@ -43,20 +44,27 @@ func (s *Server) UpdateLocalization(
 		}), nil
 	}
 
-	// New text needs review again
+	// New text needs review again, and is written for the default text as it is now
 	changed := req.Msg.Translation != nil && req.Msg.GetTranslation() != localization.Translation
 	if changed {
 		localization.Translation = req.Msg.GetTranslation()
 		localization.MarkDraft()
+		localization.ClearOutdated()
 	}
 
 	if err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		at := time.Now()
+
 		if err := tx.Save(&localization).Error; err != nil {
 			return err
 		}
 
 		if !changed {
 			return nil
+		}
+
+		if err := outdateOthers(tx, &localization, at); err != nil {
+			return err
 		}
 
 		return webhook.EmitTranslations(tx, models.WebhookEventTranslationsAwaitingApproval, []string{localization.ID}, localization.UpdatedBy, nil)
@@ -67,4 +75,17 @@ func (s *Server) UpdateLocalization(
 	return connect.NewResponse(&pb.UpdateLocalizationResponse{
 		Localization: converter.LocalizationToProto(&localization),
 	}), nil
+}
+
+// outdateOthers marks the entry's other translations outdated when the localization is
+// the default locale's text, which changed at the given time.
+func outdateOthers(tx *gorm.DB, localization *models.Localization, at time.Time) error {
+	defaultLocale, err := common.DefaultLocale(tx)
+	if err != nil || defaultLocale == nil || defaultLocale.ID != localization.LocaleID {
+		return err
+	}
+
+	_, err = common.MarkOutdated(tx, []string{localization.EntryID}, defaultLocale.ID, at)
+
+	return err
 }

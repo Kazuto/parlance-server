@@ -35,6 +35,16 @@ func formatTime(t *time.Time) string {
 	return t.Format(time.RFC3339)
 }
 
+// formatPreciseTime formats an optional time as RFC 3339 with fractions of a second,
+// for times clients filter by, or returns "" without one
+func formatPreciseTime(t *time.Time) string {
+	if t == nil {
+		return ""
+	}
+
+	return t.Format(time.RFC3339Nano)
+}
+
 // ReviewStatusToProto maps a stored review status to its proto value
 func ReviewStatusToProto(status string) pb.ReviewStatus {
 	switch status {

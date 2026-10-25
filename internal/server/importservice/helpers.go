@@ -28,6 +28,18 @@ type importPlan struct {
 	entriesToAddScopes    []*models.Entry
 	// changedEntryIDs holds the entries whose translation the import changes, by id.
 	changedEntryIDs map[string]bool
+	// outdatingEntryIDs holds the existing entries whose default text the import changes
+	// or adds, which makes their other translations outdated.
+	outdatingEntryIDs []string
+}
+
+// importTarget is the locale an import writes to
+type importTarget struct {
+	localeID string
+	// Whether it is the default locale, whose changes outdate the other translations
+	source bool
+	// The translations REPLACE_ALL deleted before importing, by entry id
+	replaced map[string]models.Localization
 }
 
 // processImport handles the common import logic for all formats. All reads and writes,
@@ -47,7 +59,11 @@ func (s *Server) processImport(
 	result := &pb.ImportResult{Errors: []*pb.ImportError{}}
 
 	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.First(&models.Locale{}, "id = ?", localeID).Error; err != nil {
+		// Taken before any change, so the default texts' history rows come after it
+		at := time.Now()
+
+		var locale models.Locale
+		if err := tx.First(&locale, "id = ?", localeID).Error; err != nil {
 			if stderrors.Is(err, gorm.ErrRecordNotFound) {
 				return errors.NotFound(errors.ErrLocaleNotFound, "locale not found")
 			}
@@ -60,18 +76,24 @@ func (s *Server) processImport(
 			return err
 		}
 
+		target := importTarget{localeID: localeID, source: locale.IsDefault}
+
 		if options.mode == pb.ImportMode_IMPORT_MODE_REPLACE_ALL && len(scopeIDs) > 0 {
-			if err := deleteScopeLocalizations(tx, userID, localeID, scopeIDs); err != nil {
+			if target.replaced, err = deleteScopeLocalizations(tx, userID, localeID, scopeIDs); err != nil {
 				return err
 			}
 		}
 
-		plan, err := planImport(tx, result, userID, localeID, translations, options, len(scopes) > 0)
+		plan, err := planImport(tx, result, userID, target, translations, options, len(scopes) > 0)
 		if err != nil {
 			return err
 		}
 
 		if err := applyImport(tx, result, plan, scopes, userID, localeID, translations, options); err != nil {
+			return err
+		}
+
+		if _, err := common.MarkOutdated(tx, plan.outdatingEntryIDs, localeID, at); err != nil {
 			return err
 		}
 
@@ -91,31 +113,37 @@ func (s *Server) processImport(
 }
 
 // deleteScopeLocalizations removes the locale's translations of all entries in the scopes,
-// one row at a time so each deletion is recorded in the history with its author.
-func deleteScopeLocalizations(tx *gorm.DB, userID, localeID string, scopeIDs []string) error {
+// one row at a time so each deletion is recorded in the history with its author. Returns
+// the deleted translations by entry id.
+func deleteScopeLocalizations(tx *gorm.DB, userID, localeID string, scopeIDs []string) (map[string]models.Localization, error) {
 	var localizations []models.Localization
 	if err := tx.
 		Where("locale_id = ?", localeID).
 		Where("entry_id IN (?)", tx.Table("entry_scopes").Select("entry_id").Where("scope_id IN ?", scopeIDs)).
 		Find(&localizations).Error; err != nil {
-		return err
+		return nil, err
 	}
+
+	replaced := make(map[string]models.Localization, len(localizations))
 
 	for i := range localizations {
 		localizations[i].UpdatedBy = &userID // credited in the deletion's history row
 		if err := tx.Delete(&localizations[i]).Error; err != nil {
-			return err
+			return nil, err
 		}
+
+		replaced[localizations[i].EntryID] = localizations[i]
 	}
 
-	return nil
+	return replaced, nil
 }
 
 // planImport sorts the translations into creates, updates and skips according to the mode
 func planImport(
 	tx *gorm.DB,
 	result *pb.ImportResult,
-	userID, localeID string,
+	userID string,
+	target importTarget,
 	translations map[string]string,
 	options importOptions,
 	hasScopes bool,
@@ -140,7 +168,7 @@ func planImport(
 
 	var existingLocalizations []models.Localization
 	if len(entryIDs) > 0 {
-		if err := tx.Where("entry_id IN ? AND locale_id = ?", entryIDs, localeID).
+		if err := tx.Where("entry_id IN ? AND locale_id = ?", entryIDs, target.localeID).
 			Find(&existingLocalizations).Error; err != nil {
 			return nil, err
 		}
@@ -180,29 +208,50 @@ func planImport(
 		}
 
 		if localization, ok := localizationMap[entry.ID]; ok {
-			// Unchanged text keeps its review state, unless the import approves it
+			// Unchanged text keeps its review state, unless the import approves it. Changed
+			// or approved text is written for the default text as it is now.
 			if localization.Translation != value {
 				localization.Translation = value
 				localization.MarkDraft()
+				localization.ClearOutdated()
 
 				plan.changedEntryIDs[entry.ID] = true
+				if target.source {
+					plan.outdatingEntryIDs = append(plan.outdatingEntryIDs, entry.ID)
+				}
 			}
 
 			if options.approve {
 				localization.Approve(&userID, time.Now())
+				localization.ClearOutdated()
 			}
 
 			localization.UpdatedBy = &userID
 			plan.localizationsToUpdate = append(plan.localizationsToUpdate, *localization)
 			result.EntriesUpdated++
 		} else {
-			plan.localizationsToCreate = append(plan.localizationsToCreate, models.Localization{
+			localization := models.Localization{
 				EntryID:     entry.ID,
-				LocaleID:    localeID,
+				LocaleID:    target.localeID,
 				Translation: value,
 				CreatedBy:   &userID,
 				Review:      options.newReview(&userID),
-			})
+			}
+
+			// REPLACE_ALL deleted the text before: the same text again stays outdated
+			// unless approved, and only a different default text outdates the others.
+			previous, replaced := target.replaced[entry.ID]
+			unchanged := replaced && previous.Translation == value
+
+			if unchanged && !options.approve {
+				localization.OutdatedAt = previous.OutdatedAt
+			}
+
+			if target.source && !unchanged {
+				plan.outdatingEntryIDs = append(plan.outdatingEntryIDs, entry.ID)
+			}
+
+			plan.localizationsToCreate = append(plan.localizationsToCreate, localization)
 			result.EntriesCreated++
 		}
 	}

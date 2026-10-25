@@ -151,7 +151,8 @@ func SetupTestDB() (*database.DB, error) {
 			status TEXT NOT NULL DEFAULT 'draft',
 			reviewed_by TEXT,
 			reviewed_at DATETIME,
-			review_comment TEXT NOT NULL DEFAULT ''
+			review_comment TEXT NOT NULL DEFAULT '',
+			outdated_at DATETIME
 		)`,
 		// Saving or deleting a localization or definition records it in these tables.
 		`CREATE TABLE IF NOT EXISTS localization_history (

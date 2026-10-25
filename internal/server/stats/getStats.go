@@ -65,15 +65,16 @@ func (s *Server) GetStats(
 		fullyTranslatedEntries = result.Count
 	}
 
-	// Count translations awaiting review, and approved ones, per locale
+	// Count translations awaiting review, approved ones and outdated ones per locale
 	var statusRows []struct {
 		LocaleID string
 		Status   string
 		Count    int64
+		Outdated int64
 	}
 
 	if err := s.db.Model(&models.Localization{}).
-		Select("localizations.locale_id, localizations.status, COUNT(*) AS count").
+		Select("localizations.locale_id, localizations.status, COUNT(*) AS count, COUNT(localizations.outdated_at) AS outdated").
 		Joins("JOIN entries ON entries.id = localizations.entry_id AND entries.deleted_at IS NULL").
 		Joins("JOIN locales ON locales.id = localizations.locale_id AND locales.deleted_at IS NULL").
 		Group("localizations.locale_id, localizations.status").
@@ -83,10 +84,13 @@ func (s *Server) GetStats(
 
 	drafts := map[string]int64{}
 	approved := map[string]int64{}
+	outdated := map[string]int64{}
 
 	var draftTranslations int64
 
 	for _, row := range statusRows {
+		outdated[row.LocaleID] += row.Outdated
+
 		switch row.Status {
 		case models.StatusDraft:
 			drafts[row.LocaleID] = row.Count
@@ -130,6 +134,7 @@ func (s *Server) GetStats(
 			Percentage: percentage,
 			Drafts:     int32(drafts[locale.ID]),
 			Approved:   int32(approved[locale.ID]),
+			Outdated:   int32(outdated[locale.ID]),
 		})
 	}
 

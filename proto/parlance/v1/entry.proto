@@ -39,6 +39,8 @@ message Entry {
   string default_translation = 12;
   // Target locales whose translation is a draft; only set by ListEntries with summary.
   repeated string draft_locale_ids = 13;
+  // Target locales whose translation is outdated; only set by ListEntries with summary.
+  repeated string outdated_locale_ids = 14;
 }
 
 message ListEntriesRequest {
@@ -46,8 +48,8 @@ message ListEntriesRequest {
   string locale_id = 2;
   PaginationRequest pagination = 3;
   FilterRequest filter = 4;
-  // "", "missing", "complete", or "review" (a draft awaits approval) for the selected
-  // locales (all active locales if empty).
+  // "", "missing", "complete", "review" (a draft awaits approval) or "outdated" (the
+  // default text changed since) for the selected locales (all active locales if empty).
   string translation_status = 5;
   repeated string target_locale_ids = 6;
   // Entries in any of these scopes; combined with scope_id when both are set.
@@ -148,6 +150,9 @@ message GetEntryHistoryRequest {
   PaginationRequest pagination = 2;
   // Optional: only history of this locale
   string locale_id = 3;
+  // Optional: only changes before this time, in RFC 3339, e.g. a translation's
+  // outdated_at to get the default text it was based on.
+  string before = 4;
 }
 
 message GetEntryHistoryResponse {

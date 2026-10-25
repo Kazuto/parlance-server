@@ -56,6 +56,8 @@ func LocalizationToProto(l *models.Localization) *pb.Localization {
 		ReviewedBy:    derefString(l.ReviewedBy),
 		ReviewedAt:    formatTime(l.ReviewedAt),
 		ReviewComment: l.ReviewComment,
+		Outdated:      l.OutdatedAt != nil,
+		OutdatedAt:    formatPreciseTime(l.OutdatedAt),
 	}
 }
 

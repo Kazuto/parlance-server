@@ -102,6 +102,7 @@ Table localizations {
   deleted_at timestamp [null]
   created_by integer
   updated_by integer
+  outdated_at timestamp [null] // When the default text first changed since this text was written or approved
   
   indexes {
     (locale_id, entry_id) [unique] // One translation per locale per entry
@@ -109,6 +110,7 @@ Table localizations {
     locale_id
     created_by
     updated_by
+    locale_id // where outdated_at is not null and deleted_at is null
   }
 }
 

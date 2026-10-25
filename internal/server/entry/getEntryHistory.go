@@ -2,6 +2,7 @@ package entry
 
 import (
 	"context"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
@@ -26,6 +27,15 @@ func (s *Server) GetEntryHistory(
 		Order("changed_at DESC")
 	if req.Msg.LocaleId != "" {
 		query = query.Where("locale_id = ?", req.Msg.LocaleId)
+	}
+
+	if req.Msg.Before != "" {
+		before, err := time.Parse(time.RFC3339, req.Msg.Before)
+		if err != nil {
+			return nil, errors.InvalidInput(errors.ErrInvalidInput, "before must be an RFC 3339 time")
+		}
+
+		query = query.Where("changed_at < ?", before)
 	}
 
 	var history []models.LocalizationHistory

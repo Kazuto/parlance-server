@@ -40,8 +40,10 @@ type Entry struct {
 	DefaultTranslation string `protobuf:"bytes,12,opt,name=default_translation,json=defaultTranslation,proto3" json:"default_translation,omitempty"`
 	// Target locales whose translation is a draft; only set by ListEntries with summary.
 	DraftLocaleIds []string `protobuf:"bytes,13,rep,name=draft_locale_ids,json=draftLocaleIds,proto3" json:"draft_locale_ids,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Target locales whose translation is outdated; only set by ListEntries with summary.
+	OutdatedLocaleIds []string `protobuf:"bytes,14,rep,name=outdated_locale_ids,json=outdatedLocaleIds,proto3" json:"outdated_locale_ids,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *Entry) Reset() {
@@ -165,14 +167,21 @@ func (x *Entry) GetDraftLocaleIds() []string {
 	return nil
 }
 
+func (x *Entry) GetOutdatedLocaleIds() []string {
+	if x != nil {
+		return x.OutdatedLocaleIds
+	}
+	return nil
+}
+
 type ListEntriesRequest struct {
 	state      protoimpl.MessageState `protogen:"open.v1"`
 	ScopeId    string                 `protobuf:"bytes,1,opt,name=scope_id,json=scopeId,proto3" json:"scope_id,omitempty"`
 	LocaleId   string                 `protobuf:"bytes,2,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
 	Pagination *PaginationRequest     `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	Filter     *FilterRequest         `protobuf:"bytes,4,opt,name=filter,proto3" json:"filter,omitempty"`
-	// "", "missing", "complete", or "review" (a draft awaits approval) for the selected
-	// locales (all active locales if empty).
+	// "", "missing", "complete", "review" (a draft awaits approval) or "outdated" (the
+	// default text changed since) for the selected locales (all active locales if empty).
 	TranslationStatus string   `protobuf:"bytes,5,opt,name=translation_status,json=translationStatus,proto3" json:"translation_status,omitempty"`
 	TargetLocaleIds   []string `protobuf:"bytes,6,rep,name=target_locale_ids,json=targetLocaleIds,proto3" json:"target_locale_ids,omitempty"`
 	// Entries in any of these scopes; combined with scope_id when both are set.
@@ -1125,7 +1134,10 @@ type GetEntryHistoryRequest struct {
 	EntryId    string                 `protobuf:"bytes,1,opt,name=entry_id,json=entryId,proto3" json:"entry_id,omitempty"`
 	Pagination *PaginationRequest     `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	// Optional: only history of this locale
-	LocaleId      string `protobuf:"bytes,3,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
+	LocaleId string `protobuf:"bytes,3,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
+	// Optional: only changes before this time, in RFC 3339, e.g. a translation's
+	// outdated_at to get the default text it was based on.
+	Before        string `protobuf:"bytes,4,opt,name=before,proto3" json:"before,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1177,6 +1189,13 @@ func (x *GetEntryHistoryRequest) GetPagination() *PaginationRequest {
 func (x *GetEntryHistoryRequest) GetLocaleId() string {
 	if x != nil {
 		return x.LocaleId
+	}
+	return ""
+}
+
+func (x *GetEntryHistoryRequest) GetBefore() string {
+	if x != nil {
+		return x.Before
 	}
 	return ""
 }
@@ -1362,7 +1381,7 @@ var File_parlance_v1_entry_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\n" +
-	"\x17parlance/v1/entry.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x17parlance/v1/scope.proto\x1a\x1eparlance/v1/localization.proto\x1a\x16parlance/v1/user.proto\"\xdc\x03\n" +
+	"\x17parlance/v1/entry.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x17parlance/v1/scope.proto\x1a\x1eparlance/v1/localization.proto\x1a\x16parlance/v1/user.proto\"\x8c\x04\n" +
 	"\x05Entry\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x10\n" +
 	"\x03key\x18\x02 \x01(\tR\x03key\x12 \n" +
@@ -1382,7 +1401,8 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	" \x03(\v2\x12.parlance.v1.ScopeR\x06scopes\x12,\n" +
 	"\x12missing_locale_ids\x18\v \x03(\tR\x10missingLocaleIds\x12/\n" +
 	"\x13default_translation\x18\f \x01(\tR\x12defaultTranslation\x12(\n" +
-	"\x10draft_locale_ids\x18\r \x03(\tR\x0edraftLocaleIds\"\x8d\x03\n" +
+	"\x10draft_locale_ids\x18\r \x03(\tR\x0edraftLocaleIds\x12.\n" +
+	"\x13outdated_locale_ids\x18\x0e \x03(\tR\x11outdatedLocaleIds\"\x8d\x03\n" +
 	"\x12ListEntriesRequest\x12\x19\n" +
 	"\bscope_id\x18\x01 \x01(\tR\ascopeId\x12\x1b\n" +
 	"\tlocale_id\x18\x02 \x01(\tR\blocaleId\x12>\n" +
@@ -1449,13 +1469,14 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\aentries\x18\x01 \x03(\v2\x12.parlance.v1.EntryR\aentries\x12?\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1f.parlance.v1.PaginationResponseR\n" +
-	"pagination\"\x90\x01\n" +
+	"pagination\"\xa8\x01\n" +
 	"\x16GetEntryHistoryRequest\x12\x19\n" +
 	"\bentry_id\x18\x01 \x01(\tR\aentryId\x12>\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
 	"pagination\x12\x1b\n" +
-	"\tlocale_id\x18\x03 \x01(\tR\blocaleId\"\x96\x01\n" +
+	"\tlocale_id\x18\x03 \x01(\tR\blocaleId\x12\x16\n" +
+	"\x06before\x18\x04 \x01(\tR\x06before\"\x96\x01\n" +
 	"\x17GetEntryHistoryResponse\x12:\n" +
 	"\ahistory\x18\x01 \x03(\v2 .parlance.v1.LocalizationHistoryR\ahistory\x12?\n" +
 	"\n" +

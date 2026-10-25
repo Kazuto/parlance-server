@@ -17,6 +17,10 @@ type Localization struct {
 	CreatedBy   *string        `gorm:"type:uuid;index" json:"created_by,omitempty"`
 	UpdatedBy   *string        `gorm:"type:uuid;index" json:"updated_by,omitempty"`
 	Review      `gorm:"embedded"`
+	// When the default locale's text first changed after this text was written or
+	// approved; nil while it fits the current source text. Set apart from the review,
+	// so an approved text can be outdated.
+	OutdatedAt *time.Time `json:"outdated_at,omitempty"`
 
 	// Relationships
 	Entry   Entry  `gorm:"foreignKey:EntryID" json:"entry"`
@@ -81,6 +85,11 @@ func recordLocalizationHistory(tx *gorm.DB, l *Localization, action string) erro
 // RecordReview writes the history of a review, which the review saves without hooks
 func (l *Localization) RecordReview(tx *gorm.DB, action string) error {
 	return recordLocalizationHistory(tx, l, action)
+}
+
+// ClearOutdated marks the text as fitting the current source text again
+func (l *Localization) ClearOutdated() {
+	l.OutdatedAt = nil
 }
 
 // RowID returns the id, for code handling reviewable rows of any kind

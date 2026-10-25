@@ -3,15 +3,18 @@ package importservice
 import (
 	"archive/zip"
 	"bytes"
+	"cmp"
 	"context"
 	"fmt"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"connectrpc.com/connect"
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/server/common"
 )
 
 func (s *Server) ImportZip(
@@ -33,8 +36,13 @@ func (s *Server) ImportZip(
 		Results: make([]*pb.LocaleImportResult, 0),
 	}
 
+	defaultLocale, err := common.DefaultLocale(s.db.WithContext(ctx))
+	if err != nil {
+		return nil, err
+	}
+
 	// Process each file in the ZIP
-	for _, file := range zipReader.File {
+	for _, file := range sourceFirst(zipReader.File, defaultLocale) {
 		// Skip directories and manifest.json
 		if file.FileInfo().IsDir() || strings.ToLower(file.Name) == "manifest.json" {
 			continue
@@ -46,8 +54,7 @@ func (s *Server) ImportZip(
 			continue
 		}
 
-		// Extract locale code from filename (e.g., "en.json" -> "en")
-		localeCode := strings.TrimSuffix(filepath.Base(file.Name), filepath.Ext(file.Name))
+		localeCode := zipLocaleCode(file)
 
 		// Find locale by code
 		var locale models.Locale
@@ -125,4 +132,33 @@ func (s *Server) ImportZip(
 	}
 
 	return connect.NewResponse(response), nil
+}
+
+// zipLocaleCode returns the code of the locale a file holds, e.g. "en" for "en.json"
+func zipLocaleCode(file *zip.File) string {
+	return strings.TrimSuffix(filepath.Base(file.Name), filepath.Ext(file.Name))
+}
+
+// sourceFirst puts the default locale's file first: the other files' translations of the
+// entries whose default text it changes are then written for the new text, and stay
+// current.
+func sourceFirst(files []*zip.File, defaultLocale *models.Locale) []*zip.File {
+	if defaultLocale == nil {
+		return files
+	}
+
+	rank := func(file *zip.File) int {
+		if zipLocaleCode(file) == defaultLocale.Code {
+			return 0
+		}
+
+		return 1
+	}
+
+	ordered := slices.Clone(files)
+	slices.SortStableFunc(ordered, func(a, b *zip.File) int {
+		return cmp.Compare(rank(a), rank(b))
+	})
+
+	return ordered
 }

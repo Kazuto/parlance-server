@@ -34,6 +34,12 @@ message Localization {
   string reviewed_at = 12;
   // Why a reviewer sent the translation back; cleared once it is approved.
   string review_comment = 13;
+  // The default locale's text changed since this one was written or approved; editing
+  // or approving it clears this.
+  bool outdated = 14;
+  // When the default text first changed, in RFC 3339 with fractions of a second; pass
+  // it as GetEntryHistory's before to get the default text this one was based on.
+  string outdated_at = 15;
 }
 
 message ListLocalizationsRequest {
@@ -141,6 +147,9 @@ message ReviewLocalizationsRequest {
   string comment = 5;
   // Leave approved translations as they are, so rejecting only sends drafts back.
   bool skip_approved = 6;
+  // When approving, also approve outdated translations that are approved already,
+  // confirming they still fit the default text. Otherwise they are skipped.
+  bool confirm_outdated = 7;
 }
 
 message ReviewLocalizationsResponse {

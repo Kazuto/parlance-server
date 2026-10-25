@@ -136,6 +136,22 @@ func TestLocalizationHistoryIncludesUser(t *testing.T) {
 	}
 }
 
+// The outdated time is passed back to filter the history, so it keeps its fractions.
+func TestLocalizationOutdatedAtIsPrecise(t *testing.T) {
+	localization := &models.Localization{}
+
+	if result := LocalizationToProto(localization); result.Outdated || result.OutdatedAt != "" {
+		t.Fatalf("current translation = %+v, want it not outdated", result)
+	}
+
+	localization.OutdatedAt = new(time.Date(2026, 10, 25, 12, 0, 0, 123456000, time.UTC))
+
+	result := LocalizationToProto(localization)
+	if !result.Outdated || result.OutdatedAt != "2026-10-25T12:00:00.123456Z" {
+		t.Fatalf("outdated translation = %+v, want outdated at 2026-10-25T12:00:00.123456Z", result)
+	}
+}
+
 func TestLocalizationToProto(t *testing.T) {
 	now := time.Now()
 	userID := "user-123"

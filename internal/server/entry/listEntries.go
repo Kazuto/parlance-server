@@ -27,7 +27,7 @@ func (s *Server) ListEntries(
 	ctx context.Context,
 	req *connect.Request[pb.ListEntriesRequest],
 ) (*connect.Response[pb.ListEntriesResponse], error) {
-	if !slices.Contains([]string{"", "missing", "complete", "review"}, req.Msg.TranslationStatus) {
+	if !slices.Contains([]string{"", "missing", "complete", "review", "outdated"}, req.Msg.TranslationStatus) {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "invalid translation status")
 	}
 
@@ -221,8 +221,9 @@ func decodeCursor(cursor string) (string, error) {
 }
 
 // fillMissingLocales sets missing_locale_ids on each entry: the target locales (all
-// locales when none are given) without a saved, non-blank translation, and
-// draft_locale_ids: those whose translation awaits review.
+// locales when none are given) without a saved, non-blank translation,
+// draft_locale_ids: those whose translation awaits review, and outdated_locale_ids:
+// those whose translation is outdated.
 func (s *Server) fillMissingLocales(entries []*pb.Entry, targetLocaleIDs []string) error {
 	if len(entries) == 0 {
 		return nil
@@ -244,11 +245,12 @@ func (s *Server) fillMissingLocales(entries []*pb.Entry, targetLocaleIDs []strin
 		EntryID  string
 		LocaleID string
 		Status   string
+		Outdated bool
 	}
 
 	if len(targets) > 0 {
 		err := s.db.Model(&models.Localization{}).
-			Select("entry_id, locale_id, status").
+			Select("entry_id, locale_id, status, outdated_at IS NOT NULL AS outdated").
 			Where("entry_id IN ? AND locale_id IN ? AND TRIM(translation) <> ''", entryIDs, targets).
 			Scan(&present).Error
 		if err != nil {
@@ -256,36 +258,51 @@ func (s *Server) fillMissingLocales(entries []*pb.Entry, targetLocaleIDs []strin
 		}
 	}
 
-	// entry id -> locale id -> review status
-	translated := make(map[string]map[string]string, len(entries))
+	// entry id -> locale id -> state of the translation
+	translated := make(map[string]map[string]translationState, len(entries))
 	for _, row := range present {
 		if translated[row.EntryID] == nil {
-			translated[row.EntryID] = map[string]string{}
+			translated[row.EntryID] = map[string]translationState{}
 		}
 
-		translated[row.EntryID][row.LocaleID] = row.Status
+		translated[row.EntryID][row.LocaleID] = translationState{Status: row.Status, Outdated: row.Outdated}
 	}
 
 	for _, entry := range entries {
 		missing := make([]string, 0, len(targets))
 		drafts := make([]string, 0)
+		outdated := make([]string, 0)
 
 		for _, localeID := range targets {
-			status, ok := translated[entry.Id][localeID]
-
-			switch {
-			case !ok:
+			state, ok := translated[entry.Id][localeID]
+			if !ok {
 				missing = append(missing, localeID)
-			case status == models.StatusDraft:
+
+				continue
+			}
+
+			if state.Status == models.StatusDraft {
 				drafts = append(drafts, localeID)
+			}
+
+			if state.Outdated {
+				outdated = append(outdated, localeID)
 			}
 		}
 
 		entry.MissingLocaleIds = missing
 		entry.DraftLocaleIds = drafts
+		entry.OutdatedLocaleIds = outdated
 	}
 
 	return nil
+}
+
+// translationState is where a translation stands: its review status, and whether its
+// default text changed since
+type translationState struct {
+	Status   string
+	Outdated bool
 }
 
 // searchEntries keeps entries whose key, or whose translation in one of the given
@@ -304,7 +321,8 @@ func searchEntries(query *gorm.DB, search string, localeIDs []string) *gorm.DB {
 }
 
 // filterTranslationStatus keeps entries by their translations in the given locales (all
-// when none are given): "missing" one, "complete" in all, or one in "review" as a draft.
+// when none are given): "missing" one, "complete" in all, one in "review" as a draft, or
+// one "outdated".
 func filterTranslationStatus(query *gorm.DB, status string, localeIDs []string) *gorm.DB {
 	// Start a separate statement so the correlated subquery doesn't inherit entry filters.
 	targets := query.Session(&gorm.Session{NewDB: true}).Model(&models.Locale{}).Select("1")
@@ -312,13 +330,17 @@ func filterTranslationStatus(query *gorm.DB, status string, localeIDs []string) 
 		targets = targets.Where("locales.id IN ?", localeIDs)
 	}
 
-	if status == "review" {
-		drafts := targets.Where("EXISTS (SELECT 1 FROM localizations WHERE localizations.entry_id = entries.id AND localizations.locale_id = locales.id AND localizations.deleted_at IS NULL AND localizations.status = ? AND TRIM(localizations.translation) <> '')", models.StatusDraft)
+	// The entry's non-blank translation in the locale
+	const translation = "SELECT 1 FROM localizations WHERE localizations.entry_id = entries.id AND localizations.locale_id = locales.id AND localizations.deleted_at IS NULL AND TRIM(localizations.translation) <> ''"
 
-		return query.Where("EXISTS (?)", drafts)
+	switch status {
+	case "review":
+		return query.Where("EXISTS (?)", targets.Where("EXISTS ("+translation+" AND localizations.status = ?)", models.StatusDraft))
+	case "outdated":
+		return query.Where("EXISTS (?)", targets.Where("EXISTS ("+translation+" AND localizations.outdated_at IS NOT NULL)"))
 	}
 
-	targets = targets.Where("NOT EXISTS (SELECT 1 FROM localizations WHERE localizations.entry_id = entries.id AND localizations.locale_id = locales.id AND localizations.deleted_at IS NULL AND TRIM(localizations.translation) <> '')")
+	targets = targets.Where("NOT EXISTS (" + translation + ")")
 	if status == "missing" {
 		return query.Where("EXISTS (?)", targets)
 	}

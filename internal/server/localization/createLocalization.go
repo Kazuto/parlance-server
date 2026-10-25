@@ -2,6 +2,7 @@ package localization
 
 import (
 	"context"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
@@ -40,7 +41,15 @@ func (s *Server) CreateLocalization(
 	}
 
 	if err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		at := time.Now()
+
 		if err := tx.Create(localization).Error; err != nil {
+			return err
+		}
+
+		// Translations written without a default text, or for a deleted one, wait for a
+		// check against the new one.
+		if err := outdateOthers(tx, localization, at); err != nil {
 			return err
 		}
 

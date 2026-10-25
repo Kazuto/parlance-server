@@ -120,6 +120,8 @@ func (db *DB) AutoMigrate() error {
 	// Add unique constraints that GORM doesn't handle well
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_locales_default ON locales (is_default) WHERE is_default = true AND deleted_at IS NULL")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_localizations_entry_locale ON localizations (entry_id, locale_id) WHERE deleted_at IS NULL")
+	// Outdated translations are few; the filter and the stats count them per locale.
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_localizations_outdated ON localizations (locale_id) WHERE outdated_at IS NOT NULL AND deleted_at IS NULL")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_definitions_term_locale ON definitions (terminology_id, locale_id) WHERE deleted_at IS NULL")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_entry_scopes_unique ON entry_scopes (entry_id, scope_id)")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_roles_unique ON user_roles (user_id, role_id)")
