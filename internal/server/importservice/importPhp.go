@@ -15,7 +15,7 @@ func (s *Server) ImportPhp(
 	ctx context.Context,
 	req *connect.Request[pb.ImportPhpRequest],
 ) (*connect.Response[pb.ImportPhpResponse], error) {
-	options, err := s.startImport(ctx, req.Msg.Mode, req.Msg.Approve, req.Msg.FileContent)
+	options, err := s.startImport(ctx, req.Msg.Mode, req.Msg.Approve, req.Msg.DryRun, req.Msg.FileContent)
 	if err != nil {
 		return nil, err
 	}

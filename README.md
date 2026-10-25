@@ -381,6 +381,12 @@ and replace all. Exports take a `localeCode` and optional `scopeIds`; without
 scopes they export all active entries. ZIP imports and exports cover all languages
 at once, so they take no language.
 
+With `dryRun`, an import changes nothing and reports what it would do: the same
+counts, `translationsAdded`, `translationsChanged` and `translationsRemoved`, how
+many translations in other languages a changed default text would mark outdated,
+and the first 500 changes by key with their old and new text. A ZIP dry run imports
+its files in one transaction, so each sees the ones before it, as a real import does.
+
 **JSON:** imports accept flat dotted keys and nested objects, also mixed:
 `{"entries": {"create": "Create Entry"}}` becomes `{"entries.create": "Create Entry"}`.
 Values must be strings (empty ones too). Arrays, numbers, booleans, null, empty

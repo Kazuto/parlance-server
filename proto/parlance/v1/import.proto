@@ -18,6 +18,7 @@ message ImportPhpRequest {
   string filename = 4;            // Original filename (optional, for logging)
   ImportMode mode = 5;            // How to handle conflicts
   bool approve = 6;  // Approve the imported translations; needs review_entry
+  bool dry_run = 7;  // Reports what the import would change, without changing anything
 }
 
 message ImportPhpResponse {
@@ -32,6 +33,7 @@ message ImportJsonRequest {
   string filename = 4;            // Original filename (optional)
   ImportMode mode = 5;
   bool approve = 6;  // Approve the imported translations; needs review_entry
+  bool dry_run = 7;  // Reports what the import would change, without changing anything
 }
 
 message ImportJsonResponse {
@@ -46,6 +48,7 @@ message ImportPoRequest {
   string filename = 4;
   ImportMode mode = 5;
   bool approve = 6;  // Approve the imported translations; needs review_entry
+  bool dry_run = 7;  // Reports what the import would change, without changing anything
 }
 
 message ImportPoResponse {
@@ -61,13 +64,36 @@ enum ImportMode {
   IMPORT_MODE_REPLACE_ALL = 4;      // Delete all entries in scope first, then import
 }
 
-// Import result statistics
+// Import result statistics. entries_created and entries_updated count every imported
+// translation, unchanged ones too; the translations_ counts say what actually changes.
 message ImportResult {
   int32 entries_created = 1;
   int32 entries_updated = 2;
   int32 entries_skipped = 3;
   int32 entries_failed = 4;
   repeated ImportError errors = 5;
+  // On a dry run, the first 500 translations the import adds, changes or removes, by key
+  repeated ImportChange changes = 6;
+  int32 translations_added = 7;     // New translations, of new or existing entries
+  int32 translations_changed = 8;   // Existing translations given a different text
+  int32 translations_removed = 9;   // Translations REPLACE_ALL removes and doesn't import again
+  int32 translations_outdated = 10; // Other languages' translations of the default texts it changes
+}
+
+// One translation an import adds, changes or removes
+message ImportChange {
+  string key = 1;
+  ImportChangeAction action = 2;
+  string old_translation = 3;     // Empty when added
+  string new_translation = 4;     // Empty when removed
+  string source_translation = 5;  // The entry's default text, unless the import is in the default locale
+}
+
+enum ImportChangeAction {
+  IMPORT_CHANGE_ACTION_UNSPECIFIED = 0;
+  IMPORT_CHANGE_ACTION_ADD = 1;
+  IMPORT_CHANGE_ACTION_CHANGE = 2;
+  IMPORT_CHANGE_ACTION_REMOVE = 3;
 }
 
 message ImportError {
@@ -81,6 +107,7 @@ message ImportZipRequest {
   repeated string scope_ids = 2;  // Scopes to assign to all imported entries
   ImportMode mode = 3;            // How to handle conflicts
   bool approve = 4;              // Approve the imported translations; needs review_entry
+  bool dry_run = 5;              // Reports what the import would change, without changing anything
 }
 
 message ImportZipResponse {

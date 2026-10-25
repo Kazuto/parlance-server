@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Server) ImportPo(ctx context.Context, req *connect.Request[pb.ImportPoRequest]) (*connect.Response[pb.ImportPoResponse], error) {
-	options, err := s.startImport(ctx, req.Msg.Mode, req.Msg.Approve, req.Msg.FileContent)
+	options, err := s.startImport(ctx, req.Msg.Mode, req.Msg.Approve, req.Msg.DryRun, req.Msg.FileContent)
 	if err != nil {
 		return nil, err
 	}
