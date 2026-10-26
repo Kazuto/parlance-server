@@ -81,7 +81,14 @@ func (s *Server) SuggestTranslations(
 		return nil, errors.Internal(errors.ErrInternal, "failed to load the glossary")
 	}
 
+	style, err := Style(ctx, s.db.DB)
+	if err != nil {
+		return nil, errors.InternalCause(err, "failed to load the translation style")
+	}
+
+	text := Source{Text: source.Translation, Context: entry.Description, Style: style}
+
 	return connect.NewResponse(&pb.SuggestTranslationsResponse{
-		Suggestions: s.suggest(ctx, translator, source.Translation, locales, terms),
+		Suggestions: s.suggest(ctx, translator, text, locales, terms),
 	}), nil
 }

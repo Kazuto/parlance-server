@@ -12,6 +12,9 @@ service TranslationServerService {
   rpc DeleteTranslationServer(DeleteTranslationServerRequest) returns (DeleteTranslationServerResponse);
   // Translates a short sample with one server, to check its settings.
   rpc TestTranslationServer(TestTranslationServerRequest) returns (TestTranslationServerResponse);
+  // The style every machine translation is asked for.
+  rpc GetTranslationSettings(GetTranslationSettingsRequest) returns (GetTranslationSettingsResponse);
+  rpc UpdateTranslationSettings(UpdateTranslationSettingsRequest) returns (UpdateTranslationSettingsResponse);
 }
 
 message TranslationServer {
@@ -80,4 +83,31 @@ message TestTranslationServerResponse {
   // What went wrong when not ok, as the server reported it.
   string error = 3;
   int32 duration_ms = 4;
+}
+
+message TranslationSettings {
+  // The style machine translations are asked for, e.g. "software user interface
+  // text"; empty while the default is used. The form of address of each language
+  // is added to it.
+  string style = 1;
+  // The style used while style is empty.
+  string default_style = 2;
+  // When the settings last changed, if ever.
+  optional string updated_at = 3;
+}
+
+message GetTranslationSettingsRequest {}
+
+message GetTranslationSettingsResponse {
+  TranslationSettings settings = 1;
+}
+
+message UpdateTranslationSettingsRequest {
+  // One line of at most 200 characters, without square brackets. Empty restores
+  // the default.
+  string style = 1;
+}
+
+message UpdateTranslationSettingsResponse {
+  TranslationSettings settings = 1;
 }

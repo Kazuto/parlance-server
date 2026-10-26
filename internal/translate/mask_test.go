@@ -33,3 +33,17 @@ func TestMask(t *testing.T) {
 		}
 	}
 }
+
+func TestMaskAll(t *testing.T) {
+	masked, unmask := MaskAll("{count} of {total}", "{total} is the number of entries, {name} the scope's name.")
+
+	want := []string{"{1} of {2}", "{2} is the number of entries, {3} the scope's name."}
+	if masked[0] != want[0] || masked[1] != want[1] {
+		t.Errorf("MaskAll() = %q, want %q", masked, want)
+	}
+
+	// A placeholder only the context has comes back too, so Clean can flag it.
+	if got := unmask("{1} von {2} in {3}"); got != "{count} von {total} in {name}" {
+		t.Errorf("unmask() = %q", got)
+	}
+}

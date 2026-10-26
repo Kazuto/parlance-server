@@ -8,13 +8,14 @@ import (
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
+	"github.com/kazuto/parlance-server/internal/settings"
 	"github.com/kazuto/parlance-server/internal/translate"
 	"github.com/kazuto/parlance-server/internal/translators"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
 
-// testSample is what TestTranslationServer translates.
+// testSample is what TestTranslationServer translates, in the style admins set.
 var testSample = translate.Request{Text: "Save changes", TargetLang: "German"}
 
 // TestTranslationServer translates a short sample with one server, whether it is
@@ -41,13 +42,21 @@ func (s *Server) TestTranslationServer(
 		return connect.NewResponse(result), nil
 	}
 
+	style, _, err := settings.String(s.db.WithContext(ctx), models.SettingTranslationStyle, "")
+	if err != nil {
+		return nil, errors.InternalCause(err, "failed to load the translation style")
+	}
+
+	sample := testSample
+	sample.Style = style
+
 	started := time.Now()
-	answer, err := s.newTranslator(endpoint).Translate(ctx, testSample)
+	answer, err := s.newTranslator(endpoint).Translate(ctx, sample)
 	result.DurationMs = int32(time.Since(started).Milliseconds())
 
 	var translation string
 	if err == nil {
-		translation, _, err = translate.Clean(testSample.Text, answer.Text)
+		translation, _, err = translate.Clean(sample.Text, answer.Text)
 	}
 
 	if err != nil {

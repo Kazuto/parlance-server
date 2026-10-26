@@ -28,11 +28,12 @@ const maxParallelTranslations = 4
 // missingPair is an entry without a translation in a locale, with its source text,
 // or with a machine draft to translate again, which ExistingID names.
 type missingPair struct {
-	EntryID    string
-	Key        string
-	Source     string
-	LocaleID   string
-	ExistingID string
+	EntryID     string
+	Key         string
+	Description string
+	Source      string
+	LocaleID    string
+	ExistingID  string
 }
 
 // aiTranslate fills missing translations with machine translations, saved as drafts
@@ -60,6 +61,11 @@ func (r *Runner) aiTranslate(ctx context.Context, task *models.Task, runLog *run
 	}
 
 	db := r.db.WithContext(ctx)
+
+	style, err := localization.Style(ctx, db)
+	if err != nil {
+		return summary, err
+	}
 
 	source, err := r.sourceLocale(ctx, config.SourceLocaleID)
 	if err != nil {
@@ -125,7 +131,7 @@ func (r *Runner) aiTranslate(ctx context.Context, task *models.Task, runLog *run
 
 	var pairs []missingPair
 	if err := missing.
-		Select("entries.id AS entry_id, entries.key, source.translation AS source, locales.id AS locale_id, COALESCE(target.id::text, '') AS existing_id").
+		Select("entries.id AS entry_id, entries.key, entries.description, source.translation AS source, locales.id AS locale_id, COALESCE(target.id::text, '') AS existing_id").
 		// Missing translations come first; redoing drafts can wait for later runs.
 		Order("target.id IS NOT NULL, entries.key, locales.code").
 		Limit(maxPairs).
@@ -161,7 +167,7 @@ func (r *Runner) aiTranslate(ctx context.Context, task *models.Task, runLog *run
 			defer func() { <-limit }()
 
 			locale := locales[pair.LocaleID]
-			id := r.translatePair(ctx, translator, glossary, pair, locale, runLog)
+			id := r.translatePair(ctx, translator, glossary, style, pair, locale, runLog)
 
 			mu.Lock()
 			defer mu.Unlock()
@@ -220,6 +226,7 @@ func (r *Runner) translatePair(
 	ctx context.Context,
 	translator translate.Translator,
 	glossary *localization.Glossary,
+	style string,
 	pair missingPair,
 	locale models.Locale,
 	runLog *runLog,
@@ -235,7 +242,9 @@ func (r *Runner) translatePair(
 		terms = found[locale.ID]
 	}
 
-	suggestion := localization.SuggestOne(ctx, translator, pair.Source, locale, terms)
+	source := localization.Source{Text: pair.Source, Context: pair.Description, Style: style}
+
+	suggestion := localization.SuggestOne(ctx, translator, source, locale, terms)
 	if suggestion.ErrorCode != "" {
 		runLog.Printf("%s → %s: %s", pair.Key, locale.Code, suggestion.ErrorCode)
 

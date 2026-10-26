@@ -59,8 +59,8 @@ type chatResponse struct {
 // Translate sends the prompt as the only message: the models have no system
 // prompt. Placeholders are masked on the way and restored in the answer.
 func (c *Client) Translate(ctx context.Context, req Request) (Answer, error) {
-	masked, unmask := Mask(req.Text)
-	req.Text = masked
+	masked, unmask := MaskAll(req.Text, req.Context)
+	req.Text, req.Context = masked[0], masked[1]
 
 	body, err := json.Marshal(chatRequest{
 		Model:             c.model,

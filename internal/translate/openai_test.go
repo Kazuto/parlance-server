@@ -77,6 +77,19 @@ func TestClient(t *testing.T) {
 			t.Errorf("prompt: got %q", got.Messages[0].Content)
 		}
 
+		// The context names the placeholders as the text does
+		_, err = NewClient(server.URL, "", "", time.Second).Translate(context.Background(), Request{
+			Text: "Delete {name}", TargetLang: "German", Context: "{name} is the scope's name.",
+		})
+		if err != nil {
+			t.Fatalf("Translate: %v", err)
+		}
+
+		if content := got.Messages[0].Content; !strings.Contains(content, "[Background Information]\n{1} is the scope's name.") ||
+			!strings.HasSuffix(content, "[Source Text]\nDelete {1}") {
+			t.Errorf("prompt with context: got %q", content)
+		}
+
 		if answer.Text != "{name} löschen" {
 			t.Errorf("answer: got %q", answer.Text)
 		}

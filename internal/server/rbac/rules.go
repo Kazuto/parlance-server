@@ -139,11 +139,13 @@ var Rules = map[string][]string{
 	parlancev1connect.TerminologyServiceUpdateTerminologyProcedure:    {permissions.UpdateTerminology},
 
 	// TranslationServerService
-	parlancev1connect.TranslationServerServiceCreateTranslationServerProcedure: {permissions.CreateTranslationServer},
-	parlancev1connect.TranslationServerServiceDeleteTranslationServerProcedure: {permissions.DeleteTranslationServer},
-	parlancev1connect.TranslationServerServiceListTranslationServersProcedure:  {permissions.ReadTranslationServer},
-	parlancev1connect.TranslationServerServiceTestTranslationServerProcedure:   {permissions.UpdateTranslationServer},
-	parlancev1connect.TranslationServerServiceUpdateTranslationServerProcedure: {permissions.UpdateTranslationServer},
+	parlancev1connect.TranslationServerServiceCreateTranslationServerProcedure:   {permissions.CreateTranslationServer},
+	parlancev1connect.TranslationServerServiceDeleteTranslationServerProcedure:   {permissions.DeleteTranslationServer},
+	parlancev1connect.TranslationServerServiceGetTranslationSettingsProcedure:    {permissions.ReadTranslationServer},
+	parlancev1connect.TranslationServerServiceListTranslationServersProcedure:    {permissions.ReadTranslationServer},
+	parlancev1connect.TranslationServerServiceTestTranslationServerProcedure:     {permissions.UpdateTranslationServer},
+	parlancev1connect.TranslationServerServiceUpdateTranslationServerProcedure:   {permissions.UpdateTranslationServer},
+	parlancev1connect.TranslationServerServiceUpdateTranslationSettingsProcedure: {permissions.UpdateTranslationServer},
 
 	// UserService
 	parlancev1connect.UserServiceAssignRoleProcedure:  {permissions.UpdateUser},

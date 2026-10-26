@@ -125,10 +125,16 @@ tried on the others.
 
 - **One language per request:** the model translates one text into one language,
   so an entry with eight empty languages makes eight requests.
-- **Prompt:** every prompt asks for user interface style. Glossary terms that occur
-  in the text are sent along with their translation; placeholders such as
-  `{language}` don't count as the term "language". Short labels need this most: the
-  models translate a lone "Copied" or "No scopes" poorly without the term.
+- **Prompt:** every prompt asks for a style, by default "software user interface
+  text". Admins change it under **Settings → Machine translation**, or with
+  `TranslationServerService/UpdateTranslationSettings`, e.g. to "marketing website
+  text"; the server test translates in it. Glossary terms that occur in the text are
+  sent along with their translation; placeholders such as `{language}` don't count
+  as the term "language". Short labels need this most: the models translate a lone
+  "Copied" or "No scopes" poorly without the term.
+- **Description:** an entry's description is sent as background information, in the
+  model card's template for it, so a translator's note such as "Status badge, not an
+  action" also steers the model. Entries without one get the plain prompt.
 - **Glossary matching:** terms match in any of their word forms, by the stemmers of
   Postgres's text search (`internal/termmatch`): "scope" in "No scopes", "Bereich" in
   "Keine Bereiche". That covers about 30 languages, chosen by the locale code; others
@@ -141,7 +147,8 @@ tried on the others.
   ask for "politely" or "casually". Without the setting the model picks one per
   text, and mixes them.
 - **Placeholders:** `{name}` placeholders are sent as `{1}`, `{2}`, which the model
-  keeps, and restored afterwards.
+  keeps, and restored afterwards. The description's placeholders get the same
+  numbers, so "{name} is the scope's name" still explains the text's `{1}`.
 - **Dashes:** a dash the model puts between words (" – ") becomes a comma unless
   the source has one too. The models like joining clauses that way, which German
   and most target languages rarely do in interface text.

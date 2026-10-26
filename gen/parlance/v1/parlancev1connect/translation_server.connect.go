@@ -48,6 +48,12 @@ const (
 	// TranslationServerServiceTestTranslationServerProcedure is the fully-qualified name of the
 	// TranslationServerService's TestTranslationServer RPC.
 	TranslationServerServiceTestTranslationServerProcedure = "/parlance.v1.TranslationServerService/TestTranslationServer"
+	// TranslationServerServiceGetTranslationSettingsProcedure is the fully-qualified name of the
+	// TranslationServerService's GetTranslationSettings RPC.
+	TranslationServerServiceGetTranslationSettingsProcedure = "/parlance.v1.TranslationServerService/GetTranslationSettings"
+	// TranslationServerServiceUpdateTranslationSettingsProcedure is the fully-qualified name of the
+	// TranslationServerService's UpdateTranslationSettings RPC.
+	TranslationServerServiceUpdateTranslationSettingsProcedure = "/parlance.v1.TranslationServerService/UpdateTranslationSettings"
 )
 
 // TranslationServerServiceClient is a client for the parlance.v1.TranslationServerService service.
@@ -58,6 +64,9 @@ type TranslationServerServiceClient interface {
 	DeleteTranslationServer(context.Context, *connect.Request[v1.DeleteTranslationServerRequest]) (*connect.Response[v1.DeleteTranslationServerResponse], error)
 	// Translates a short sample with one server, to check its settings.
 	TestTranslationServer(context.Context, *connect.Request[v1.TestTranslationServerRequest]) (*connect.Response[v1.TestTranslationServerResponse], error)
+	// The style every machine translation is asked for.
+	GetTranslationSettings(context.Context, *connect.Request[v1.GetTranslationSettingsRequest]) (*connect.Response[v1.GetTranslationSettingsResponse], error)
+	UpdateTranslationSettings(context.Context, *connect.Request[v1.UpdateTranslationSettingsRequest]) (*connect.Response[v1.UpdateTranslationSettingsResponse], error)
 }
 
 // NewTranslationServerServiceClient constructs a client for the
@@ -101,16 +110,30 @@ func NewTranslationServerServiceClient(httpClient connect.HTTPClient, baseURL st
 			connect.WithSchema(translationServerServiceMethods.ByName("TestTranslationServer")),
 			connect.WithClientOptions(opts...),
 		),
+		getTranslationSettings: connect.NewClient[v1.GetTranslationSettingsRequest, v1.GetTranslationSettingsResponse](
+			httpClient,
+			baseURL+TranslationServerServiceGetTranslationSettingsProcedure,
+			connect.WithSchema(translationServerServiceMethods.ByName("GetTranslationSettings")),
+			connect.WithClientOptions(opts...),
+		),
+		updateTranslationSettings: connect.NewClient[v1.UpdateTranslationSettingsRequest, v1.UpdateTranslationSettingsResponse](
+			httpClient,
+			baseURL+TranslationServerServiceUpdateTranslationSettingsProcedure,
+			connect.WithSchema(translationServerServiceMethods.ByName("UpdateTranslationSettings")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // translationServerServiceClient implements TranslationServerServiceClient.
 type translationServerServiceClient struct {
-	listTranslationServers  *connect.Client[v1.ListTranslationServersRequest, v1.ListTranslationServersResponse]
-	createTranslationServer *connect.Client[v1.CreateTranslationServerRequest, v1.CreateTranslationServerResponse]
-	updateTranslationServer *connect.Client[v1.UpdateTranslationServerRequest, v1.UpdateTranslationServerResponse]
-	deleteTranslationServer *connect.Client[v1.DeleteTranslationServerRequest, v1.DeleteTranslationServerResponse]
-	testTranslationServer   *connect.Client[v1.TestTranslationServerRequest, v1.TestTranslationServerResponse]
+	listTranslationServers    *connect.Client[v1.ListTranslationServersRequest, v1.ListTranslationServersResponse]
+	createTranslationServer   *connect.Client[v1.CreateTranslationServerRequest, v1.CreateTranslationServerResponse]
+	updateTranslationServer   *connect.Client[v1.UpdateTranslationServerRequest, v1.UpdateTranslationServerResponse]
+	deleteTranslationServer   *connect.Client[v1.DeleteTranslationServerRequest, v1.DeleteTranslationServerResponse]
+	testTranslationServer     *connect.Client[v1.TestTranslationServerRequest, v1.TestTranslationServerResponse]
+	getTranslationSettings    *connect.Client[v1.GetTranslationSettingsRequest, v1.GetTranslationSettingsResponse]
+	updateTranslationSettings *connect.Client[v1.UpdateTranslationSettingsRequest, v1.UpdateTranslationSettingsResponse]
 }
 
 // ListTranslationServers calls parlance.v1.TranslationServerService.ListTranslationServers.
@@ -138,6 +161,16 @@ func (c *translationServerServiceClient) TestTranslationServer(ctx context.Conte
 	return c.testTranslationServer.CallUnary(ctx, req)
 }
 
+// GetTranslationSettings calls parlance.v1.TranslationServerService.GetTranslationSettings.
+func (c *translationServerServiceClient) GetTranslationSettings(ctx context.Context, req *connect.Request[v1.GetTranslationSettingsRequest]) (*connect.Response[v1.GetTranslationSettingsResponse], error) {
+	return c.getTranslationSettings.CallUnary(ctx, req)
+}
+
+// UpdateTranslationSettings calls parlance.v1.TranslationServerService.UpdateTranslationSettings.
+func (c *translationServerServiceClient) UpdateTranslationSettings(ctx context.Context, req *connect.Request[v1.UpdateTranslationSettingsRequest]) (*connect.Response[v1.UpdateTranslationSettingsResponse], error) {
+	return c.updateTranslationSettings.CallUnary(ctx, req)
+}
+
 // TranslationServerServiceHandler is an implementation of the parlance.v1.TranslationServerService
 // service.
 type TranslationServerServiceHandler interface {
@@ -147,6 +180,9 @@ type TranslationServerServiceHandler interface {
 	DeleteTranslationServer(context.Context, *connect.Request[v1.DeleteTranslationServerRequest]) (*connect.Response[v1.DeleteTranslationServerResponse], error)
 	// Translates a short sample with one server, to check its settings.
 	TestTranslationServer(context.Context, *connect.Request[v1.TestTranslationServerRequest]) (*connect.Response[v1.TestTranslationServerResponse], error)
+	// The style every machine translation is asked for.
+	GetTranslationSettings(context.Context, *connect.Request[v1.GetTranslationSettingsRequest]) (*connect.Response[v1.GetTranslationSettingsResponse], error)
+	UpdateTranslationSettings(context.Context, *connect.Request[v1.UpdateTranslationSettingsRequest]) (*connect.Response[v1.UpdateTranslationSettingsResponse], error)
 }
 
 // NewTranslationServerServiceHandler builds an HTTP handler from the service implementation. It
@@ -186,6 +222,18 @@ func NewTranslationServerServiceHandler(svc TranslationServerServiceHandler, opt
 		connect.WithSchema(translationServerServiceMethods.ByName("TestTranslationServer")),
 		connect.WithHandlerOptions(opts...),
 	)
+	translationServerServiceGetTranslationSettingsHandler := connect.NewUnaryHandler(
+		TranslationServerServiceGetTranslationSettingsProcedure,
+		svc.GetTranslationSettings,
+		connect.WithSchema(translationServerServiceMethods.ByName("GetTranslationSettings")),
+		connect.WithHandlerOptions(opts...),
+	)
+	translationServerServiceUpdateTranslationSettingsHandler := connect.NewUnaryHandler(
+		TranslationServerServiceUpdateTranslationSettingsProcedure,
+		svc.UpdateTranslationSettings,
+		connect.WithSchema(translationServerServiceMethods.ByName("UpdateTranslationSettings")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/parlance.v1.TranslationServerService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case TranslationServerServiceListTranslationServersProcedure:
@@ -198,6 +246,10 @@ func NewTranslationServerServiceHandler(svc TranslationServerServiceHandler, opt
 			translationServerServiceDeleteTranslationServerHandler.ServeHTTP(w, r)
 		case TranslationServerServiceTestTranslationServerProcedure:
 			translationServerServiceTestTranslationServerHandler.ServeHTTP(w, r)
+		case TranslationServerServiceGetTranslationSettingsProcedure:
+			translationServerServiceGetTranslationSettingsHandler.ServeHTTP(w, r)
+		case TranslationServerServiceUpdateTranslationSettingsProcedure:
+			translationServerServiceUpdateTranslationSettingsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -225,4 +277,12 @@ func (UnimplementedTranslationServerServiceHandler) DeleteTranslationServer(cont
 
 func (UnimplementedTranslationServerServiceHandler) TestTranslationServer(context.Context, *connect.Request[v1.TestTranslationServerRequest]) (*connect.Response[v1.TestTranslationServerResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.TranslationServerService.TestTranslationServer is not implemented"))
+}
+
+func (UnimplementedTranslationServerServiceHandler) GetTranslationSettings(context.Context, *connect.Request[v1.GetTranslationSettingsRequest]) (*connect.Response[v1.GetTranslationSettingsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.TranslationServerService.GetTranslationSettings is not implemented"))
+}
+
+func (UnimplementedTranslationServerServiceHandler) UpdateTranslationSettings(context.Context, *connect.Request[v1.UpdateTranslationSettingsRequest]) (*connect.Response[v1.UpdateTranslationSettingsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.TranslationServerService.UpdateTranslationSettings is not implemented"))
 }

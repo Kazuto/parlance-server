@@ -16,6 +16,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/secret"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
+	"github.com/kazuto/parlance-server/internal/settings"
 	"github.com/kazuto/parlance-server/internal/taskqueue"
 	"github.com/kazuto/parlance-server/internal/translate"
 	"github.com/kazuto/parlance-server/internal/webhook"
@@ -726,5 +727,43 @@ func TestAITranslateRedoesOtherModelsDrafts(t *testing.T) {
 
 	if history == 0 {
 		t.Error("the old machine draft is not in the history")
+	}
+}
+
+func TestAITranslateSendsDescriptionAndStyle(t *testing.T) {
+	db := testutil.SetupPostgresDB(t)
+	en, de, _ := seedLocales(t, db.DB)
+
+	entry := seedEntry(t, db.DB, "a.save", map[string]string{en.ID: "Save"}, models.StatusApproved)
+	if err := db.Model(&entry).Update("description", "Button in the editor toolbar").Error; err != nil {
+		t.Fatal(err)
+	}
+
+	if err := settings.SetString(db.DB, models.SettingTranslationStyle, "website of a bakery", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	var (
+		mu       sync.Mutex
+		requests []translate.Request
+	)
+
+	r := newTestRunner(t, db)
+	r.translators = fixedSource{translator: translatorFunc(func(_ context.Context, req translate.Request) (string, error) {
+		mu.Lock()
+		defer mu.Unlock()
+
+		requests = append(requests, req)
+
+		return "Speichern", nil
+	})}
+
+	task := newTask(t, db.DB, models.TaskTypeAITranslate, models.AITranslateConfig{TargetLocaleIDs: []string{de.ID}})
+	if _, err := r.aiTranslate(context.Background(), &task, &runLog{}); err != nil {
+		t.Fatalf("error = %v", err)
+	}
+
+	if len(requests) != 1 || requests[0].Context != "Button in the editor toolbar" || requests[0].Style != "website of a bakery" {
+		t.Errorf("requests = %+v, want the description and the style", requests)
 	}
 }

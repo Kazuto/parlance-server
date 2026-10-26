@@ -22,6 +22,10 @@ type Request struct {
 	Terms      []Term
 	// Formality is how the translation addresses the reader; empty for either.
 	Formality Formality
+	// Context tells the model what the text is for, e.g. the entry's description.
+	Context string
+	// Style is the translation style; empty for DefaultStyle.
+	Style string
 }
 
 // Answer is the model's raw answer, to be checked with Clean.

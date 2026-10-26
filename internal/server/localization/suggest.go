@@ -11,6 +11,7 @@ import (
 
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/settings"
 	"github.com/kazuto/parlance-server/internal/termmatch"
 	"github.com/kazuto/parlance-server/internal/translate"
 	"gorm.io/gorm"
@@ -53,13 +54,29 @@ func (s *Server) translator(ctx context.Context) (translate.Translator, error) {
 	return translator, nil
 }
 
+// Source is a text to machine-translate, with what the model is told about it.
+type Source struct {
+	Text string
+	// Context is the entry's description.
+	Context string
+	// Style is the translation style admins set; empty for the default.
+	Style string
+}
+
+// Style returns the translation style admins set, or "" for the default.
+func Style(ctx context.Context, db *gorm.DB) (string, error) {
+	style, _, err := settings.String(db.WithContext(ctx), models.SettingTranslationStyle, "")
+
+	return style, err
+}
+
 // suggest translates source into each locale, at most a few at once. The result
 // has one suggestion per locale, in the same order; locales not done within
 // suggestTimeout report a timeout.
 func (s *Server) suggest(
 	ctx context.Context,
 	translator translate.Translator,
-	source string,
+	source Source,
 	locales []models.Locale,
 	terms map[string][]translate.Term,
 ) []*pb.TranslationSuggestion {
@@ -90,7 +107,7 @@ func (s *Server) suggest(
 func SuggestOne(
 	ctx context.Context,
 	translator translate.Translator,
-	source string,
+	source Source,
 	locale models.Locale,
 	terms []translate.Term,
 ) *pb.TranslationSuggestion {
@@ -106,10 +123,12 @@ func SuggestOne(
 	formality := translate.Formality(locale.Formality)
 
 	answer, err := translator.Translate(ctx, translate.Request{
-		Text:       source,
+		Text:       source.Text,
 		TargetLang: language,
 		Terms:      terms,
 		Formality:  formality,
+		Context:    source.Context,
+		Style:      source.Style,
 	})
 	if err != nil {
 		log.Printf("translate into %s: %v", locale.Code, err)
@@ -122,7 +141,7 @@ func SuggestOne(
 		return suggestion
 	}
 
-	text, warnings, err := translate.Clean(source, answer.Text)
+	text, warnings, err := translate.Clean(source.Text, answer.Text)
 
 	switch {
 	case stderrors.Is(err, translate.ErrEmptyAnswer):

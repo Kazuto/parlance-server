@@ -10,17 +10,28 @@ import (
 // keep numbered placeholders as they are, but tend to translate named ones, e.g.
 // {count} into {Anzahl}. The same placeholder gets the same number each time.
 func Mask(text string) (string, func(string) string) {
+	masked, unmask := MaskAll(text)
+
+	return masked[0], unmask
+}
+
+// MaskAll masks the placeholders of several texts with one numbering, so a context
+// that explains them names them as the text does. The first text's come first.
+func MaskAll(texts ...string) ([]string, func(string) string) {
 	var names []string
 
-	masked := placeholderPattern.ReplaceAllStringFunc(text, func(name string) string {
-		index := slices.Index(names, name)
-		if index < 0 {
-			names = append(names, name)
-			index = len(names) - 1
-		}
+	masked := make([]string, len(texts))
+	for i, text := range texts {
+		masked[i] = placeholderPattern.ReplaceAllStringFunc(text, func(name string) string {
+			index := slices.Index(names, name)
+			if index < 0 {
+				names = append(names, name)
+				index = len(names) - 1
+			}
 
-		return fmt.Sprintf("{%d}", index+1)
-	})
+			return fmt.Sprintf("{%d}", index+1)
+		})
+	}
 
 	unmask := func(translation string) string {
 		return placeholderPattern.ReplaceAllStringFunc(translation, func(token string) string {

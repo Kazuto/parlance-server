@@ -68,6 +68,11 @@ func (s *Server) BatchTranslate(
 		}
 	}
 
+	style, err := Style(ctx, s.db.DB)
+	if err != nil {
+		return nil, errors.InternalCause(err, "failed to load the translation style")
+	}
+
 	// Extract user ID from context
 	userID := middleware.UserIDPtr(ctx)
 
@@ -119,7 +124,9 @@ func (s *Server) BatchTranslate(
 			}
 		}
 
-		suggestion := SuggestOne(ctx, translator, sourceLocalization.Translation, targetLocale, terms[targetLocale.ID])
+		source := Source{Text: sourceLocalization.Translation, Context: entry.Description, Style: style}
+
+		suggestion := SuggestOne(ctx, translator, source, targetLocale, terms[targetLocale.ID])
 		if suggestion.ErrorCode != "" || len(suggestion.Warnings) > 0 {
 			failureCount++
 

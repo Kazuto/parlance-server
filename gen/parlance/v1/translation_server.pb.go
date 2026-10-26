@@ -671,6 +671,241 @@ func (x *TestTranslationServerResponse) GetDurationMs() int32 {
 	return 0
 }
 
+type TranslationSettings struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The style machine translations are asked for, e.g. "software user interface
+	// text"; empty while the default is used. The form of address of each language
+	// is added to it.
+	Style string `protobuf:"bytes,1,opt,name=style,proto3" json:"style,omitempty"`
+	// The style used while style is empty.
+	DefaultStyle string `protobuf:"bytes,2,opt,name=default_style,json=defaultStyle,proto3" json:"default_style,omitempty"`
+	// When the settings last changed, if ever.
+	UpdatedAt     *string `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3,oneof" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TranslationSettings) Reset() {
+	*x = TranslationSettings{}
+	mi := &file_parlance_v1_translation_server_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TranslationSettings) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TranslationSettings) ProtoMessage() {}
+
+func (x *TranslationSettings) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_translation_server_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TranslationSettings.ProtoReflect.Descriptor instead.
+func (*TranslationSettings) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_translation_server_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *TranslationSettings) GetStyle() string {
+	if x != nil {
+		return x.Style
+	}
+	return ""
+}
+
+func (x *TranslationSettings) GetDefaultStyle() string {
+	if x != nil {
+		return x.DefaultStyle
+	}
+	return ""
+}
+
+func (x *TranslationSettings) GetUpdatedAt() string {
+	if x != nil && x.UpdatedAt != nil {
+		return *x.UpdatedAt
+	}
+	return ""
+}
+
+type GetTranslationSettingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTranslationSettingsRequest) Reset() {
+	*x = GetTranslationSettingsRequest{}
+	mi := &file_parlance_v1_translation_server_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTranslationSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTranslationSettingsRequest) ProtoMessage() {}
+
+func (x *GetTranslationSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_translation_server_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTranslationSettingsRequest.ProtoReflect.Descriptor instead.
+func (*GetTranslationSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_translation_server_proto_rawDescGZIP(), []int{12}
+}
+
+type GetTranslationSettingsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Settings      *TranslationSettings   `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTranslationSettingsResponse) Reset() {
+	*x = GetTranslationSettingsResponse{}
+	mi := &file_parlance_v1_translation_server_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTranslationSettingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTranslationSettingsResponse) ProtoMessage() {}
+
+func (x *GetTranslationSettingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_translation_server_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTranslationSettingsResponse.ProtoReflect.Descriptor instead.
+func (*GetTranslationSettingsResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_translation_server_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetTranslationSettingsResponse) GetSettings() *TranslationSettings {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
+type UpdateTranslationSettingsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// One line of at most 200 characters, without square brackets. Empty restores
+	// the default.
+	Style         string `protobuf:"bytes,1,opt,name=style,proto3" json:"style,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateTranslationSettingsRequest) Reset() {
+	*x = UpdateTranslationSettingsRequest{}
+	mi := &file_parlance_v1_translation_server_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateTranslationSettingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateTranslationSettingsRequest) ProtoMessage() {}
+
+func (x *UpdateTranslationSettingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_translation_server_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateTranslationSettingsRequest.ProtoReflect.Descriptor instead.
+func (*UpdateTranslationSettingsRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_translation_server_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *UpdateTranslationSettingsRequest) GetStyle() string {
+	if x != nil {
+		return x.Style
+	}
+	return ""
+}
+
+type UpdateTranslationSettingsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Settings      *TranslationSettings   `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateTranslationSettingsResponse) Reset() {
+	*x = UpdateTranslationSettingsResponse{}
+	mi := &file_parlance_v1_translation_server_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateTranslationSettingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateTranslationSettingsResponse) ProtoMessage() {}
+
+func (x *UpdateTranslationSettingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_translation_server_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateTranslationSettingsResponse.ProtoReflect.Descriptor instead.
+func (*UpdateTranslationSettingsResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_translation_server_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *UpdateTranslationSettingsResponse) GetSettings() *TranslationSettings {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
 var File_parlance_v1_translation_server_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_translation_server_proto_rawDesc = "" +
@@ -728,13 +963,28 @@ const file_parlance_v1_translation_server_proto_rawDesc = "" +
 	"\vtranslation\x18\x02 \x01(\tR\vtranslation\x12\x14\n" +
 	"\x05error\x18\x03 \x01(\tR\x05error\x12\x1f\n" +
 	"\vduration_ms\x18\x04 \x01(\x05R\n" +
-	"durationMs2\xdf\x04\n" +
+	"durationMs\"\x83\x01\n" +
+	"\x13TranslationSettings\x12\x14\n" +
+	"\x05style\x18\x01 \x01(\tR\x05style\x12#\n" +
+	"\rdefault_style\x18\x02 \x01(\tR\fdefaultStyle\x12\"\n" +
+	"\n" +
+	"updated_at\x18\x03 \x01(\tH\x00R\tupdatedAt\x88\x01\x01B\r\n" +
+	"\v_updated_at\"\x1f\n" +
+	"\x1dGetTranslationSettingsRequest\"^\n" +
+	"\x1eGetTranslationSettingsResponse\x12<\n" +
+	"\bsettings\x18\x01 \x01(\v2 .parlance.v1.TranslationSettingsR\bsettings\"8\n" +
+	" UpdateTranslationSettingsRequest\x12\x14\n" +
+	"\x05style\x18\x01 \x01(\tR\x05style\"a\n" +
+	"!UpdateTranslationSettingsResponse\x12<\n" +
+	"\bsettings\x18\x01 \x01(\v2 .parlance.v1.TranslationSettingsR\bsettings2\xce\x06\n" +
 	"\x18TranslationServerService\x12q\n" +
 	"\x16ListTranslationServers\x12*.parlance.v1.ListTranslationServersRequest\x1a+.parlance.v1.ListTranslationServersResponse\x12t\n" +
 	"\x17CreateTranslationServer\x12+.parlance.v1.CreateTranslationServerRequest\x1a,.parlance.v1.CreateTranslationServerResponse\x12t\n" +
 	"\x17UpdateTranslationServer\x12+.parlance.v1.UpdateTranslationServerRequest\x1a,.parlance.v1.UpdateTranslationServerResponse\x12t\n" +
 	"\x17DeleteTranslationServer\x12+.parlance.v1.DeleteTranslationServerRequest\x1a,.parlance.v1.DeleteTranslationServerResponse\x12n\n" +
-	"\x15TestTranslationServer\x12).parlance.v1.TestTranslationServerRequest\x1a*.parlance.v1.TestTranslationServerResponseB\xb4\x01\n" +
+	"\x15TestTranslationServer\x12).parlance.v1.TestTranslationServerRequest\x1a*.parlance.v1.TestTranslationServerResponse\x12q\n" +
+	"\x16GetTranslationSettings\x12*.parlance.v1.GetTranslationSettingsRequest\x1a+.parlance.v1.GetTranslationSettingsResponse\x12z\n" +
+	"\x19UpdateTranslationSettings\x12-.parlance.v1.UpdateTranslationSettingsRequest\x1a..parlance.v1.UpdateTranslationSettingsResponseB\xb4\x01\n" +
 	"\x0fcom.parlance.v1B\x16TranslationServerProtoP\x01Z<github.com/kazuto/parlance-server/gen/parlance/v1;parlancev1\xa2\x02\x03PXX\xaa\x02\vParlance.V1\xca\x02\vParlance\\V1\xe2\x02\x17Parlance\\V1\\GPBMetadata\xea\x02\fParlance::V1b\x06proto3"
 
 var (
@@ -749,39 +999,50 @@ func file_parlance_v1_translation_server_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_translation_server_proto_rawDescData
 }
 
-var file_parlance_v1_translation_server_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_parlance_v1_translation_server_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_parlance_v1_translation_server_proto_goTypes = []any{
-	(*TranslationServer)(nil),               // 0: parlance.v1.TranslationServer
-	(*ListTranslationServersRequest)(nil),   // 1: parlance.v1.ListTranslationServersRequest
-	(*ListTranslationServersResponse)(nil),  // 2: parlance.v1.ListTranslationServersResponse
-	(*CreateTranslationServerRequest)(nil),  // 3: parlance.v1.CreateTranslationServerRequest
-	(*CreateTranslationServerResponse)(nil), // 4: parlance.v1.CreateTranslationServerResponse
-	(*UpdateTranslationServerRequest)(nil),  // 5: parlance.v1.UpdateTranslationServerRequest
-	(*UpdateTranslationServerResponse)(nil), // 6: parlance.v1.UpdateTranslationServerResponse
-	(*DeleteTranslationServerRequest)(nil),  // 7: parlance.v1.DeleteTranslationServerRequest
-	(*DeleteTranslationServerResponse)(nil), // 8: parlance.v1.DeleteTranslationServerResponse
-	(*TestTranslationServerRequest)(nil),    // 9: parlance.v1.TestTranslationServerRequest
-	(*TestTranslationServerResponse)(nil),   // 10: parlance.v1.TestTranslationServerResponse
+	(*TranslationServer)(nil),                 // 0: parlance.v1.TranslationServer
+	(*ListTranslationServersRequest)(nil),     // 1: parlance.v1.ListTranslationServersRequest
+	(*ListTranslationServersResponse)(nil),    // 2: parlance.v1.ListTranslationServersResponse
+	(*CreateTranslationServerRequest)(nil),    // 3: parlance.v1.CreateTranslationServerRequest
+	(*CreateTranslationServerResponse)(nil),   // 4: parlance.v1.CreateTranslationServerResponse
+	(*UpdateTranslationServerRequest)(nil),    // 5: parlance.v1.UpdateTranslationServerRequest
+	(*UpdateTranslationServerResponse)(nil),   // 6: parlance.v1.UpdateTranslationServerResponse
+	(*DeleteTranslationServerRequest)(nil),    // 7: parlance.v1.DeleteTranslationServerRequest
+	(*DeleteTranslationServerResponse)(nil),   // 8: parlance.v1.DeleteTranslationServerResponse
+	(*TestTranslationServerRequest)(nil),      // 9: parlance.v1.TestTranslationServerRequest
+	(*TestTranslationServerResponse)(nil),     // 10: parlance.v1.TestTranslationServerResponse
+	(*TranslationSettings)(nil),               // 11: parlance.v1.TranslationSettings
+	(*GetTranslationSettingsRequest)(nil),     // 12: parlance.v1.GetTranslationSettingsRequest
+	(*GetTranslationSettingsResponse)(nil),    // 13: parlance.v1.GetTranslationSettingsResponse
+	(*UpdateTranslationSettingsRequest)(nil),  // 14: parlance.v1.UpdateTranslationSettingsRequest
+	(*UpdateTranslationSettingsResponse)(nil), // 15: parlance.v1.UpdateTranslationSettingsResponse
 }
 var file_parlance_v1_translation_server_proto_depIdxs = []int32{
 	0,  // 0: parlance.v1.ListTranslationServersResponse.translation_servers:type_name -> parlance.v1.TranslationServer
 	0,  // 1: parlance.v1.CreateTranslationServerResponse.translation_server:type_name -> parlance.v1.TranslationServer
 	0,  // 2: parlance.v1.UpdateTranslationServerResponse.translation_server:type_name -> parlance.v1.TranslationServer
-	1,  // 3: parlance.v1.TranslationServerService.ListTranslationServers:input_type -> parlance.v1.ListTranslationServersRequest
-	3,  // 4: parlance.v1.TranslationServerService.CreateTranslationServer:input_type -> parlance.v1.CreateTranslationServerRequest
-	5,  // 5: parlance.v1.TranslationServerService.UpdateTranslationServer:input_type -> parlance.v1.UpdateTranslationServerRequest
-	7,  // 6: parlance.v1.TranslationServerService.DeleteTranslationServer:input_type -> parlance.v1.DeleteTranslationServerRequest
-	9,  // 7: parlance.v1.TranslationServerService.TestTranslationServer:input_type -> parlance.v1.TestTranslationServerRequest
-	2,  // 8: parlance.v1.TranslationServerService.ListTranslationServers:output_type -> parlance.v1.ListTranslationServersResponse
-	4,  // 9: parlance.v1.TranslationServerService.CreateTranslationServer:output_type -> parlance.v1.CreateTranslationServerResponse
-	6,  // 10: parlance.v1.TranslationServerService.UpdateTranslationServer:output_type -> parlance.v1.UpdateTranslationServerResponse
-	8,  // 11: parlance.v1.TranslationServerService.DeleteTranslationServer:output_type -> parlance.v1.DeleteTranslationServerResponse
-	10, // 12: parlance.v1.TranslationServerService.TestTranslationServer:output_type -> parlance.v1.TestTranslationServerResponse
-	8,  // [8:13] is the sub-list for method output_type
-	3,  // [3:8] is the sub-list for method input_type
-	3,  // [3:3] is the sub-list for extension type_name
-	3,  // [3:3] is the sub-list for extension extendee
-	0,  // [0:3] is the sub-list for field type_name
+	11, // 3: parlance.v1.GetTranslationSettingsResponse.settings:type_name -> parlance.v1.TranslationSettings
+	11, // 4: parlance.v1.UpdateTranslationSettingsResponse.settings:type_name -> parlance.v1.TranslationSettings
+	1,  // 5: parlance.v1.TranslationServerService.ListTranslationServers:input_type -> parlance.v1.ListTranslationServersRequest
+	3,  // 6: parlance.v1.TranslationServerService.CreateTranslationServer:input_type -> parlance.v1.CreateTranslationServerRequest
+	5,  // 7: parlance.v1.TranslationServerService.UpdateTranslationServer:input_type -> parlance.v1.UpdateTranslationServerRequest
+	7,  // 8: parlance.v1.TranslationServerService.DeleteTranslationServer:input_type -> parlance.v1.DeleteTranslationServerRequest
+	9,  // 9: parlance.v1.TranslationServerService.TestTranslationServer:input_type -> parlance.v1.TestTranslationServerRequest
+	12, // 10: parlance.v1.TranslationServerService.GetTranslationSettings:input_type -> parlance.v1.GetTranslationSettingsRequest
+	14, // 11: parlance.v1.TranslationServerService.UpdateTranslationSettings:input_type -> parlance.v1.UpdateTranslationSettingsRequest
+	2,  // 12: parlance.v1.TranslationServerService.ListTranslationServers:output_type -> parlance.v1.ListTranslationServersResponse
+	4,  // 13: parlance.v1.TranslationServerService.CreateTranslationServer:output_type -> parlance.v1.CreateTranslationServerResponse
+	6,  // 14: parlance.v1.TranslationServerService.UpdateTranslationServer:output_type -> parlance.v1.UpdateTranslationServerResponse
+	8,  // 15: parlance.v1.TranslationServerService.DeleteTranslationServer:output_type -> parlance.v1.DeleteTranslationServerResponse
+	10, // 16: parlance.v1.TranslationServerService.TestTranslationServer:output_type -> parlance.v1.TestTranslationServerResponse
+	13, // 17: parlance.v1.TranslationServerService.GetTranslationSettings:output_type -> parlance.v1.GetTranslationSettingsResponse
+	15, // 18: parlance.v1.TranslationServerService.UpdateTranslationSettings:output_type -> parlance.v1.UpdateTranslationSettingsResponse
+	12, // [12:19] is the sub-list for method output_type
+	5,  // [5:12] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_translation_server_proto_init() }
@@ -790,13 +1051,14 @@ func file_parlance_v1_translation_server_proto_init() {
 		return
 	}
 	file_parlance_v1_translation_server_proto_msgTypes[5].OneofWrappers = []any{}
+	file_parlance_v1_translation_server_proto_msgTypes[11].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_translation_server_proto_rawDesc), len(file_parlance_v1_translation_server_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

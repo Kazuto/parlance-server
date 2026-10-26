@@ -36,6 +36,39 @@ func TestPrompt(t *testing.T) {
 		}
 	})
 
+	t.Run("uses the configured style", func(t *testing.T) {
+		got := Prompt(Request{Text: "Save changes", TargetLang: "German", Style: " website of a bakery ", Formality: Informal})
+		want := "[website of a bakery, informal, addressing the user as du]"
+
+		if !strings.Contains(got, want) {
+			t.Errorf("got %q, want it to contain %q", got, want)
+		}
+	})
+
+	t.Run("gives the context as background information", func(t *testing.T) {
+		got := Prompt(Request{
+			Text:       "Open",
+			TargetLang: "German",
+			Context:    "Button that opens the entry.\n",
+			Terms:      []Term{{Source: "Entry", Target: "Eintrag"}},
+		})
+		want := "Reference the following translations:\n" +
+			"Entry translates to Eintrag\n\n" +
+			"[Background Information]\nButton that opens the entry.\n\n" +
+			"Please translate the following text into German, taking the provided background information into consideration. " +
+			"Note that the translation style must strictly conform to [software user interface text]. Only output the translated result without any additional explanation:\n\n" +
+			"[Source Text]\nOpen"
+
+		if got != want {
+			t.Errorf("got %q, want %q", got, want)
+		}
+
+		// A blank context leaves the prompt as without one
+		if got, want := Prompt(Request{Text: "Open", TargetLang: "German", Context: " \n"}), Prompt(Request{Text: "Open", TargetLang: "German"}); got != want {
+			t.Errorf("blank context: got %q, want %q", got, want)
+		}
+	})
+
 	t.Run("lists glossary terms before the text", func(t *testing.T) {
 		got := Prompt(Request{
 			Text:       "Open the dashboard",

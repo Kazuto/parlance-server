@@ -13,6 +13,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/database"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
+	"github.com/kazuto/parlance-server/internal/settings"
 	"github.com/kazuto/parlance-server/internal/translate"
 )
 
@@ -163,6 +164,32 @@ func TestSuggestTranslations(t *testing.T) {
 
 		if fr.Translation != "" || fr.ErrorCode != suggestionTimeout {
 			t.Errorf("fr: got %+v", fr)
+		}
+	})
+
+	t.Run("sends the entry's description and the style admins set", func(t *testing.T) {
+		server, fake := newServer()
+		if _, err := suggest(server, ctx, "st-entry", "st-de"); err != nil {
+			t.Fatalf("SuggestTranslations: %v", err)
+		}
+
+		if de, _ := fake.request("German"); de.Context != "Button on the start page" || de.Style != "" {
+			t.Errorf("request = %+v, want the description and the default style", de)
+		}
+
+		if err := settings.SetString(db.DB, models.SettingTranslationStyle, "website of a bakery", nil); err != nil {
+			t.Fatal(err)
+		}
+
+		t.Cleanup(func() { db.Exec(`DELETE FROM settings WHERE key = ?`, models.SettingTranslationStyle) })
+
+		server, fake = newServer()
+		if _, err := suggest(server, ctx, "st-entry", "st-de"); err != nil {
+			t.Fatalf("SuggestTranslations: %v", err)
+		}
+
+		if de, _ := fake.request("German"); de.Style != "website of a bakery" {
+			t.Errorf("style = %q", de.Style)
 		}
 	})
 
@@ -323,6 +350,10 @@ func TestBatchTranslate(t *testing.T) {
 			t.Errorf("saved: got %q", saved)
 		}
 
+		if es, _ := fake.request("Spanish"); es.Context != "Button on the start page" {
+			t.Errorf("context: got %q, want the entry's description", es.Context)
+		}
+
 		var origin struct{ Origin, MachineModel string }
 
 		db.Table("localizations").Select("origin, machine_model").Where("entry_id = 'st-entry' AND locale_id = 'st-es'").Scan(&origin)
@@ -371,7 +402,7 @@ func TestSuggestOneFormality(t *testing.T) {
 		fake.requests = nil
 		locale := models.Locale{ID: "de", Code: "de-DE", Formality: formality}
 
-		return SuggestOne(context.Background(), fake, "You can change your password.", locale, nil)
+		return SuggestOne(context.Background(), fake, Source{Text: "You can change your password."}, locale, nil)
 	}
 
 	// Asked for "du", the model answered with "Sie": a reviewer has to fix it.
