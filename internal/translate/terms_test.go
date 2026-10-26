@@ -36,6 +36,17 @@ func TestWords(t *testing.T) {
 			text:     `Click "Submit" button`,
 			expected: []string{"click", "submit", "button"},
 		},
+		// Placeholders stay untranslated, so their names are no words of the text.
+		{
+			name:     "without placeholders",
+			text:     "Choose a language for {language} or :language",
+			expected: []string{"choose", "a", "language", "for", "or"},
+		},
+		{
+			name:     "colons that are text",
+			text:     "Note: open https://parlance.dev at 10:30, key:value",
+			expected: []string{"note", "open", "https", "//parlance", "dev", "at", "10", "30", "key", "value"},
+		},
 	}
 
 	for _, tt := range tests {

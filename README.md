@@ -126,7 +126,8 @@ tried on the others.
 - **One language per request:** the model translates one text into one language,
   so an entry with eight empty languages makes eight requests.
 - **Prompt:** every prompt asks for user interface style. Glossary terms that occur
-  in the text are sent along with their translation.
+  in the text are sent along with their translation; placeholders such as
+  `{language}` don't count as the term "language".
 - **Form of address:** a language set to formal or informal (`Locale.formality`)
   asks for it by its pronoun, e.g. "addressing the user as Sie" or "as du". German,
   French, Spanish, Italian, Dutch and Russian have their pronouns; other languages

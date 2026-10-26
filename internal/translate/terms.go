@@ -1,6 +1,14 @@
 package translate
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
+
+// termPlaceholderPattern matches placeholders, which stay as they are and so don't
+// mention a glossary term: {language}, or Laravel's :language. A colon right after
+// a letter, digit or colon is text, as in "10:30" or "https://".
+var termPlaceholderPattern = regexp.MustCompile(`\{[^{}]+\}|(^|[^\p{L}\p{N}:]):[A-Za-z_]\w*`)
 
 // wordSeparators are replaced by spaces before splitting a text into words.
 var wordSeparators = strings.NewReplacer(
@@ -8,8 +16,10 @@ var wordSeparators = strings.NewReplacer(
 	"(", " ", ")", " ", "[", " ", "]", " ", "{", " ", "}", " ", "\"", " ", "'", " ",
 )
 
-// Words splits text into lowercase words, without punctuation.
+// Words splits text into lowercase words, without punctuation and placeholders.
 func Words(text string) []string {
+	text = termPlaceholderPattern.ReplaceAllString(text, "${1} ")
+
 	return strings.Fields(wordSeparators.Replace(strings.ToLower(text)))
 }
 
