@@ -2,6 +2,7 @@ package translate
 
 import (
 	"errors"
+	"regexp"
 	"slices"
 	"strings"
 	"unicode/utf8"
@@ -46,6 +47,7 @@ func Clean(source, answer string) (string, []Warning, error) {
 	text := strings.TrimSpace(answer)
 	text = stripFence(source, text)
 	text = stripQuotes(source, text)
+	text = replaceAddedDashes(source, text)
 
 	if text == "" {
 		return "", nil, ErrEmptyAnswer
@@ -111,6 +113,29 @@ func stripQuotes(source, text string) string {
 		if len(text) >= len(opening)+len(closing) && strings.HasPrefix(text, opening) && strings.HasSuffix(text, closing) {
 			return strings.TrimSpace(text[len(opening) : len(text)-len(closing)])
 		}
+	}
+
+	return text
+}
+
+// spacedDash matches a dash used as punctuation between words, with the space
+// around it; dashes in ranges such as "2–3" have none.
+var spacedDash = regexp.MustCompile(`\s+[–—-]\s+`)
+
+// replaceAddedDashes turns dashes the model put between words into commas, unless
+// the source has such dashes too. The models like to join clauses with " – ",
+// which German and most other target languages rarely use in interface text,
+// e.g. "…, so you can restore them" became "… – damit du sie wiederherstellen kannst".
+func replaceAddedDashes(source, text string) string {
+	if spacedDash.MatchString(source) {
+		return text
+	}
+
+	text = spacedDash.ReplaceAllString(text, ", ")
+
+	// A dash at either end has nothing to join, unless the source has one too.
+	if !strings.ContainsAny(source, "–—") {
+		text = strings.Trim(text, " –—")
 	}
 
 	return text

@@ -58,6 +58,8 @@ func LocalizationToProto(l *models.Localization) *pb.Localization {
 		ReviewComment: l.ReviewComment,
 		Outdated:      l.OutdatedAt != nil,
 		OutdatedAt:    formatPreciseTime(l.OutdatedAt),
+		Machine:       l.IsMachine(),
+		MachineModel:  l.MachineModel,
 	}
 }
 

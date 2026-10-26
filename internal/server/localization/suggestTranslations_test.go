@@ -23,17 +23,17 @@ type fakeTranslator struct {
 	requests []translate.Request
 }
 
-func (f *fakeTranslator) Translate(_ context.Context, req translate.Request) (string, error) {
+func (f *fakeTranslator) Translate(_ context.Context, req translate.Request) (translate.Answer, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.requests = append(f.requests, req)
 
 	answer, ok := f.answers[req.TargetLang]
 	if !ok {
-		return "", errors.New("model unavailable")
+		return translate.Answer{}, errors.New("model unavailable")
 	}
 
-	return answer, nil
+	return translate.Answer{Text: answer, Model: "fake-model"}, nil
 }
 
 // fixedSource always returns the same translator.
@@ -45,11 +45,11 @@ type hangingTranslator struct {
 	language string
 }
 
-func (h hangingTranslator) Translate(ctx context.Context, req translate.Request) (string, error) {
+func (h hangingTranslator) Translate(ctx context.Context, req translate.Request) (translate.Answer, error) {
 	if req.TargetLang == h.language {
 		<-ctx.Done()
 
-		return "", ctx.Err()
+		return translate.Answer{}, ctx.Err()
 	}
 
 	return h.Translator.Translate(ctx, req)
@@ -321,6 +321,14 @@ func TestBatchTranslate(t *testing.T) {
 
 		if saved != "Abrir" {
 			t.Errorf("saved: got %q", saved)
+		}
+
+		var origin struct{ Origin, MachineModel string }
+
+		db.Table("localizations").Select("origin, machine_model").Where("entry_id = 'st-entry' AND locale_id = 'st-es'").Scan(&origin)
+
+		if origin.Origin != "machine" || origin.MachineModel != "fake-model" {
+			t.Errorf("origin: got %+v, want machine text by fake-model", origin)
 		}
 
 		res, err = server.BatchTranslate(ctx, connect.NewRequest(&pb.BatchTranslateRequest{

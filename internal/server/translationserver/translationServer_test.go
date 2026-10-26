@@ -17,8 +17,10 @@ import (
 
 type answerFunc func(context.Context, translate.Request) (string, error)
 
-func (f answerFunc) Translate(ctx context.Context, req translate.Request) (string, error) {
-	return f(ctx, req)
+func (f answerFunc) Translate(ctx context.Context, req translate.Request) (translate.Answer, error) {
+	text, err := f(ctx, req)
+
+	return translate.Answer{Text: text, Model: "test-model"}, err
 }
 
 func TestTranslationServers(t *testing.T) {

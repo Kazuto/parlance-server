@@ -191,6 +191,45 @@ func TestChangedTextNeedsReviewAgain(t *testing.T) {
 	}
 }
 
+func TestTranslationsRecordWhoWroteThem(t *testing.T) {
+	ctx, db := testutil.Setup(t)
+	server := &Server{db: db}
+	seedReviewData(t, server)
+
+	created, err := server.CreateLocalization(ctx, connect.NewRequest(&pb.CreateLocalizationRequest{
+		EntryId: "rv-2", LocaleId: "rv-en", Translation: "Two", MachineModel: "hy-mt2-7b",
+	}))
+	if err != nil || !created.Msg.Localization.Machine || created.Msg.Localization.MachineModel != "hy-mt2-7b" {
+		t.Fatalf("saved suggestion = %+v, %v; want machine text by hy-mt2-7b", created, err)
+	}
+
+	update := func(req *pb.UpdateLocalizationRequest) *pb.Localization {
+		t.Helper()
+
+		req.Id = created.Msg.Localization.Id
+
+		res, err := server.UpdateLocalization(ctx, connect.NewRequest(req))
+		if err != nil {
+			t.Fatalf("UpdateLocalization: %v", err)
+		}
+
+		return res.Msg.Localization
+	}
+
+	// Saving the same text again, e.g. with other fields, keeps who wrote it.
+	if got := update(&pb.UpdateLocalizationRequest{Translation: proto.String("Two")}); !got.Machine {
+		t.Error("unchanged text lost its machine origin")
+	}
+
+	if got := update(&pb.UpdateLocalizationRequest{Translation: proto.String("Two!")}); got.Machine || got.MachineModel != "" {
+		t.Errorf("edited text = %+v, want a person's", got)
+	}
+
+	if got := update(&pb.UpdateLocalizationRequest{Translation: proto.String("Zwei"), MachineModel: "hy-mt2-1.8b"}); !got.Machine || got.MachineModel != "hy-mt2-1.8b" {
+		t.Errorf("saved suggestion = %+v, want machine text by hy-mt2-1.8b", got)
+	}
+}
+
 func TestApprovingQueuesSubscribedTasks(t *testing.T) {
 	ctx, db := testutil.Setup(t)
 	server := &Server{db: db}

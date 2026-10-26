@@ -38,8 +38,9 @@ func TestClient(t *testing.T) {
 			t.Fatalf("Translate: %v", err)
 		}
 
-		if answer != "Speichern" {
-			t.Errorf("answer: got %q", answer)
+		// Without a model in the answer, the configured one wrote it.
+		if answer.Text != "Speichern" || answer.Model != "hy-mt2" {
+			t.Errorf("answer: got %+v", answer)
 		}
 
 		if got.Model != "hy-mt2" || len(got.Messages) != 1 || got.Messages[0].Role != "user" {
@@ -76,8 +77,8 @@ func TestClient(t *testing.T) {
 			t.Errorf("prompt: got %q", got.Messages[0].Content)
 		}
 
-		if answer != "{name} löschen" {
-			t.Errorf("answer: got %q", answer)
+		if answer.Text != "{name} löschen" {
+			t.Errorf("answer: got %q", answer.Text)
 		}
 	})
 
@@ -117,6 +118,49 @@ func TestClient(t *testing.T) {
 		_, err := NewClient(server.URL, "", "", time.Second).Translate(context.Background(), Request{Text: "Save"})
 		if err != ErrEmptyAnswer {
 			t.Fatalf("got %v, want ErrEmptyAnswer", err)
+		}
+	})
+}
+
+func TestClientModels(t *testing.T) {
+	t.Run("names the model that answered", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(`{"model":"tencent/Hy-MT2-7B","choices":[{"message":{"content":"Speichern"}}]}`))
+		}))
+		defer server.Close()
+
+		answer, err := NewClient(server.URL, "", "", time.Second).Translate(context.Background(), Request{Text: "Save"})
+		if err != nil || answer.Model != "tencent/Hy-MT2-7B" {
+			t.Fatalf("got %+v, %v", answer, err)
+		}
+	})
+
+	t.Run("lists the served models and the configured one", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path != "/v1/models" {
+				http.NotFound(w, r)
+
+				return
+			}
+
+			_, _ = w.Write([]byte(`{"data":[{"id":"tencent/Hy-MT2-7B"},{"id":"hy-mt2"}]}`))
+		}))
+		defer server.Close()
+
+		models, err := NewClient(server.URL+"/v1", "hy-mt2", "", time.Second).Models(context.Background())
+		if err != nil || strings.Join(models, ",") != "hy-mt2,tencent/Hy-MT2-7B" {
+			t.Fatalf("got %v, %v", models, err)
+		}
+	})
+
+	t.Run("reports a server that can't list its models", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "nope", http.StatusInternalServerError)
+		}))
+		defer server.Close()
+
+		if _, err := NewClient(server.URL, "", "", time.Second).Models(context.Background()); err == nil {
+			t.Fatal("got no error")
 		}
 	})
 }

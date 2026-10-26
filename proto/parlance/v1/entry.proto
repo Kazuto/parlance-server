@@ -48,8 +48,10 @@ message ListEntriesRequest {
   string locale_id = 2;
   PaginationRequest pagination = 3;
   FilterRequest filter = 4;
-  // "", "missing", "complete", "review" (a draft awaits approval) or "outdated" (the
-  // default text changed since) for the selected locales (all active locales if empty).
+  // "", "missing", "complete", "review" (a draft awaits approval), "outdated" (the
+  // default text changed since) or "check" (the QA checks flag a translation against
+  // the default text, e.g. a lost placeholder) for the selected locales (all active
+  // locales if empty).
   string translation_status = 5;
   repeated string target_locale_ids = 6;
   // Entries in any of these scopes; combined with scope_id when both are set.

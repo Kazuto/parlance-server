@@ -26,8 +26,10 @@ import (
 // translatorFunc translates with a function.
 type translatorFunc func(context.Context, translate.Request) (string, error)
 
-func (f translatorFunc) Translate(ctx context.Context, req translate.Request) (string, error) {
-	return f(ctx, req)
+func (f translatorFunc) Translate(ctx context.Context, req translate.Request) (translate.Answer, error) {
+	text, err := f(ctx, req)
+
+	return translate.Answer{Text: text, Model: "test-model"}, err
 }
 
 // fixedSource always returns the same translator, which may be nil.
@@ -637,4 +639,92 @@ func datatypesJSON(value any) (datatypes.JSON, error) {
 	}
 
 	return datatypes.JSON(encoded), nil
+}
+
+// listingTranslator tells which models it serves, as the translation servers do.
+type listingTranslator struct {
+	translatorFunc
+	models []string
+}
+
+func (l listingTranslator) Models(context.Context) ([]string, error) {
+	return l.models, nil
+}
+
+func TestAITranslateRedoesOtherModelsDrafts(t *testing.T) {
+	db := testutil.SetupPostgresDB(t)
+	en, de, _ := seedLocales(t, db.DB)
+
+	// German texts: who wrote them decides whether they are translated again.
+	texts := map[string]func(*models.Localization){
+		"old-model draft": func(l *models.Localization) { l.WrittenBy("old-model") },
+		"unknown model":   func(l *models.Localization) { l.WrittenBy(""); l.Origin = models.OriginMachine },
+		"current draft":   func(l *models.Localization) { l.WrittenBy("test-model") },
+		"person's draft":  func(l *models.Localization) { l.WrittenBy("") },
+		"approved":        func(l *models.Localization) { l.WrittenBy("old-model"); l.Status = models.StatusApproved },
+		"rejected":        func(l *models.Localization) { l.WrittenBy("old-model"); l.ReviewComment = "Too formal" },
+	}
+	ids := map[string]string{}
+
+	for name, setup := range texts {
+		entry := models.Entry{Key: name}
+		create(t, db.DB, &entry)
+		create(t, db.DB, &models.Localization{EntryID: entry.ID, LocaleID: en.ID, Translation: name, Review: models.Review{Status: models.StatusApproved}})
+
+		german := models.Localization{EntryID: entry.ID, LocaleID: de.ID, Translation: "alt: " + name, Review: models.Review{Status: models.StatusDraft}}
+		setup(&german)
+		create(t, db.DB, &german)
+		ids[name] = german.ID
+	}
+
+	r := newTestRunner(t, db)
+	r.translators = fixedSource{translator: listingTranslator{
+		translatorFunc: func(_ context.Context, req translate.Request) (string, error) { return "neu: " + req.Text, nil },
+		models:         []string{"test-model"},
+	}}
+
+	run := func(redo bool) models.TaskRunSummary {
+		t.Helper()
+
+		task := newTask(t, db.DB, models.TaskTypeAITranslate, models.AITranslateConfig{TargetLocaleIDs: []string{de.ID}, RedoMachineDrafts: redo})
+
+		summary, err := r.aiTranslate(context.Background(), &task, &runLog{})
+		if err != nil {
+			t.Fatalf("aiTranslate() error = %v", err)
+		}
+
+		return summary
+	}
+
+	if summary := run(false); summary.Translated != 0 || summary.Redone != 0 {
+		t.Fatalf("without redo: %+v, want nothing to do", summary)
+	}
+
+	if summary := run(true); summary.Translated != 2 || summary.Redone != 2 || summary.Remaining != 0 {
+		t.Fatalf("with redo: %+v, want the two drafts by other models", summary)
+	}
+
+	for name, id := range ids {
+		var german models.Localization
+
+		db.First(&german, "id = ?", id)
+
+		redone := name == "old-model draft" || name == "unknown model"
+		if redone != (german.Translation == "neu: "+name) {
+			t.Errorf("%s: %q, redone = %v", name, german.Translation, redone)
+		}
+
+		if redone && (german.MachineModel != "test-model" || german.Status != models.StatusDraft) {
+			t.Errorf("%s: %+v, want a draft by test-model", name, german)
+		}
+	}
+
+	// The replaced text stays in the history.
+	var history int64
+
+	db.Model(&models.LocalizationHistory{}).Where("localization_id = ? AND translation = ?", ids["old-model draft"], "alt: old-model draft").Count(&history)
+
+	if history == 0 {
+		t.Error("the old machine draft is not in the history")
+	}
 }

@@ -73,6 +73,10 @@ message AiTranslateConfig {
   bool apply_terminology = 4;
   // Caps the entry × language pairs one run translates; 0 for the default.
   int32 max_pairs = 5;
+  // Also translate again unedited machine drafts written by a model the translation
+  // servers no longer serve, e.g. after switching to a bigger model. Approved
+  // translations, a person's text and rejected drafts stay.
+  bool redo_machine_drafts = 6;
 }
 
 message GitExportFile {
@@ -108,6 +112,8 @@ message TaskRunSummary {
   // "up_to_date" (the pull request branch has them), "updated", or
   // "nothing_to_translate".
   string outcome = 6;
+  // Machine drafts translated again by the current model; counted in translated too.
+  int32 redone = 7;
 }
 
 message TaskRun {

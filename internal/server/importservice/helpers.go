@@ -303,6 +303,7 @@ func planImport(
 
 				localization.Translation = value
 				localization.MarkDraft()
+				localization.WrittenBy("")
 				localization.ClearOutdated()
 
 				plan.changedEntryIDs[entry.ID] = true

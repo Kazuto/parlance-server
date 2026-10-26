@@ -290,9 +290,13 @@ type AiTranslateConfig struct {
 	ScopeIds         []string `protobuf:"bytes,3,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`
 	ApplyTerminology bool     `protobuf:"varint,4,opt,name=apply_terminology,json=applyTerminology,proto3" json:"apply_terminology,omitempty"`
 	// Caps the entry × language pairs one run translates; 0 for the default.
-	MaxPairs      int32 `protobuf:"varint,5,opt,name=max_pairs,json=maxPairs,proto3" json:"max_pairs,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	MaxPairs int32 `protobuf:"varint,5,opt,name=max_pairs,json=maxPairs,proto3" json:"max_pairs,omitempty"`
+	// Also translate again unedited machine drafts written by a model the translation
+	// servers no longer serve, e.g. after switching to a bigger model. Approved
+	// translations, a person's text and rejected drafts stay.
+	RedoMachineDrafts bool `protobuf:"varint,6,opt,name=redo_machine_drafts,json=redoMachineDrafts,proto3" json:"redo_machine_drafts,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *AiTranslateConfig) Reset() {
@@ -358,6 +362,13 @@ func (x *AiTranslateConfig) GetMaxPairs() int32 {
 		return x.MaxPairs
 	}
 	return 0
+}
+
+func (x *AiTranslateConfig) GetRedoMachineDrafts() bool {
+	if x != nil {
+		return x.RedoMachineDrafts
+	}
+	return false
 }
 
 type GitExportFile struct {
@@ -529,7 +540,9 @@ type TaskRunSummary struct {
 	// How the run ended, as a code: "no_changes" (the base branch has the files),
 	// "up_to_date" (the pull request branch has them), "updated", or
 	// "nothing_to_translate".
-	Outcome       string `protobuf:"bytes,6,opt,name=outcome,proto3" json:"outcome,omitempty"`
+	Outcome string `protobuf:"bytes,6,opt,name=outcome,proto3" json:"outcome,omitempty"`
+	// Machine drafts translated again by the current model; counted in translated too.
+	Redone        int32 `protobuf:"varint,7,opt,name=redone,proto3" json:"redone,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -604,6 +617,13 @@ func (x *TaskRunSummary) GetOutcome() string {
 		return x.Outcome
 	}
 	return ""
+}
+
+func (x *TaskRunSummary) GetRedone() int32 {
+	if x != nil {
+		return x.Redone
+	}
+	return 0
 }
 
 type TaskRun struct {
@@ -2176,13 +2196,14 @@ var File_parlance_v1_task_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_task_proto_rawDesc = "" +
 	"\n" +
-	"\x16parlance/v1/task.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x16parlance/v1/user.proto\"\xd0\x01\n" +
+	"\x16parlance/v1/task.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x16parlance/v1/user.proto\"\x80\x02\n" +
 	"\x11AiTranslateConfig\x12(\n" +
 	"\x10source_locale_id\x18\x01 \x01(\tR\x0esourceLocaleId\x12*\n" +
 	"\x11target_locale_ids\x18\x02 \x03(\tR\x0ftargetLocaleIds\x12\x1b\n" +
 	"\tscope_ids\x18\x03 \x03(\tR\bscopeIds\x12+\n" +
 	"\x11apply_terminology\x18\x04 \x01(\bR\x10applyTerminology\x12\x1b\n" +
-	"\tmax_pairs\x18\x05 \x01(\x05R\bmaxPairs\"V\n" +
+	"\tmax_pairs\x18\x05 \x01(\x05R\bmaxPairs\x12.\n" +
+	"\x13redo_machine_drafts\x18\x06 \x01(\bR\x11redoMachineDrafts\"V\n" +
 	"\rGitExportFile\x121\n" +
 	"\x06format\x18\x01 \x01(\x0e2\x19.parlance.v1.ExportFormatR\x06format\x12\x12\n" +
 	"\x04path\x18\x02 \x01(\tR\x04path\"\x98\x02\n" +
@@ -2198,7 +2219,7 @@ const file_parlance_v1_task_proto_rawDesc = "" +
 	"\n" +
 	"locale_ids\x18\x06 \x03(\tR\tlocaleIds\x12\x1b\n" +
 	"\tscope_ids\x18\a \x03(\tR\bscopeIds\x12%\n" +
-	"\x0einclude_drafts\x18\b \x01(\bR\rincludeDrafts\"\xcf\x01\n" +
+	"\x0einclude_drafts\x18\b \x01(\bR\rincludeDrafts\"\xe7\x01\n" +
 	"\x0eTaskRunSummary\x12\x1e\n" +
 	"\n" +
 	"translated\x18\x01 \x01(\x05R\n" +
@@ -2207,7 +2228,8 @@ const file_parlance_v1_task_proto_rawDesc = "" +
 	"\tremaining\x18\x03 \x01(\x05R\tremaining\x12(\n" +
 	"\x10pull_request_url\x18\x04 \x01(\tR\x0epullRequestUrl\x12#\n" +
 	"\rchanged_files\x18\x05 \x03(\tR\fchangedFiles\x12\x18\n" +
-	"\aoutcome\x18\x06 \x01(\tR\aoutcome\"\xc1\x04\n" +
+	"\aoutcome\x18\x06 \x01(\tR\aoutcome\x12\x16\n" +
+	"\x06redone\x18\a \x01(\x05R\x06redone\"\xc1\x04\n" +
 	"\aTaskRun\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\atask_id\x18\x02 \x01(\tR\x06taskId\x122\n" +

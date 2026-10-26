@@ -27,7 +27,7 @@ func (s *Server) ListEntries(
 	ctx context.Context,
 	req *connect.Request[pb.ListEntriesRequest],
 ) (*connect.Response[pb.ListEntriesResponse], error) {
-	if !slices.Contains([]string{"", "missing", "complete", "review", "outdated"}, req.Msg.TranslationStatus) {
+	if !slices.Contains([]string{"", "missing", "complete", "review", "outdated", "check"}, req.Msg.TranslationStatus) {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "invalid translation status")
 	}
 
@@ -101,7 +101,16 @@ func (s *Server) ListEntries(
 			Where("localizations.locale_id = ?", req.Msg.LocaleId)
 	}
 
-	if req.Msg.TranslationStatus != "" {
+	switch req.Msg.TranslationStatus {
+	case "":
+	case "check":
+		entryIDs, err := s.entriesToCheck(ctx, req.Msg.TargetLocaleIds)
+		if err != nil {
+			return nil, err
+		}
+
+		query = query.Where("entries.id IN ?", entryIDs)
+	default:
 		query = filterTranslationStatus(query, req.Msg.TranslationStatus, req.Msg.TargetLocaleIds)
 	}
 

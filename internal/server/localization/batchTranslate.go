@@ -120,6 +120,7 @@ func (s *Server) BatchTranslate(
 			Review:      models.Review{Status: models.StatusDraft},
 		}
 		targetLocalization.CreatedBy = userID
+		targetLocalization.WrittenBy(suggestion.Model)
 
 		if err := s.db.Create(&targetLocalization).Error; err != nil {
 			failureCount++

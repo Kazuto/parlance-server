@@ -42,7 +42,11 @@ type Localization struct {
 	Outdated bool `protobuf:"varint,14,opt,name=outdated,proto3" json:"outdated,omitempty"`
 	// When the default text first changed, in RFC 3339 with fractions of a second; pass
 	// it as GetEntryHistory's before to get the default text this one was based on.
-	OutdatedAt    string `protobuf:"bytes,15,opt,name=outdated_at,json=outdatedAt,proto3" json:"outdated_at,omitempty"`
+	OutdatedAt string `protobuf:"bytes,15,opt,name=outdated_at,json=outdatedAt,proto3" json:"outdated_at,omitempty"`
+	// A model wrote the text, and no person has edited it since.
+	Machine bool `protobuf:"varint,16,opt,name=machine,proto3" json:"machine,omitempty"`
+	// The model that wrote it, as its server names it; empty for a person's text.
+	MachineModel  string `protobuf:"bytes,17,opt,name=machine_model,json=machineModel,proto3" json:"machine_model,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -178,6 +182,20 @@ func (x *Localization) GetOutdated() bool {
 func (x *Localization) GetOutdatedAt() string {
 	if x != nil {
 		return x.OutdatedAt
+	}
+	return ""
+}
+
+func (x *Localization) GetMachine() bool {
+	if x != nil {
+		return x.Machine
+	}
+	return false
+}
+
+func (x *Localization) GetMachineModel() string {
+	if x != nil {
+		return x.MachineModel
 	}
 	return ""
 }
@@ -383,10 +401,12 @@ func (x *GetLocalizationResponse) GetLocalization() *Localization {
 }
 
 type CreateLocalizationRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	EntryId       string                 `protobuf:"bytes,1,opt,name=entry_id,json=entryId,proto3" json:"entry_id,omitempty"`
-	LocaleId      string                 `protobuf:"bytes,2,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
-	Translation   string                 `protobuf:"bytes,3,opt,name=translation,proto3" json:"translation,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	EntryId     string                 `protobuf:"bytes,1,opt,name=entry_id,json=entryId,proto3" json:"entry_id,omitempty"`
+	LocaleId    string                 `protobuf:"bytes,2,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
+	Translation string                 `protobuf:"bytes,3,opt,name=translation,proto3" json:"translation,omitempty"`
+	// Set when the text is a machine suggestion saved as it is: the suggestion's model.
+	MachineModel  string `protobuf:"bytes,4,opt,name=machine_model,json=machineModel,proto3" json:"machine_model,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -442,6 +462,13 @@ func (x *CreateLocalizationRequest) GetTranslation() string {
 	return ""
 }
 
+func (x *CreateLocalizationRequest) GetMachineModel() string {
+	if x != nil {
+		return x.MachineModel
+	}
+	return ""
+}
+
 type CreateLocalizationResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Localization  *Localization          `protobuf:"bytes,1,opt,name=localization,proto3" json:"localization,omitempty"`
@@ -487,9 +514,12 @@ func (x *CreateLocalizationResponse) GetLocalization() *Localization {
 }
 
 type UpdateLocalizationRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Translation   *string                `protobuf:"bytes,2,opt,name=translation,proto3,oneof" json:"translation,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Translation *string                `protobuf:"bytes,2,opt,name=translation,proto3,oneof" json:"translation,omitempty"`
+	// Set when the new text is a machine suggestion saved as it is: the suggestion's
+	// model. Without it, a changed text counts as the user's.
+	MachineModel  string `protobuf:"bytes,3,opt,name=machine_model,json=machineModel,proto3" json:"machine_model,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -534,6 +564,13 @@ func (x *UpdateLocalizationRequest) GetId() string {
 func (x *UpdateLocalizationRequest) GetTranslation() string {
 	if x != nil && x.Translation != nil {
 		return *x.Translation
+	}
+	return ""
+}
+
+func (x *UpdateLocalizationRequest) GetMachineModel() string {
+	if x != nil {
+		return x.MachineModel
 	}
 	return ""
 }
@@ -864,7 +901,9 @@ type TranslationSuggestion struct {
 	Translation string                `protobuf:"bytes,2,opt,name=translation,proto3" json:"translation,omitempty"`
 	Warnings    []*TranslationWarning `protobuf:"bytes,3,rep,name=warnings,proto3" json:"warnings,omitempty"`
 	// UNSUPPORTED_LANGUAGE, EMPTY_ANSWER, ANSWER_TOO_LONG or FAILED.
-	ErrorCode     string `protobuf:"bytes,4,opt,name=error_code,json=errorCode,proto3" json:"error_code,omitempty"`
+	ErrorCode string `protobuf:"bytes,4,opt,name=error_code,json=errorCode,proto3" json:"error_code,omitempty"`
+	// The model that wrote the translation, to pass on when saving it as it is.
+	Model         string `protobuf:"bytes,5,opt,name=model,proto3" json:"model,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -923,6 +962,13 @@ func (x *TranslationSuggestion) GetWarnings() []*TranslationWarning {
 func (x *TranslationSuggestion) GetErrorCode() string {
 	if x != nil {
 		return x.ErrorCode
+	}
+	return ""
+}
+
+func (x *TranslationSuggestion) GetModel() string {
+	if x != nil {
+		return x.Model
 	}
 	return ""
 }
@@ -1454,7 +1500,7 @@ var File_parlance_v1_localization_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\n" +
-	"\x1eparlance/v1/localization.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\xec\x03\n" +
+	"\x1eparlance/v1/localization.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\xab\x04\n" +
 	"\fLocalization\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bentry_id\x18\x02 \x01(\tR\aentryId\x12\x1b\n" +
@@ -1479,7 +1525,9 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\x0ereview_comment\x18\r \x01(\tR\rreviewComment\x12\x1a\n" +
 	"\boutdated\x18\x0e \x01(\bR\boutdated\x12\x1f\n" +
 	"\voutdated_at\x18\x0f \x01(\tR\n" +
-	"outdatedAt\"\xa9\x01\n" +
+	"outdatedAt\x12\x18\n" +
+	"\amachine\x18\x10 \x01(\bR\amachine\x12#\n" +
+	"\rmachine_model\x18\x11 \x01(\tR\fmachineModel\"\xa9\x01\n" +
 	"\x18ListLocalizationsRequest\x12\x19\n" +
 	"\bentry_id\x18\x01 \x01(\tR\aentryId\x12>\n" +
 	"\n" +
@@ -1494,16 +1542,18 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\x16GetLocalizationRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"X\n" +
 	"\x17GetLocalizationResponse\x12=\n" +
-	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"u\n" +
+	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"\x9a\x01\n" +
 	"\x19CreateLocalizationRequest\x12\x19\n" +
 	"\bentry_id\x18\x01 \x01(\tR\aentryId\x12\x1b\n" +
 	"\tlocale_id\x18\x02 \x01(\tR\blocaleId\x12 \n" +
-	"\vtranslation\x18\x03 \x01(\tR\vtranslation\"[\n" +
+	"\vtranslation\x18\x03 \x01(\tR\vtranslation\x12#\n" +
+	"\rmachine_model\x18\x04 \x01(\tR\fmachineModel\"[\n" +
 	"\x1aCreateLocalizationResponse\x12=\n" +
-	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"b\n" +
+	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"\x87\x01\n" +
 	"\x19UpdateLocalizationRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
-	"\vtranslation\x18\x02 \x01(\tH\x00R\vtranslation\x88\x01\x01B\x0e\n" +
+	"\vtranslation\x18\x02 \x01(\tH\x00R\vtranslation\x88\x01\x01\x12#\n" +
+	"\rmachine_model\x18\x03 \x01(\tR\fmachineModelB\x0e\n" +
 	"\f_translation\"[\n" +
 	"\x1aUpdateLocalizationResponse\x12=\n" +
 	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"+\n" +
@@ -1519,13 +1569,14 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\x11target_locale_ids\x18\x02 \x03(\tR\x0ftargetLocaleIds\"@\n" +
 	"\x12TranslationWarning\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x16\n" +
-	"\x06detail\x18\x02 \x01(\tR\x06detail\"\xb2\x01\n" +
+	"\x06detail\x18\x02 \x01(\tR\x06detail\"\xc8\x01\n" +
 	"\x15TranslationSuggestion\x12\x1b\n" +
 	"\tlocale_id\x18\x01 \x01(\tR\blocaleId\x12 \n" +
 	"\vtranslation\x18\x02 \x01(\tR\vtranslation\x12;\n" +
 	"\bwarnings\x18\x03 \x03(\v2\x1f.parlance.v1.TranslationWarningR\bwarnings\x12\x1d\n" +
 	"\n" +
-	"error_code\x18\x04 \x01(\tR\terrorCode\"c\n" +
+	"error_code\x18\x04 \x01(\tR\terrorCode\x12\x14\n" +
+	"\x05model\x18\x05 \x01(\tR\x05model\"c\n" +
 	"\x1bSuggestTranslationsResponse\x12D\n" +
 	"\vsuggestions\x18\x01 \x03(\v2\".parlance.v1.TranslationSuggestionR\vsuggestions\"\xb5\x01\n" +
 	"\x15BatchTranslateRequest\x12\x1b\n" +

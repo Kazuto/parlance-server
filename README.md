@@ -135,6 +135,9 @@ tried on the others.
   text, and mixes them.
 - **Placeholders:** `{name}` placeholders are sent as `{1}`, `{2}`, which the model
   keeps, and restored afterwards.
+- **Dashes:** a dash the model puts between words (" – ") becomes a comma unless
+  the source has one too. The models like joining clauses that way, which German
+  and most target languages rarely do in interface text.
 - **Checks:** answers that are empty or far longer than the source are rejected.
   Missing or extra placeholders, a different number of plural forms (`|`), new
   line breaks and, in the languages above, the other form of address ("du" where
@@ -152,14 +155,42 @@ Tasks do work on their own, set up by admins under **Automation** in the web app
 - **Machine translation** fills missing translations from the default (or a chosen)
   language, as drafts. Existing translations, drafts included, are kept, and
   results the checks flag are left out. One run makes at most 200 translations by
-  default; the rest wait for the next run.
+  default; the rest wait for the next run. With **Also redo machine drafts by other
+  models**, it also translates again drafts a model wrote that the translation
+  servers no longer serve, e.g. after switching to a bigger model. Only unedited
+  machine drafts qualify: each translation records whether a model or a person
+  wrote it, and which model. Approved, edited and rejected ones stay, and the old
+  text stays in the history.
 - **Git export** renders the chosen formats for each language, for example
   `lang/{locale}.json`, and proposes them as a GitHub pull request from its own
   branch. Only approved translations are exported unless drafts are included. The
   branch is rebuilt from the base branch on every run, and nothing is pushed while
-  the repository or the branch already hold the files. It needs a token with
-  read and write access to the repository's contents and pull requests (a
-  fine-grained token works), which is stored encrypted, so it needs `ENCRYPTION_KEY`.
+  the repository or the branch already hold the files. It needs an access token
+  (see below), which is stored encrypted, so it needs `ENCRYPTION_KEY`.
+
+### GitHub access token
+
+Create a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new)
+with **Repository access** limited to the export's repository, and these
+repository permissions:
+
+| Permission    | Access         | Used for                                                              |
+| ------------- | -------------- | --------------------------------------------------------------------- |
+| Contents      | Read and write | Reading the base branch, committing the files, updating the PR branch |
+| Pull requests | Read and write | Finding the open pull request of the branch, opening or updating it   |
+| Metadata      | Read-only      | Reading the repository; GitHub always adds it                         |
+
+Nothing else is needed. For a repository of an organization, choose the
+organization as the token's resource owner; the organization may have to approve
+the token first. Branch protection must allow force pushes to the pull request
+branch (the base branch is never pushed to).
+
+**Check access** in the task form tells whether the repository and base branch
+can be read and the token's user may push. GitHub reports the user's access there,
+not the token's, so a token with read-only Contents passes the check but fails on
+its first run with a 403.
+
+### Running tasks
 
 A task runs on its cron schedule (5 fields, UTC), after events, or when started by
 hand. Events, for now approving translations (in the editor or with an approving

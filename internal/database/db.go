@@ -87,6 +87,10 @@ func (db *DB) AutoMigrate() error {
 		}
 	}
 
+	// Machine drafts from before origins were tracked are known only by having no
+	// author: the AI task saves them so. Other text counts as a person's.
+	untracked := !db.Migrator().HasColumn(&models.Localization{}, "origin")
+
 	// Run migrations for all models
 	err := db.DB.AutoMigrate(
 		&models.Locale{},
@@ -120,6 +124,14 @@ func (db *DB) AutoMigrate() error {
 		if err := db.Session(&gorm.Session{SkipHooks: true, AllowGlobalUpdate: true}).
 			Model(model).Unscoped().Update("status", models.StatusApproved).Error; err != nil {
 			return fmt.Errorf("failed to approve existing translations: %w", err)
+		}
+	}
+
+	if untracked {
+		if err := db.Session(&gorm.Session{SkipHooks: true}).Model(&models.Localization{}).Unscoped().
+			Where("created_by IS NULL AND updated_by IS NULL AND status = ?", models.StatusDraft).
+			Update("origin", models.OriginMachine).Error; err != nil {
+			return fmt.Errorf("failed to mark machine translations: %w", err)
 		}
 	}
 

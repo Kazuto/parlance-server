@@ -23,6 +23,17 @@ func TestClean(t *testing.T) {
 		{name: "keeps quotes inside the text", source: `Click "Save"`, answer: `Klicke auf "Speichern"`, want: `Klicke auf "Speichern"`},
 		{name: "keeps placeholders", source: "Hello {name}", answer: "Hallo {name}", want: "Hallo {name}"},
 		{
+			name:   "replaces a dash the source doesn't have",
+			source: "Entries you delete show up here, so you can restore them.",
+			answer: "Die Einträge, die du löschst, erscheinen hier – damit du sie wiederherstellen kannst.",
+			want:   "Die Einträge, die du löschst, erscheinen hier, damit du sie wiederherstellen kannst.",
+		},
+		{name: "replaces em dashes and spaced hyphens", source: "Saved, reload", answer: "Gespeichert — neu laden - jetzt", want: "Gespeichert, neu laden, jetzt"},
+		{name: "drops a dash at the end", source: "Loading", answer: "Wird geladen –", want: "Wird geladen"},
+		{name: "keeps a dash the source ends with", source: "Wait—", answer: "Warte—", want: "Warte—"},
+		{name: "keeps dashes the source has", source: "Saved – reload", answer: "Gespeichert – neu laden", want: "Gespeichert – neu laden"},
+		{name: "keeps ranges and hyphenated words", source: "Pages 2-3 of the e-mail", answer: "Seiten 2–3 der E-Mail", want: "Seiten 2–3 der E-Mail"},
+		{
 			name: "warns about a translated placeholder", source: "{count} items", answer: "{Anzahl} Einträge",
 			want: "{Anzahl} Einträge",
 			warnings: []Warning{

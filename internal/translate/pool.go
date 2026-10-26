@@ -3,6 +3,7 @@ package translate
 import (
 	"context"
 	"reflect"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -54,7 +55,7 @@ func NewPool(endpoints []Endpoint, newTranslator func(Endpoint) Translator) *Poo
 	return pool
 }
 
-func (p *Pool) Translate(ctx context.Context, req Request) (string, error) {
+func (p *Pool) Translate(ctx context.Context, req Request) (Answer, error) {
 	tried := make([]bool, len(p.members))
 
 	var lastErr error
@@ -62,7 +63,7 @@ func (p *Pool) Translate(ctx context.Context, req Request) (string, error) {
 	for range p.members {
 		index, err := p.acquire(ctx, tried)
 		if err != nil {
-			return "", err
+			return Answer{}, err
 		}
 
 		answer, err := p.members[index].translator.Translate(ctx, req)
@@ -73,14 +74,40 @@ func (p *Pool) Translate(ctx context.Context, req Request) (string, error) {
 		}
 
 		if ctx.Err() != nil {
-			return "", err
+			return Answer{}, err
 		}
 
 		tried[index] = true
 		lastErr = err
 	}
 
-	return "", lastErr
+	return Answer{}, lastErr
+}
+
+// Models returns the models of all servers. A server that can't be asked fails
+// the call: without it, its translations would look like ones by other models.
+func (p *Pool) Models(ctx context.Context) ([]string, error) {
+	var models []string
+
+	for _, member := range p.members {
+		lister, ok := member.translator.(ModelLister)
+		if !ok {
+			continue
+		}
+
+		served, err := lister.Models(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, model := range served {
+			if !slices.Contains(models, model) {
+				models = append(models, model)
+			}
+		}
+	}
+
+	return models, nil
 }
 
 // acquire waits for a free slot on a server not yet tried, and returns which.

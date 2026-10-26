@@ -2,6 +2,7 @@ package localization
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
@@ -50,6 +51,7 @@ func (s *Server) UpdateLocalization(
 		localization.Translation = req.Msg.GetTranslation()
 		localization.MarkDraft()
 		localization.ClearOutdated()
+		localization.WrittenBy(strings.TrimSpace(req.Msg.MachineModel))
 	}
 
 	if err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {

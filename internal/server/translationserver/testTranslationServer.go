@@ -45,8 +45,9 @@ func (s *Server) TestTranslationServer(
 	answer, err := s.newTranslator(endpoint).Translate(ctx, testSample)
 	result.DurationMs = int32(time.Since(started).Milliseconds())
 
+	var translation string
 	if err == nil {
-		answer, _, err = translate.Clean(testSample.Text, answer)
+		translation, _, err = translate.Clean(testSample.Text, answer.Text)
 	}
 
 	if err != nil {
@@ -56,7 +57,7 @@ func (s *Server) TestTranslationServer(
 	}
 
 	result.Ok = true
-	result.Translation = answer
+	result.Translation = translation
 
 	return connect.NewResponse(result), nil
 }

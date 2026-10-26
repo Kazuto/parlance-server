@@ -2,6 +2,7 @@ package entry
 
 import (
 	"sort"
+	"strings"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -138,5 +139,78 @@ func TestListEntriesFindsDraftsForReview(t *testing.T) {
 	// The draft is French, so it is out of sight when only German is shown.
 	if res := list(de.ID); len(res.Entries) != 0 {
 		t.Errorf("review in de = %+v, want none", res.Entries)
+	}
+}
+
+func TestListEntriesToCheck(t *testing.T) {
+	db := testutil.SetupPostgresDB(t)
+	if err := db.Bootstrap(); err != nil {
+		t.Fatalf("bootstrap: %v", err)
+	}
+
+	ctx, err := testutil.ContextWithPermissions(db, "read_entry")
+	if err != nil {
+		t.Fatalf("create user: %v", err)
+	}
+
+	en := models.Locale{Code: "en", IsDefault: true, Names: datatypes.JSON(`{"en":"English"}`)}
+	de := models.Locale{Code: "de", Formality: "informal", Names: datatypes.JSON(`{"en":"German"}`)}
+	fr := models.Locale{Code: "fr", Names: datatypes.JSON(`{"en":"French"}`)}
+
+	for _, locale := range []*models.Locale{&en, &de, &fr} {
+		if err := db.Create(locale).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	texts := map[string][3]string{
+		"fine":        {"Delete {name}?", "{name} löschen?", "Supprimer {name} ?"},
+		"placeholder": {"Delete {name}?", "Löschen?", "Supprimer {name} ?"},
+		"formality":   {"Enter your name.", "Geben Sie Ihren Namen ein.", "Entrez votre nom."},
+		"french":      {"Saved", "Gespeichert", "Enregistré."},
+	}
+
+	for key, text := range texts {
+		entry := models.Entry{Key: key}
+		if err := db.Create(&entry).Error; err != nil {
+			t.Fatal(err)
+		}
+
+		for i, locale := range []models.Locale{en, de, fr} {
+			if err := db.Create(&models.Localization{EntryID: entry.ID, LocaleID: locale.ID, Translation: text[i]}).Error; err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+
+	server := &Server{db: db}
+	list := func(localeIDs ...string) []string {
+		t.Helper()
+
+		res, err := server.ListEntries(ctx, connect.NewRequest(&pb.ListEntriesRequest{TranslationStatus: "check", TargetLocaleIds: localeIDs}))
+		if err != nil {
+			t.Fatalf("ListEntries: %v", err)
+		}
+
+		keys := []string{}
+		for _, entry := range res.Msg.Entries {
+			keys = append(keys, entry.Key)
+		}
+
+		sort.Strings(keys)
+
+		return keys
+	}
+
+	if got := strings.Join(list(), ","); got != "formality,french,placeholder" {
+		t.Errorf("all languages: %s", got)
+	}
+
+	if got := strings.Join(list(de.ID), ","); got != "formality,placeholder" {
+		t.Errorf("German: %s", got)
+	}
+
+	if got := strings.Join(list(fr.ID), ","); got != "french" {
+		t.Errorf("French: %s", got)
 	}
 }

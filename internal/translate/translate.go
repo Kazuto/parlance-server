@@ -24,7 +24,21 @@ type Request struct {
 	Formality Formality
 }
 
-// Translator returns the model's raw answer, to be checked with Clean.
+// Answer is the model's raw answer, to be checked with Clean.
+type Answer struct {
+	Text string
+	// Model names the model that wrote it, as its server reports it, e.g.
+	// "tencent/Hy-MT2-7B-GGUF:Q4_K_M"; empty when unknown.
+	Model string
+}
+
+// Translator asks a model for a translation.
 type Translator interface {
-	Translate(ctx context.Context, req Request) (string, error)
+	Translate(ctx context.Context, req Request) (Answer, error)
+}
+
+// ModelLister is a translator that can tell which models it uses, so translations
+// by other models can be found, e.g. to redo them after switching models.
+type ModelLister interface {
+	Models(ctx context.Context) ([]string, error)
 }

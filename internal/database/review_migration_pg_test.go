@@ -116,3 +116,47 @@ func TestBootstrapGrantsSplitPermissionsOnce(t *testing.T) {
 		}
 	}
 }
+
+func TestMigrationMarksAuthorlessDraftsAsMachineText(t *testing.T) {
+	db := testutil.SetupPostgresDB(t)
+
+	// A database from before origins were tracked.
+	testutil.Exec(t, db, "ALTER TABLE localizations DROP COLUMN origin, DROP COLUMN machine_model")
+
+	locale := models.Locale{Code: "xx", Names: datatypes.JSON(`{"en":"Test"}`)}
+	user := models.User{Email: "writer@example.com", Name: "Writer", PasswordHash: "unused"}
+
+	for _, row := range []any{&locale, &user} {
+		if err := db.Create(row).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	rows := map[string]string{"machine": "", "typed": "", "approved": ""}
+	for key := range rows {
+		entry := models.Entry{Key: key}
+		if err := db.Create(&entry).Error; err != nil {
+			t.Fatal(err)
+		}
+
+		rows[key] = entry.ID
+	}
+
+	testutil.Exec(t, db, "INSERT INTO localizations (entry_id, locale_id, translation, status) VALUES (?, ?, 'a', 'draft')", rows["machine"], locale.ID)
+	testutil.Exec(t, db, "INSERT INTO localizations (entry_id, locale_id, translation, status, created_by) VALUES (?, ?, 'b', 'draft', ?)", rows["typed"], locale.ID, user.ID)
+	testutil.Exec(t, db, "INSERT INTO localizations (entry_id, locale_id, translation, status) VALUES (?, ?, 'c', 'approved')", rows["approved"], locale.ID)
+
+	if err := db.AutoMigrate(); err != nil {
+		t.Fatalf("AutoMigrate() error = %v", err)
+	}
+
+	for key, want := range map[string]string{"machine": models.OriginMachine, "typed": models.OriginHuman, "approved": models.OriginHuman} {
+		var origin string
+
+		db.Table("localizations").Select("origin").Where("entry_id = ?", rows[key]).Scan(&origin)
+
+		if origin != want {
+			t.Errorf("%s: origin %q, want %q", key, origin, want)
+		}
+	}
+}

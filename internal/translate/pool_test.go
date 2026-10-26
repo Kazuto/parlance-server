@@ -3,6 +3,7 @@ package translate
 import (
 	"context"
 	"errors"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -19,7 +20,7 @@ type slowTranslator struct {
 	calls   atomic.Int32
 }
 
-func (s *slowTranslator) Translate(ctx context.Context, _ Request) (string, error) {
+func (s *slowTranslator) Translate(ctx context.Context, _ Request) (Answer, error) {
 	s.calls.Add(1)
 	now := s.current.Add(1)
 
@@ -34,14 +35,41 @@ func (s *slowTranslator) Translate(ctx context.Context, _ Request) (string, erro
 	select {
 	case <-time.After(s.delay):
 	case <-ctx.Done():
-		return "", ctx.Err()
+		return Answer{}, ctx.Err()
 	}
 
 	if s.fail {
-		return "", errors.New(s.name + " is down")
+		return Answer{}, errors.New(s.name + " is down")
 	}
 
-	return s.name, nil
+	return Answer{Text: s.name, Model: s.name + "-model"}, nil
+}
+
+// Models lists the translator's one model, or fails when it is down.
+func (s *slowTranslator) Models(context.Context) ([]string, error) {
+	if s.fail {
+		return nil, errors.New(s.name + " is down")
+	}
+
+	return []string{s.name + "-model", "shared-model"}, nil
+}
+
+func TestPoolModels(t *testing.T) {
+	a := &slowTranslator{name: "a"}
+	b := &slowTranslator{name: "b"}
+	pool := poolOf(map[string]*slowTranslator{"a": a, "b": b}, Endpoint{ID: "a"}, Endpoint{ID: "b"})
+
+	models, err := pool.Models(context.Background())
+	if err != nil || strings.Join(models, ",") != "a-model,shared-model,b-model" {
+		t.Fatalf("got %v, %v", models, err)
+	}
+
+	// A server that can't tell would make its drafts look like another model's.
+	b.fail = true
+
+	if _, err := pool.Models(context.Background()); err == nil {
+		t.Fatal("got no error with a server down")
+	}
 }
 
 func poolOf(translators map[string]*slowTranslator, endpoints ...Endpoint) *Pool {
@@ -85,7 +113,7 @@ func TestPool(t *testing.T) {
 
 		for range 10 {
 			answer, err := pool.Translate(context.Background(), Request{})
-			if err != nil || answer != "up" {
+			if err != nil || answer.Text != "up" || answer.Model != "up-model" {
 				t.Fatalf("got %q, %v", answer, err)
 			}
 		}

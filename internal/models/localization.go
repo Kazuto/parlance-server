@@ -21,12 +21,41 @@ type Localization struct {
 	// approved; nil while it fits the current source text. Set apart from the review,
 	// so an approved text can be outdated.
 	OutdatedAt *time.Time `json:"outdated_at,omitempty"`
+	// Origin tells whether a person or a model wrote the text, and MachineModel
+	// which model, as its server names it. See WrittenBy.
+	Origin       string `gorm:"type:varchar(20);not null;default:'human'" json:"origin"`
+	MachineModel string `gorm:"type:varchar(200);not null;default:''" json:"machine_model,omitempty"`
 
 	// Relationships
 	Entry   Entry  `gorm:"foreignKey:EntryID" json:"entry"`
 	Locale  Locale `gorm:"foreignKey:LocaleID" json:"locale"`
 	Creator *User  `gorm:"foreignKey:CreatedBy" json:"creator,omitempty"`
 	Updater *User  `gorm:"foreignKey:UpdatedBy" json:"updater,omitempty"`
+}
+
+// Origins of a translation's text
+const (
+	OriginHuman   = "human"
+	OriginMachine = "machine"
+)
+
+// WrittenBy records who wrote the current text: the model, or a person when model
+// is empty. Any edit by a person makes the text theirs.
+func (l *Localization) WrittenBy(model string) {
+	if model == "" {
+		l.Origin = OriginHuman
+		l.MachineModel = ""
+
+		return
+	}
+
+	l.Origin = OriginMachine
+	l.MachineModel = model
+}
+
+// IsMachine tells whether a model wrote the current text.
+func (l *Localization) IsMachine() bool {
+	return l.Origin == OriginMachine
 }
 
 func (Localization) TableName() string {

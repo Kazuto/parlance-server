@@ -65,6 +65,9 @@ type AITranslateConfig struct {
 	TargetLocaleIDs  []string `json:"target_locale_ids,omitempty"`
 	ScopeIDs         []string `json:"scope_ids,omitempty"`
 	ApplyTerminology bool     `json:"apply_terminology,omitempty"`
+	// RedoMachineDrafts also translates again unedited machine drafts by models the
+	// translation servers no longer serve.
+	RedoMachineDrafts bool `json:"redo_machine_drafts,omitempty"`
 	// MaxPairs caps the entry × language pairs one run translates.
 	MaxPairs int `json:"max_pairs,omitempty"`
 }
@@ -150,6 +153,8 @@ type TaskRunSummary struct {
 	ChangedFiles   []string `json:"changed_files,omitempty"`
 	// Outcome says how the run ended, e.g. forge.OutcomeNoChanges.
 	Outcome string `json:"outcome,omitempty"`
+	// Redone counts machine drafts translated again; Translated includes them.
+	Redone int `json:"redone,omitempty"`
 }
 
 // RunSummary decodes the summary of the run; one that can't be read is empty.

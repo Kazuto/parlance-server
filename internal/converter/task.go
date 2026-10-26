@@ -81,11 +81,12 @@ func TaskToProto(task *models.Task, lastRun *models.TaskRun) *pb.Task {
 	case models.TaskTypeAITranslate:
 		if config, err := task.AITranslate(); err == nil {
 			result.AiTranslate = &pb.AiTranslateConfig{
-				SourceLocaleId:   config.SourceLocaleID,
-				TargetLocaleIds:  config.TargetLocaleIDs,
-				ScopeIds:         config.ScopeIDs,
-				ApplyTerminology: config.ApplyTerminology,
-				MaxPairs:         int32(config.MaxPairs),
+				SourceLocaleId:    config.SourceLocaleID,
+				TargetLocaleIds:   config.TargetLocaleIDs,
+				ScopeIds:          config.ScopeIDs,
+				ApplyTerminology:  config.ApplyTerminology,
+				RedoMachineDrafts: config.RedoMachineDrafts,
+				MaxPairs:          int32(config.MaxPairs),
 			}
 		}
 	case models.TaskTypeGitExport:
@@ -144,6 +145,7 @@ func TaskRunToProto(run *models.TaskRun, withLog bool) *pb.TaskRun {
 			PullRequestUrl: summary.PullRequestURL,
 			ChangedFiles:   summary.ChangedFiles,
 			Outcome:        summary.Outcome,
+			Redone:         int32(summary.Redone),
 		},
 	}
 

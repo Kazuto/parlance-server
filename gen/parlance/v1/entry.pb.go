@@ -180,8 +180,10 @@ type ListEntriesRequest struct {
 	LocaleId   string                 `protobuf:"bytes,2,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
 	Pagination *PaginationRequest     `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	Filter     *FilterRequest         `protobuf:"bytes,4,opt,name=filter,proto3" json:"filter,omitempty"`
-	// "", "missing", "complete", "review" (a draft awaits approval) or "outdated" (the
-	// default text changed since) for the selected locales (all active locales if empty).
+	// "", "missing", "complete", "review" (a draft awaits approval), "outdated" (the
+	// default text changed since) or "check" (the QA checks flag a translation against
+	// the default text, e.g. a lost placeholder) for the selected locales (all active
+	// locales if empty).
 	TranslationStatus string   `protobuf:"bytes,5,opt,name=translation_status,json=translationStatus,proto3" json:"translation_status,omitempty"`
 	TargetLocaleIds   []string `protobuf:"bytes,6,rep,name=target_locale_ids,json=targetLocaleIds,proto3" json:"target_locale_ids,omitempty"`
 	// Entries in any of these scopes; combined with scope_id when both are set.

@@ -43,6 +43,10 @@ message Localization {
   // When the default text first changed, in RFC 3339 with fractions of a second; pass
   // it as GetEntryHistory's before to get the default text this one was based on.
   string outdated_at = 15;
+  // A model wrote the text, and no person has edited it since.
+  bool machine = 16;
+  // The model that wrote it, as its server names it; empty for a person's text.
+  string machine_model = 17;
 }
 
 message ListLocalizationsRequest {
@@ -68,6 +72,8 @@ message CreateLocalizationRequest {
   string entry_id = 1;
   string locale_id = 2;
   string translation = 3;
+  // Set when the text is a machine suggestion saved as it is: the suggestion's model.
+  string machine_model = 4;
 }
 
 message CreateLocalizationResponse {
@@ -77,6 +83,9 @@ message CreateLocalizationResponse {
 message UpdateLocalizationRequest {
   string id = 1;
   optional string translation = 2;
+  // Set when the new text is a machine suggestion saved as it is: the suggestion's
+  // model. Without it, a changed text counts as the user's.
+  string machine_model = 3;
 }
 
 message UpdateLocalizationResponse {
@@ -117,6 +126,8 @@ message TranslationSuggestion {
   repeated TranslationWarning warnings = 3;
   // UNSUPPORTED_LANGUAGE, EMPTY_ANSWER, ANSWER_TOO_LONG or FAILED.
   string error_code = 4;
+  // The model that wrote the translation, to pass on when saving it as it is.
+  string model = 5;
 }
 
 message SuggestTranslationsResponse {

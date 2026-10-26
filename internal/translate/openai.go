@@ -49,6 +49,8 @@ type chatRequest struct {
 }
 
 type chatResponse struct {
+	// Model is the model that answered; llama.cpp names the one it loaded.
+	Model   string `json:"model"`
 	Choices []struct {
 		Message chatMessage `json:"message"`
 	} `json:"choices"`
@@ -56,7 +58,7 @@ type chatResponse struct {
 
 // Translate sends the prompt as the only message: the models have no system
 // prompt. Placeholders are masked on the way and restored in the answer.
-func (c *Client) Translate(ctx context.Context, req Request) (string, error) {
+func (c *Client) Translate(ctx context.Context, req Request) (Answer, error) {
 	masked, unmask := Mask(req.Text)
 	req.Text = masked
 
@@ -70,12 +72,12 @@ func (c *Client) Translate(ctx context.Context, req Request) (string, error) {
 		MaxTokens:         1024,
 	})
 	if err != nil {
-		return "", err
+		return Answer{}, err
 	}
 
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/chat/completions", bytes.NewReader(body))
 	if err != nil {
-		return "", err
+		return Answer{}, err
 	}
 
 	httpReq.Header.Set("Content-Type", "application/json")
@@ -86,7 +88,7 @@ func (c *Client) Translate(ctx context.Context, req Request) (string, error) {
 
 	res, err := c.http.Do(httpReq)
 	if err != nil {
-		return "", err
+		return Answer{}, err
 	}
 
 	defer func() { _ = res.Body.Close() }()
@@ -94,20 +96,72 @@ func (c *Client) Translate(ctx context.Context, req Request) (string, error) {
 	if res.StatusCode != http.StatusOK {
 		detail, err := io.ReadAll(io.LimitReader(res.Body, 512))
 		if err != nil {
-			return "", fmt.Errorf("translation server answered %s", res.Status)
+			return Answer{}, fmt.Errorf("translation server answered %s", res.Status)
 		}
 
-		return "", fmt.Errorf("translation server answered %s: %s", res.Status, strings.TrimSpace(string(detail)))
+		return Answer{}, fmt.Errorf("translation server answered %s: %s", res.Status, strings.TrimSpace(string(detail)))
 	}
 
 	var parsed chatResponse
 	if err := json.NewDecoder(res.Body).Decode(&parsed); err != nil {
-		return "", fmt.Errorf("decode translation answer: %w", err)
+		return Answer{}, fmt.Errorf("decode translation answer: %w", err)
 	}
 
 	if len(parsed.Choices) == 0 {
-		return "", ErrEmptyAnswer
+		return Answer{}, ErrEmptyAnswer
 	}
 
-	return unmask(parsed.Choices[0].Message.Content), nil
+	model := parsed.Model
+	if model == "" {
+		model = c.model
+	}
+
+	return Answer{Text: unmask(parsed.Choices[0].Message.Content), Model: model}, nil
+}
+
+// Models returns the models the server serves, as its answers name them, and the
+// configured model, which a server such as vLLM names its answers after instead.
+func (c *Client) Models(ctx context.Context) ([]string, error) {
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/models", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if c.apiKey != "" {
+		httpReq.Header.Set("Authorization", "Bearer "+c.apiKey)
+	}
+
+	res, err := c.http.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() { _ = res.Body.Close() }()
+
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("translation server answered %s", res.Status)
+	}
+
+	var parsed struct {
+		Data []struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+
+	if err := json.NewDecoder(res.Body).Decode(&parsed); err != nil {
+		return nil, fmt.Errorf("decode model list: %w", err)
+	}
+
+	models := make([]string, 0, len(parsed.Data)+1)
+	if c.model != "" {
+		models = append(models, c.model)
+	}
+
+	for _, model := range parsed.Data {
+		if model.ID != "" && model.ID != c.model {
+			models = append(models, model.ID)
+		}
+	}
+
+	return models, nil
 }

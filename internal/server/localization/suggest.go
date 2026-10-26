@@ -119,7 +119,7 @@ func SuggestOne(
 		return suggestion
 	}
 
-	text, warnings, err := translate.Clean(source, answer)
+	text, warnings, err := translate.Clean(source, answer.Text)
 
 	switch {
 	case stderrors.Is(err, translate.ErrEmptyAnswer):
@@ -134,6 +134,8 @@ func SuggestOne(
 		}
 
 		suggestion.Translation = text
+		suggestion.Model = answer.Model
+
 		for _, warning := range warnings {
 			suggestion.Warnings = append(suggestion.Warnings, &pb.TranslationWarning{
 				Code:   warning.Code,

@@ -2,6 +2,7 @@ package localization
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
@@ -39,6 +40,7 @@ func (s *Server) CreateLocalization(
 		CreatedBy:   middleware.UserIDPtr(ctx),
 		Review:      models.Review{Status: models.StatusDraft},
 	}
+	localization.WrittenBy(strings.TrimSpace(req.Msg.MachineModel))
 
 	if err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		at := time.Now()

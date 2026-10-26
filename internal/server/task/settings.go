@@ -152,11 +152,12 @@ func aiTranslateConfig(db *gorm.DB, in *pb.AiTranslateConfig) (models.AITranslat
 	}
 
 	config = models.AITranslateConfig{
-		SourceLocaleID:   in.SourceLocaleId,
-		TargetLocaleIDs:  targets,
-		ScopeIDs:         scopes,
-		ApplyTerminology: in.ApplyTerminology,
-		MaxPairs:         int(in.MaxPairs),
+		SourceLocaleID:    in.SourceLocaleId,
+		TargetLocaleIDs:   targets,
+		ScopeIDs:          scopes,
+		ApplyTerminology:  in.ApplyTerminology,
+		RedoMachineDrafts: in.RedoMachineDrafts,
+		MaxPairs:          int(in.MaxPairs),
 	}
 
 	return config, nil
