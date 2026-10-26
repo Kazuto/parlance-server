@@ -118,10 +118,19 @@ func Parse(data []byte) ([]Entry, error) {
 				}
 			}
 
-			if strings.HasPrefix(line, "#,") {
+			switch {
+			case strings.HasPrefix(line, "#,"):
 				for _, flag := range strings.Split(line[2:], ",") {
 					current.Fuzzy = current.Fuzzy || strings.TrimSpace(flag) == "fuzzy"
 				}
+			case strings.HasPrefix(line, "#."):
+				// Extracted comments hold the description, one line each
+				comment := strings.TrimPrefix(strings.TrimPrefix(line, "#."), " ")
+				if current.Description != "" {
+					comment = current.Description + "\n" + comment
+				}
+
+				current.Description = comment
 			}
 
 			continue

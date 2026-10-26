@@ -214,3 +214,58 @@ func TestListEntriesToCheck(t *testing.T) {
 		t.Errorf("French: %s", got)
 	}
 }
+
+func TestListEntriesStatusLocales(t *testing.T) {
+	db := testutil.SetupPostgresDB(t)
+	if err := db.Bootstrap(); err != nil {
+		t.Fatalf("bootstrap: %v", err)
+	}
+
+	ctx, err := testutil.ContextWithPermissions(db, "read_entry")
+	if err != nil {
+		t.Fatalf("create user: %v", err)
+	}
+
+	en := models.Locale{Code: "en", IsDefault: true, Names: datatypes.JSON(`{"en":"English"}`)}
+	de := models.Locale{Code: "de", Names: datatypes.JSON(`{"en":"German"}`)}
+	entry := models.Entry{Key: "draft.source"}
+
+	for _, row := range []any{&en, &de, &entry} {
+		if err := db.Create(row).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// The English source text is a draft; the German translation is approved.
+	for _, localization := range []models.Localization{
+		{EntryID: entry.ID, LocaleID: en.ID, Translation: "Save", Review: models.Review{Status: models.StatusDraft}},
+		{EntryID: entry.ID, LocaleID: de.ID, Translation: "Speichern", Review: models.Review{Status: models.StatusApproved}},
+	} {
+		if err := db.Create(&localization).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	server := &Server{db: db}
+	count := func(req *pb.ListEntriesRequest) int {
+		t.Helper()
+
+		req.TranslationStatus = "review"
+		req.TargetLocaleIds = []string{en.ID, de.ID}
+
+		res, err := server.ListEntries(ctx, connect.NewRequest(req))
+		if err != nil {
+			t.Fatalf("ListEntries: %v", err)
+		}
+
+		return len(res.Msg.Entries)
+	}
+
+	if got := count(&pb.ListEntriesRequest{}); got != 1 {
+		t.Errorf("status over the shown languages: %d entries, want the English draft", got)
+	}
+
+	if got := count(&pb.ListEntriesRequest{StatusLocaleIds: []string{de.ID}}); got != 0 {
+		t.Errorf("status over German only: %d entries, want none", got)
+	}
+}

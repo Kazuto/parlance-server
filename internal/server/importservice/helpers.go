@@ -27,6 +27,8 @@ type importPlan struct {
 	localizationsToCreate []models.Localization
 	localizationsToUpdate []models.Localization
 	entriesToAddScopes    []*models.Entry
+	// entriesToDescribe holds the existing entries whose description the import changes
+	entriesToDescribe []*models.Entry
 	// changedEntryIDs holds the entries whose translation the import changes, by id.
 	changedEntryIDs map[string]bool
 	// outdatingEntryIDs holds the existing entries whose default text the import changes
@@ -280,13 +282,18 @@ func planImport(
 
 		// New entries get their localization once they have an ID
 		if !entryExists {
-			plan.entriesToCreate = append(plan.entriesToCreate, models.Entry{Key: key, CreatedBy: &userID})
+			plan.entriesToCreate = append(plan.entriesToCreate, models.Entry{Key: key, Description: options.descriptions[key], CreatedBy: &userID})
 			add("", &pb.ImportChange{Key: key, Action: pb.ImportChangeAction_IMPORT_CHANGE_ACTION_ADD, NewTranslation: value})
 
 			continue
 		}
 
 		imported[entry.ID] = true
+
+		if description := options.descriptions[key]; description != "" && description != entry.Description {
+			entry.Description = description
+			plan.entriesToDescribe = append(plan.entriesToDescribe, entry)
+		}
 
 		if hasScopes {
 			plan.entriesToAddScopes = append(plan.entriesToAddScopes, entry)
@@ -502,6 +509,12 @@ func applyImport(
 		}
 	}
 
+	for _, entry := range plan.entriesToDescribe {
+		if err := tx.Model(entry).Updates(map[string]any{"description": entry.Description, "updated_by": userID}).Error; err != nil {
+			return err
+		}
+	}
+
 	if len(plan.localizationsToCreate) > 0 {
 		if err := tx.Create(&plan.localizationsToCreate).Error; err != nil {
 			return err
@@ -601,6 +614,9 @@ type importOptions struct {
 	approve bool
 	// Rolls the import back and lists its changes instead
 	dryRun bool
+	// The entries' descriptions by key, from formats that carry them. An empty or missing
+	// one keeps the entry's description.
+	descriptions map[string]string
 }
 
 // newReview is the review state of a translation the import creates

@@ -195,9 +195,12 @@ type ListEntriesRequest struct {
 	// localizations and scopes.
 	Summary bool `protobuf:"varint,9,opt,name=summary,proto3" json:"summary,omitempty"`
 	// Only deleted entries, to restore them. Requires delete_entry.
-	DeletedOnly   bool `protobuf:"varint,10,opt,name=deleted_only,json=deletedOnly,proto3" json:"deleted_only,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	DeletedOnly bool `protobuf:"varint,10,opt,name=deleted_only,json=deletedOnly,proto3" json:"deleted_only,omitempty"`
+	// The locales translation_status checks, when they differ from target_locale_ids,
+	// e.g. without the default locale shown as the source; target_locale_ids if empty.
+	StatusLocaleIds []string `protobuf:"bytes,11,rep,name=status_locale_ids,json=statusLocaleIds,proto3" json:"status_locale_ids,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *ListEntriesRequest) Reset() {
@@ -298,6 +301,13 @@ func (x *ListEntriesRequest) GetDeletedOnly() bool {
 		return x.DeletedOnly
 	}
 	return false
+}
+
+func (x *ListEntriesRequest) GetStatusLocaleIds() []string {
+	if x != nil {
+		return x.StatusLocaleIds
+	}
+	return nil
 }
 
 type ListEntriesResponse struct {
@@ -1404,7 +1414,7 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\x12missing_locale_ids\x18\v \x03(\tR\x10missingLocaleIds\x12/\n" +
 	"\x13default_translation\x18\f \x01(\tR\x12defaultTranslation\x12(\n" +
 	"\x10draft_locale_ids\x18\r \x03(\tR\x0edraftLocaleIds\x12.\n" +
-	"\x13outdated_locale_ids\x18\x0e \x03(\tR\x11outdatedLocaleIds\"\x8d\x03\n" +
+	"\x13outdated_locale_ids\x18\x0e \x03(\tR\x11outdatedLocaleIds\"\xb9\x03\n" +
 	"\x12ListEntriesRequest\x12\x19\n" +
 	"\bscope_id\x18\x01 \x01(\tR\ascopeId\x12\x1b\n" +
 	"\tlocale_id\x18\x02 \x01(\tR\blocaleId\x12>\n" +
@@ -1418,7 +1428,8 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\x06cursor\x18\b \x01(\tR\x06cursor\x12\x18\n" +
 	"\asummary\x18\t \x01(\bR\asummary\x12!\n" +
 	"\fdeleted_only\x18\n" +
-	" \x01(\bR\vdeletedOnly\"\xa5\x01\n" +
+	" \x01(\bR\vdeletedOnly\x12*\n" +
+	"\x11status_locale_ids\x18\v \x03(\tR\x0fstatusLocaleIds\"\xa5\x01\n" +
 	"\x13ListEntriesResponse\x12,\n" +
 	"\aentries\x18\x01 \x03(\v2\x12.parlance.v1.EntryR\aentries\x12?\n" +
 	"\n" +

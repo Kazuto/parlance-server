@@ -64,6 +64,9 @@ message ListEntriesRequest {
   bool summary = 9;
   // Only deleted entries, to restore them. Requires delete_entry.
   bool deleted_only = 10;
+  // The locales translation_status checks, when they differ from target_locale_ids,
+  // e.g. without the default locale shown as the source; target_locale_ids if empty.
+  repeated string status_locale_ids = 11;
 }
 
 message ListEntriesResponse {

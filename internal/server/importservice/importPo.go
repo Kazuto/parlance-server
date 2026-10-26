@@ -25,6 +25,7 @@ func (s *Server) ImportPo(ctx context.Context, req *connect.Request[pb.ImportPoR
 	}
 
 	translations := map[string]string{}
+	options.descriptions = map[string]string{}
 	seen := map[string]bool{}
 
 	var failures []*pb.ImportError
@@ -66,6 +67,7 @@ func (s *Server) ImportPo(ctx context.Context, req *connect.Request[pb.ImportPoR
 		}
 
 		translations[entry.ID] = entry.Translation
+		options.descriptions[entry.ID] = entry.Description
 	}
 
 	if options.mode == pb.ImportMode_IMPORT_MODE_REPLACE_ALL && len(failures) > 0 {

@@ -479,7 +479,8 @@ msgstr "Speichern"
   Broken syntax and non-UTF-8 files are rejected before anything is saved.
   Context (`msgctxt`), plural, fuzzy and duplicate records are reported in
   `result.errors` and counted as failed. Obsolete records and empty `msgstr` values
-  are skipped, keeping existing translations. Replace all rejects files with
+  are skipped, keeping existing translations. `#.` comments set the description of
+  the imported entries; records without one keep it. Replace all rejects files with
   unsupported or duplicate records before removing anything. The language comes
   from `localeId`, not from the file's Language header.
 - **Export:** sorted by key, with UTF-8 and language headers and entry descriptions

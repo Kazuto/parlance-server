@@ -21,7 +21,8 @@ func TestRoundTrip(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(parsed) != 2 || parsed[0].ID != "a.key" || parsed[1].Translation != input[0].Translation {
+	if len(parsed) != 2 || parsed[0].ID != "a.key" || parsed[0].Description != "" ||
+		parsed[1].Translation != input[0].Translation || parsed[1].Description != input[0].Description {
 		t.Fatalf("incorrect round trip: %+v", parsed)
 	}
 
@@ -34,6 +35,39 @@ func TestNumericEscapesAndTabs(t *testing.T) {
 	entries, err := Parse([]byte("msgid\t\"key with space\"\nmsgstr \"\\303\\274\\x21\\n\"\n"))
 	if err != nil || len(entries) != 1 || entries[0].Translation != "ü!\n" {
 		t.Fatalf("numeric C escapes: %+v, %v", entries, err)
+	}
+}
+
+func TestParseDescriptions(t *testing.T) {
+	input := `# translator comment
+#: src/app.vue:12
+#.Save button
+#.
+#.  indented
+msgid "save"
+msgstr "Save"
+#. Belongs to the next record
+msgid "cancel"
+msgstr "Cancel"
+
+msgid "close"
+msgstr "Close"
+`
+
+	entries, err := Parse([]byte(input))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := []string{"Save button\n\n indented", "Belongs to the next record", ""}
+	if len(entries) != len(want) {
+		t.Fatalf("unexpected records: %+v", entries)
+	}
+
+	for i, entry := range entries {
+		if entry.Description != want[i] {
+			t.Errorf("%s: description = %q, want %q", entry.ID, entry.Description, want[i])
+		}
 	}
 }
 

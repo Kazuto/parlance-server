@@ -101,17 +101,22 @@ func (s *Server) ListEntries(
 			Where("localizations.locale_id = ?", req.Msg.LocaleId)
 	}
 
+	statusLocaleIDs := req.Msg.StatusLocaleIds
+	if len(statusLocaleIDs) == 0 {
+		statusLocaleIDs = req.Msg.TargetLocaleIds
+	}
+
 	switch req.Msg.TranslationStatus {
 	case "":
 	case "check":
-		entryIDs, err := s.entriesToCheck(ctx, req.Msg.TargetLocaleIds)
+		entryIDs, err := s.entriesToCheck(ctx, statusLocaleIDs)
 		if err != nil {
 			return nil, err
 		}
 
 		query = query.Where("entries.id IN ?", entryIDs)
 	default:
-		query = filterTranslationStatus(query, req.Msg.TranslationStatus, req.Msg.TargetLocaleIds)
+		query = filterTranslationStatus(query, req.Msg.TranslationStatus, statusLocaleIDs)
 	}
 
 	var pagination *pb.PaginationResponse
