@@ -127,7 +127,14 @@ tried on the others.
   so an entry with eight empty languages makes eight requests.
 - **Prompt:** every prompt asks for user interface style. Glossary terms that occur
   in the text are sent along with their translation; placeholders such as
-  `{language}` don't count as the term "language".
+  `{language}` don't count as the term "language". Short labels need this most: the
+  models translate a lone "Copied" or "No scopes" poorly without the term.
+- **Glossary matching:** terms match in any of their word forms, by the stemmers of
+  Postgres's text search (`internal/termmatch`): "scope" in "No scopes", "Bereich" in
+  "Keine Bereiche". That covers about 30 languages, chosen by the locale code; others
+  match whole words, and languages written without spaces (Chinese, Japanese, Thai)
+  match the term anywhere in the text. The editor's glossary hints match the same
+  way, also when they check whether a translation uses the term.
 - **Form of address:** a language set to formal or informal (`Locale.formality`)
   asks for it by its pronoun, e.g. "addressing the user as Sie" or "as du". German,
   French, Spanish, Italian, Dutch and Russian have their pronouns; other languages

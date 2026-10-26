@@ -135,10 +135,10 @@ func (r *Runner) aiTranslate(ctx context.Context, task *models.Task, runLog *run
 
 	runLog.Printf("%d translations to write from %s, translating %d", total, source.Code, len(pairs))
 
-	var glossary localization.Glossary
+	var glossary *localization.Glossary
 
 	if config.ApplyTerminology {
-		if glossary, err = localization.LoadGlossary(db, targetIDs); err != nil {
+		if glossary, err = localization.LoadGlossary(ctx, db, source.Code, targetIDs); err != nil {
 			return summary, err
 		}
 	}
@@ -219,14 +219,20 @@ func (r *Runner) emitDrafted(task *models.Task, drafted []string, runLog *runLog
 func (r *Runner) translatePair(
 	ctx context.Context,
 	translator translate.Translator,
-	glossary localization.Glossary,
+	glossary *localization.Glossary,
 	pair missingPair,
 	locale models.Locale,
 	runLog *runLog,
 ) string {
 	var terms []translate.Term
+
 	if glossary != nil {
-		terms = glossary.Terms(pair.Source)[locale.ID]
+		found, err := glossary.Terms(pair.Source)
+		if err != nil {
+			runLog.Printf("%s → %s: glossary not applied, %v", pair.Key, locale.Code, err)
+		}
+
+		terms = found[locale.ID]
 	}
 
 	suggestion := localization.SuggestOne(ctx, translator, pair.Source, locale, terms)

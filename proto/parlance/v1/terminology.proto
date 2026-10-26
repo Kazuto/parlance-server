@@ -114,6 +114,8 @@ message DefinitionHistory {
 message SuggestTerminologiesRequest {
   string source_text = 1;        // Source text to analyze (e.g., "Delete logo and return to dashboard")
   string target_locale_id = 2;   // Target locale for suggestions
+  // A translation to check the terms in, for each suggestion's used; unset skips it.
+  optional string translation = 3;
 }
 
 message SuggestTerminologiesResponse {
@@ -125,4 +127,6 @@ message TerminologySuggestion {
   string target_translation = 2;         // What to use in target locale (e.g., "Logo" for de)
   repeated string matched_words = 3;     // Words that matched from source text (e.g., ["logo"])
   ReviewStatus target_status = 4;        // Review status of target_translation
+  // The request's translation uses target_translation, in any of its word forms.
+  bool used = 5;
 }

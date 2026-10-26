@@ -941,8 +941,10 @@ type SuggestTerminologiesRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	SourceText     string                 `protobuf:"bytes,1,opt,name=source_text,json=sourceText,proto3" json:"source_text,omitempty"`               // Source text to analyze (e.g., "Delete logo and return to dashboard")
 	TargetLocaleId string                 `protobuf:"bytes,2,opt,name=target_locale_id,json=targetLocaleId,proto3" json:"target_locale_id,omitempty"` // Target locale for suggestions
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// A translation to check the terms in, for each suggestion's used; unset skips it.
+	Translation   *string `protobuf:"bytes,3,opt,name=translation,proto3,oneof" json:"translation,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SuggestTerminologiesRequest) Reset() {
@@ -985,6 +987,13 @@ func (x *SuggestTerminologiesRequest) GetSourceText() string {
 func (x *SuggestTerminologiesRequest) GetTargetLocaleId() string {
 	if x != nil {
 		return x.TargetLocaleId
+	}
+	return ""
+}
+
+func (x *SuggestTerminologiesRequest) GetTranslation() string {
+	if x != nil && x.Translation != nil {
+		return *x.Translation
 	}
 	return ""
 }
@@ -1039,8 +1048,10 @@ type TerminologySuggestion struct {
 	TargetTranslation string                 `protobuf:"bytes,2,opt,name=target_translation,json=targetTranslation,proto3" json:"target_translation,omitempty"`                 // What to use in target locale (e.g., "Logo" for de)
 	MatchedWords      []string               `protobuf:"bytes,3,rep,name=matched_words,json=matchedWords,proto3" json:"matched_words,omitempty"`                                // Words that matched from source text (e.g., ["logo"])
 	TargetStatus      ReviewStatus           `protobuf:"varint,4,opt,name=target_status,json=targetStatus,proto3,enum=parlance.v1.ReviewStatus" json:"target_status,omitempty"` // Review status of target_translation
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// The request's translation uses target_translation, in any of its word forms.
+	Used          bool `protobuf:"varint,5,opt,name=used,proto3" json:"used,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TerminologySuggestion) Reset() {
@@ -1099,6 +1110,13 @@ func (x *TerminologySuggestion) GetTargetStatus() ReviewStatus {
 		return x.TargetStatus
 	}
 	return ReviewStatus_REVIEW_STATUS_UNSPECIFIED
+}
+
+func (x *TerminologySuggestion) GetUsed() bool {
+	if x != nil {
+		return x.Used
+	}
+	return false
 }
 
 var File_parlance_v1_terminology_proto protoreflect.FileDescriptor
@@ -1180,18 +1198,21 @@ const file_parlance_v1_terminology_proto_rawDesc = "" +
 	"\x04user\x18\t \x01(\v2\x11.parlance.v1.UserR\x04user\x121\n" +
 	"\x06status\x18\n" +
 	" \x01(\x0e2\x19.parlance.v1.ReviewStatusR\x06status\x12\x18\n" +
-	"\acomment\x18\v \x01(\tR\acomment\"h\n" +
+	"\acomment\x18\v \x01(\tR\acomment\"\x9f\x01\n" +
 	"\x1bSuggestTerminologiesRequest\x12\x1f\n" +
 	"\vsource_text\x18\x01 \x01(\tR\n" +
 	"sourceText\x12(\n" +
-	"\x10target_locale_id\x18\x02 \x01(\tR\x0etargetLocaleId\"d\n" +
+	"\x10target_locale_id\x18\x02 \x01(\tR\x0etargetLocaleId\x12%\n" +
+	"\vtranslation\x18\x03 \x01(\tH\x00R\vtranslation\x88\x01\x01B\x0e\n" +
+	"\f_translation\"d\n" +
 	"\x1cSuggestTerminologiesResponse\x12D\n" +
-	"\vsuggestions\x18\x01 \x03(\v2\".parlance.v1.TerminologySuggestionR\vsuggestions\"\xe7\x01\n" +
+	"\vsuggestions\x18\x01 \x03(\v2\".parlance.v1.TerminologySuggestionR\vsuggestions\"\xfb\x01\n" +
 	"\x15TerminologySuggestion\x12:\n" +
 	"\vterminology\x18\x01 \x01(\v2\x18.parlance.v1.TerminologyR\vterminology\x12-\n" +
 	"\x12target_translation\x18\x02 \x01(\tR\x11targetTranslation\x12#\n" +
 	"\rmatched_words\x18\x03 \x03(\tR\fmatchedWords\x12>\n" +
-	"\rtarget_status\x18\x04 \x01(\x0e2\x19.parlance.v1.ReviewStatusR\ftargetStatus2\xc0\x06\n" +
+	"\rtarget_status\x18\x04 \x01(\x0e2\x19.parlance.v1.ReviewStatusR\ftargetStatus\x12\x12\n" +
+	"\x04used\x18\x05 \x01(\bR\x04used2\xc0\x06\n" +
 	"\x12TerminologyService\x12b\n" +
 	"\x11ListTerminologies\x12%.parlance.v1.ListTerminologiesRequest\x1a&.parlance.v1.ListTerminologiesResponse\x12Y\n" +
 	"\x0eGetTerminology\x12\".parlance.v1.GetTerminologyRequest\x1a#.parlance.v1.GetTerminologyResponse\x12b\n" +
@@ -1293,6 +1314,7 @@ func file_parlance_v1_terminology_proto_init() {
 	file_parlance_v1_user_proto_init()
 	file_parlance_v1_definition_proto_init()
 	file_parlance_v1_terminology_proto_msgTypes[7].OneofWrappers = []any{}
+	file_parlance_v1_terminology_proto_msgTypes[16].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

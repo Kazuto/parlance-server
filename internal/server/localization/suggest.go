@@ -4,11 +4,14 @@ import (
 	"context"
 	stderrors "errors"
 	"log"
+	"slices"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/termmatch"
 	"github.com/kazuto/parlance-server/internal/translate"
 	"gorm.io/gorm"
 
@@ -161,37 +164,60 @@ func isTimeout(ctx context.Context, err error) bool {
 
 // glossaryTerms returns, per locale, the glossary terms that occur in source and
 // have an approved translation in that locale, so a draft can't steer translations.
-func (s *Server) glossaryTerms(source string, localeIDs []string) (map[string][]translate.Term, error) {
-	glossary, err := LoadGlossary(s.db.DB, localeIDs)
+// The source is in the language of sourceCode, whose word forms the terms match.
+func (s *Server) glossaryTerms(ctx context.Context, source, sourceCode string, localeIDs []string) (map[string][]translate.Term, error) {
+	glossary, err := LoadGlossary(ctx, s.db.DB, sourceCode, localeIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	return glossary.Terms(source), nil
+	return glossary.Terms(source)
 }
 
-// Glossary is the glossary with its approved translations in some locales.
-type Glossary []models.Terminology
+// Glossary is the glossary with its approved translations in some locales, ready
+// to find its terms in texts of one language.
+type Glossary struct {
+	terminologies map[string]models.Terminology
+	matcher       *termmatch.Matcher
+}
 
-// LoadGlossary loads the terms with their approved translations in the locales.
-func LoadGlossary(db *gorm.DB, localeIDs []string) (Glossary, error) {
+// LoadGlossary loads the terms with their approved translations in the locales, to
+// find them in texts in the language of sourceCode, in any of their word forms.
+func LoadGlossary(ctx context.Context, db *gorm.DB, sourceCode string, localeIDs []string) (*Glossary, error) {
 	var terminologies []models.Terminology
-	if err := db.Preload("Definitions", "locale_id IN ? AND status = ?", localeIDs, models.StatusApproved).Find(&terminologies).Error; err != nil {
+	if err := db.WithContext(ctx).Preload("Definitions", "locale_id IN ? AND status = ?", localeIDs, models.StatusApproved).Find(&terminologies).Error; err != nil {
 		return nil, err
 	}
 
-	return terminologies, nil
+	glossary := &Glossary{terminologies: make(map[string]models.Terminology, len(terminologies))}
+	terms := make([]termmatch.Term, len(terminologies))
+
+	for i, terminology := range terminologies {
+		glossary.terminologies[terminology.ID] = terminology
+		terms[i] = termmatch.Term{ID: terminology.ID, Text: terminology.Term}
+	}
+
+	matcher, err := termmatch.New(ctx, db, sourceCode, terms)
+	if err != nil {
+		return nil, err
+	}
+
+	glossary.matcher = matcher
+
+	return glossary, nil
 }
 
 // Terms returns, per locale, the terms that occur in source with their translation.
-func (g Glossary) Terms(source string) map[string][]translate.Term {
-	words := translate.Words(source)
+func (g *Glossary) Terms(source string) (map[string][]translate.Term, error) {
 	terms := map[string][]translate.Term{}
 
-	for _, terminology := range g {
-		if len(translate.FindTerm(terminology.Term, words)) == 0 {
-			continue
-		}
+	found, err := g.matcher.Find(source)
+	if err != nil {
+		return nil, err
+	}
+
+	for id := range found {
+		terminology := g.terminologies[id]
 
 		for _, definition := range terminology.Definitions {
 			if definition.Translation == "" {
@@ -205,5 +231,10 @@ func (g Glossary) Terms(source string) map[string][]translate.Term {
 		}
 	}
 
-	return terms
+	// A fixed order keeps the prompt the same for the same text.
+	for localeID := range terms {
+		slices.SortFunc(terms[localeID], func(a, b translate.Term) int { return strings.Compare(a.Source, b.Source) })
+	}
+
+	return terms, nil
 }

@@ -76,7 +76,7 @@ func (s *Server) SuggestTranslations(
 		locales = append(locales, found[index])
 	}
 
-	terms, err := s.glossaryTerms(source.Translation, localeIDs)
+	terms, err := s.glossaryTerms(ctx, source.Translation, defaultLocale.Code, localeIDs)
 	if err != nil {
 		return nil, errors.Internal(errors.ErrInternal, "failed to load the glossary")
 	}

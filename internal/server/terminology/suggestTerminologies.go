@@ -8,11 +8,16 @@ import (
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
-	"github.com/kazuto/parlance-server/internal/translate"
+	"github.com/kazuto/parlance-server/internal/termmatch"
+	"gorm.io/gorm"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
 
+// SuggestTerminologies returns the glossary terms in a source text, in the default
+// locale's language, with their translation into the target locale. Terms match in
+// any of their word forms, e.g. "scope" in "No scopes". With a translation, each
+// suggestion also tells whether the translation uses the term's translation.
 func (s *Server) SuggestTerminologies(
 	ctx context.Context,
 	req *connect.Request[pb.SuggestTerminologiesRequest],
@@ -25,53 +30,89 @@ func (s *Server) SuggestTerminologies(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "target locale id is required")
 	}
 
-	// Verify target locale exists
-	if _, err := common.FindByID[models.Locale](s.db.WithContext(ctx), req.Msg.TargetLocaleId, errors.ErrLocaleNotFound, "target locale not found"); err != nil {
+	db := s.db.WithContext(ctx)
+
+	targetLocale, err := common.FindByID[models.Locale](db, req.Msg.TargetLocaleId, errors.ErrLocaleNotFound, "target locale not found")
+	if err != nil {
 		return nil, err
 	}
 
-	// Get all terminologies with their definitions
+	// Source texts are written in the default locale; without one, words match exactly.
+	sourceCode := ""
+
+	if defaultLocale, err := common.DefaultLocale(db); err != nil {
+		return nil, err
+	} else if defaultLocale != nil {
+		sourceCode = defaultLocale.Code
+	}
+
 	var terminologies []models.Terminology
-	if err := s.db.Preload("Definitions", "locale_id = ?", req.Msg.TargetLocaleId).Find(&terminologies).Error; err != nil {
+	if err := db.Preload("Definitions", "locale_id = ?", req.Msg.TargetLocaleId).Find(&terminologies).Error; err != nil {
 		return nil, errors.InternalCause(err, "failed to fetch terminologies")
 	}
 
-	// Tokenize source text (simple word-based tokenization)
-	sourceWords := translate.Words(req.Msg.SourceText)
+	terms := make([]termmatch.Term, len(terminologies))
+	for i, terminology := range terminologies {
+		terms[i] = termmatch.Term{ID: terminology.ID, Text: terminology.Term}
+	}
 
-	// Find matching terminologies
-	var suggestions []*pb.TerminologySuggestion
+	sourceMatcher, err := termmatch.New(ctx, s.db.DB, sourceCode, terms)
+	if err != nil {
+		return nil, errors.InternalCause(err, "failed to read the glossary terms")
+	}
 
-	for _, term := range terminologies {
-		// Check if terminology term appears in source text (case-insensitive)
-		matchedWords := translate.FindTerm(term.Term, sourceWords)
+	found, err := sourceMatcher.Find(req.Msg.SourceText)
+	if err != nil {
+		return nil, errors.InternalCause(err, "failed to read the source text")
+	}
 
-		if len(matchedWords) > 0 {
-			// Get the definition for the target locale
-			var targetTranslation, targetStatus string
+	suggestions := []*pb.TerminologySuggestion{}
+	targets := []termmatch.Term{}
 
-			for _, def := range term.Definitions {
-				if def.LocaleID == req.Msg.TargetLocaleId {
-					targetTranslation = def.Translation
-					targetStatus = def.Status
+	for _, terminology := range terminologies {
+		matchedWords, ok := found[terminology.ID]
+		if !ok || len(terminology.Definitions) == 0 || terminology.Definitions[0].Translation == "" {
+			continue
+		}
 
-					break
-				}
-			}
+		// Only terms with a translation for the target locale are suggested.
+		definition := terminology.Definitions[0]
+		suggestions = append(suggestions, &pb.TerminologySuggestion{
+			Terminology:       converter.TerminologyToProto(&terminology),
+			TargetTranslation: definition.Translation,
+			TargetStatus:      converter.ReviewStatusToProto(definition.Status),
+			MatchedWords:      matchedWords,
+		})
 
-			// Only suggest if we have a translation for the target locale
-			if targetTranslation != "" {
-				suggestions = append(suggestions, &pb.TerminologySuggestion{
-					Terminology:       converter.TerminologyToProto(&term),
-					TargetTranslation: targetTranslation,
-					TargetStatus:      converter.ReviewStatusToProto(targetStatus),
-					MatchedWords:      matchedWords,
-				})
-			}
+		targets = append(targets, termmatch.Term{ID: terminology.ID, Text: definition.Translation})
+	}
+
+	if req.Msg.Translation != nil && len(suggestions) > 0 {
+		if err := markUsed(ctx, s.db.DB, targetLocale.Code, targets, req.Msg.GetTranslation(), suggestions); err != nil {
+			return nil, err
 		}
 	}
 
-	return connect.NewResponse(&pb.SuggestTerminologiesResponse{
-		Suggestions: suggestions,
-	}), nil
+	return connect.NewResponse(&pb.SuggestTerminologiesResponse{Suggestions: suggestions}), nil
+}
+
+// markUsed sets used on the suggestions whose translation, the targets in the same
+// order, occurs in translation in any of its word forms, e.g. "Bereich" in "Keine
+// Bereiche".
+func markUsed(ctx context.Context, db *gorm.DB, code string, targets []termmatch.Term, translation string, suggestions []*pb.TerminologySuggestion) error {
+	matcher, err := termmatch.New(ctx, db, code, targets)
+	if err != nil {
+		return errors.InternalCause(err, "failed to read the glossary translations")
+	}
+
+	used, err := matcher.Find(translation)
+	if err != nil {
+		return errors.InternalCause(err, "failed to read the translation")
+	}
+
+	for i, target := range targets {
+		_, suggestions[i].Used = used[target.ID]
+	}
+
+	return nil
 }

@@ -54,6 +54,20 @@ func (s *Server) BatchTranslate(
 		return nil, err
 	}
 
+	sourceLocale, err := common.FindByID[models.Locale](s.db.WithContext(ctx), req.Msg.SourceLocaleId, errors.ErrLocaleNotFound, "source locale not found")
+	if err != nil {
+		return nil, err
+	}
+
+	// The glossary is read once for the whole batch.
+	var glossary *Glossary
+
+	if req.Msg.ApplyTerminology {
+		if glossary, err = LoadGlossary(ctx, s.db.DB, sourceLocale.Code, []string{targetLocale.ID}); err != nil {
+			return nil, errors.InternalCause(err, "failed to load the glossary")
+		}
+	}
+
 	// Extract user ID from context
 	userID := middleware.UserIDPtr(ctx)
 
@@ -94,10 +108,10 @@ func (s *Server) BatchTranslate(
 
 		terms := map[string][]translate.Term{}
 
-		if req.Msg.ApplyTerminology {
+		if glossary != nil {
 			var err error
 
-			terms, err = s.glossaryTerms(sourceLocalization.Translation, []string{targetLocale.ID})
+			terms, err = glossary.Terms(sourceLocalization.Translation)
 			if err != nil {
 				failureCount++
 
