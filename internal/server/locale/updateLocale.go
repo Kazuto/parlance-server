@@ -29,6 +29,11 @@ func (s *Server) UpdateLocale(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale names are required")
 	}
 
+	formality, ok := converter.FormalityFromProto(req.Msg.GetFormality())
+	if !ok {
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "unknown formality")
+	}
+
 	locale, err := common.FindByID[models.Locale](s.db.WithContext(ctx), req.Msg.Id, errors.ErrLocaleNotFound, "locale not found")
 	if err != nil {
 		return nil, err
@@ -49,6 +54,10 @@ func (s *Server) UpdateLocale(
 
 	if req.Msg.IsDefault != nil {
 		locale.IsDefault = req.Msg.GetIsDefault()
+	}
+
+	if req.Msg.Formality != nil {
+		locale.Formality = formality
 	}
 
 	if err := s.saveLocale(ctx, &locale); err != nil {

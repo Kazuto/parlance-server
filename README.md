@@ -71,8 +71,8 @@ suggestions are drafts in the editor; nothing is saved without review.
 ### Running a model
 
 Any OpenAI-compatible server running a Hy-MT2 model works. The Compose file
-includes one, llama.cpp's `llama-server` with the 1.8B model (about 1.1 GB,
-downloaded on the first start):
+includes one, llama.cpp's `llama-server` with the 7B model (about 4.6 GB,
+downloaded on the first start, and as much memory):
 
 ```bash
 docker compose -f docker/docker-compose.yml --profile translation up -d translator
@@ -90,7 +90,7 @@ services:
       - /dev/dri:/dev/dri
     command:
       - -hf
-      - "tencent/Hy-MT2-1.8B-GGUF:Q4_K_M"
+      - "tencent/Hy-MT2-7B-GGUF:Q4_K_M"
       - --host
       - 0.0.0.0
       - --port
@@ -103,9 +103,12 @@ services:
       - "99"
 ```
 
-`TRANSLATOR_MODEL` picks another model, for example the better but slower
-`tencent/Hy-MT2-7B-GGUF:Q4_K_M`. vLLM and SGLang also serve the models, but need an
-NVIDIA GPU.
+`TRANSLATOR_MODEL` picks another model, for example the 1.8B model
+`tencent/Hy-MT2-1.8B-GGUF:Q4_K_M` (about 1.1 GB) for small hardware. It is faster
+but makes more mistakes, and often ignores a language's form of address: asked for
+"du", it kept German instructions such as "Geben Sie Ihren Namen ein" formal, where
+the 7B model wrote "Gib deinen Namen ein". vLLM and SGLang also serve the models,
+but need an NVIDIA GPU.
 
 ### Connecting it
 
@@ -124,11 +127,17 @@ tried on the others.
   so an entry with eight empty languages makes eight requests.
 - **Prompt:** every prompt asks for user interface style. Glossary terms that occur
   in the text are sent along with their translation.
+- **Form of address:** a language set to formal or informal (`Locale.formality`)
+  asks for it by its pronoun, e.g. "addressing the user as Sie" or "as du". German,
+  French, Spanish, Italian, Dutch and Russian have their pronouns; other languages
+  ask for "politely" or "casually". Without the setting the model picks one per
+  text, and mixes them.
 - **Placeholders:** `{name}` placeholders are sent as `{1}`, `{2}`, which the model
   keeps, and restored afterwards.
 - **Checks:** answers that are empty or far longer than the source are rejected.
-  Missing or extra placeholders, a different number of plural forms (`|`) and new
-  line breaks are flagged for review.
+  Missing or extra placeholders, a different number of plural forms (`|`), new
+  line breaks and, in the languages above, the other form of address ("du" where
+  "Sie" was asked for) are flagged for review.
 - **Time limit:** a request for one entry ends after 100 seconds; languages not
   done by then are reported as timed out.
 

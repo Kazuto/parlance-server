@@ -1,6 +1,9 @@
 package translate
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestPrompt(t *testing.T) {
 	t.Run("asks for user interface text", func(t *testing.T) {
@@ -9,6 +12,27 @@ func TestPrompt(t *testing.T) {
 
 		if got != want {
 			t.Errorf("got %q, want %q", got, want)
+		}
+	})
+
+	t.Run("asks for the form of address by its pronoun", func(t *testing.T) {
+		tests := []struct {
+			req  Request
+			want string
+		}{
+			{Request{TargetLang: "German", Formality: Formal}, "[software user interface text, formal, addressing the user as Sie]"},
+			{Request{TargetLang: "French", Formality: Informal}, "[software user interface text, informal, addressing the user as tu]"},
+			// Without a known pronoun, in words
+			{Request{TargetLang: "Japanese", Formality: Formal}, "[software user interface text, formal, addressing the user politely]"},
+			{Request{TargetLang: "Japanese", Formality: Informal}, "[software user interface text, informal, addressing the user casually]"},
+			{Request{TargetLang: "German", Formality: "casual"}, "[software user interface text]"},
+		}
+
+		for _, tt := range tests {
+			tt.req.Text = "Save changes"
+			if got := Prompt(tt.req); !strings.Contains(got, tt.want) {
+				t.Errorf("Prompt(%+v) = %q, want it to contain %q", tt.req, got, tt.want)
+			}
 		}
 	})
 

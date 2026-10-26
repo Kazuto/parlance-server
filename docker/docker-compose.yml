@@ -79,7 +79,8 @@ services:
     restart: unless-stopped
 
   # A Hy-MT2 translation model for machine translation. Optional, as the model is
-  # downloaded on first start (1.8B: ~1.1 GB): start it with
+  # downloaded on first start (7B: ~4.6 GB; TRANSLATOR_MODEL picks the faster 1.8B,
+  # ~1.1 GB, which often ignores the form of address): start it with
   #   docker compose --profile translation up -d
   # then add http://translator:8080/v1 under Settings > Machine translation.
   # For a GPU, also an integrated one, use the image tag "server-vulkan" and pass
@@ -89,7 +90,7 @@ services:
     image: ghcr.io/ggml-org/llama.cpp:${TRANSLATOR_IMAGE_TAG:-server}
     command:
       - -hf
-      - ${TRANSLATOR_MODEL:-tencent/Hy-MT2-1.8B-GGUF:Q4_K_M}
+      - ${TRANSLATOR_MODEL:-tencent/Hy-MT2-7B-GGUF:Q4_K_M}
       - --host
       - 0.0.0.0
       - --port

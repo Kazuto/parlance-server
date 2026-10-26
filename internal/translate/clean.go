@@ -19,6 +19,9 @@ const (
 	WarningPlaceholderUnexpected = "PLACEHOLDER_UNEXPECTED"
 	WarningPluralForms           = "PLURAL_FORMS"
 	WarningLineBreaks            = "LINE_BREAKS"
+	// WarningFormality marks a translation in the other form of address than its
+	// locale asks for, see WrongFormality.
+	WarningFormality = "FORMALITY"
 )
 
 // Warning marks a suggestion that is usable but should be checked.

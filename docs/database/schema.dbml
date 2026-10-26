@@ -79,6 +79,7 @@ Table locales {
   updated_at timestamp
   deleted_at timestamp [null]
   is_default boolean [not null, default: false]
+  formality varchar(10) [not null, default: '', note: 'formal, informal, or empty for either']
     
   indexes {
     code [unique]

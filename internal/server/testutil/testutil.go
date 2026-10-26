@@ -144,6 +144,7 @@ func SetupTestDB() (*database.DB, error) {
 			code TEXT NOT NULL UNIQUE,
 			names TEXT,
 			is_default INTEGER DEFAULT 0,
+			formality TEXT NOT NULL DEFAULT '',
 			created_at DATETIME,
 			updated_at DATETIME,
 			deleted_at DATETIME

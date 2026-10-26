@@ -21,6 +21,57 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// How translations address the reader. Machine translation asks for it, and
+// flags suggestions in the other form, e.g. "du" where "Sie" was asked for.
+type Formality int32
+
+const (
+	Formality_FORMALITY_UNSPECIFIED Formality = 0 // Either
+	Formality_FORMALITY_FORMAL      Formality = 1
+	Formality_FORMALITY_INFORMAL    Formality = 2
+)
+
+// Enum value maps for Formality.
+var (
+	Formality_name = map[int32]string{
+		0: "FORMALITY_UNSPECIFIED",
+		1: "FORMALITY_FORMAL",
+		2: "FORMALITY_INFORMAL",
+	}
+	Formality_value = map[string]int32{
+		"FORMALITY_UNSPECIFIED": 0,
+		"FORMALITY_FORMAL":      1,
+		"FORMALITY_INFORMAL":    2,
+	}
+)
+
+func (x Formality) Enum() *Formality {
+	p := new(Formality)
+	*p = x
+	return p
+}
+
+func (x Formality) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Formality) Descriptor() protoreflect.EnumDescriptor {
+	return file_parlance_v1_locale_proto_enumTypes[0].Descriptor()
+}
+
+func (Formality) Type() protoreflect.EnumType {
+	return &file_parlance_v1_locale_proto_enumTypes[0]
+}
+
+func (x Formality) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Formality.Descriptor instead.
+func (Formality) EnumDescriptor() ([]byte, []int) {
+	return file_parlance_v1_locale_proto_rawDescGZIP(), []int{0}
+}
+
 type Locale struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -31,6 +82,7 @@ type Locale struct {
 	CreatedAt     string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     string                 `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	DeletedAt     string                 `protobuf:"bytes,8,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
+	Formality     Formality              `protobuf:"varint,9,opt,name=formality,proto3,enum=parlance.v1.Formality" json:"formality,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -119,6 +171,13 @@ func (x *Locale) GetDeletedAt() string {
 		return x.DeletedAt
 	}
 	return ""
+}
+
+func (x *Locale) GetFormality() Formality {
+	if x != nil {
+		return x.Formality
+	}
+	return Formality_FORMALITY_UNSPECIFIED
 }
 
 type ListLocalesRequest struct {
@@ -318,6 +377,7 @@ type CreateLocaleRequest struct {
 	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
 	IsDefault     bool                   `protobuf:"varint,3,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
 	Names         *StringMap             `protobuf:"bytes,4,opt,name=names,proto3" json:"names,omitempty"` // Translations for the locale name
+	Formality     Formality              `protobuf:"varint,5,opt,name=formality,proto3,enum=parlance.v1.Formality" json:"formality,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -373,6 +433,13 @@ func (x *CreateLocaleRequest) GetNames() *StringMap {
 	return nil
 }
 
+func (x *CreateLocaleRequest) GetFormality() Formality {
+	if x != nil {
+		return x.Formality
+	}
+	return Formality_FORMALITY_UNSPECIFIED
+}
+
 type CreateLocaleResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Locale        *Locale                `protobuf:"bytes,1,opt,name=locale,proto3" json:"locale,omitempty"`
@@ -423,6 +490,7 @@ type UpdateLocaleRequest struct {
 	Code          *string                `protobuf:"bytes,2,opt,name=code,proto3,oneof" json:"code,omitempty"`
 	IsDefault     *bool                  `protobuf:"varint,4,opt,name=is_default,json=isDefault,proto3,oneof" json:"is_default,omitempty"`
 	Names         *StringMap             `protobuf:"bytes,5,opt,name=names,proto3" json:"names,omitempty"` // Translations for the locale name
+	Formality     *Formality             `protobuf:"varint,6,opt,name=formality,proto3,enum=parlance.v1.Formality,oneof" json:"formality,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -483,6 +551,13 @@ func (x *UpdateLocaleRequest) GetNames() *StringMap {
 		return x.Names
 	}
 	return nil
+}
+
+func (x *UpdateLocaleRequest) GetFormality() Formality {
+	if x != nil && x.Formality != nil {
+		return *x.Formality
+	}
+	return Formality_FORMALITY_UNSPECIFIED
 }
 
 type UpdateLocaleResponse struct {
@@ -949,7 +1024,7 @@ var File_parlance_v1_locale_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_locale_proto_rawDesc = "" +
 	"\n" +
-	"\x18parlance/v1/locale.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\xac\x02\n" +
+	"\x18parlance/v1/locale.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\xe2\x02\n" +
 	"\x06Locale\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
@@ -962,7 +1037,8 @@ const file_parlance_v1_locale_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\a \x01(\tR\tupdatedAt\x12\x1d\n" +
 	"\n" +
-	"deleted_at\x18\b \x01(\tR\tdeletedAt\x1a8\n" +
+	"deleted_at\x18\b \x01(\tR\tdeletedAt\x124\n" +
+	"\tformality\x18\t \x01(\x0e2\x16.parlance.v1.FormalityR\tformality\x1a8\n" +
 	"\n" +
 	"NamesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
@@ -980,22 +1056,26 @@ const file_parlance_v1_locale_proto_rawDesc = "" +
 	"\x10GetLocaleRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"@\n" +
 	"\x11GetLocaleResponse\x12+\n" +
-	"\x06locale\x18\x01 \x01(\v2\x13.parlance.v1.LocaleR\x06locale\"|\n" +
+	"\x06locale\x18\x01 \x01(\v2\x13.parlance.v1.LocaleR\x06locale\"\xb2\x01\n" +
 	"\x13CreateLocaleRequest\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x1d\n" +
 	"\n" +
 	"is_default\x18\x03 \x01(\bR\tisDefault\x12,\n" +
-	"\x05names\x18\x04 \x01(\v2\x16.parlance.v1.StringMapR\x05namesJ\x04\b\x02\x10\x03\"C\n" +
+	"\x05names\x18\x04 \x01(\v2\x16.parlance.v1.StringMapR\x05names\x124\n" +
+	"\tformality\x18\x05 \x01(\x0e2\x16.parlance.v1.FormalityR\tformalityJ\x04\b\x02\x10\x03\"C\n" +
 	"\x14CreateLocaleResponse\x12+\n" +
-	"\x06locale\x18\x01 \x01(\v2\x13.parlance.v1.LocaleR\x06locale\"\xae\x01\n" +
+	"\x06locale\x18\x01 \x01(\v2\x13.parlance.v1.LocaleR\x06locale\"\xf7\x01\n" +
 	"\x13UpdateLocaleRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\x04code\x18\x02 \x01(\tH\x00R\x04code\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"is_default\x18\x04 \x01(\bH\x01R\tisDefault\x88\x01\x01\x12,\n" +
-	"\x05names\x18\x05 \x01(\v2\x16.parlance.v1.StringMapR\x05namesB\a\n" +
+	"\x05names\x18\x05 \x01(\v2\x16.parlance.v1.StringMapR\x05names\x129\n" +
+	"\tformality\x18\x06 \x01(\x0e2\x16.parlance.v1.FormalityH\x02R\tformality\x88\x01\x01B\a\n" +
 	"\x05_codeB\r\n" +
-	"\v_is_defaultJ\x04\b\x03\x10\x04\"C\n" +
+	"\v_is_defaultB\f\n" +
+	"\n" +
+	"_formalityJ\x04\b\x03\x10\x04\"C\n" +
 	"\x14UpdateLocaleResponse\x12+\n" +
 	"\x06locale\x18\x01 \x01(\v2\x13.parlance.v1.LocaleR\x06locale\"%\n" +
 	"\x13DeleteLocaleRequest\x12\x0e\n" +
@@ -1014,7 +1094,11 @@ const file_parlance_v1_locale_proto_rawDesc = "" +
 	"\x17SetDefaultLocaleRequest\x12\x1b\n" +
 	"\tlocale_id\x18\x01 \x01(\tR\blocaleId\"G\n" +
 	"\x18SetDefaultLocaleResponse\x12+\n" +
-	"\x06locale\x18\x01 \x01(\v2\x13.parlance.v1.LocaleR\x06locale2\x9e\x06\n" +
+	"\x06locale\x18\x01 \x01(\v2\x13.parlance.v1.LocaleR\x06locale*T\n" +
+	"\tFormality\x12\x19\n" +
+	"\x15FORMALITY_UNSPECIFIED\x10\x00\x12\x14\n" +
+	"\x10FORMALITY_FORMAL\x10\x01\x12\x16\n" +
+	"\x12FORMALITY_INFORMAL\x10\x022\x9e\x06\n" +
 	"\rLocaleService\x12P\n" +
 	"\vListLocales\x12\x1f.parlance.v1.ListLocalesRequest\x1a .parlance.v1.ListLocalesResponse\x12J\n" +
 	"\tGetLocale\x12\x1d.parlance.v1.GetLocaleRequest\x1a\x1e.parlance.v1.GetLocaleResponse\x12S\n" +
@@ -1039,70 +1123,75 @@ func file_parlance_v1_locale_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_locale_proto_rawDescData
 }
 
+var file_parlance_v1_locale_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_parlance_v1_locale_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_parlance_v1_locale_proto_goTypes = []any{
-	(*Locale)(nil),                   // 0: parlance.v1.Locale
-	(*ListLocalesRequest)(nil),       // 1: parlance.v1.ListLocalesRequest
-	(*ListLocalesResponse)(nil),      // 2: parlance.v1.ListLocalesResponse
-	(*GetLocaleRequest)(nil),         // 3: parlance.v1.GetLocaleRequest
-	(*GetLocaleResponse)(nil),        // 4: parlance.v1.GetLocaleResponse
-	(*CreateLocaleRequest)(nil),      // 5: parlance.v1.CreateLocaleRequest
-	(*CreateLocaleResponse)(nil),     // 6: parlance.v1.CreateLocaleResponse
-	(*UpdateLocaleRequest)(nil),      // 7: parlance.v1.UpdateLocaleRequest
-	(*UpdateLocaleResponse)(nil),     // 8: parlance.v1.UpdateLocaleResponse
-	(*DeleteLocaleRequest)(nil),      // 9: parlance.v1.DeleteLocaleRequest
-	(*DeleteLocaleResponse)(nil),     // 10: parlance.v1.DeleteLocaleResponse
-	(*RestoreLocaleRequest)(nil),     // 11: parlance.v1.RestoreLocaleRequest
-	(*RestoreLocaleResponse)(nil),    // 12: parlance.v1.RestoreLocaleResponse
-	(*DestroyLocaleRequest)(nil),     // 13: parlance.v1.DestroyLocaleRequest
-	(*DestroyLocaleResponse)(nil),    // 14: parlance.v1.DestroyLocaleResponse
-	(*GetDefaultLocaleRequest)(nil),  // 15: parlance.v1.GetDefaultLocaleRequest
-	(*GetDefaultLocaleResponse)(nil), // 16: parlance.v1.GetDefaultLocaleResponse
-	(*SetDefaultLocaleRequest)(nil),  // 17: parlance.v1.SetDefaultLocaleRequest
-	(*SetDefaultLocaleResponse)(nil), // 18: parlance.v1.SetDefaultLocaleResponse
-	nil,                              // 19: parlance.v1.Locale.NamesEntry
-	(*PaginationRequest)(nil),        // 20: parlance.v1.PaginationRequest
-	(*FilterRequest)(nil),            // 21: parlance.v1.FilterRequest
-	(*PaginationResponse)(nil),       // 22: parlance.v1.PaginationResponse
-	(*StringMap)(nil),                // 23: parlance.v1.StringMap
+	(Formality)(0),                   // 0: parlance.v1.Formality
+	(*Locale)(nil),                   // 1: parlance.v1.Locale
+	(*ListLocalesRequest)(nil),       // 2: parlance.v1.ListLocalesRequest
+	(*ListLocalesResponse)(nil),      // 3: parlance.v1.ListLocalesResponse
+	(*GetLocaleRequest)(nil),         // 4: parlance.v1.GetLocaleRequest
+	(*GetLocaleResponse)(nil),        // 5: parlance.v1.GetLocaleResponse
+	(*CreateLocaleRequest)(nil),      // 6: parlance.v1.CreateLocaleRequest
+	(*CreateLocaleResponse)(nil),     // 7: parlance.v1.CreateLocaleResponse
+	(*UpdateLocaleRequest)(nil),      // 8: parlance.v1.UpdateLocaleRequest
+	(*UpdateLocaleResponse)(nil),     // 9: parlance.v1.UpdateLocaleResponse
+	(*DeleteLocaleRequest)(nil),      // 10: parlance.v1.DeleteLocaleRequest
+	(*DeleteLocaleResponse)(nil),     // 11: parlance.v1.DeleteLocaleResponse
+	(*RestoreLocaleRequest)(nil),     // 12: parlance.v1.RestoreLocaleRequest
+	(*RestoreLocaleResponse)(nil),    // 13: parlance.v1.RestoreLocaleResponse
+	(*DestroyLocaleRequest)(nil),     // 14: parlance.v1.DestroyLocaleRequest
+	(*DestroyLocaleResponse)(nil),    // 15: parlance.v1.DestroyLocaleResponse
+	(*GetDefaultLocaleRequest)(nil),  // 16: parlance.v1.GetDefaultLocaleRequest
+	(*GetDefaultLocaleResponse)(nil), // 17: parlance.v1.GetDefaultLocaleResponse
+	(*SetDefaultLocaleRequest)(nil),  // 18: parlance.v1.SetDefaultLocaleRequest
+	(*SetDefaultLocaleResponse)(nil), // 19: parlance.v1.SetDefaultLocaleResponse
+	nil,                              // 20: parlance.v1.Locale.NamesEntry
+	(*PaginationRequest)(nil),        // 21: parlance.v1.PaginationRequest
+	(*FilterRequest)(nil),            // 22: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),       // 23: parlance.v1.PaginationResponse
+	(*StringMap)(nil),                // 24: parlance.v1.StringMap
 }
 var file_parlance_v1_locale_proto_depIdxs = []int32{
-	19, // 0: parlance.v1.Locale.names:type_name -> parlance.v1.Locale.NamesEntry
-	20, // 1: parlance.v1.ListLocalesRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	21, // 2: parlance.v1.ListLocalesRequest.filter:type_name -> parlance.v1.FilterRequest
-	0,  // 3: parlance.v1.ListLocalesResponse.locales:type_name -> parlance.v1.Locale
-	22, // 4: parlance.v1.ListLocalesResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	0,  // 5: parlance.v1.GetLocaleResponse.locale:type_name -> parlance.v1.Locale
-	23, // 6: parlance.v1.CreateLocaleRequest.names:type_name -> parlance.v1.StringMap
-	0,  // 7: parlance.v1.CreateLocaleResponse.locale:type_name -> parlance.v1.Locale
-	23, // 8: parlance.v1.UpdateLocaleRequest.names:type_name -> parlance.v1.StringMap
-	0,  // 9: parlance.v1.UpdateLocaleResponse.locale:type_name -> parlance.v1.Locale
-	0,  // 10: parlance.v1.RestoreLocaleResponse.locale:type_name -> parlance.v1.Locale
-	0,  // 11: parlance.v1.GetDefaultLocaleResponse.locale:type_name -> parlance.v1.Locale
-	0,  // 12: parlance.v1.SetDefaultLocaleResponse.locale:type_name -> parlance.v1.Locale
-	1,  // 13: parlance.v1.LocaleService.ListLocales:input_type -> parlance.v1.ListLocalesRequest
-	3,  // 14: parlance.v1.LocaleService.GetLocale:input_type -> parlance.v1.GetLocaleRequest
-	5,  // 15: parlance.v1.LocaleService.CreateLocale:input_type -> parlance.v1.CreateLocaleRequest
-	7,  // 16: parlance.v1.LocaleService.UpdateLocale:input_type -> parlance.v1.UpdateLocaleRequest
-	9,  // 17: parlance.v1.LocaleService.DeleteLocale:input_type -> parlance.v1.DeleteLocaleRequest
-	11, // 18: parlance.v1.LocaleService.RestoreLocale:input_type -> parlance.v1.RestoreLocaleRequest
-	13, // 19: parlance.v1.LocaleService.DestroyLocale:input_type -> parlance.v1.DestroyLocaleRequest
-	15, // 20: parlance.v1.LocaleService.GetDefaultLocale:input_type -> parlance.v1.GetDefaultLocaleRequest
-	17, // 21: parlance.v1.LocaleService.SetDefaultLocale:input_type -> parlance.v1.SetDefaultLocaleRequest
-	2,  // 22: parlance.v1.LocaleService.ListLocales:output_type -> parlance.v1.ListLocalesResponse
-	4,  // 23: parlance.v1.LocaleService.GetLocale:output_type -> parlance.v1.GetLocaleResponse
-	6,  // 24: parlance.v1.LocaleService.CreateLocale:output_type -> parlance.v1.CreateLocaleResponse
-	8,  // 25: parlance.v1.LocaleService.UpdateLocale:output_type -> parlance.v1.UpdateLocaleResponse
-	10, // 26: parlance.v1.LocaleService.DeleteLocale:output_type -> parlance.v1.DeleteLocaleResponse
-	12, // 27: parlance.v1.LocaleService.RestoreLocale:output_type -> parlance.v1.RestoreLocaleResponse
-	14, // 28: parlance.v1.LocaleService.DestroyLocale:output_type -> parlance.v1.DestroyLocaleResponse
-	16, // 29: parlance.v1.LocaleService.GetDefaultLocale:output_type -> parlance.v1.GetDefaultLocaleResponse
-	18, // 30: parlance.v1.LocaleService.SetDefaultLocale:output_type -> parlance.v1.SetDefaultLocaleResponse
-	22, // [22:31] is the sub-list for method output_type
-	13, // [13:22] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	20, // 0: parlance.v1.Locale.names:type_name -> parlance.v1.Locale.NamesEntry
+	0,  // 1: parlance.v1.Locale.formality:type_name -> parlance.v1.Formality
+	21, // 2: parlance.v1.ListLocalesRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	22, // 3: parlance.v1.ListLocalesRequest.filter:type_name -> parlance.v1.FilterRequest
+	1,  // 4: parlance.v1.ListLocalesResponse.locales:type_name -> parlance.v1.Locale
+	23, // 5: parlance.v1.ListLocalesResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	1,  // 6: parlance.v1.GetLocaleResponse.locale:type_name -> parlance.v1.Locale
+	24, // 7: parlance.v1.CreateLocaleRequest.names:type_name -> parlance.v1.StringMap
+	0,  // 8: parlance.v1.CreateLocaleRequest.formality:type_name -> parlance.v1.Formality
+	1,  // 9: parlance.v1.CreateLocaleResponse.locale:type_name -> parlance.v1.Locale
+	24, // 10: parlance.v1.UpdateLocaleRequest.names:type_name -> parlance.v1.StringMap
+	0,  // 11: parlance.v1.UpdateLocaleRequest.formality:type_name -> parlance.v1.Formality
+	1,  // 12: parlance.v1.UpdateLocaleResponse.locale:type_name -> parlance.v1.Locale
+	1,  // 13: parlance.v1.RestoreLocaleResponse.locale:type_name -> parlance.v1.Locale
+	1,  // 14: parlance.v1.GetDefaultLocaleResponse.locale:type_name -> parlance.v1.Locale
+	1,  // 15: parlance.v1.SetDefaultLocaleResponse.locale:type_name -> parlance.v1.Locale
+	2,  // 16: parlance.v1.LocaleService.ListLocales:input_type -> parlance.v1.ListLocalesRequest
+	4,  // 17: parlance.v1.LocaleService.GetLocale:input_type -> parlance.v1.GetLocaleRequest
+	6,  // 18: parlance.v1.LocaleService.CreateLocale:input_type -> parlance.v1.CreateLocaleRequest
+	8,  // 19: parlance.v1.LocaleService.UpdateLocale:input_type -> parlance.v1.UpdateLocaleRequest
+	10, // 20: parlance.v1.LocaleService.DeleteLocale:input_type -> parlance.v1.DeleteLocaleRequest
+	12, // 21: parlance.v1.LocaleService.RestoreLocale:input_type -> parlance.v1.RestoreLocaleRequest
+	14, // 22: parlance.v1.LocaleService.DestroyLocale:input_type -> parlance.v1.DestroyLocaleRequest
+	16, // 23: parlance.v1.LocaleService.GetDefaultLocale:input_type -> parlance.v1.GetDefaultLocaleRequest
+	18, // 24: parlance.v1.LocaleService.SetDefaultLocale:input_type -> parlance.v1.SetDefaultLocaleRequest
+	3,  // 25: parlance.v1.LocaleService.ListLocales:output_type -> parlance.v1.ListLocalesResponse
+	5,  // 26: parlance.v1.LocaleService.GetLocale:output_type -> parlance.v1.GetLocaleResponse
+	7,  // 27: parlance.v1.LocaleService.CreateLocale:output_type -> parlance.v1.CreateLocaleResponse
+	9,  // 28: parlance.v1.LocaleService.UpdateLocale:output_type -> parlance.v1.UpdateLocaleResponse
+	11, // 29: parlance.v1.LocaleService.DeleteLocale:output_type -> parlance.v1.DeleteLocaleResponse
+	13, // 30: parlance.v1.LocaleService.RestoreLocale:output_type -> parlance.v1.RestoreLocaleResponse
+	15, // 31: parlance.v1.LocaleService.DestroyLocale:output_type -> parlance.v1.DestroyLocaleResponse
+	17, // 32: parlance.v1.LocaleService.GetDefaultLocale:output_type -> parlance.v1.GetDefaultLocaleResponse
+	19, // 33: parlance.v1.LocaleService.SetDefaultLocale:output_type -> parlance.v1.SetDefaultLocaleResponse
+	25, // [25:34] is the sub-list for method output_type
+	16, // [16:25] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_locale_proto_init() }
@@ -1117,13 +1206,14 @@ func file_parlance_v1_locale_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_locale_proto_rawDesc), len(file_parlance_v1_locale_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_parlance_v1_locale_proto_goTypes,
 		DependencyIndexes: file_parlance_v1_locale_proto_depIdxs,
+		EnumInfos:         file_parlance_v1_locale_proto_enumTypes,
 		MessageInfos:      file_parlance_v1_locale_proto_msgTypes,
 	}.Build()
 	File_parlance_v1_locale_proto = out.File

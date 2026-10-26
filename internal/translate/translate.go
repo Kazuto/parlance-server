@@ -20,6 +20,8 @@ type Request struct {
 	// TargetLang is the English language name the model expects, see LanguageName.
 	TargetLang string
 	Terms      []Term
+	// Formality is how the translation addresses the reader; empty for either.
+	Formality Formality
 }
 
 // Translator returns the model's raw answer, to be checked with Clean.

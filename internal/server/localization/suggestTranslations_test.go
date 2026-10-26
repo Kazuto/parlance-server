@@ -11,6 +11,7 @@ import (
 	"connectrpc.com/connect"
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/database"
+	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
 	"github.com/kazuto/parlance-server/internal/translate"
 )
@@ -352,4 +353,34 @@ func TestBatchTranslate(t *testing.T) {
 			t.Errorf("got %v", err)
 		}
 	})
+}
+
+func TestSuggestOneFormality(t *testing.T) {
+	fake := &fakeTranslator{answers: map[string]string{"German": "Sie können Ihr Passwort ändern."}}
+	suggest := func(formality string) *pb.TranslationSuggestion {
+		t.Helper()
+
+		fake.requests = nil
+		locale := models.Locale{ID: "de", Code: "de-DE", Formality: formality}
+
+		return SuggestOne(context.Background(), fake, "You can change your password.", locale, nil)
+	}
+
+	// Asked for "du", the model answered with "Sie": a reviewer has to fix it.
+	suggestion := suggest(string(translate.Informal))
+
+	if req, _ := fake.request("German"); req.Formality != translate.Informal {
+		t.Errorf("asked for formality %q, want informal", req.Formality)
+	}
+
+	if len(suggestion.Warnings) != 1 || suggestion.Warnings[0].Code != translate.WarningFormality ||
+		suggestion.Warnings[0].Detail != "Ihr" || suggestion.Translation == "" {
+		t.Errorf("informal locale: got %+v, want the translation with a formality warning for Ihr", suggestion)
+	}
+
+	for _, formality := range []string{string(translate.Formal), ""} {
+		if suggestion := suggest(formality); len(suggestion.Warnings) != 0 {
+			t.Errorf("formality %q: got warnings %v", formality, suggestion.Warnings)
+		}
+	}
 }

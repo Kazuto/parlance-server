@@ -25,6 +25,11 @@ func (s *Server) CreateLocale(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale names are required")
 	}
 
+	formality, ok := converter.FormalityFromProto(req.Msg.Formality)
+	if !ok {
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "unknown formality")
+	}
+
 	// Codes stay unique across deleted locales too.
 	exists, err := common.Exists(s.db.WithContext(ctx).Unscoped().Model(&models.Locale{}).Where("code = ?", req.Msg.Code))
 	if err != nil {
@@ -44,6 +49,7 @@ func (s *Server) CreateLocale(
 		Code:      req.Msg.Code,
 		Names:     names,
 		IsDefault: req.Msg.IsDefault,
+		Formality: formality,
 	}
 
 	if err := s.saveLocale(ctx, locale); err != nil {

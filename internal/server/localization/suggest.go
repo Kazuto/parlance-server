@@ -100,10 +100,13 @@ func SuggestOne(
 		return suggestion
 	}
 
+	formality := translate.Formality(locale.Formality)
+
 	answer, err := translator.Translate(ctx, translate.Request{
 		Text:       source,
 		TargetLang: language,
 		Terms:      terms,
+		Formality:  formality,
 	})
 	if err != nil {
 		log.Printf("translate into %s: %v", locale.Code, err)
@@ -126,6 +129,10 @@ func SuggestOne(
 	case err != nil:
 		suggestion.ErrorCode = suggestionFailed
 	default:
+		if word := translate.WrongFormality(language, formality, text); word != "" {
+			warnings = append(warnings, translate.Warning{Code: translate.WarningFormality, Detail: word})
+		}
+
 		suggestion.Translation = text
 		for _, warning := range warnings {
 			suggestion.Warnings = append(suggestion.Warnings, &pb.TranslationWarning{

@@ -26,6 +26,15 @@ message Locale {
   string created_at = 6;
   string updated_at = 7;
   string deleted_at = 8;
+  Formality formality = 9;
+}
+
+// How translations address the reader. Machine translation asks for it, and
+// flags suggestions in the other form, e.g. "du" where "Sie" was asked for.
+enum Formality {
+  FORMALITY_UNSPECIFIED = 0;  // Either
+  FORMALITY_FORMAL = 1;
+  FORMALITY_INFORMAL = 2;
 }
 
 message ListLocalesRequest {
@@ -51,6 +60,7 @@ message CreateLocaleRequest {
   reserved 2;
   bool is_default = 3;
   StringMap names = 4;  // Translations for the locale name
+  Formality formality = 5;
 }
 
 message CreateLocaleResponse {
@@ -63,6 +73,7 @@ message UpdateLocaleRequest {
   reserved 3;
   optional bool is_default = 4;
   StringMap names = 5;  // Translations for the locale name
+  optional Formality formality = 6;
 }
 
 message UpdateLocaleResponse {

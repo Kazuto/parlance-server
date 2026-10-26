@@ -8,7 +8,26 @@ import (
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/translate"
 )
+
+// formalities maps a locale's form of address to its proto enum; empty is unspecified
+var formalities = map[string]pb.Formality{
+	string(translate.Formal):   pb.Formality_FORMALITY_FORMAL,
+	string(translate.Informal): pb.Formality_FORMALITY_INFORMAL,
+}
+
+// FormalityFromProto returns the locale's form of address, "" for either, and
+// false for a value it doesn't know
+func FormalityFromProto(value pb.Formality) (string, bool) {
+	if value == pb.Formality_FORMALITY_UNSPECIFIED {
+		return "", true
+	}
+
+	formality := lookup(formalities, value)
+
+	return formality, formality != ""
+}
 
 // LocaleToProto converts a database Locale model to protobuf
 // requestLocale is the locale code for localizing the name field (e.g., "de", "en")
@@ -50,6 +69,7 @@ func LocaleToProto(l *models.Locale, requestLocale string) *pb.Locale {
 		Name:      localizedName,
 		Names:     names,
 		IsDefault: l.IsDefault,
+		Formality: formalities[l.Formality],
 		CreatedAt: l.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: l.UpdatedAt.Format(time.RFC3339),
 		DeletedAt: formatDeletedAt(l.DeletedAt),
