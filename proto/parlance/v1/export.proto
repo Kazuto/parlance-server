@@ -1,0 +1,66 @@
+syntax = "proto3";
+package parlance.v1;
+
+option go_package = "parlance/v1;parlance";
+
+service ExportService {
+  rpc ExportPhp(ExportPhpRequest) returns (ExportPhpResponse);
+  rpc ExportJson(ExportJsonRequest) returns (ExportJsonResponse);
+  rpc ExportPo(ExportPoRequest) returns (ExportPoResponse);
+  rpc ExportZip(ExportZipRequest) returns (ExportZipResponse);
+}
+
+message ExportPhpRequest {
+  string locale_code = 1;
+  reserved 2;
+  reserved "scope_id";
+  repeated string scope_ids = 3;  // Export entries in any of these scopes; empty exports all
+  bool include_drafts = 4;  // Also export drafts; by default only approved text
+}
+
+message ExportPhpResponse {
+  string format = 1;          // "php"
+  string content = 2;         // Exported file content
+  string filename = 3;        // Suggested filename
+}
+
+message ExportJsonRequest {
+  string locale_code = 1;
+  reserved 2;
+  reserved "scope_id";
+  repeated string scope_ids = 3;  // Export entries in any of these scopes; empty exports all
+  bool include_drafts = 4;  // Also export drafts; by default only approved text
+}
+
+message ExportJsonResponse {
+  string format = 1;          // "json"
+  string content = 2;         // Exported file content
+  string filename = 3;        // Suggested filename
+}
+
+// UTF-8, singular key-based gettext PO export. msgid is the entry key.
+message ExportPoRequest {
+  string locale_code = 1;
+  reserved 2;
+  reserved "scope_id";
+  repeated string scope_ids = 3;  // Export entries in any of these scopes; empty exports all
+  bool include_drafts = 4;  // Also export drafts; by default only approved text
+}
+
+message ExportPoResponse {
+  string format = 1;  // "po"
+  string content = 2;
+  string filename = 3;
+}
+
+// Export all locales as a ZIP archive containing JSON files
+message ExportZipRequest {
+  repeated string scope_ids = 1;  // Export entries in any of these scopes; empty exports all
+  bool include_drafts = 2;        // Also export drafts; by default only approved text
+}
+
+message ExportZipResponse {
+  string format = 1;          // "zip"
+  bytes content = 2;          // ZIP file content as bytes
+  string filename = 3;        // Suggested filename (e.g., "translations-2024-10-18.zip")
+}

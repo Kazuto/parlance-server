@@ -1,0 +1,101 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/common.proto";
+
+option go_package = "parlance/v1;parlance";
+
+service DefinitionService {
+  rpc ListDefinitions(ListDefinitionsRequest) returns (ListDefinitionsResponse);
+  rpc GetDefinition(GetDefinitionRequest) returns (GetDefinitionResponse);
+  rpc CreateDefinition(CreateDefinitionRequest) returns (CreateDefinitionResponse);
+  rpc UpdateDefinition(UpdateDefinitionRequest) returns (UpdateDefinitionResponse);
+  rpc DeleteDefinition(DeleteDefinitionRequest) returns (DeleteDefinitionResponse);
+  rpc RestoreDefinition(RestoreDefinitionRequest) returns (RestoreDefinitionResponse);
+  // Approves or rejects definitions, picked by id or by terminology and locale.
+  rpc ReviewDefinitions(ReviewDefinitionsRequest) returns (ReviewDefinitionsResponse);
+}
+
+message Definition {
+  string id = 1;
+  string terminology_id = 2;
+  string locale_id = 3;
+  string translation = 4;
+  string created_at = 5;
+  string updated_at = 6;
+  string deleted_at = 7;
+  string created_by = 8;
+  string updated_by = 9;
+  ReviewStatus status = 10;
+  string reviewed_by = 11;
+  string reviewed_at = 12;
+  // Why a reviewer sent the translation back; cleared once it is approved.
+  string review_comment = 13;
+}
+
+message ListDefinitionsRequest {
+  string terminology_id = 1;
+  PaginationRequest pagination = 2;
+  FilterRequest filter = 3;
+}
+
+message ListDefinitionsResponse {
+  repeated Definition definitions = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetDefinitionRequest {
+  string id = 1;
+}
+
+message GetDefinitionResponse {
+  Definition definition = 1;
+}
+
+message CreateDefinitionRequest {
+  string terminology_id = 1;
+  string locale_id = 2;
+  string translation = 3;
+}
+
+message CreateDefinitionResponse {
+  Definition definition = 1;
+}
+
+message UpdateDefinitionRequest {
+  string id = 1;
+  optional string translation = 2;
+}
+
+message UpdateDefinitionResponse {
+  Definition definition = 1;
+}
+
+message DeleteDefinitionRequest {
+  string id = 1;
+}
+
+message DeleteDefinitionResponse {}
+
+message RestoreDefinitionRequest {
+  string id = 1;
+}
+
+message RestoreDefinitionResponse {
+  Definition definition = 1;
+}
+
+message ReviewDefinitionsRequest {
+  repeated string definition_ids = 1;
+  // Also the definitions of these terminologies in these locales. Missing ones, and
+  // approved ones when approving, are skipped.
+  repeated string terminology_ids = 2;
+  repeated string locale_ids = 3;
+  ReviewDecision decision = 4;
+  // Required when rejecting: what should change.
+  string comment = 5;
+}
+
+message ReviewDefinitionsResponse {
+  repeated Definition definitions = 1;
+}

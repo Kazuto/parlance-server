@@ -1,0 +1,50 @@
+package user
+
+import (
+	"context"
+
+	"connectrpc.com/connect"
+	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
+	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/server/common"
+
+	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+)
+
+// AssignRole assigns a role to a user
+func (s *Server) AssignRole(
+	ctx context.Context,
+	req *connect.Request[pb.AssignRoleRequest],
+) (*connect.Response[pb.AssignRoleResponse], error) {
+	if req.Msg.UserId == "" {
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "user id is required")
+	}
+
+	if req.Msg.RoleId == "" {
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "role id is required")
+	}
+
+	user, err := common.FindByID[models.User](s.db.WithContext(ctx), req.Msg.UserId, errors.ErrUserNotFound, "user not found")
+	if err != nil {
+		return nil, err
+	}
+
+	role, err := common.FindByID[models.Role](s.db.WithContext(ctx), req.Msg.RoleId, errors.ErrRoleNotFound, "role not found")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.db.Model(&user).Association("Roles").Append(&role); err != nil {
+		return nil, errors.Internal(errors.ErrInternal, "failed to assign role")
+	}
+
+	// Load updated roles for response
+	if err := s.db.Preload("Roles.Permissions").First(&user, "id = ?", user.ID).Error; err != nil {
+		return nil, errors.InternalCause(err, "failed to load user")
+	}
+
+	return connect.NewResponse(&pb.AssignRoleResponse{
+		User: converter.UserToProto(&user),
+	}), nil
+}

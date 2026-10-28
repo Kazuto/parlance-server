@@ -1,0 +1,54 @@
+meta {
+  name: Restore Terminology
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.TerminologyService/RestoreTerminology
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "id": "{{terminologyId}}"
+  }
+}
+
+script:pre-request {
+  const terminologyId = bru.getVar('terminologyId');
+  
+  if (!terminologyId) {
+      await bru.runRequest('Authed/TerminologyService/ListTerminologies');
+  
+      return;
+  }
+}
+
+docs {
+  # Restore Terminology
+  
+  Restores a terminology by its ID.
+  
+  ## Authentication
+  Requires valid access token.
+  
+  ## Request
+  - `id` (required): UUID of the terminology entry
+  
+  ## Response
+  - `terminology`: The terminology object with term, description, and all locale definitions
+  
+  ## Error Codes
+  - `INVALID_ARGUMENT`: Missing terminology ID
+  - `NOT_FOUND`: Terminology with the given ID does not exist
+  
+  ## Example Use Case
+  View details of a specific glossary term including how it should be translated in all locales.
+}

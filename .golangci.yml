@@ -1,0 +1,88 @@
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - misspell
+    - unconvert
+    - unparam
+    - gofmt
+    - goimports
+    # Blank lines between statements, like the web app's padding rules
+    - wsl
+    - nlreturn
+  disable:
+    - exhaustive
+    - exhaustruct
+    - gochecknoglobals
+    - gochecknoinits
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+    exclude-functions:
+      - (net/http.ResponseWriter).Write
+      - github.com/joho/godotenv.Load
+
+  gofmt:
+    simplify: true
+
+  nlreturn:
+    # A block of only a return or branch needs no blank line before it.
+    block-size: 1
+
+  misspell:
+    locale: US
+    ignore-words:
+      - connexion
+      - déconnexion
+
+issues:
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - errcheck
+        - unparam
+
+    # Test fakes skip checks the tests don't need, e.g. on request bodies they built
+    - path: (forgetest|ssotest)/
+      linters:
+        - errcheck
+
+    # Exclude "interface{} can be replaced by any" for now (Go 1.18+ suggestion)
+    - text: "interface\\{\\} can be replaced by any"
+      linters:
+        - gosimple
+
+    # Exclude type assertion checks for context value extraction (validated afterward)
+    - text: "Error return value is not checked"
+      source: "ctx\\.Value\\(.*\\)\\.\\(string\\)"
+      linters:
+        - errcheck
+
+    # Exclude Association.Append errors (optional operation)
+    - text: "Error return value of `\\(\\*gorm\\.io/gorm\\.Association\\)\\.Append` is not checked"
+      linters:
+        - errcheck
+
+    # Exclude idField.Set in test utilities (optional operation)
+    - text: "Error return value is not checked"
+      source: "idField\\.Set\\("
+      linters:
+        - errcheck
+
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+output:
+  formats:
+    - format: colored-line-number
+  sort-results: true

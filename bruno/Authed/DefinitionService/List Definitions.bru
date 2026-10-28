@@ -1,0 +1,94 @@
+meta {
+  name: List Definitions
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.DefinitionService/ListDefinitions
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "terminologyId": "{{terminologyId}}",
+    "pagination": {
+      "page": 1,
+      "perPage": 20
+    },
+    "filter": {
+      // "search": "en",
+      "sort": "created_at",
+      "order": "ASC",
+      "include_deleted": true
+    }
+  }
+}
+
+script:pre-request {
+  const terminologyId = bru.getVar('terminologyId');
+  
+  if (!terminologyId) {
+      await bru.runRequest('Authed/TerminologyService/ListTerminologies');
+  
+      return;
+  }
+}
+
+script:post-response {
+  const data = res?.body?.definitions;
+  
+  if (data) {
+    const ids = data.map((el) => el.id);
+  
+    bru.setVar("definitionIds", ids);
+    bru.setVar("definitionId", ids.shift());
+  }
+}
+
+docs {
+  # List Definitions
+  
+  Lists all locale-specific translations (definitions) for a terminology term.
+  
+  ## Authentication
+  Requires valid access token.
+  
+  ## Request
+  - `terminology_id` (required): UUID of the terminology
+  
+  ## Response
+  - `definitions`: Array of definitions with translations for each locale
+  
+  ## Example Use Case
+  View all translations for a terminology term across different locales.
+  For example, if the term is "API", see how it's defined in English, German, Spanish, etc.
+  
+  ## Example Response
+  ```json
+  {
+    "definitions": [
+      {
+        "id": "def-1",
+        "terminologyId": "term-123",
+        "localeId": "en",
+        "translation": "Application Programming Interface",
+        "createdAt": "2026-03-30T12:00:00Z"
+      },
+      {
+        "id": "def-2",
+        "terminologyId": "term-123",
+        "localeId": "de",
+        "translation": "Programmierschnittstelle",
+        "createdAt": "2026-03-30T12:05:00Z"
+      }
+    ]
+  }
+  ```
+}

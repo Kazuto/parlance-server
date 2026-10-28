@@ -1,0 +1,72 @@
+meta {
+  name: Get Definition History
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.TerminologyService/GetDefinitionHistory
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "terminologyId": "{{terminologyId}}",
+    "pagination": {
+      "page": 1,
+      "perPage": 50
+    }
+  }
+}
+
+script:pre-request {
+  const terminologyId = bru.getVar('terminologyId');
+  
+  if (!terminologyId) {
+      await bru.runRequest('Authed/TerminologyService/ListTerminologies');
+  
+      return;
+  }
+}
+
+docs {
+  # Get Definition History
+  
+  Retrieves the change history for all definitions of a terminology entry.
+  
+  ## Request
+  - `terminology_id` (required): ID of the terminology to get history for
+  - `pagination` (optional): Page and per_page settings
+  
+  ## Response
+  - `history`: Array of definition history records with user info
+  - `pagination`: Pagination metadata
+  
+  ## History Records Include
+  - Definition ID and terminology ID
+  - Locale ID
+  - Translation value at that point in time
+  - Action (created/updated/deleted)
+  - User who made the change
+  - Timestamp of the change
+  
+  ## Sorting
+  Results are ordered by `changed_at` DESC (most recent first).
+  
+  ## Error Codes
+  - `INVALID_ARGUMENT`: Missing terminology ID
+  
+  ## Example Use Case
+  Audit trail: see who changed terminology definitions and when.
+  Useful for:
+  - Quality assurance
+  - Reverting incorrect changes
+  - Understanding terminology evolution
+  - Compliance and tracking
+}
