@@ -1,0 +1,53 @@
+meta {
+  name: Get Localization
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.LocalizationService/GetLocalization
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "id": "{{localizationId}}"
+  }
+}
+
+script:pre-request {
+  const localizationId = bru.getVar('localizationId');
+  
+  if (!localizationId) {
+      await bru.runRequest('Authed/LocalizationService/ListLocalizations');
+  
+      return;
+  }
+}
+
+docs {
+  # Get Localization
+  
+  Retrieves a specific localization by ID.
+  
+  ## Authentication
+  Requires valid access token.
+  
+  ## Request
+  - `id` (required): UUID of the localization
+  
+  ## Response
+  - `localization`: The localization object with translation, entry, and locale info
+  
+  ## Error Codes
+  - `NOT_FOUND`: Localization with the given ID does not exist
+  
+  ## Example Use Case
+  Fetch a specific translation to edit or display details.
+}

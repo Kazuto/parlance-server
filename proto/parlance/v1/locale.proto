@@ -1,0 +1,115 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/common.proto";
+
+option go_package = "parlance/v1;parlance";
+
+service LocaleService {
+  rpc ListLocales(ListLocalesRequest) returns (ListLocalesResponse);
+  rpc GetLocale(GetLocaleRequest) returns (GetLocaleResponse);
+  rpc CreateLocale(CreateLocaleRequest) returns (CreateLocaleResponse);
+  rpc UpdateLocale(UpdateLocaleRequest) returns (UpdateLocaleResponse);
+  rpc DeleteLocale(DeleteLocaleRequest) returns (DeleteLocaleResponse);
+  rpc RestoreLocale(RestoreLocaleRequest) returns (RestoreLocaleResponse);
+  rpc DestroyLocale(DestroyLocaleRequest) returns (DestroyLocaleResponse);
+  rpc GetDefaultLocale(GetDefaultLocaleRequest) returns (GetDefaultLocaleResponse);
+  rpc SetDefaultLocale(SetDefaultLocaleRequest) returns (SetDefaultLocaleResponse);
+}
+
+message Locale {
+  string id = 1;
+  string code = 2;                    // e.g., "en", "de-DE", "fr-FR"
+  string name = 3;                    // Localized name based on request locale
+  map<string, string> names = 4;     // All available translations {"en": "English", "de": "Englisch"}
+  bool is_default = 5;                // Only one locale can be default
+  string created_at = 6;
+  string updated_at = 7;
+  string deleted_at = 8;
+  Formality formality = 9;
+}
+
+// How translations address the reader. Machine translation asks for it, and
+// flags suggestions in the other form, e.g. "du" where "Sie" was asked for.
+enum Formality {
+  FORMALITY_UNSPECIFIED = 0;  // Either
+  FORMALITY_FORMAL = 1;
+  FORMALITY_INFORMAL = 2;
+}
+
+message ListLocalesRequest {
+  PaginationRequest pagination = 1;
+  FilterRequest filter = 2;
+}
+
+message ListLocalesResponse {
+  repeated Locale locales = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetLocaleRequest {
+  string id = 1;
+}
+
+message GetLocaleResponse {
+  Locale locale = 1;
+}
+
+message CreateLocaleRequest {
+  string code = 1;
+  reserved 2;
+  bool is_default = 3;
+  StringMap names = 4;  // Translations for the locale name
+  Formality formality = 5;
+}
+
+message CreateLocaleResponse {
+  Locale locale = 1;
+}
+
+message UpdateLocaleRequest {
+  string id = 1;
+  optional string code = 2;
+  reserved 3;
+  optional bool is_default = 4;
+  StringMap names = 5;  // Translations for the locale name
+  optional Formality formality = 6;
+}
+
+message UpdateLocaleResponse {
+  Locale locale = 1;
+}
+
+message DeleteLocaleRequest {
+  string id = 1;
+}
+
+message DeleteLocaleResponse {}
+
+message RestoreLocaleRequest {
+  string id = 1;
+}
+
+message RestoreLocaleResponse {
+  Locale locale = 1;
+}
+
+message DestroyLocaleRequest {
+  string id = 1;
+}
+
+message DestroyLocaleResponse {}
+
+message GetDefaultLocaleRequest {}
+
+message GetDefaultLocaleResponse {
+  Locale locale = 1;
+}
+
+message SetDefaultLocaleRequest {
+  string locale_id = 1;
+}
+
+message SetDefaultLocaleResponse {
+  Locale locale = 1;
+}

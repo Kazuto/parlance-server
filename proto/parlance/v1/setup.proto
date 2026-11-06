@@ -1,0 +1,32 @@
+syntax = "proto3";
+package parlance.v1;
+
+option go_package = "parlance/v1;parlance";
+
+service SetupService {
+  rpc GetSetupStatus(GetSetupStatusRequest) returns (GetSetupStatusResponse);
+  rpc Initialize(InitializeRequest) returns (InitializeResponse);
+}
+
+message GetSetupStatusRequest {}
+
+message GetSetupStatusResponse {
+  bool needs_setup = 1;
+}
+
+message InitializeRequest {
+  string admin_email = 1;
+  string admin_password = 2;
+  string admin_name = 3;
+
+  // Optional settings for future enhancements
+  string deepl_api_key = 4;
+  string s3_endpoint = 5;
+  string s3_access_key = 6;
+  string s3_secret_key = 7;
+}
+
+message InitializeResponse {
+  bool success = 1;
+  string message = 2;
+}

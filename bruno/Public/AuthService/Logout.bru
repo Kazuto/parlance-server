@@ -1,0 +1,55 @@
+meta {
+  name: Logout
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.AuthService/Logout
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {}
+}
+
+docs {
+  # Logout
+
+  Logs out the current user session.
+
+  ## Authentication
+  Optionally accepts an access token in the `Authorization` header.
+
+  ## Request
+  No parameters required.
+
+  ## Behavior
+  **Important**: This is a stateless JWT implementation. Logout is handled client-side
+  by discarding the tokens. The server always returns success.
+
+  For production systems requiring true token invalidation, implement:
+  - Token blacklist with Redis
+  - Short-lived access tokens (15 min) with refresh tokens
+  - Token versioning in the database
+
+  ## Response
+  Returns an empty success response.
+
+  ## Example Response
+  ```json
+  {}
+  ```
+
+  ## Client-Side Actions
+  After logout, the client should:
+  1. Delete access token from memory/storage
+  2. Delete refresh token from storage
+  3. Redirect to login page
+}

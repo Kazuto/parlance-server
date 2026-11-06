@@ -1,0 +1,38 @@
+package models
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/kazuto/parlance-server/internal/models"
+	"gorm.io/gorm"
+)
+
+type RoleInitializer struct{}
+
+func NewRoleInitializer() *RoleInitializer { return &RoleInitializer{} }
+
+func (i *RoleInitializer) Name() string { return "roles" }
+func (i *RoleInitializer) Description() string {
+	return "Populates roles table"
+}
+
+func (i *RoleInitializer) Run(db *gorm.DB) error {
+	log.Println("Initializing admin role and attach permissions...")
+
+	var permissions []models.Permission
+	if err := db.Find(&permissions).Error; err != nil {
+		return err
+	}
+
+	admin := models.Role{Name: "admin", Permissions: permissions}
+	db.Where("name = ?", "admin").FirstOrCreate(&admin)
+
+	if err := db.Model(&admin).Association("Permissions").Replace(&permissions); err != nil {
+		return fmt.Errorf("failed to update admin permissions: %w", err)
+	}
+
+	return nil
+}
+
+func (i *RoleInitializer) Dependencies() []string { return []string{"roles"} }

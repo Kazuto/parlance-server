@@ -1,0 +1,59 @@
+meta {
+  name: Create Scope
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.ScopeService/CreateScope
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "name": "Mobile App",
+    "slug": "mobile",
+    "description": "Mobile application translations",
+    "color": "#EC4899"
+  }
+}
+
+docs {
+  # Create Scope
+
+  Creates a new scope in the system.
+
+  ## Request
+  - `name` (required): Scope display name
+  - `slug` (required): URL-friendly identifier (must be unique)
+  - `description` (optional): Detailed description of the scope
+  - `color` (optional): Hex color code for UI display (e.g., "#3B82F6")
+
+  ## Response
+  Returns the newly created scope.
+
+  ## Example Response
+  ```json
+  {
+    "scope": {
+      "id": "uuid",
+      "name": "Mobile App",
+      "slug": "mobile",
+      "description": "Mobile application translations",
+      "color": "#EC4899",
+      "createdAt": "2026-03-27T18:45:00+01:00",
+      "updatedAt": "2026-03-27T18:45:00+01:00"
+    }
+  }
+  ```
+
+  ## Errors
+  - `INVALID_ARGUMENT`: name or slug is required
+  - `INTERNAL`: failed to create scope (e.g., duplicate slug)
+}

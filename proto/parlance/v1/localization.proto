@@ -1,0 +1,201 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/common.proto";
+
+option go_package = "parlance/v1;parlance";
+
+service LocalizationService {
+  rpc ListLocalizations(ListLocalizationsRequest) returns (ListLocalizationsResponse);
+  rpc GetLocalization(GetLocalizationRequest) returns (GetLocalizationResponse);
+  rpc CreateLocalization(CreateLocalizationRequest) returns (CreateLocalizationResponse);
+  rpc UpdateLocalization(UpdateLocalizationRequest) returns (UpdateLocalizationResponse);
+  rpc DeleteLocalization(DeleteLocalizationRequest) returns (DeleteLocalizationResponse);
+  rpc RestoreLocalization(RestoreLocalizationRequest) returns (RestoreLocalizationResponse);
+  // Suggests machine translations of an entry's source text, without saving them.
+  rpc SuggestTranslations(SuggestTranslationsRequest) returns (SuggestTranslationsResponse);
+  rpc BatchTranslate(BatchTranslateRequest) returns (BatchTranslateResponse);
+  // Approves or rejects translations, picked by id or by entry and locale.
+  rpc ReviewLocalizations(ReviewLocalizationsRequest) returns (ReviewLocalizationsResponse);
+  // Finds approved, current translations of entries whose default text is like the
+  // given one: the translation memory.
+  rpc SearchTranslationMemory(SearchTranslationMemoryRequest) returns (SearchTranslationMemoryResponse);
+}
+
+message Localization {
+  string id = 1;
+  string entry_id = 2;
+  string locale_id = 3;
+  string translation = 4;
+  string created_at = 5;
+  string updated_at = 6;
+  string deleted_at = 7;
+  string created_by = 8;
+  string updated_by = 9;
+  ReviewStatus status = 10;
+  string reviewed_by = 11;
+  string reviewed_at = 12;
+  // Why a reviewer sent the translation back; cleared once it is approved.
+  string review_comment = 13;
+  // The default locale's text changed since this one was written or approved; editing
+  // or approving it clears this.
+  bool outdated = 14;
+  // When the default text first changed, in RFC 3339 with fractions of a second; pass
+  // it as GetEntryHistory's before to get the default text this one was based on.
+  string outdated_at = 15;
+  // A model wrote the text, and no person has edited it since.
+  bool machine = 16;
+  // The model that wrote it, as its server names it; empty for a person's text.
+  string machine_model = 17;
+}
+
+message ListLocalizationsRequest {
+  string entry_id = 1;
+  PaginationRequest pagination = 2;
+  FilterRequest filter = 3;
+}
+
+message ListLocalizationsResponse {
+  repeated Localization localizations = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetLocalizationRequest {
+  string id = 1;
+}
+
+message GetLocalizationResponse {
+  Localization localization = 1;
+}
+
+message CreateLocalizationRequest {
+  string entry_id = 1;
+  string locale_id = 2;
+  string translation = 3;
+  // Set when the text is a machine suggestion saved as it is: the suggestion's model.
+  string machine_model = 4;
+}
+
+message CreateLocalizationResponse {
+  Localization localization = 1;
+}
+
+message UpdateLocalizationRequest {
+  string id = 1;
+  optional string translation = 2;
+  // Set when the new text is a machine suggestion saved as it is: the suggestion's
+  // model. Without it, a changed text counts as the user's.
+  string machine_model = 3;
+}
+
+message UpdateLocalizationResponse {
+  Localization localization = 1;
+}
+
+message DeleteLocalizationRequest {
+  string id = 1;
+}
+
+message RestoreLocalizationRequest {
+  string id = 1;
+}
+
+message RestoreLocalizationResponse {
+  Localization localization = 1;
+}
+
+message DeleteLocalizationResponse {}
+
+message SuggestTranslationsRequest {
+  string entry_id = 1;
+  repeated string target_locale_ids = 2;
+}
+
+// A part of a suggestion a reviewer should check.
+message TranslationWarning {
+  // PLACEHOLDER_MISSING, PLACEHOLDER_UNEXPECTED, PLURAL_FORMS or LINE_BREAKS.
+  string code = 1;
+  // What is affected, e.g. the placeholder "{count}".
+  string detail = 2;
+}
+
+message TranslationSuggestion {
+  string locale_id = 1;
+  // Empty when error_code is set.
+  string translation = 2;
+  repeated TranslationWarning warnings = 3;
+  // UNSUPPORTED_LANGUAGE, EMPTY_ANSWER, ANSWER_TOO_LONG or FAILED.
+  string error_code = 4;
+  // The model that wrote the translation, to pass on when saving it as it is.
+  string model = 5;
+}
+
+message SuggestTranslationsResponse {
+  // One per requested locale, in the requested order.
+  repeated TranslationSuggestion suggestions = 1;
+}
+
+message BatchTranslateRequest {
+  repeated string entry_ids = 1;
+  string target_locale_id = 2;
+  string source_locale_id = 3;
+  bool apply_terminology = 4;
+}
+
+message BatchTranslateResponse {
+  repeated Localization localizations = 1;
+  int32 success_count = 2;
+  int32 failure_count = 3;
+  // Entries that already had a translation, which is kept.
+  int32 skipped_count = 4;
+}
+
+message ReviewLocalizationsRequest {
+  repeated string localization_ids = 1;
+  // Also the translations of these entries in these locales. Missing ones, and approved
+  // ones when approving, are skipped.
+  repeated string entry_ids = 2;
+  repeated string locale_ids = 3;
+  ReviewDecision decision = 4;
+  // Required when rejecting: what should change.
+  string comment = 5;
+  // Leave approved translations as they are, so rejecting only sends drafts back.
+  bool skip_approved = 6;
+  // When approving, also approve outdated translations that are approved already,
+  // confirming they still fit the default text. Otherwise they are skipped.
+  bool confirm_outdated = 7;
+}
+
+message ReviewLocalizationsResponse {
+  repeated Localization localizations = 1;
+}
+
+message SearchTranslationMemoryRequest {
+  // A default-locale text, e.g. the one being edited with unsaved changes. Texts
+  // shorter than 3 or longer than 2000 characters find nothing.
+  string source_text = 1;
+  // The locale of the translations to find; not the default locale.
+  string target_locale_id = 2;
+  // Optional: leave out this entry, e.g. the one being edited.
+  string exclude_entry_id = 3;
+  // At most this many matches: 5 when unset, never more than 20.
+  int32 limit = 4;
+}
+
+message TranslationMemoryMatch {
+  string entry_id = 1;
+  string key = 2;
+  // The entry's default-locale text.
+  string source_text = 3;
+  // Its approved translation in the target locale.
+  string translation = 4;
+  // How alike source_text is to the searched text, from 0.6 to 1: the share of
+  // characters that stay when editing one into the other, ignoring case.
+  float similarity = 5;
+}
+
+message SearchTranslationMemoryResponse {
+  // The most similar first. A source text with the same translation in several
+  // entries is listed once, with the first key.
+  repeated TranslationMemoryMatch matches = 1;
+}

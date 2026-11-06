@@ -1,0 +1,133 @@
+syntax = "proto3";
+package parlance.v1;
+
+import "parlance/v1/common.proto";
+import "parlance/v1/role.proto";
+
+option go_package = "parlance/v1;parlance";
+
+service UserService {
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+  rpc RestoreUser(RestoreUserRequest) returns (RestoreUserResponse);
+  rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse);
+  // Whether anyone may create an account with AuthService's Register, which gives
+  // it the viewer role.
+  rpc GetRegistrationSettings(GetRegistrationSettingsRequest) returns (GetRegistrationSettingsResponse);
+  rpc UpdateRegistrationSettings(UpdateRegistrationSettingsRequest) returns (UpdateRegistrationSettingsResponse);
+}
+
+message User {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  string locale = 4;
+  // The avatar's address on the API, e.g. "/avatars/<id>?v=1761250000"; empty
+  // without one.
+  string avatar = 5;
+  repeated Role roles = 6;
+  string created_at = 7;
+  string updated_at = 8;
+  string deleted_at = 9;
+  // Whether the user can sign in with a password; accounts single sign-on
+  // created have none.
+  bool has_password = 10;
+}
+
+message ListUsersRequest {
+  PaginationRequest pagination = 1;
+  FilterRequest filter = 2;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  PaginationResponse pagination = 2;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+message CreateUserRequest {
+  string email = 1;
+  string password = 2;
+  string name = 3;
+  string locale = 4;
+  reserved 5;
+  reserved "role_ids";
+  IdSelection roles = 6;
+}
+
+message CreateUserResponse {
+  User user = 1;
+}
+
+message UpdateUserRequest {
+  string id = 1;
+  optional string email = 2;
+  optional string name = 3;
+  optional string password = 4;
+  reserved 5;
+  reserved "role_ids";
+  optional string locale = 6;
+  // A PNG, JPEG, WebP or GIF image of up to 2 MB; empty removes the avatar.
+  optional bytes avatar = 7;
+  // Not needed: the image's type is read from it.
+  optional string avatar_mime = 8;
+  IdSelection roles = 9;
+}
+
+message UpdateUserResponse {
+  User user = 1;
+}
+
+message DeleteUserRequest {
+  string id = 1;
+}
+
+message DeleteUserResponse {}
+
+message RestoreUserRequest {
+  string id = 1;
+}
+
+message RestoreUserResponse {
+  User user = 1;
+}
+
+message AssignRoleRequest {
+  string user_id = 1;
+  string role_id = 2;
+}
+
+message AssignRoleResponse {
+  User user = 1;
+}
+
+message RegistrationSettings {
+  // Open until an admin closes it; admins still add users while closed.
+  bool open = 1;
+  // When the settings last changed, if ever.
+  optional string updated_at = 2;
+}
+
+message GetRegistrationSettingsRequest {}
+
+message GetRegistrationSettingsResponse {
+  RegistrationSettings settings = 1;
+}
+
+message UpdateRegistrationSettingsRequest {
+  bool open = 1;
+}
+
+message UpdateRegistrationSettingsResponse {
+  RegistrationSettings settings = 1;
+}

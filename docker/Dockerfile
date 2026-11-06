@@ -1,0 +1,57 @@
+# Proto generation stage
+FROM bufbuild/buf:latest AS proto
+WORKDIR /workspace
+COPY buf.yaml buf.gen.yaml ./
+COPY proto ./proto
+RUN buf generate
+
+# Build stage
+FROM golang:1.26-alpine AS builder
+WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache git ca-certificates tzdata
+
+# Copy generated proto files
+COPY --from=proto /workspace/gen ./gen
+
+# Download dependencies
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build binary
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags="-w -s" \
+    -o api ./cmd/api
+
+# Development stage with Air for live reload
+FROM golang:1.26-alpine AS dev
+WORKDIR /app
+
+# Install Air and build dependencies
+RUN apk add --no-cache git ca-certificates tzdata && \
+    go install github.com/air-verse/air@latest
+
+# Copy generated proto files
+COPY --from=proto /workspace/gen ./gen
+
+# Download dependencies will happen via volume mount
+# Air will handle rebuilds on file changes
+CMD ["air", "-c", ".air.toml"]
+
+# Runtime stage
+FROM alpine:latest AS runtime
+RUN apk --no-cache add ca-certificates tzdata
+
+WORKDIR /root/
+
+# Copy binary from builder
+COPY --from=builder /app/api .
+
+EXPOSE 8080
+
+# Run the application
+CMD ["./api"]

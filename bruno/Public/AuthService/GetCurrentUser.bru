@@ -1,0 +1,69 @@
+meta {
+  name: Get Current User
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.AuthService/GetCurrentUser
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {}
+}
+
+docs {
+  # Get Current User
+
+  Returns the currently authenticated user's details.
+
+  ## Authentication
+  Requires a valid access token in the `Authorization` header:
+  ```
+  Authorization: Bearer <access_token>
+  ```
+
+  ## Request
+  No parameters required.
+
+  ## Response
+  Returns the authenticated user with roles and permissions.
+
+  ## Example Response
+  ```json
+  {
+    "user": {
+      "id": "uuid",
+      "email": "user@example.com",
+      "name": "John Doe",
+      "roles": [
+        {
+          "id": "uuid",
+          "name": "viewer",
+          "permissions": [
+            {
+              "id": "uuid",
+              "name": "entry.read",
+              "resource": "entry",
+              "action": "read"
+            }
+          ]
+        }
+      ],
+      "createdAt": "2026-03-27T18:40:15+01:00",
+      "updatedAt": "2026-03-27T18:40:15+01:00"
+    }
+  }
+  ```
+
+  ## Errors
+  - `UNAUTHENTICATED`: not authenticated or invalid token
+  - `NOT_FOUND`: user not found
+}

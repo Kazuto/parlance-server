@@ -1,0 +1,84 @@
+syntax = "proto3";
+package parlance.v1;
+
+option go_package = "parlance/v1;parlance";
+
+// OpenID Connect providers users sign in with, such as Keycloak, Authentik or
+// Microsoft Entra ID. Password sign-in stays available next to them.
+service SsoProviderService {
+  rpc ListSsoProviders(ListSsoProvidersRequest) returns (ListSsoProvidersResponse);
+  rpc CreateSsoProvider(CreateSsoProviderRequest) returns (CreateSsoProviderResponse);
+  rpc UpdateSsoProvider(UpdateSsoProviderRequest) returns (UpdateSsoProviderResponse);
+  rpc DeleteSsoProvider(DeleteSsoProviderRequest) returns (DeleteSsoProviderResponse);
+  // Fetches the provider's OpenID configuration from its issuer, to check the
+  // address.
+  rpc TestSsoProvider(TestSsoProviderRequest) returns (TestSsoProviderResponse);
+}
+
+message SsoProvider {
+  string id = 1;
+  string name = 2;
+  // e.g. "https://auth.example.com/realms/main"
+  string issuer_url = 3;
+  string client_id = 4;
+  // The secret itself is never sent back.
+  bool has_client_secret = 5;
+  // The role of accounts created when someone signs in for the first time.
+  // Without one, only existing users can sign in, matched by their email.
+  optional string default_role_id = 6;
+  bool enabled = 7;
+  string created_at = 8;
+  string updated_at = 9;
+}
+
+message ListSsoProvidersRequest {}
+
+message ListSsoProvidersResponse {
+  repeated SsoProvider sso_providers = 1;
+}
+
+message CreateSsoProviderRequest {
+  string name = 1;
+  string issuer_url = 2;
+  string client_id = 3;
+  // Empty for public clients.
+  string client_secret = 4;
+  optional string default_role_id = 5;
+  bool enabled = 6;
+}
+
+message CreateSsoProviderResponse {
+  SsoProvider sso_provider = 1;
+}
+
+message UpdateSsoProviderRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string issuer_url = 3;
+  optional string client_id = 4;
+  // An empty secret removes the stored one.
+  optional string client_secret = 5;
+  // An empty id creates no accounts any more.
+  optional string default_role_id = 6;
+  optional bool enabled = 7;
+}
+
+message UpdateSsoProviderResponse {
+  SsoProvider sso_provider = 1;
+}
+
+message DeleteSsoProviderRequest {
+  string id = 1;
+}
+
+message DeleteSsoProviderResponse {}
+
+message TestSsoProviderRequest {
+  string id = 1;
+}
+
+message TestSsoProviderResponse {
+  bool ok = 1;
+  // What went wrong when not ok.
+  string error = 2;
+}

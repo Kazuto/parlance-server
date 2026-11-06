@@ -1,0 +1,68 @@
+meta {
+  name: Create Localization
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/parlance.v1.LocalizationService/CreateLocalization
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept-Language: en
+}
+
+body:json {
+  {
+    "entryId": "{{entryId}}",
+    "localeId": "{{localeId}}",
+    "translation": "Hello, World!"
+  }
+}
+
+script:pre-request {
+  const entryId = bru.getVar('entryId');
+  const localeId = bru.getVar('localeId');
+  
+  if (!entryId) {
+      await bru.runRequest('Authed/EntryService/ListEntries');
+  
+      return;
+  }
+  
+  if (!localeId) {
+      await bru.runRequest('Authed/LocaleService/ListLocales');
+  
+      return;
+  }
+}
+
+docs {
+  # Create Localization
+  
+  Creates a new translation for an entry in a specific locale.
+  
+  ## Authentication
+  Requires valid access token.
+  
+  ## Request
+  - `entry_id` (required): ID of the entry to translate
+  - `locale_id` (required): ID of the target locale
+  - `translation` (required): The translated text
+  
+  ## Response
+  - `localization`: The created localization with ID and metadata
+  
+  ## User Tracking
+  The authenticated user is automatically recorded as `created_by`.
+  
+  ## Error Codes
+  - `INVALID_ARGUMENT`: Missing required fields
+  - `ALREADY_EXISTS`: Localization for this entry/locale combination already exists
+  
+  ## Example Use Case
+  Add a new translation for an entry when a translator starts working on a new locale.
+}

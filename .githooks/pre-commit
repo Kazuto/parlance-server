@@ -1,0 +1,28 @@
+#!/bin/sh
+# Checks staged Go code before a commit, like the web app's lint-staged hook.
+# Enable it once with `make hooks`; skip it for one commit with `git commit --no-verify`.
+set -e
+
+files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.go' | grep -v '^gen/' || true)
+[ -z "$files" ] && exit 0
+
+unformatted=$(gofmt -l $files)
+if [ -n "$unformatted" ]; then
+	echo "pre-commit: these files need formatting (make fmt):"
+	echo "$unformatted"
+	exit 1
+fi
+
+if ! command -v golangci-lint >/dev/null 2>&1; then
+	echo "pre-commit: golangci-lint is missing (make install-tools)"
+	exit 1
+fi
+
+# Only issues on lines changed since HEAD; many fix themselves with
+# `golangci-lint run --fix`.
+if ! golangci-lint run --new-from-rev=HEAD; then
+	echo "pre-commit: lint failed; try golangci-lint run --fix"
+	exit 1
+fi
+
+go test ./...

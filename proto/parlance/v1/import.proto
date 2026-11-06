@@ -1,0 +1,125 @@
+syntax = "proto3";
+package parlance.v1;
+
+option go_package = "parlance/v1;parlance";
+
+service ImportService {
+  rpc ImportPhp(ImportPhpRequest) returns (ImportPhpResponse);
+  rpc ImportJson(ImportJsonRequest) returns (ImportJsonResponse);
+  rpc ImportPo(ImportPoRequest) returns (ImportPoResponse);
+  rpc ImportZip(ImportZipRequest) returns (ImportZipResponse);
+}
+
+// PHP array import
+message ImportPhpRequest {
+  string locale_id = 1;           // Target locale
+  repeated string scope_ids = 2;  // Scopes to assign
+  bytes file_content = 3;         // File content as bytes
+  string filename = 4;            // Original filename (optional, for logging)
+  ImportMode mode = 5;            // How to handle conflicts
+  bool approve = 6;  // Approve the imported translations; needs review_entry
+  bool dry_run = 7;  // Reports what the import would change, without changing anything
+}
+
+message ImportPhpResponse {
+  ImportResult result = 1;
+}
+
+// Flat JSON import
+message ImportJsonRequest {
+  string locale_id = 1;
+  repeated string scope_ids = 2;
+  bytes file_content = 3;         // File content as bytes
+  string filename = 4;            // Original filename (optional)
+  ImportMode mode = 5;
+  bool approve = 6;  // Approve the imported translations; needs review_entry
+  bool dry_run = 7;  // Reports what the import would change, without changing anything
+}
+
+message ImportJsonResponse {
+  ImportResult result = 1;
+}
+
+// UTF-8, singular key-based gettext PO import. msgid is the entry key.
+message ImportPoRequest {
+  string locale_id = 1;
+  repeated string scope_ids = 2;
+  bytes file_content = 3;
+  string filename = 4;
+  ImportMode mode = 5;
+  bool approve = 6;  // Approve the imported translations; needs review_entry
+  bool dry_run = 7;  // Reports what the import would change, without changing anything
+}
+
+message ImportPoResponse {
+  ImportResult result = 1;
+}
+
+// Import modes
+enum ImportMode {
+  IMPORT_MODE_UNSPECIFIED = 0;
+  IMPORT_MODE_CREATE_ONLY = 1;      // Only create new entries, skip existing
+  IMPORT_MODE_UPDATE_ONLY = 2;      // Only update existing entries
+  IMPORT_MODE_CREATE_OR_UPDATE = 3; // Upsert: create new or update existing (default)
+  IMPORT_MODE_REPLACE_ALL = 4;      // Delete all entries in scope first, then import
+}
+
+// Import result statistics. entries_created and entries_updated count every imported
+// translation, unchanged ones too; the translations_ counts say what actually changes.
+message ImportResult {
+  int32 entries_created = 1;
+  int32 entries_updated = 2;
+  int32 entries_skipped = 3;
+  int32 entries_failed = 4;
+  repeated ImportError errors = 5;
+  // On a dry run, the first 500 translations the import adds, changes or removes, by key
+  repeated ImportChange changes = 6;
+  int32 translations_added = 7;     // New translations, of new or existing entries
+  int32 translations_changed = 8;   // Existing translations given a different text
+  int32 translations_removed = 9;   // Translations REPLACE_ALL removes and doesn't import again
+  int32 translations_outdated = 10; // Other languages' translations of the default texts it changes
+}
+
+// One translation an import adds, changes or removes
+message ImportChange {
+  string key = 1;
+  ImportChangeAction action = 2;
+  string old_translation = 3;     // Empty when added
+  string new_translation = 4;     // Empty when removed
+  string source_translation = 5;  // The entry's default text, unless the import is in the default locale
+}
+
+enum ImportChangeAction {
+  IMPORT_CHANGE_ACTION_UNSPECIFIED = 0;
+  IMPORT_CHANGE_ACTION_ADD = 1;
+  IMPORT_CHANGE_ACTION_CHANGE = 2;
+  IMPORT_CHANGE_ACTION_REMOVE = 3;
+}
+
+message ImportError {
+  string key = 1;
+  string message = 2;
+}
+
+// Import multiple locales from a ZIP archive containing JSON files
+message ImportZipRequest {
+  bytes file_content = 1;         // ZIP file content as bytes
+  repeated string scope_ids = 2;  // Scopes to assign to all imported entries
+  ImportMode mode = 3;            // How to handle conflicts
+  bool approve = 4;              // Approve the imported translations; needs review_entry
+  bool dry_run = 5;              // Reports what the import would change, without changing anything
+}
+
+message ImportZipResponse {
+  repeated LocaleImportResult results = 1;  // Results per locale file
+  int32 total_created = 2;                  // Sum of all entries created
+  int32 total_updated = 3;                  // Sum of all entries updated
+  int32 total_skipped = 4;                  // Sum of all entries skipped
+  int32 total_failed = 5;                   // Sum of all entries failed
+}
+
+message LocaleImportResult {
+  string locale_code = 1;         // Which locale file was processed
+  ImportResult result = 2;        // Result for this locale
+  string error = 3;               // Error message if the whole file failed
+}
