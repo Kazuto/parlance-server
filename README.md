@@ -32,7 +32,7 @@ On a fresh database, the web app asks for the first administrator
 
 ### Production
 
-Version tags publish the image `ghcr.io/kazuto/parlance-api`, which runs the API on
+Version tags publish the image `ghcr.io/kazuto/parlance-server`, which runs the API on
 port 8080. It needs PostgreSQL and S3-compatible storage, configured with the
 variables below.
 

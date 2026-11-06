@@ -5,7 +5,7 @@ set -e
 REGISTRY="${REGISTRY:-ghcr.io}"
 NAMESPACE="${NAMESPACE:-$(git config user.name | tr '[:upper:]' '[:lower:]')}"
 VERSION="${VERSION:-$(git describe --tags --always --dirty 2>/dev/null || echo 'latest')}"
-IMAGE_NAME="${REGISTRY}/${NAMESPACE}/parlance-api"
+IMAGE_NAME="${REGISTRY}/${NAMESPACE}/parlance-server"
 
 # Colors for output
 RED='\033[0;31m'
@@ -128,7 +128,7 @@ if [ -n "$CUSTOM_TAG" ]; then
 fi
 
 # Update image name with final values
-IMAGE_NAME="${REGISTRY}/${NAMESPACE}/parlance-api"
+IMAGE_NAME="${REGISTRY}/${NAMESPACE}/parlance-server"
 
 # Main execution
 print_info "Configuration:"
