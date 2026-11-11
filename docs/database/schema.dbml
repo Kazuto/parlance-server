@@ -150,6 +150,7 @@ Table scopes {
   slug varchar(50) [not null, unique]
   description text [null]
   color varchar(7) [null]
+  export_format varchar(10) [not null, default: '', note: 'json, php or po; empty for none']
   created_at timestamp
   updated_at timestamp
   deleted_at timestamp [null]

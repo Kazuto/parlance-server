@@ -29,6 +29,15 @@ func (s *Server) UpdateScope(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "scope slug is required")
 	}
 
+	var format string
+
+	if req.Msg.ExportFormat != nil {
+		var err error
+		if format, err = exportFormat(req.Msg.GetExportFormat()); err != nil {
+			return nil, err
+		}
+	}
+
 	scope, err := common.FindByID[models.Scope](s.db.WithContext(ctx), req.Msg.Id, errors.ErrScopeNotFound, "scope not found")
 	if err != nil {
 		return nil, err
@@ -48,6 +57,10 @@ func (s *Server) UpdateScope(
 
 	if req.Msg.Color != nil {
 		scope.Color = req.Msg.GetColor()
+	}
+
+	if req.Msg.ExportFormat != nil {
+		scope.ExportFormat = format
 	}
 
 	if err := s.db.Save(&scope).Error; err != nil {

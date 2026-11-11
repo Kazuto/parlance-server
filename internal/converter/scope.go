@@ -14,15 +14,16 @@ func ScopeToProto(s *models.Scope) *pb.Scope {
 	}
 
 	return &pb.Scope{
-		Id:          s.ID,
-		Name:        s.Name,
-		Slug:        s.Slug,
-		Description: s.Description,
-		Color:       s.Color,
-		CreatedAt:   s.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:   s.UpdatedAt.Format(time.RFC3339),
-		DeletedAt:   formatDeletedAt(s.DeletedAt),
-		Tags:        TagsToProto(s.Tags),
+		Id:           s.ID,
+		Name:         s.Name,
+		Slug:         s.Slug,
+		Description:  s.Description,
+		Color:        s.Color,
+		CreatedAt:    s.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:    s.UpdatedAt.Format(time.RFC3339),
+		DeletedAt:    formatDeletedAt(s.DeletedAt),
+		Tags:         TagsToProto(s.Tags),
+		ExportFormat: ExportFormatToProto(s.ExportFormat),
 	}
 }
 

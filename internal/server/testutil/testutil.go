@@ -202,6 +202,7 @@ func SetupTestDB() (*database.DB, error) {
 			slug TEXT NOT NULL UNIQUE,
 			description TEXT,
 			color TEXT,
+			export_format TEXT NOT NULL DEFAULT '',
 			created_at DATETIME,
 			updated_at DATETIME,
 			deleted_at DATETIME

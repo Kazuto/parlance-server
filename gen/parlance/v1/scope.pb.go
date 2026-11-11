@@ -32,7 +32,9 @@ type Scope struct {
 	UpdatedAt   string                 `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	DeletedAt   string                 `protobuf:"bytes,8,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
 	// The scope's tags by name; only set by ListScopes and GetScope.
-	Tags          []*Tag `protobuf:"bytes,9,rep,name=tags,proto3" json:"tags,omitempty"`
+	Tags []*Tag `protobuf:"bytes,9,rep,name=tags,proto3" json:"tags,omitempty"`
+	// The format the scope's entries are exported in by default; unspecified for none.
+	ExportFormat  ExportFormat `protobuf:"varint,10,opt,name=export_format,json=exportFormat,proto3,enum=parlance.v1.ExportFormat" json:"export_format,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -128,6 +130,13 @@ func (x *Scope) GetTags() []*Tag {
 		return x.Tags
 	}
 	return nil
+}
+
+func (x *Scope) GetExportFormat() ExportFormat {
+	if x != nil {
+		return x.ExportFormat
+	}
+	return ExportFormat_EXPORT_FORMAT_UNSPECIFIED
 }
 
 // Tag groups entries within a scope. An entry only carries tags of its scopes.
@@ -409,11 +418,13 @@ func (x *GetScopeResponse) GetScope() *Scope {
 }
 
 type CreateScopeRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Slug          string                 `protobuf:"bytes,2,opt,name=slug,proto3" json:"slug,omitempty"`
-	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Color         string                 `protobuf:"bytes,4,opt,name=color,proto3" json:"color,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Name        string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Slug        string                 `protobuf:"bytes,2,opt,name=slug,proto3" json:"slug,omitempty"`
+	Description string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Color       string                 `protobuf:"bytes,4,opt,name=color,proto3" json:"color,omitempty"`
+	// Unspecified for none
+	ExportFormat  ExportFormat `protobuf:"varint,5,opt,name=export_format,json=exportFormat,proto3,enum=parlance.v1.ExportFormat" json:"export_format,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -476,6 +487,13 @@ func (x *CreateScopeRequest) GetColor() string {
 	return ""
 }
 
+func (x *CreateScopeRequest) GetExportFormat() ExportFormat {
+	if x != nil {
+		return x.ExportFormat
+	}
+	return ExportFormat_EXPORT_FORMAT_UNSPECIFIED
+}
+
 type CreateScopeResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Scope         *Scope                 `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
@@ -521,12 +539,14 @@ func (x *CreateScopeResponse) GetScope() *Scope {
 }
 
 type UpdateScopeRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          *string                `protobuf:"bytes,2,opt,name=name,proto3,oneof" json:"name,omitempty"`
-	Slug          *string                `protobuf:"bytes,3,opt,name=slug,proto3,oneof" json:"slug,omitempty"`
-	Description   *string                `protobuf:"bytes,4,opt,name=description,proto3,oneof" json:"description,omitempty"`
-	Color         *string                `protobuf:"bytes,5,opt,name=color,proto3,oneof" json:"color,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name        *string                `protobuf:"bytes,2,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	Slug        *string                `protobuf:"bytes,3,opt,name=slug,proto3,oneof" json:"slug,omitempty"`
+	Description *string                `protobuf:"bytes,4,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	Color       *string                `protobuf:"bytes,5,opt,name=color,proto3,oneof" json:"color,omitempty"`
+	// Unspecified clears it
+	ExportFormat  *ExportFormat `protobuf:"varint,6,opt,name=export_format,json=exportFormat,proto3,enum=parlance.v1.ExportFormat,oneof" json:"export_format,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -594,6 +614,13 @@ func (x *UpdateScopeRequest) GetColor() string {
 		return *x.Color
 	}
 	return ""
+}
+
+func (x *UpdateScopeRequest) GetExportFormat() ExportFormat {
+	if x != nil && x.ExportFormat != nil {
+		return *x.ExportFormat
+	}
+	return ExportFormat_EXPORT_FORMAT_UNSPECIFIED
 }
 
 type UpdateScopeResponse struct {
@@ -1351,7 +1378,7 @@ var File_parlance_v1_scope_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_scope_proto_rawDesc = "" +
 	"\n" +
-	"\x17parlance/v1/scope.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\"\xfa\x01\n" +
+	"\x17parlance/v1/scope.proto\x12\vparlance.v1\x1a\x18parlance/v1/common.proto\x1a\x16parlance/v1/task.proto\"\xba\x02\n" +
 	"\x05Scope\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
@@ -1364,7 +1391,9 @@ const file_parlance_v1_scope_proto_rawDesc = "" +
 	"updated_at\x18\a \x01(\tR\tupdatedAt\x12\x1d\n" +
 	"\n" +
 	"deleted_at\x18\b \x01(\tR\tdeletedAt\x12$\n" +
-	"\x04tags\x18\t \x03(\v2\x10.parlance.v1.TagR\x04tags\"\xa3\x01\n" +
+	"\x04tags\x18\t \x03(\v2\x10.parlance.v1.TagR\x04tags\x12>\n" +
+	"\rexport_format\x18\n" +
+	" \x01(\x0e2\x19.parlance.v1.ExportFormatR\fexportFormat\"\xa3\x01\n" +
 	"\x03Tag\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bscope_id\x18\x02 \x01(\tR\ascopeId\x12\x12\n" +
@@ -1388,24 +1417,27 @@ const file_parlance_v1_scope_proto_rawDesc = "" +
 	"\x0fGetScopeRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"<\n" +
 	"\x10GetScopeResponse\x12(\n" +
-	"\x05scope\x18\x01 \x01(\v2\x12.parlance.v1.ScopeR\x05scope\"t\n" +
+	"\x05scope\x18\x01 \x01(\v2\x12.parlance.v1.ScopeR\x05scope\"\xb4\x01\n" +
 	"\x12CreateScopeRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04slug\x18\x02 \x01(\tR\x04slug\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x14\n" +
-	"\x05color\x18\x04 \x01(\tR\x05color\"?\n" +
+	"\x05color\x18\x04 \x01(\tR\x05color\x12>\n" +
+	"\rexport_format\x18\x05 \x01(\x0e2\x19.parlance.v1.ExportFormatR\fexportFormat\"?\n" +
 	"\x13CreateScopeResponse\x12(\n" +
-	"\x05scope\x18\x01 \x01(\v2\x12.parlance.v1.ScopeR\x05scope\"\xc4\x01\n" +
+	"\x05scope\x18\x01 \x01(\v2\x12.parlance.v1.ScopeR\x05scope\"\x9b\x02\n" +
 	"\x12UpdateScopeRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x17\n" +
 	"\x04slug\x18\x03 \x01(\tH\x01R\x04slug\x88\x01\x01\x12%\n" +
 	"\vdescription\x18\x04 \x01(\tH\x02R\vdescription\x88\x01\x01\x12\x19\n" +
-	"\x05color\x18\x05 \x01(\tH\x03R\x05color\x88\x01\x01B\a\n" +
+	"\x05color\x18\x05 \x01(\tH\x03R\x05color\x88\x01\x01\x12C\n" +
+	"\rexport_format\x18\x06 \x01(\x0e2\x19.parlance.v1.ExportFormatH\x04R\fexportFormat\x88\x01\x01B\a\n" +
 	"\x05_nameB\a\n" +
 	"\x05_slugB\x0e\n" +
 	"\f_descriptionB\b\n" +
-	"\x06_color\"?\n" +
+	"\x06_colorB\x10\n" +
+	"\x0e_export_format\"?\n" +
 	"\x13UpdateScopeResponse\x12(\n" +
 	"\x05scope\x18\x01 \x01(\v2\x12.parlance.v1.ScopeR\x05scope\"$\n" +
 	"\x12DeleteScopeRequest\x12\x0e\n" +
@@ -1498,52 +1530,56 @@ var file_parlance_v1_scope_proto_goTypes = []any{
 	(*UpdateTagResponse)(nil),            // 23: parlance.v1.UpdateTagResponse
 	(*DeleteTagRequest)(nil),             // 24: parlance.v1.DeleteTagRequest
 	(*DeleteTagResponse)(nil),            // 25: parlance.v1.DeleteTagResponse
-	(*PaginationRequest)(nil),            // 26: parlance.v1.PaginationRequest
-	(*FilterRequest)(nil),                // 27: parlance.v1.FilterRequest
-	(*PaginationResponse)(nil),           // 28: parlance.v1.PaginationResponse
+	(ExportFormat)(0),                    // 26: parlance.v1.ExportFormat
+	(*PaginationRequest)(nil),            // 27: parlance.v1.PaginationRequest
+	(*FilterRequest)(nil),                // 28: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),           // 29: parlance.v1.PaginationResponse
 }
 var file_parlance_v1_scope_proto_depIdxs = []int32{
 	1,  // 0: parlance.v1.Scope.tags:type_name -> parlance.v1.Tag
-	26, // 1: parlance.v1.ListScopesRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	27, // 2: parlance.v1.ListScopesRequest.filter:type_name -> parlance.v1.FilterRequest
-	0,  // 3: parlance.v1.ListScopesResponse.scopes:type_name -> parlance.v1.Scope
-	28, // 4: parlance.v1.ListScopesResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	0,  // 5: parlance.v1.GetScopeResponse.scope:type_name -> parlance.v1.Scope
-	0,  // 6: parlance.v1.CreateScopeResponse.scope:type_name -> parlance.v1.Scope
-	0,  // 7: parlance.v1.UpdateScopeResponse.scope:type_name -> parlance.v1.Scope
-	0,  // 8: parlance.v1.RestoreScopeResponse.scope:type_name -> parlance.v1.Scope
-	0,  // 9: parlance.v1.GetEntryScopesResponse.scopes:type_name -> parlance.v1.Scope
-	1,  // 10: parlance.v1.CreateTagResponse.tag:type_name -> parlance.v1.Tag
-	1,  // 11: parlance.v1.UpdateTagResponse.tag:type_name -> parlance.v1.Tag
-	2,  // 12: parlance.v1.ScopeService.ListScopes:input_type -> parlance.v1.ListScopesRequest
-	4,  // 13: parlance.v1.ScopeService.GetScope:input_type -> parlance.v1.GetScopeRequest
-	6,  // 14: parlance.v1.ScopeService.CreateScope:input_type -> parlance.v1.CreateScopeRequest
-	8,  // 15: parlance.v1.ScopeService.UpdateScope:input_type -> parlance.v1.UpdateScopeRequest
-	10, // 16: parlance.v1.ScopeService.DeleteScope:input_type -> parlance.v1.DeleteScopeRequest
-	12, // 17: parlance.v1.ScopeService.RestoreScope:input_type -> parlance.v1.RestoreScopeRequest
-	14, // 18: parlance.v1.ScopeService.AddScopeToEntry:input_type -> parlance.v1.AddScopeToEntryRequest
-	16, // 19: parlance.v1.ScopeService.RemoveScopeFromEntry:input_type -> parlance.v1.RemoveScopeFromEntryRequest
-	18, // 20: parlance.v1.ScopeService.GetEntryScopes:input_type -> parlance.v1.GetEntryScopesRequest
-	20, // 21: parlance.v1.ScopeService.CreateTag:input_type -> parlance.v1.CreateTagRequest
-	22, // 22: parlance.v1.ScopeService.UpdateTag:input_type -> parlance.v1.UpdateTagRequest
-	24, // 23: parlance.v1.ScopeService.DeleteTag:input_type -> parlance.v1.DeleteTagRequest
-	3,  // 24: parlance.v1.ScopeService.ListScopes:output_type -> parlance.v1.ListScopesResponse
-	5,  // 25: parlance.v1.ScopeService.GetScope:output_type -> parlance.v1.GetScopeResponse
-	7,  // 26: parlance.v1.ScopeService.CreateScope:output_type -> parlance.v1.CreateScopeResponse
-	9,  // 27: parlance.v1.ScopeService.UpdateScope:output_type -> parlance.v1.UpdateScopeResponse
-	11, // 28: parlance.v1.ScopeService.DeleteScope:output_type -> parlance.v1.DeleteScopeResponse
-	13, // 29: parlance.v1.ScopeService.RestoreScope:output_type -> parlance.v1.RestoreScopeResponse
-	15, // 30: parlance.v1.ScopeService.AddScopeToEntry:output_type -> parlance.v1.AddScopeToEntryResponse
-	17, // 31: parlance.v1.ScopeService.RemoveScopeFromEntry:output_type -> parlance.v1.RemoveScopeFromEntryResponse
-	19, // 32: parlance.v1.ScopeService.GetEntryScopes:output_type -> parlance.v1.GetEntryScopesResponse
-	21, // 33: parlance.v1.ScopeService.CreateTag:output_type -> parlance.v1.CreateTagResponse
-	23, // 34: parlance.v1.ScopeService.UpdateTag:output_type -> parlance.v1.UpdateTagResponse
-	25, // 35: parlance.v1.ScopeService.DeleteTag:output_type -> parlance.v1.DeleteTagResponse
-	24, // [24:36] is the sub-list for method output_type
-	12, // [12:24] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	26, // 1: parlance.v1.Scope.export_format:type_name -> parlance.v1.ExportFormat
+	27, // 2: parlance.v1.ListScopesRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	28, // 3: parlance.v1.ListScopesRequest.filter:type_name -> parlance.v1.FilterRequest
+	0,  // 4: parlance.v1.ListScopesResponse.scopes:type_name -> parlance.v1.Scope
+	29, // 5: parlance.v1.ListScopesResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	0,  // 6: parlance.v1.GetScopeResponse.scope:type_name -> parlance.v1.Scope
+	26, // 7: parlance.v1.CreateScopeRequest.export_format:type_name -> parlance.v1.ExportFormat
+	0,  // 8: parlance.v1.CreateScopeResponse.scope:type_name -> parlance.v1.Scope
+	26, // 9: parlance.v1.UpdateScopeRequest.export_format:type_name -> parlance.v1.ExportFormat
+	0,  // 10: parlance.v1.UpdateScopeResponse.scope:type_name -> parlance.v1.Scope
+	0,  // 11: parlance.v1.RestoreScopeResponse.scope:type_name -> parlance.v1.Scope
+	0,  // 12: parlance.v1.GetEntryScopesResponse.scopes:type_name -> parlance.v1.Scope
+	1,  // 13: parlance.v1.CreateTagResponse.tag:type_name -> parlance.v1.Tag
+	1,  // 14: parlance.v1.UpdateTagResponse.tag:type_name -> parlance.v1.Tag
+	2,  // 15: parlance.v1.ScopeService.ListScopes:input_type -> parlance.v1.ListScopesRequest
+	4,  // 16: parlance.v1.ScopeService.GetScope:input_type -> parlance.v1.GetScopeRequest
+	6,  // 17: parlance.v1.ScopeService.CreateScope:input_type -> parlance.v1.CreateScopeRequest
+	8,  // 18: parlance.v1.ScopeService.UpdateScope:input_type -> parlance.v1.UpdateScopeRequest
+	10, // 19: parlance.v1.ScopeService.DeleteScope:input_type -> parlance.v1.DeleteScopeRequest
+	12, // 20: parlance.v1.ScopeService.RestoreScope:input_type -> parlance.v1.RestoreScopeRequest
+	14, // 21: parlance.v1.ScopeService.AddScopeToEntry:input_type -> parlance.v1.AddScopeToEntryRequest
+	16, // 22: parlance.v1.ScopeService.RemoveScopeFromEntry:input_type -> parlance.v1.RemoveScopeFromEntryRequest
+	18, // 23: parlance.v1.ScopeService.GetEntryScopes:input_type -> parlance.v1.GetEntryScopesRequest
+	20, // 24: parlance.v1.ScopeService.CreateTag:input_type -> parlance.v1.CreateTagRequest
+	22, // 25: parlance.v1.ScopeService.UpdateTag:input_type -> parlance.v1.UpdateTagRequest
+	24, // 26: parlance.v1.ScopeService.DeleteTag:input_type -> parlance.v1.DeleteTagRequest
+	3,  // 27: parlance.v1.ScopeService.ListScopes:output_type -> parlance.v1.ListScopesResponse
+	5,  // 28: parlance.v1.ScopeService.GetScope:output_type -> parlance.v1.GetScopeResponse
+	7,  // 29: parlance.v1.ScopeService.CreateScope:output_type -> parlance.v1.CreateScopeResponse
+	9,  // 30: parlance.v1.ScopeService.UpdateScope:output_type -> parlance.v1.UpdateScopeResponse
+	11, // 31: parlance.v1.ScopeService.DeleteScope:output_type -> parlance.v1.DeleteScopeResponse
+	13, // 32: parlance.v1.ScopeService.RestoreScope:output_type -> parlance.v1.RestoreScopeResponse
+	15, // 33: parlance.v1.ScopeService.AddScopeToEntry:output_type -> parlance.v1.AddScopeToEntryResponse
+	17, // 34: parlance.v1.ScopeService.RemoveScopeFromEntry:output_type -> parlance.v1.RemoveScopeFromEntryResponse
+	19, // 35: parlance.v1.ScopeService.GetEntryScopes:output_type -> parlance.v1.GetEntryScopesResponse
+	21, // 36: parlance.v1.ScopeService.CreateTag:output_type -> parlance.v1.CreateTagResponse
+	23, // 37: parlance.v1.ScopeService.UpdateTag:output_type -> parlance.v1.UpdateTagResponse
+	25, // 38: parlance.v1.ScopeService.DeleteTag:output_type -> parlance.v1.DeleteTagResponse
+	27, // [27:39] is the sub-list for method output_type
+	15, // [15:27] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_scope_proto_init() }
@@ -1552,6 +1588,7 @@ func file_parlance_v1_scope_proto_init() {
 		return
 	}
 	file_parlance_v1_common_proto_init()
+	file_parlance_v1_task_proto_init()
 	file_parlance_v1_scope_proto_msgTypes[8].OneofWrappers = []any{}
 	file_parlance_v1_scope_proto_msgTypes[22].OneofWrappers = []any{}
 	type x struct{}
