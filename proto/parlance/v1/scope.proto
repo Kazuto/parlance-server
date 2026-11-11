@@ -2,6 +2,7 @@ syntax = "proto3";
 package parlance.v1;
 
 import "parlance/v1/common.proto";
+import "parlance/v1/task.proto";
 
 option go_package = "parlance/v1;parlance";
 
@@ -35,6 +36,8 @@ message Scope {
   string deleted_at = 8;
   // The scope's tags by name; only set by ListScopes and GetScope.
   repeated Tag tags = 9;
+  // The format the scope's entries are exported in by default; unspecified for none.
+  ExportFormat export_format = 10;
 }
 
 // Tag groups entries within a scope. An entry only carries tags of its scopes.
@@ -71,6 +74,8 @@ message CreateScopeRequest {
   string slug = 2;
   string description = 3;
   string color = 4;
+  // Unspecified for none
+  ExportFormat export_format = 5;
 }
 
 message CreateScopeResponse {
@@ -83,6 +88,8 @@ message UpdateScopeRequest {
   optional string slug = 3;
   optional string description = 4;
   optional string color = 5;
+  // Unspecified clears it
+  optional ExportFormat export_format = 6;
 }
 
 message UpdateScopeResponse {

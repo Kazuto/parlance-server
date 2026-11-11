@@ -55,6 +55,9 @@ func TaskEventFromProto(value pb.TaskEvent) string { return lookup(taskEvents, v
 // ExportFormatFromProto returns the format's file extension, or "" for none.
 func ExportFormatFromProto(value pb.ExportFormat) string { return lookup(exportFormats, value) }
 
+// ExportFormatToProto returns the format of a file extension, or unspecified for none.
+func ExportFormatToProto(format string) pb.ExportFormat { return exportFormats[format] }
+
 // TaskToProto converts a Task with its newest run, if any. The token stays out:
 // only whether one is set is sent.
 func TaskToProto(task *models.Task, lastRun *models.TaskRun) *pb.Task {
@@ -115,7 +118,7 @@ func GitExportConfigToProto(config models.GitExportConfig) *pb.GitExportConfig {
 	}
 
 	for _, file := range config.Files {
-		result.Files = append(result.Files, &pb.GitExportFile{Format: exportFormats[file.Format], Path: file.Path})
+		result.Files = append(result.Files, &pb.GitExportFile{Format: ExportFormatToProto(file.Format), Path: file.Path})
 	}
 
 	return result
