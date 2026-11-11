@@ -233,6 +233,25 @@ func SetupTestDB() (*database.DB, error) {
 			created_by TEXT,
 			PRIMARY KEY (entry_id, tag_id)
 		)`,
+		`CREATE TABLE IF NOT EXISTS releases (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			description TEXT NOT NULL DEFAULT '',
+			release_at DATETIME,
+			released_at DATETIME,
+			created_at DATETIME,
+			updated_at DATETIME,
+			created_by TEXT,
+			updated_by TEXT
+		)`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS idx_releases_name ON releases (lower(name))`,
+		`CREATE TABLE IF NOT EXISTS release_entries (
+			release_id TEXT NOT NULL,
+			entry_id TEXT NOT NULL,
+			created_at DATETIME,
+			created_by TEXT,
+			PRIMARY KEY (release_id, entry_id)
+		)`,
 		`CREATE TABLE IF NOT EXISTS terminologies (
 			id TEXT PRIMARY KEY,
 			term TEXT NOT NULL,

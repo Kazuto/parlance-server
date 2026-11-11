@@ -77,6 +77,8 @@ type TaskEvent int32
 const (
 	TaskEvent_TASK_EVENT_UNSPECIFIED           TaskEvent = 0
 	TaskEvent_TASK_EVENT_TRANSLATIONS_APPROVED TaskEvent = 1
+	// A release went out, by its date or by hand.
+	TaskEvent_TASK_EVENT_TRANSLATIONS_RELEASED TaskEvent = 2
 )
 
 // Enum value maps for TaskEvent.
@@ -84,10 +86,12 @@ var (
 	TaskEvent_name = map[int32]string{
 		0: "TASK_EVENT_UNSPECIFIED",
 		1: "TASK_EVENT_TRANSLATIONS_APPROVED",
+		2: "TASK_EVENT_TRANSLATIONS_RELEASED",
 	}
 	TaskEvent_value = map[string]int32{
 		"TASK_EVENT_UNSPECIFIED":           0,
 		"TASK_EVENT_TRANSLATIONS_APPROVED": 1,
+		"TASK_EVENT_TRANSLATIONS_RELEASED": 2,
 	}
 )
 
@@ -2365,10 +2369,11 @@ const file_parlance_v1_task_proto_rawDesc = "" +
 	"\bTaskType\x12\x19\n" +
 	"\x15TASK_TYPE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16TASK_TYPE_AI_TRANSLATE\x10\x01\x12\x18\n" +
-	"\x14TASK_TYPE_GIT_EXPORT\x10\x02*M\n" +
+	"\x14TASK_TYPE_GIT_EXPORT\x10\x02*s\n" +
 	"\tTaskEvent\x12\x1a\n" +
 	"\x16TASK_EVENT_UNSPECIFIED\x10\x00\x12$\n" +
-	" TASK_EVENT_TRANSLATIONS_APPROVED\x10\x01*w\n" +
+	" TASK_EVENT_TRANSLATIONS_APPROVED\x10\x01\x12$\n" +
+	" TASK_EVENT_TRANSLATIONS_RELEASED\x10\x02*w\n" +
 	"\vTaskTrigger\x12\x1c\n" +
 	"\x18TASK_TRIGGER_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13TASK_TRIGGER_MANUAL\x10\x01\x12\x19\n" +

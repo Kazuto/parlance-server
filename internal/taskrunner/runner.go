@@ -135,12 +135,17 @@ func (r *Runner) Start(ctx context.Context) <-chan struct{} {
 	return done
 }
 
-// Tick queues the scheduled runs that are due, fails runs that stopped beating,
-// and runs every queued run that may start. While tasks are paused, it only fails
-// stale runs; schedules that came due fire once they are resumed.
+// Tick lets out releases whose date came, queues the scheduled runs that are due,
+// fails runs that stopped beating, and runs every queued run that may start. While
+// tasks are paused, it only fails stale runs and lets out releases, whose tasks queue;
+// schedules that came due fire once they are resumed.
 func (r *Runner) Tick(ctx context.Context) {
 	if err := r.failStale(ctx); err != nil {
 		log.Printf("tasks: fail stale runs: %v", err)
+	}
+
+	if err := r.releaseDue(ctx); err != nil {
+		log.Printf("tasks: let out due releases: %v", err)
 	}
 
 	paused, _, err := taskqueue.Paused(r.db.WithContext(ctx))

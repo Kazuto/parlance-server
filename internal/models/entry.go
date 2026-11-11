@@ -24,6 +24,8 @@ type Entry struct {
 
 	// Tags joined through EntryTag, see database.SetupJoinTables
 	Tags []Tag `gorm:"many2many:entry_tags;" json:"tags"`
+	// Releases joined through ReleaseEntry, see database.SetupJoinTables
+	Releases []Release `gorm:"many2many:release_entries;" json:"releases"`
 }
 
 func (Entry) TableName() string {

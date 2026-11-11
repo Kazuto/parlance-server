@@ -9,7 +9,7 @@ import (
 )
 
 func (s *Server) ExportPo(ctx context.Context, req *connect.Request[pb.ExportPoRequest]) (*connect.Response[pb.ExportPoResponse], error) {
-	content, filename, err := s.exportFile(ctx, FormatPO, req.Msg.LocaleCode, req.Msg.ScopeIds, req.Msg.TagIds, req.Msg.IncludeDrafts)
+	content, filename, err := s.exportFile(ctx, FormatPO, req.Msg.LocaleCode, req.Msg)
 	if err != nil {
 		return nil, err
 	}

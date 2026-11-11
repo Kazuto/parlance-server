@@ -38,6 +38,8 @@ enum TaskType {
 enum TaskEvent {
   TASK_EVENT_UNSPECIFIED = 0;
   TASK_EVENT_TRANSLATIONS_APPROVED = 1;
+  // A release went out, by its date or by hand.
+  TASK_EVENT_TRANSLATIONS_RELEASED = 2;
 }
 
 enum TaskTrigger {

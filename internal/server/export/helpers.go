@@ -3,6 +3,7 @@ package export
 import (
 	stderrors "errors"
 	"strings"
+	"time"
 
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
@@ -45,12 +46,27 @@ type Selection struct {
 	TagIDs []string
 	// IncludeDrafts exports drafts too; by default only approved text.
 	IncludeDrafts bool
+	// IncludeUnreleased exports entries pending releases hold back too.
+	IncludeUnreleased bool
+}
+
+// selectionRequest is what export requests pick entries by
+type selectionRequest interface {
+	GetScopeIds() []string
+	GetTagIds() []string
+	GetIncludeDrafts() bool
+	GetIncludeUnreleased() bool
 }
 
 // selection checks the scopes and tags an export request picks. Unknown scopes and
 // tags, or tags of a deleted scope, are invalid input.
-func selection(db *gorm.DB, scopeIDs, tagIDs []string, includeDrafts bool) (Selection, error) {
-	sel := Selection{ScopeIDs: common.UniqueIDs(scopeIDs), TagIDs: common.UniqueIDs(tagIDs), IncludeDrafts: includeDrafts}
+func selection(db *gorm.DB, req selectionRequest) (Selection, error) {
+	sel := Selection{
+		ScopeIDs:          common.UniqueIDs(req.GetScopeIds()),
+		TagIDs:            common.UniqueIDs(req.GetTagIds()),
+		IncludeDrafts:     req.GetIncludeDrafts(),
+		IncludeUnreleased: req.GetIncludeUnreleased(),
+	}
 
 	if _, err := common.ResolveByIDs[models.Scope](db, sel.ScopeIDs, errors.ErrScopeNotFound, "one or more scopes do not exist"); err != nil {
 		return sel, err
@@ -64,7 +80,8 @@ func selection(db *gorm.DB, scopeIDs, tagIDs []string, includeDrafts bool) (Sele
 }
 
 // loadEntries loads the selected entries, ordered by key, with their translation in the
-// locale. Drafts count as untranslated unless included.
+// locale. Drafts count as untranslated unless included; entries releases hold back are
+// left out unless included.
 func loadEntries(db *gorm.DB, localeID string, sel Selection) ([]exportedEntry, error) {
 	translations := db.Where("locale_id = ?", localeID)
 	if !sel.IncludeDrafts {
@@ -76,6 +93,10 @@ func loadEntries(db *gorm.DB, localeID string, sel Selection) ([]exportedEntry, 
 	query := common.FilterEntriesBySelection(db.Model(&models.Entry{}), sel.ScopeIDs, sel.TagIDs).
 		Preload("Localizations", translations).
 		Order("key")
+	if !sel.IncludeUnreleased {
+		query = common.ExcludeHeldBack(query, time.Now())
+	}
+
 	if err := query.Find(&entries).Error; err != nil {
 		return nil, errors.InternalCause(err, "failed to query entries")
 	}

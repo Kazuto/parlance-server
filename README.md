@@ -207,10 +207,10 @@ its first run with a 403.
 ### Running tasks
 
 A task runs on its cron schedule (5 fields, UTC), after events, or when started by
-hand. Events, for now approving translations (in the editor or with an approving
-import), start a run after the task's delay; further events join that run, so a
-burst of approvals runs once. Each task has at most one queued and one running
-run.
+hand. Events (approving translations in the editor or with an approving import,
+and a release going out) start a run after the task's delay; further events join
+that run, so a burst of approvals runs once. Each task has at most one queued and
+one running run.
 
 Tasks and their settings are kept in the database and set up in the app; nothing
 about them is configured at deployment. The switch at the top of the Automation
@@ -247,15 +247,16 @@ message"). The web app picks the format when you type a Discord or Slack address
 Deliveries keep the event and render the body when sent, so after changing the
 format, retries and **Send again** use the new one.
 
-| Event                                   | Sent when                                                                                                                                        | `data`                                                                                                    |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| `translations.awaiting_approval`        | Translations become drafts: new or changed in the editor, by machine translation (in the editor or a task), or by an import that doesn't approve | `translations` (`id`, `entry_id`, `key`, `locale`, `translation`), `user`, and `task` for a task's drafts |
-| `translations.approved`                 | Translations are approved in the editor or by an approving import                                                                                | `translations` and `user`                                                                                 |
-| `translations.rejected`                 | A reviewer sends translations back                                                                                                               | The same, plus the reviewer's `comment`                                                                   |
-| `entries.created`                       | Entries are created in the app or by an import                                                                                                   | `entries` (`id`, `key`, `description`) and `user`                                                         |
-| `task_run.succeeded`, `task_run.failed` | A task run ends, including runs that stopped responding; canceled runs don't                                                                     | `task` (`id`, `name`, `type`) and `run` (`id`, `trigger`, `status`, times, `error`, `summary`, `user`)    |
-| `digest`                                | A webhook with a schedule sends what it collected                                                                                                | `since`, `count`, `events` (the bodies above, oldest first) and `truncated`                               |
-| `ping`                                  | Someone presses **Send test**                                                                                                                    | `webhook` (`id`, `name`, `events`)                                                                        |
+| Event                                   | Sent when                                                                                                                                        | `data`                                                                                                              |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `translations.awaiting_approval`        | Translations become drafts: new or changed in the editor, by machine translation (in the editor or a task), or by an import that doesn't approve | `translations` (`id`, `entry_id`, `key`, `locale`, `translation`), `user`, and `task` for a task's drafts           |
+| `translations.approved`                 | Translations are approved in the editor or by an approving import                                                                                | `translations` and `user`                                                                                           |
+| `translations.rejected`                 | A reviewer sends translations back                                                                                                               | The same, plus the reviewer's `comment`                                                                             |
+| `entries.created`                       | Entries are created in the app or by an import                                                                                                   | `entries` (`id`, `key`, `description`) and `user`                                                                   |
+| `task_run.succeeded`, `task_run.failed` | A task run ends, including runs that stopped responding; canceled runs don't                                                                     | `task` (`id`, `name`, `type`) and `run` (`id`, `trigger`, `status`, times, `error`, `summary`, `user`)              |
+| `translations.released`                 | A release goes out, at its date or by hand                                                                                                       | `release` (`id`, `name`, `description`, `release_at`, `released_at`), the `entries` it let into exports, and `user` |
+| `digest`                                | A webhook with a schedule sends what it collected                                                                                                | `since`, `count`, `events` (the bodies above, oldest first) and `truncated`                                         |
+| `ping`                                  | Someone presses **Send test**                                                                                                                    | `webhook` (`id`, `name`, `events`)                                                                                  |
 
 One action sends one event, however many translations or entries it touches: the
 lists hold the first 1000, `count` says how many there were and `truncated` whether
@@ -268,9 +269,9 @@ one `digest` on a schedule: a standard 5-field cron expression in UTC, picked as
 hourly, daily, weekly or custom in the app. Nothing is sent when nothing was
 collected. In the chat formats, a digest is one message with a line per kind of
 change, for example "12 translations submitted for approval (Rita, Task
-“Nightly”): …", and one per task run. A digest carries up to a megabyte of events;
-`count` holds them all. Removing the schedule sends what was collected right away;
-turning the webhook off drops it.
+“Nightly”): …", and one per release and task run. A digest carries up to a
+megabyte of events; `count` holds them all. Removing the schedule sends what was
+collected right away; turning the webhook off drops it.
 
 In the JSON format, each event is posted like this:
 
@@ -451,6 +452,22 @@ is evaluated before pagination against active, non-empty saved translations:
 
 An empty target list checks all active locales. Omit `translationStatus` to include
 entries regardless of status.
+
+### Releases
+
+A release holds its entries back from exports until it goes out: at its date
+(`releaseAt`), or when it's published by hand (`PublishRelease`, "Release now"),
+which a release without a date waits for. An entry in several releases waits for
+all of them; releases that went out keep their entries as a record. Exports take
+`includeUnreleased` to export held entries anyway; git export tasks never do.
+
+Exports leave out held entries until the date passes. The task runner then lets the
+release out within 15 seconds, also while tasks are paused, and announces it once:
+the `translations.released` webhook, and tasks that run after releases.
+
+Permissions: `read_release`, `create_release`, `update_release` (also to publish)
+and `delete_release`. Adding entries to releases and removing them needs
+`update_entry`.
 
 ### Import and export
 

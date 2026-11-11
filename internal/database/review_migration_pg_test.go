@@ -67,10 +67,12 @@ func TestBootstrapGrantsSplitPermissionsOnce(t *testing.T) {
 		t.Fatalf("bootstrap: %v", err)
 	}
 
-	// A database from before import, export and tags had permissions of their own.
+	// A database from before import, export, tags and releases had permissions of
+	// their own.
 	split := []string{
 		permissions.ImportEntry, permissions.ExportEntry,
 		permissions.CreateTag, permissions.UpdateTag, permissions.DeleteTag,
+		permissions.ReadRelease,
 	}
 	testutil.Exec(t, db, "DELETE FROM role_permissions WHERE permission_id IN (SELECT id FROM permissions WHERE name IN ?)", split)
 	testutil.Exec(t, db, "DELETE FROM permissions WHERE name IN ?", split)
@@ -110,8 +112,8 @@ func TestBootstrapGrantsSplitPermissionsOnce(t *testing.T) {
 	}
 
 	want := map[string][]string{
-		"editor": {"create_entry", "export_entry", "import_entry", "read_entry", "update_entry"},
-		"reader": {"export_entry", "read_entry"},
+		"editor": {"create_entry", "export_entry", "import_entry", "read_entry", "read_release", "update_entry"},
+		"reader": {"export_entry", "read_entry", "read_release"},
 		"scopes": {"create_tag", "delete_tag", "read_scope", "update_scope", "update_tag"},
 		"other":  {"read_locale"},
 	}

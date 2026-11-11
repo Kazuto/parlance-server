@@ -203,6 +203,35 @@ Table entry_tags {
   }
 }
 
+Table releases {
+  id integer [primary key]
+  name varchar(100) [not null, note: 'Unique, ignoring case']
+  description text [not null, default: '']
+  release_at timestamp [null, note: 'When it goes out; null holds it until released by hand']
+  released_at timestamp [null, note: 'When it went out and was announced']
+  created_at timestamp
+  updated_at timestamp
+  created_by integer
+  updated_by integer
+
+  indexes {
+    release_at
+    released_at
+  }
+}
+
+Table release_entries {
+  release_id integer [not null]
+  entry_id integer [not null]
+  created_at timestamp
+  created_by integer
+
+  indexes {
+    (release_id, entry_id) [pk]
+    entry_id
+  }
+}
+
 Table terminologies {
   id integer [primary key]
   term varchar(255) [not null, unique] // The source term
@@ -285,6 +314,9 @@ Ref: entry_tags.entry_id > entries.id [delete: cascade]
 Ref: entry_tags.tag_id > tags.id [delete: cascade]
 Ref: entry_tags.(entry_id, scope_id) > entry_scopes.(entry_id, scope_id) [delete: cascade]
 Ref: entry_tags.(tag_id, scope_id) > tags.(id, scope_id) [delete: cascade]
+
+Ref: release_entries.release_id > releases.id [delete: cascade]
+Ref: release_entries.entry_id > entries.id [delete: cascade]
 
 Ref: definitions.locale_id > locales.id 
 Ref: definitions.terminology_id > terminologies.id

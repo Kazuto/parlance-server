@@ -16,6 +16,7 @@ const (
 // Events a task can run after
 const (
 	EventTranslationsApproved = "translations_approved"
+	EventTranslationsReleased = "translations_released"
 )
 
 // What started a task run
