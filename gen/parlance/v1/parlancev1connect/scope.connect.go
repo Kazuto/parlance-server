@@ -58,6 +58,12 @@ const (
 	// ScopeServiceGetEntryScopesProcedure is the fully-qualified name of the ScopeService's
 	// GetEntryScopes RPC.
 	ScopeServiceGetEntryScopesProcedure = "/parlance.v1.ScopeService/GetEntryScopes"
+	// ScopeServiceCreateTagProcedure is the fully-qualified name of the ScopeService's CreateTag RPC.
+	ScopeServiceCreateTagProcedure = "/parlance.v1.ScopeService/CreateTag"
+	// ScopeServiceUpdateTagProcedure is the fully-qualified name of the ScopeService's UpdateTag RPC.
+	ScopeServiceUpdateTagProcedure = "/parlance.v1.ScopeService/UpdateTag"
+	// ScopeServiceDeleteTagProcedure is the fully-qualified name of the ScopeService's DeleteTag RPC.
+	ScopeServiceDeleteTagProcedure = "/parlance.v1.ScopeService/DeleteTag"
 )
 
 // ScopeServiceClient is a client for the parlance.v1.ScopeService service.
@@ -72,6 +78,10 @@ type ScopeServiceClient interface {
 	AddScopeToEntry(context.Context, *connect.Request[v1.AddScopeToEntryRequest]) (*connect.Response[v1.AddScopeToEntryResponse], error)
 	RemoveScopeFromEntry(context.Context, *connect.Request[v1.RemoveScopeFromEntryRequest]) (*connect.Response[v1.RemoveScopeFromEntryResponse], error)
 	GetEntryScopes(context.Context, *connect.Request[v1.GetEntryScopesRequest]) (*connect.Response[v1.GetEntryScopesResponse], error)
+	// Tags group a scope's entries further, e.g. "onboarding" in "mobile"
+	CreateTag(context.Context, *connect.Request[v1.CreateTagRequest]) (*connect.Response[v1.CreateTagResponse], error)
+	UpdateTag(context.Context, *connect.Request[v1.UpdateTagRequest]) (*connect.Response[v1.UpdateTagResponse], error)
+	DeleteTag(context.Context, *connect.Request[v1.DeleteTagRequest]) (*connect.Response[v1.DeleteTagResponse], error)
 }
 
 // NewScopeServiceClient constructs a client for the parlance.v1.ScopeService service. By default,
@@ -139,6 +149,24 @@ func NewScopeServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(scopeServiceMethods.ByName("GetEntryScopes")),
 			connect.WithClientOptions(opts...),
 		),
+		createTag: connect.NewClient[v1.CreateTagRequest, v1.CreateTagResponse](
+			httpClient,
+			baseURL+ScopeServiceCreateTagProcedure,
+			connect.WithSchema(scopeServiceMethods.ByName("CreateTag")),
+			connect.WithClientOptions(opts...),
+		),
+		updateTag: connect.NewClient[v1.UpdateTagRequest, v1.UpdateTagResponse](
+			httpClient,
+			baseURL+ScopeServiceUpdateTagProcedure,
+			connect.WithSchema(scopeServiceMethods.ByName("UpdateTag")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteTag: connect.NewClient[v1.DeleteTagRequest, v1.DeleteTagResponse](
+			httpClient,
+			baseURL+ScopeServiceDeleteTagProcedure,
+			connect.WithSchema(scopeServiceMethods.ByName("DeleteTag")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -153,6 +181,9 @@ type scopeServiceClient struct {
 	addScopeToEntry      *connect.Client[v1.AddScopeToEntryRequest, v1.AddScopeToEntryResponse]
 	removeScopeFromEntry *connect.Client[v1.RemoveScopeFromEntryRequest, v1.RemoveScopeFromEntryResponse]
 	getEntryScopes       *connect.Client[v1.GetEntryScopesRequest, v1.GetEntryScopesResponse]
+	createTag            *connect.Client[v1.CreateTagRequest, v1.CreateTagResponse]
+	updateTag            *connect.Client[v1.UpdateTagRequest, v1.UpdateTagResponse]
+	deleteTag            *connect.Client[v1.DeleteTagRequest, v1.DeleteTagResponse]
 }
 
 // ListScopes calls parlance.v1.ScopeService.ListScopes.
@@ -200,6 +231,21 @@ func (c *scopeServiceClient) GetEntryScopes(ctx context.Context, req *connect.Re
 	return c.getEntryScopes.CallUnary(ctx, req)
 }
 
+// CreateTag calls parlance.v1.ScopeService.CreateTag.
+func (c *scopeServiceClient) CreateTag(ctx context.Context, req *connect.Request[v1.CreateTagRequest]) (*connect.Response[v1.CreateTagResponse], error) {
+	return c.createTag.CallUnary(ctx, req)
+}
+
+// UpdateTag calls parlance.v1.ScopeService.UpdateTag.
+func (c *scopeServiceClient) UpdateTag(ctx context.Context, req *connect.Request[v1.UpdateTagRequest]) (*connect.Response[v1.UpdateTagResponse], error) {
+	return c.updateTag.CallUnary(ctx, req)
+}
+
+// DeleteTag calls parlance.v1.ScopeService.DeleteTag.
+func (c *scopeServiceClient) DeleteTag(ctx context.Context, req *connect.Request[v1.DeleteTagRequest]) (*connect.Response[v1.DeleteTagResponse], error) {
+	return c.deleteTag.CallUnary(ctx, req)
+}
+
 // ScopeServiceHandler is an implementation of the parlance.v1.ScopeService service.
 type ScopeServiceHandler interface {
 	ListScopes(context.Context, *connect.Request[v1.ListScopesRequest]) (*connect.Response[v1.ListScopesResponse], error)
@@ -212,6 +258,10 @@ type ScopeServiceHandler interface {
 	AddScopeToEntry(context.Context, *connect.Request[v1.AddScopeToEntryRequest]) (*connect.Response[v1.AddScopeToEntryResponse], error)
 	RemoveScopeFromEntry(context.Context, *connect.Request[v1.RemoveScopeFromEntryRequest]) (*connect.Response[v1.RemoveScopeFromEntryResponse], error)
 	GetEntryScopes(context.Context, *connect.Request[v1.GetEntryScopesRequest]) (*connect.Response[v1.GetEntryScopesResponse], error)
+	// Tags group a scope's entries further, e.g. "onboarding" in "mobile"
+	CreateTag(context.Context, *connect.Request[v1.CreateTagRequest]) (*connect.Response[v1.CreateTagResponse], error)
+	UpdateTag(context.Context, *connect.Request[v1.UpdateTagRequest]) (*connect.Response[v1.UpdateTagResponse], error)
+	DeleteTag(context.Context, *connect.Request[v1.DeleteTagRequest]) (*connect.Response[v1.DeleteTagResponse], error)
 }
 
 // NewScopeServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -275,6 +325,24 @@ func NewScopeServiceHandler(svc ScopeServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(scopeServiceMethods.ByName("GetEntryScopes")),
 		connect.WithHandlerOptions(opts...),
 	)
+	scopeServiceCreateTagHandler := connect.NewUnaryHandler(
+		ScopeServiceCreateTagProcedure,
+		svc.CreateTag,
+		connect.WithSchema(scopeServiceMethods.ByName("CreateTag")),
+		connect.WithHandlerOptions(opts...),
+	)
+	scopeServiceUpdateTagHandler := connect.NewUnaryHandler(
+		ScopeServiceUpdateTagProcedure,
+		svc.UpdateTag,
+		connect.WithSchema(scopeServiceMethods.ByName("UpdateTag")),
+		connect.WithHandlerOptions(opts...),
+	)
+	scopeServiceDeleteTagHandler := connect.NewUnaryHandler(
+		ScopeServiceDeleteTagProcedure,
+		svc.DeleteTag,
+		connect.WithSchema(scopeServiceMethods.ByName("DeleteTag")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/parlance.v1.ScopeService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ScopeServiceListScopesProcedure:
@@ -295,6 +363,12 @@ func NewScopeServiceHandler(svc ScopeServiceHandler, opts ...connect.HandlerOpti
 			scopeServiceRemoveScopeFromEntryHandler.ServeHTTP(w, r)
 		case ScopeServiceGetEntryScopesProcedure:
 			scopeServiceGetEntryScopesHandler.ServeHTTP(w, r)
+		case ScopeServiceCreateTagProcedure:
+			scopeServiceCreateTagHandler.ServeHTTP(w, r)
+		case ScopeServiceUpdateTagProcedure:
+			scopeServiceUpdateTagHandler.ServeHTTP(w, r)
+		case ScopeServiceDeleteTagProcedure:
+			scopeServiceDeleteTagHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -338,4 +412,16 @@ func (UnimplementedScopeServiceHandler) RemoveScopeFromEntry(context.Context, *c
 
 func (UnimplementedScopeServiceHandler) GetEntryScopes(context.Context, *connect.Request[v1.GetEntryScopesRequest]) (*connect.Response[v1.GetEntryScopesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ScopeService.GetEntryScopes is not implemented"))
+}
+
+func (UnimplementedScopeServiceHandler) CreateTag(context.Context, *connect.Request[v1.CreateTagRequest]) (*connect.Response[v1.CreateTagResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ScopeService.CreateTag is not implemented"))
+}
+
+func (UnimplementedScopeServiceHandler) UpdateTag(context.Context, *connect.Request[v1.UpdateTagRequest]) (*connect.Response[v1.UpdateTagResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ScopeService.UpdateTag is not implemented"))
+}
+
+func (UnimplementedScopeServiceHandler) DeleteTag(context.Context, *connect.Request[v1.DeleteTagRequest]) (*connect.Response[v1.DeleteTagResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.ScopeService.DeleteTag is not implemented"))
 }

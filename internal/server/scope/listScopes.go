@@ -17,7 +17,7 @@ func (s *Server) ListScopes(
 	ctx context.Context,
 	req *connect.Request[pb.ListScopesRequest],
 ) (*connect.Response[pb.ListScopesResponse], error) {
-	query, err := common.NewFilter(s.db.WithContext(ctx).Model(&models.Scope{}), req.Msg.Filter).
+	query, err := common.NewFilter(preloadTags(s.db.WithContext(ctx).Model(&models.Scope{})), req.Msg.Filter).
 		IncludeDeletedRequires(ctx, s.db, permissions.DeleteScope).
 		AllowedSorts(map[string]bool{"name": true, "slug": true, "created_at": true, "updated_at": true}).
 		DefaultSort("name ASC").
@@ -34,8 +34,13 @@ func (s *Server) ListScopes(
 		return nil, err
 	}
 
+	result := converter.ScopesToProto(scopes)
+	if err := fillTagCounts(s.db.WithContext(ctx), result); err != nil {
+		return nil, err
+	}
+
 	return connect.NewResponse(&pb.ListScopesResponse{
-		Scopes:     converter.ScopesToProto(scopes),
+		Scopes:     result,
 		Pagination: pagination,
 	}), nil
 }

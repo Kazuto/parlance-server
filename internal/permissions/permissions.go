@@ -47,6 +47,11 @@ const (
 	UpdateScope = "update_scope"
 	DeleteScope = "delete_scope"
 
+	// Tag permissions; tags are listed with their scopes, so reading them needs read_scope
+	CreateTag = "create_tag"
+	UpdateTag = "update_tag"
+	DeleteTag = "delete_tag"
+
 	// Definition permissions
 	CreateDefinition = "create_definition"
 	ReadDefinition   = "read_definition"
@@ -117,6 +122,9 @@ func AllPermissions() []string {
 		ReadScope,
 		UpdateScope,
 		DeleteScope,
+		CreateTag,
+		UpdateTag,
+		DeleteTag,
 		CreateDefinition,
 		ReadDefinition,
 		UpdateDefinition,
@@ -149,4 +157,7 @@ func AllPermissions() []string {
 var GrantedWith = map[string][]string{
 	ImportEntry: {CreateEntry, UpdateEntry},
 	ExportEntry: {ReadEntry},
+	CreateTag:   {UpdateScope},
+	UpdateTag:   {UpdateScope},
+	DeleteTag:   {UpdateScope},
 }

@@ -21,12 +21,17 @@ func (s *Server) GetScope(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "scope id is required")
 	}
 
-	scope, err := common.FindByID[models.Scope](s.db.WithContext(ctx), req.Msg.Id, errors.ErrScopeNotFound, "scope not found")
+	scope, err := common.FindByID[models.Scope](preloadTags(s.db.WithContext(ctx)), req.Msg.Id, errors.ErrScopeNotFound, "scope not found")
 	if err != nil {
 		return nil, err
 	}
 
+	result := converter.ScopeToProto(&scope)
+	if err := fillTagCounts(s.db.WithContext(ctx), []*pb.Scope{result}); err != nil {
+		return nil, err
+	}
+
 	return connect.NewResponse(&pb.GetScopeResponse{
-		Scope: converter.ScopeToProto(&scope),
+		Scope: result,
 	}), nil
 }

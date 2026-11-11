@@ -20,7 +20,7 @@ func (s *Server) RestoreEntry(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "entry id is required")
 	}
 
-	entry, err := common.Restore[models.Entry](ctx, s.db.Preload("Localizations").Preload("Scopes"), req.Msg.Id, errors.ErrEntryNotFound, "entry not found")
+	entry, err := common.Restore[models.Entry](ctx, common.PreloadTags(s.db.Preload("Localizations").Preload("Scopes")), req.Msg.Id, errors.ErrEntryNotFound, "entry not found")
 	if err != nil {
 		return nil, err
 	}

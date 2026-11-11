@@ -17,6 +17,11 @@ service ScopeService {
   rpc AddScopeToEntry(AddScopeToEntryRequest) returns (AddScopeToEntryResponse);
   rpc RemoveScopeFromEntry(RemoveScopeFromEntryRequest) returns (RemoveScopeFromEntryResponse);
   rpc GetEntryScopes(GetEntryScopesRequest) returns (GetEntryScopesResponse);
+
+  // Tags group a scope's entries further, e.g. "onboarding" in "mobile"
+  rpc CreateTag(CreateTagRequest) returns (CreateTagResponse);
+  rpc UpdateTag(UpdateTagRequest) returns (UpdateTagResponse);
+  rpc DeleteTag(DeleteTagRequest) returns (DeleteTagResponse);
 }
 
 message Scope {
@@ -28,6 +33,19 @@ message Scope {
   string created_at = 6;
   string updated_at = 7;
   string deleted_at = 8;
+  // The scope's tags by name; only set by ListScopes and GetScope.
+  repeated Tag tags = 9;
+}
+
+// Tag groups entries within a scope. An entry only carries tags of its scopes.
+message Tag {
+  string id = 1;
+  string scope_id = 2;
+  string name = 3;
+  // Entries carrying the tag; only set by ListScopes and GetScope.
+  int32 entry_count = 4;
+  string created_at = 5;
+  string updated_at = 6;
 }
 
 message ListScopesRequest {
@@ -107,3 +125,29 @@ message GetEntryScopesRequest {
 message GetEntryScopesResponse {
   repeated Scope scopes = 1;
 }
+
+message CreateTagRequest {
+  string scope_id = 1;
+  string name = 2;
+}
+
+message CreateTagResponse {
+  Tag tag = 1;
+}
+
+// A tag stays in its scope; only its name changes.
+message UpdateTagRequest {
+  string id = 1;
+  optional string name = 2;
+}
+
+message UpdateTagResponse {
+  Tag tag = 1;
+}
+
+// Deletes the tag and removes it from its entries.
+message DeleteTagRequest {
+  string id = 1;
+}
+
+message DeleteTagResponse {}

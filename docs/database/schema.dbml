@@ -174,6 +174,34 @@ Table entry_scopes {
   }
 }
 
+Table tags {
+  id integer [primary key]
+  scope_id integer [not null]
+  name varchar(100) [not null, note: 'Unique within the scope, ignoring case']
+  created_at timestamp
+  updated_at timestamp
+  created_by integer
+  updated_by integer
+
+  indexes {
+    scope_id
+    (id, scope_id) [unique]
+  }
+}
+
+Table entry_tags {
+  entry_id integer [not null]
+  tag_id integer [not null]
+  scope_id integer [not null, note: 'The tag\'s scope, which the entry must be in']
+  created_at timestamp
+  created_by integer
+
+  indexes {
+    (entry_id, tag_id) [pk]
+    tag_id
+  }
+}
+
 Table terminologies {
   id integer [primary key]
   term varchar(255) [not null, unique] // The source term
@@ -250,6 +278,12 @@ Ref: localization_history.user_id > users.id
 Ref: entry_scopes.entry_id > entries.id [delete: cascade]
 Ref: entry_scopes.scope_id > scopes.id [delete: cascade]
 Ref: entry_scopes.created_by > users.id [delete: set null]
+
+Ref: tags.scope_id > scopes.id [delete: cascade]
+Ref: entry_tags.entry_id > entries.id [delete: cascade]
+Ref: entry_tags.tag_id > tags.id [delete: cascade]
+Ref: entry_tags.(entry_id, scope_id) > entry_scopes.(entry_id, scope_id) [delete: cascade]
+Ref: entry_tags.(tag_id, scope_id) > tags.(id, scope_id) [delete: cascade]
 
 Ref: definitions.locale_id > locales.id 
 Ref: definitions.terminology_id > terminologies.id

@@ -59,6 +59,12 @@ const (
 	ErrScopeNotFound      = "SCOPE_NOT_FOUND"
 	ErrScopeAlreadyExists = "SCOPE_ALREADY_EXISTS"
 
+	// Tag-specific errors
+	ErrTagNotFound      = "TAG_NOT_FOUND"
+	ErrTagAlreadyExists = "TAG_ALREADY_EXISTS"
+	// ErrTagOutsideScopes rejects a tag of a scope the entry isn't in.
+	ErrTagOutsideScopes = "TAG_OUTSIDE_SCOPES"
+
 	// Localization-specific errors
 	ErrLocalizationNotFound = "LOCALIZATION_NOT_FOUND"
 

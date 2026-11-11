@@ -59,6 +59,9 @@ const (
 	// EntryServiceUpdateEntriesScopesProcedure is the fully-qualified name of the EntryService's
 	// UpdateEntriesScopes RPC.
 	EntryServiceUpdateEntriesScopesProcedure = "/parlance.v1.EntryService/UpdateEntriesScopes"
+	// EntryServiceUpdateEntriesTagsProcedure is the fully-qualified name of the EntryService's
+	// UpdateEntriesTags RPC.
+	EntryServiceUpdateEntriesTagsProcedure = "/parlance.v1.EntryService/UpdateEntriesTags"
 	// EntryServiceDeleteEntriesProcedure is the fully-qualified name of the EntryService's
 	// DeleteEntries RPC.
 	EntryServiceDeleteEntriesProcedure = "/parlance.v1.EntryService/DeleteEntries"
@@ -75,6 +78,7 @@ type EntryServiceClient interface {
 	SearchEntries(context.Context, *connect.Request[v1.SearchEntriesRequest]) (*connect.Response[v1.SearchEntriesResponse], error)
 	GetEntryHistory(context.Context, *connect.Request[v1.GetEntryHistoryRequest]) (*connect.Response[v1.GetEntryHistoryResponse], error)
 	UpdateEntriesScopes(context.Context, *connect.Request[v1.UpdateEntriesScopesRequest]) (*connect.Response[v1.UpdateEntriesScopesResponse], error)
+	UpdateEntriesTags(context.Context, *connect.Request[v1.UpdateEntriesTagsRequest]) (*connect.Response[v1.UpdateEntriesTagsResponse], error)
 	DeleteEntries(context.Context, *connect.Request[v1.DeleteEntriesRequest]) (*connect.Response[v1.DeleteEntriesResponse], error)
 }
 
@@ -143,6 +147,12 @@ func NewEntryServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(entryServiceMethods.ByName("UpdateEntriesScopes")),
 			connect.WithClientOptions(opts...),
 		),
+		updateEntriesTags: connect.NewClient[v1.UpdateEntriesTagsRequest, v1.UpdateEntriesTagsResponse](
+			httpClient,
+			baseURL+EntryServiceUpdateEntriesTagsProcedure,
+			connect.WithSchema(entryServiceMethods.ByName("UpdateEntriesTags")),
+			connect.WithClientOptions(opts...),
+		),
 		deleteEntries: connect.NewClient[v1.DeleteEntriesRequest, v1.DeleteEntriesResponse](
 			httpClient,
 			baseURL+EntryServiceDeleteEntriesProcedure,
@@ -163,6 +173,7 @@ type entryServiceClient struct {
 	searchEntries       *connect.Client[v1.SearchEntriesRequest, v1.SearchEntriesResponse]
 	getEntryHistory     *connect.Client[v1.GetEntryHistoryRequest, v1.GetEntryHistoryResponse]
 	updateEntriesScopes *connect.Client[v1.UpdateEntriesScopesRequest, v1.UpdateEntriesScopesResponse]
+	updateEntriesTags   *connect.Client[v1.UpdateEntriesTagsRequest, v1.UpdateEntriesTagsResponse]
 	deleteEntries       *connect.Client[v1.DeleteEntriesRequest, v1.DeleteEntriesResponse]
 }
 
@@ -211,6 +222,11 @@ func (c *entryServiceClient) UpdateEntriesScopes(ctx context.Context, req *conne
 	return c.updateEntriesScopes.CallUnary(ctx, req)
 }
 
+// UpdateEntriesTags calls parlance.v1.EntryService.UpdateEntriesTags.
+func (c *entryServiceClient) UpdateEntriesTags(ctx context.Context, req *connect.Request[v1.UpdateEntriesTagsRequest]) (*connect.Response[v1.UpdateEntriesTagsResponse], error) {
+	return c.updateEntriesTags.CallUnary(ctx, req)
+}
+
 // DeleteEntries calls parlance.v1.EntryService.DeleteEntries.
 func (c *entryServiceClient) DeleteEntries(ctx context.Context, req *connect.Request[v1.DeleteEntriesRequest]) (*connect.Response[v1.DeleteEntriesResponse], error) {
 	return c.deleteEntries.CallUnary(ctx, req)
@@ -227,6 +243,7 @@ type EntryServiceHandler interface {
 	SearchEntries(context.Context, *connect.Request[v1.SearchEntriesRequest]) (*connect.Response[v1.SearchEntriesResponse], error)
 	GetEntryHistory(context.Context, *connect.Request[v1.GetEntryHistoryRequest]) (*connect.Response[v1.GetEntryHistoryResponse], error)
 	UpdateEntriesScopes(context.Context, *connect.Request[v1.UpdateEntriesScopesRequest]) (*connect.Response[v1.UpdateEntriesScopesResponse], error)
+	UpdateEntriesTags(context.Context, *connect.Request[v1.UpdateEntriesTagsRequest]) (*connect.Response[v1.UpdateEntriesTagsResponse], error)
 	DeleteEntries(context.Context, *connect.Request[v1.DeleteEntriesRequest]) (*connect.Response[v1.DeleteEntriesResponse], error)
 }
 
@@ -291,6 +308,12 @@ func NewEntryServiceHandler(svc EntryServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(entryServiceMethods.ByName("UpdateEntriesScopes")),
 		connect.WithHandlerOptions(opts...),
 	)
+	entryServiceUpdateEntriesTagsHandler := connect.NewUnaryHandler(
+		EntryServiceUpdateEntriesTagsProcedure,
+		svc.UpdateEntriesTags,
+		connect.WithSchema(entryServiceMethods.ByName("UpdateEntriesTags")),
+		connect.WithHandlerOptions(opts...),
+	)
 	entryServiceDeleteEntriesHandler := connect.NewUnaryHandler(
 		EntryServiceDeleteEntriesProcedure,
 		svc.DeleteEntries,
@@ -317,6 +340,8 @@ func NewEntryServiceHandler(svc EntryServiceHandler, opts ...connect.HandlerOpti
 			entryServiceGetEntryHistoryHandler.ServeHTTP(w, r)
 		case EntryServiceUpdateEntriesScopesProcedure:
 			entryServiceUpdateEntriesScopesHandler.ServeHTTP(w, r)
+		case EntryServiceUpdateEntriesTagsProcedure:
+			entryServiceUpdateEntriesTagsHandler.ServeHTTP(w, r)
 		case EntryServiceDeleteEntriesProcedure:
 			entryServiceDeleteEntriesHandler.ServeHTTP(w, r)
 		default:
@@ -362,6 +387,10 @@ func (UnimplementedEntryServiceHandler) GetEntryHistory(context.Context, *connec
 
 func (UnimplementedEntryServiceHandler) UpdateEntriesScopes(context.Context, *connect.Request[v1.UpdateEntriesScopesRequest]) (*connect.Response[v1.UpdateEntriesScopesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.EntryService.UpdateEntriesScopes is not implemented"))
+}
+
+func (UnimplementedEntryServiceHandler) UpdateEntriesTags(context.Context, *connect.Request[v1.UpdateEntriesTagsRequest]) (*connect.Response[v1.UpdateEntriesTagsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.EntryService.UpdateEntriesTags is not implemented"))
 }
 
 func (UnimplementedEntryServiceHandler) DeleteEntries(context.Context, *connect.Request[v1.DeleteEntriesRequest]) (*connect.Response[v1.DeleteEntriesResponse], error) {
