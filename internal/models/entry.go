@@ -21,6 +21,9 @@ type Entry struct {
 	Scopes        []Scope        `gorm:"many2many:entry_scopes;" json:"scopes"`
 	Creator       *User          `gorm:"foreignKey:CreatedBy" json:"creator,omitempty"`
 	Updater       *User          `gorm:"foreignKey:UpdatedBy" json:"updater,omitempty"`
+
+	// Tags joined through EntryTag, see database.SetupJoinTables
+	Tags []Tag `gorm:"many2many:entry_tags;" json:"tags"`
 }
 
 func (Entry) TableName() string {

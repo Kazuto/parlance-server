@@ -18,6 +18,7 @@ type Scope struct {
 
 	// Relationships
 	Entries []Entry `gorm:"many2many:entry_scopes;" json:"entries"`
+	Tags    []Tag   `gorm:"foreignKey:ScopeID;constraint:OnDelete:CASCADE" json:"tags"`
 }
 
 func (Scope) TableName() string {

@@ -18,6 +18,7 @@ service EntryService {
   rpc SearchEntries(SearchEntriesRequest) returns (SearchEntriesResponse);
   rpc GetEntryHistory(GetEntryHistoryRequest) returns (GetEntryHistoryResponse);
   rpc UpdateEntriesScopes(UpdateEntriesScopesRequest) returns (UpdateEntriesScopesResponse);
+  rpc UpdateEntriesTags(UpdateEntriesTagsRequest) returns (UpdateEntriesTagsResponse);
   rpc DeleteEntries(DeleteEntriesRequest) returns (DeleteEntriesResponse);
 }
 
@@ -41,6 +42,8 @@ message Entry {
   repeated string draft_locale_ids = 13;
   // Target locales whose translation is outdated; only set by ListEntries with summary.
   repeated string outdated_locale_ids = 14;
+  // Tags of the entry's scopes it carries; not set by ListEntries with summary.
+  repeated Tag tags = 15;
 }
 
 message ListEntriesRequest {
@@ -67,6 +70,10 @@ message ListEntriesRequest {
   // The locales translation_status checks, when they differ from target_locale_ids,
   // e.g. without the default locale shown as the source; target_locale_ids if empty.
   repeated string status_locale_ids = 11;
+  // Narrows scopes to these of their tags: an entry matches when it carries one of
+  // a scope's selected tags, or is in a selected scope none of whose tags is
+  // selected. A tag selects its scope too.
+  repeated string tag_ids = 12;
 }
 
 message ListEntriesResponse {
@@ -90,6 +97,8 @@ message CreateEntryRequest {
   reserved "scope_ids";
   string description = 3;
   IdSelection scopes = 4;
+  // Tags of the entry's scopes
+  IdSelection tags = 5;
 }
 
 message CreateEntryResponse {
@@ -101,6 +110,9 @@ message UpdateEntryRequest {
   optional string description = 2;
   optional string key = 3;
   IdSelection scopes = 4;
+  // Replaces the tags when set; each must belong to one of the entry's scopes.
+  // Changing scopes alone drops the tags of removed scopes.
+  IdSelection tags = 5;
 }
 
 message UpdateEntryResponse {
@@ -115,6 +127,16 @@ message UpdateEntriesScopesRequest {
 }
 
 message UpdateEntriesScopesResponse {}
+
+// Adds and removes tags on several entries at once. Tags not listed are kept. Adding
+// a tag adds its scope to entries not in it yet.
+message UpdateEntriesTagsRequest {
+  repeated string entry_ids = 1;
+  repeated string add_tag_ids = 2;
+  repeated string remove_tag_ids = 3;
+}
+
+message UpdateEntriesTagsResponse {}
 
 message DeleteEntryRequest {
   string id = 1;

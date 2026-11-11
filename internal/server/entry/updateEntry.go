@@ -67,12 +67,42 @@ func (s *Server) UpdateEntry(
 		}
 	}
 
+	var tags []models.Tag
+
+	if req.Msg.Tags != nil {
+		var err error
+
+		tags, err = common.ResolveActiveTags(s.db.WithContext(ctx), req.Msg.Tags.Ids)
+		if err != nil {
+			return nil, err
+		}
+
+		// The tags go with the scopes the entry has after the update.
+		if req.Msg.Scopes == nil {
+			if err := s.db.WithContext(ctx).Model(&entry).Association("Scopes").Find(&scopes); err != nil {
+				return nil, errors.InternalCause(err, "failed to load entry scopes")
+			}
+		}
+
+		if err := checkTagsInScopes(tags, scopeIDsOf(scopes)); err != nil {
+			return nil, err
+		}
+	}
+
 	if err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Save(&entry).Error; err != nil {
 			return err
 		}
 		if req.Msg.Scopes != nil {
-			return tx.Model(&entry).Association("Scopes").Replace(scopes)
+			if err := dropTagsOutside(tx, entry.ID, scopeIDsOf(scopes)); err != nil {
+				return err
+			}
+			if err := tx.Model(&entry).Association("Scopes").Replace(scopes); err != nil {
+				return err
+			}
+		}
+		if req.Msg.Tags != nil {
+			return replaceTags(tx, entry.ID, tags, entry.UpdatedBy)
 		}
 
 		return nil
@@ -81,7 +111,7 @@ func (s *Server) UpdateEntry(
 	}
 
 	// Load relationships for response
-	if err := s.db.Preload("Localizations").Preload("Scopes").First(&entry, "id = ?", entry.ID).Error; err != nil {
+	if err := common.PreloadTags(s.db.Preload("Localizations").Preload("Scopes")).First(&entry, "id = ?", entry.ID).Error; err != nil {
 		return nil, errors.InternalCause(err, "failed to load updated entry")
 	}
 

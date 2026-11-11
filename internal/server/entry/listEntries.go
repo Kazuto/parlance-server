@@ -64,7 +64,7 @@ func (s *Server) ListEntries(
 
 	query := s.db.Model(&models.Entry{})
 	if !req.Msg.Summary {
-		query = query.Preload("Localizations").Preload("Scopes")
+		query = common.PreloadTags(query.Preload("Localizations").Preload("Scopes"))
 	}
 
 	allowedSorts := map[string]bool{"key": true, "description": true, "created_at": true, "created_by": true, "updated_at": true, "updated_by": true, "deleted_at": true}
@@ -85,15 +85,14 @@ func (s *Server) ListEntries(
 		query = query.Unscoped().Where("entries.deleted_at IS NOT NULL")
 	}
 
-	// Filter by scopes if provided; an entry matches when it is in any of them.
+	// Filter by scopes if provided; an entry matches when it is in any of them,
+	// narrowed to their selected tags.
 	scopeIDs := req.Msg.ScopeIds
 	if req.Msg.ScopeId != "" {
 		scopeIDs = append(scopeIDs, req.Msg.ScopeId)
 	}
 
-	if len(scopeIDs) > 0 {
-		query = common.FilterEntriesByScopes(query, scopeIDs)
-	}
+	query = common.FilterEntriesBySelection(query, common.UniqueIDs(scopeIDs), common.UniqueIDs(req.Msg.TagIds))
 
 	// Filter by locale if provided
 	if req.Msg.LocaleId != "" {

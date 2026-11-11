@@ -21,7 +21,7 @@ func (s *Server) GetEntry(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "entry id is required")
 	}
 
-	entry, err := common.FindByID[models.Entry](s.db.WithContext(ctx).Preload("Localizations").Preload("Scopes"), req.Msg.Id, errors.ErrEntryNotFound, "entry not found")
+	entry, err := common.FindByID[models.Entry](common.PreloadTags(s.db.WithContext(ctx).Preload("Localizations").Preload("Scopes")), req.Msg.Id, errors.ErrEntryNotFound, "entry not found")
 	if err != nil {
 		return nil, err
 	}

@@ -22,6 +22,7 @@ func ScopeToProto(s *models.Scope) *pb.Scope {
 		CreatedAt:   s.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:   s.UpdatedAt.Format(time.RFC3339),
 		DeletedAt:   formatDeletedAt(s.DeletedAt),
+		Tags:        TagsToProto(s.Tags),
 	}
 }
 

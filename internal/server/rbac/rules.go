@@ -44,6 +44,7 @@ var Rules = map[string][]string{
 	parlancev1connect.EntryServiceRestoreEntryProcedure:        {permissions.DeleteEntry},
 	parlancev1connect.EntryServiceSearchEntriesProcedure:       {permissions.ReadEntry},
 	parlancev1connect.EntryServiceUpdateEntriesScopesProcedure: {permissions.UpdateEntry},
+	parlancev1connect.EntryServiceUpdateEntriesTagsProcedure:   {permissions.UpdateEntry},
 	parlancev1connect.EntryServiceUpdateEntryProcedure:         {permissions.UpdateEntry},
 
 	// ExportService
@@ -96,13 +97,16 @@ var Rules = map[string][]string{
 	// ScopeService
 	parlancev1connect.ScopeServiceAddScopeToEntryProcedure:      {permissions.UpdateEntry},
 	parlancev1connect.ScopeServiceCreateScopeProcedure:          {permissions.CreateScope},
+	parlancev1connect.ScopeServiceCreateTagProcedure:            {permissions.CreateTag},
 	parlancev1connect.ScopeServiceDeleteScopeProcedure:          {permissions.DeleteScope},
+	parlancev1connect.ScopeServiceDeleteTagProcedure:            {permissions.DeleteTag},
 	parlancev1connect.ScopeServiceGetEntryScopesProcedure:       {permissions.ReadScope},
 	parlancev1connect.ScopeServiceGetScopeProcedure:             {permissions.ReadScope},
 	parlancev1connect.ScopeServiceListScopesProcedure:           {permissions.ReadScope},
 	parlancev1connect.ScopeServiceRemoveScopeFromEntryProcedure: {permissions.UpdateEntry},
 	parlancev1connect.ScopeServiceRestoreScopeProcedure:         {permissions.DeleteScope},
 	parlancev1connect.ScopeServiceUpdateScopeProcedure:          {permissions.UpdateScope},
+	parlancev1connect.ScopeServiceUpdateTagProcedure:            {permissions.UpdateTag},
 
 	// StatsService
 	parlancev1connect.StatsServiceGetStatsProcedure: {permissions.ReadEntry},

@@ -50,7 +50,21 @@ func Connect(cfg config.DatabaseConfig) (*DB, error) {
 
 	log.Println("Database connection established")
 
+	if err := SetupJoinTables(db); err != nil {
+		return nil, err
+	}
+
 	return &DB{db}, nil
+}
+
+// SetupJoinTables tells GORM about join tables with columns of their own. Every
+// connection needs it before using or migrating the models.
+func SetupJoinTables(db *gorm.DB) error {
+	if err := db.SetupJoinTable(&models.Entry{}, "Tags", &models.EntryTag{}); err != nil {
+		return fmt.Errorf("failed to set up entry tags: %w", err)
+	}
+
+	return nil
 }
 
 func (db *DB) Close() error {
@@ -91,6 +105,10 @@ func (db *DB) AutoMigrate() error {
 	// author: the AI task saves them so. Other text counts as a person's.
 	untracked := !db.Migrator().HasColumn(&models.Localization{}, "origin")
 
+	if err := SetupJoinTables(db.DB); err != nil {
+		return err
+	}
+
 	// Run migrations for all models
 	err := db.DB.AutoMigrate(
 		&models.Locale{},
@@ -100,6 +118,8 @@ func (db *DB) AutoMigrate() error {
 		&models.Permission{},
 		&models.Entry{},
 		&models.EntryScope{},
+		&models.Tag{},
+		&models.EntryTag{},
 		&models.Localization{},
 		&models.LocalizationHistory{},
 		&models.Terminology{},
@@ -145,12 +165,43 @@ func (db *DB) AutoMigrate() error {
 	db.Exec("CREATE INDEX IF NOT EXISTS idx_localizations_outdated ON localizations (locale_id) WHERE outdated_at IS NOT NULL AND deleted_at IS NULL")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_definitions_term_locale ON definitions (terminology_id, locale_id) WHERE deleted_at IS NULL")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_entry_scopes_unique ON entry_scopes (entry_id, scope_id)")
+	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_tags_scope_name ON tags (scope_id, lower(name))")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_roles_unique ON user_roles (user_id, role_id)")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_role_permissions_unique ON role_permissions (role_id, permission_id)")
 	// A task has at most one queued run, which later triggers join.
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_task_runs_queued ON task_runs (task_id) WHERE status = 'queued'")
 
+	if err := db.constrainEntryTags(); err != nil {
+		return err
+	}
+
 	log.Println("Database migrations completed")
+
+	return nil
+}
+
+// constrainEntryTags keeps an entry's tags in its scopes: an entry tag needs the entry
+// in the tag's scope, and goes when the entry leaves the scope or the tag is deleted.
+func (db *DB) constrainEntryTags() error {
+	// The target of fk_entry_tags_tag_scope
+	if err := db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_tags_id_scope ON tags (id, scope_id)").Error; err != nil {
+		return fmt.Errorf("failed to index tags: %w", err)
+	}
+
+	constraints := map[string]string{
+		"fk_entry_tags_entry_scope": "FOREIGN KEY (entry_id, scope_id) REFERENCES entry_scopes (entry_id, scope_id) ON DELETE CASCADE",
+		"fk_entry_tags_tag_scope":   "FOREIGN KEY (tag_id, scope_id) REFERENCES tags (id, scope_id) ON DELETE CASCADE",
+	}
+
+	for name, definition := range constraints {
+		if db.Migrator().HasConstraint(&models.EntryTag{}, name) {
+			continue
+		}
+
+		if err := db.Exec("ALTER TABLE entry_tags ADD CONSTRAINT " + name + " " + definition).Error; err != nil {
+			return fmt.Errorf("failed to add %s: %w", name, err)
+		}
+	}
 
 	return nil
 }
