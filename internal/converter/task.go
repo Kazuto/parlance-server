@@ -114,6 +114,7 @@ func GitExportConfigToProto(config models.GitExportConfig) *pb.GitExportConfig {
 		Branch:        config.Branch,
 		LocaleIds:     config.LocaleIDs,
 		ScopeIds:      config.ScopeIDs,
+		TagIds:        config.TagIDs,
 		IncludeDrafts: config.IncludeDrafts,
 	}
 

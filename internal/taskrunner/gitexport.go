@@ -88,12 +88,16 @@ func (r *Runner) renderFiles(ctx context.Context, config models.GitExportConfig)
 		return nil, nil, stderrors.New("no languages to export")
 	}
 
-	scopeIDs := common.UniqueIDs(config.ScopeIDs)
+	sel := export.Selection{
+		ScopeIDs:      common.UniqueIDs(config.ScopeIDs),
+		TagIDs:        common.UniqueIDs(config.TagIDs),
+		IncludeDrafts: config.IncludeDrafts,
+	}
 	files := make([]forge.File, 0, len(config.Files)*len(locales))
 
 	for _, file := range config.Files {
 		for _, locale := range locales {
-			content, err := export.Render(db, file.Format, locale, scopeIDs, config.IncludeDrafts)
+			content, err := export.Render(db, file.Format, locale, sel)
 			if err != nil {
 				return nil, nil, fmt.Errorf("render %s for %s: %w", file.Format, locale.Code, err)
 			}
