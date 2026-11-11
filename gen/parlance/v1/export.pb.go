@@ -26,6 +26,9 @@ type ExportPhpRequest struct {
 	LocaleCode    string                 `protobuf:"bytes,1,opt,name=locale_code,json=localeCode,proto3" json:"locale_code,omitempty"`
 	ScopeIds      []string               `protobuf:"bytes,3,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`                 // Export entries in any of these scopes; empty exports all
 	IncludeDrafts bool                   `protobuf:"varint,4,opt,name=include_drafts,json=includeDrafts,proto3" json:"include_drafts,omitempty"` // Also export drafts; by default only approved text
+	// Narrows each scope to the entries with any of its selected tags; a scope none of
+	// whose tags is selected exports whole. A tag selects its scope too.
+	TagIds        []string `protobuf:"bytes,5,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -79,6 +82,13 @@ func (x *ExportPhpRequest) GetIncludeDrafts() bool {
 		return x.IncludeDrafts
 	}
 	return false
+}
+
+func (x *ExportPhpRequest) GetTagIds() []string {
+	if x != nil {
+		return x.TagIds
+	}
+	return nil
 }
 
 type ExportPhpResponse struct {
@@ -146,6 +156,9 @@ type ExportJsonRequest struct {
 	LocaleCode    string                 `protobuf:"bytes,1,opt,name=locale_code,json=localeCode,proto3" json:"locale_code,omitempty"`
 	ScopeIds      []string               `protobuf:"bytes,3,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`                 // Export entries in any of these scopes; empty exports all
 	IncludeDrafts bool                   `protobuf:"varint,4,opt,name=include_drafts,json=includeDrafts,proto3" json:"include_drafts,omitempty"` // Also export drafts; by default only approved text
+	// Narrows each scope to the entries with any of its selected tags; a scope none of
+	// whose tags is selected exports whole. A tag selects its scope too.
+	TagIds        []string `protobuf:"bytes,5,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -199,6 +212,13 @@ func (x *ExportJsonRequest) GetIncludeDrafts() bool {
 		return x.IncludeDrafts
 	}
 	return false
+}
+
+func (x *ExportJsonRequest) GetTagIds() []string {
+	if x != nil {
+		return x.TagIds
+	}
+	return nil
 }
 
 type ExportJsonResponse struct {
@@ -267,6 +287,9 @@ type ExportPoRequest struct {
 	LocaleCode    string                 `protobuf:"bytes,1,opt,name=locale_code,json=localeCode,proto3" json:"locale_code,omitempty"`
 	ScopeIds      []string               `protobuf:"bytes,3,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`                 // Export entries in any of these scopes; empty exports all
 	IncludeDrafts bool                   `protobuf:"varint,4,opt,name=include_drafts,json=includeDrafts,proto3" json:"include_drafts,omitempty"` // Also export drafts; by default only approved text
+	// Narrows each scope to the entries with any of its selected tags; a scope none of
+	// whose tags is selected exports whole. A tag selects its scope too.
+	TagIds        []string `protobuf:"bytes,5,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -320,6 +343,13 @@ func (x *ExportPoRequest) GetIncludeDrafts() bool {
 		return x.IncludeDrafts
 	}
 	return false
+}
+
+func (x *ExportPoRequest) GetTagIds() []string {
+	if x != nil {
+		return x.TagIds
+	}
+	return nil
 }
 
 type ExportPoResponse struct {
@@ -382,11 +412,18 @@ func (x *ExportPoResponse) GetFilename() string {
 	return ""
 }
 
-// Export all locales as a ZIP archive containing JSON files
+// Export languages as a ZIP archive. With scopes (or tags), each scope gets a folder
+// of files in its default format, e.g. "backend/de.php"; without, the files lie flat.
 type ExportZipRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ScopeIds      []string               `protobuf:"bytes,1,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`                 // Export entries in any of these scopes; empty exports all
 	IncludeDrafts bool                   `protobuf:"varint,2,opt,name=include_drafts,json=includeDrafts,proto3" json:"include_drafts,omitempty"` // Also export drafts; by default only approved text
+	// Narrows each scope's folder to the entries with any of its selected tags; a
+	// scope none of whose tags is selected exports whole. A tag selects its scope too.
+	TagIds    []string `protobuf:"bytes,3,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
+	LocaleIds []string `protobuf:"bytes,4,rep,name=locale_ids,json=localeIds,proto3" json:"locale_ids,omitempty"` // Languages to export; empty exports all
+	// The flat files' format, and that of scopes without a default; unspecified for JSON.
+	Format        ExportFormat `protobuf:"varint,5,opt,name=format,proto3,enum=parlance.v1.ExportFormat" json:"format,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -433,6 +470,27 @@ func (x *ExportZipRequest) GetIncludeDrafts() bool {
 		return x.IncludeDrafts
 	}
 	return false
+}
+
+func (x *ExportZipRequest) GetTagIds() []string {
+	if x != nil {
+		return x.TagIds
+	}
+	return nil
+}
+
+func (x *ExportZipRequest) GetLocaleIds() []string {
+	if x != nil {
+		return x.LocaleIds
+	}
+	return nil
+}
+
+func (x *ExportZipRequest) GetFormat() ExportFormat {
+	if x != nil {
+		return x.Format
+	}
+	return ExportFormat_EXPORT_FORMAT_UNSPECIFIED
 }
 
 type ExportZipResponse struct {
@@ -499,37 +557,44 @@ var File_parlance_v1_export_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_export_proto_rawDesc = "" +
 	"\n" +
-	"\x18parlance/v1/export.proto\x12\vparlance.v1\"\x87\x01\n" +
+	"\x18parlance/v1/export.proto\x12\vparlance.v1\x1a\x16parlance/v1/task.proto\"\xa0\x01\n" +
 	"\x10ExportPhpRequest\x12\x1f\n" +
 	"\vlocale_code\x18\x01 \x01(\tR\n" +
 	"localeCode\x12\x1b\n" +
 	"\tscope_ids\x18\x03 \x03(\tR\bscopeIds\x12%\n" +
-	"\x0einclude_drafts\x18\x04 \x01(\bR\rincludeDraftsJ\x04\b\x02\x10\x03R\bscope_id\"a\n" +
+	"\x0einclude_drafts\x18\x04 \x01(\bR\rincludeDrafts\x12\x17\n" +
+	"\atag_ids\x18\x05 \x03(\tR\x06tagIdsJ\x04\b\x02\x10\x03R\bscope_id\"a\n" +
 	"\x11ExportPhpResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1a\n" +
-	"\bfilename\x18\x03 \x01(\tR\bfilename\"\x88\x01\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\"\xa1\x01\n" +
 	"\x11ExportJsonRequest\x12\x1f\n" +
 	"\vlocale_code\x18\x01 \x01(\tR\n" +
 	"localeCode\x12\x1b\n" +
 	"\tscope_ids\x18\x03 \x03(\tR\bscopeIds\x12%\n" +
-	"\x0einclude_drafts\x18\x04 \x01(\bR\rincludeDraftsJ\x04\b\x02\x10\x03R\bscope_id\"b\n" +
+	"\x0einclude_drafts\x18\x04 \x01(\bR\rincludeDrafts\x12\x17\n" +
+	"\atag_ids\x18\x05 \x03(\tR\x06tagIdsJ\x04\b\x02\x10\x03R\bscope_id\"b\n" +
 	"\x12ExportJsonResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1a\n" +
-	"\bfilename\x18\x03 \x01(\tR\bfilename\"\x86\x01\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\"\x9f\x01\n" +
 	"\x0fExportPoRequest\x12\x1f\n" +
 	"\vlocale_code\x18\x01 \x01(\tR\n" +
 	"localeCode\x12\x1b\n" +
 	"\tscope_ids\x18\x03 \x03(\tR\bscopeIds\x12%\n" +
-	"\x0einclude_drafts\x18\x04 \x01(\bR\rincludeDraftsJ\x04\b\x02\x10\x03R\bscope_id\"`\n" +
+	"\x0einclude_drafts\x18\x04 \x01(\bR\rincludeDrafts\x12\x17\n" +
+	"\atag_ids\x18\x05 \x03(\tR\x06tagIdsJ\x04\b\x02\x10\x03R\bscope_id\"`\n" +
 	"\x10ExportPoResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1a\n" +
-	"\bfilename\x18\x03 \x01(\tR\bfilename\"V\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\"\xc1\x01\n" +
 	"\x10ExportZipRequest\x12\x1b\n" +
 	"\tscope_ids\x18\x01 \x03(\tR\bscopeIds\x12%\n" +
-	"\x0einclude_drafts\x18\x02 \x01(\bR\rincludeDrafts\"a\n" +
+	"\x0einclude_drafts\x18\x02 \x01(\bR\rincludeDrafts\x12\x17\n" +
+	"\atag_ids\x18\x03 \x03(\tR\x06tagIds\x12\x1d\n" +
+	"\n" +
+	"locale_ids\x18\x04 \x03(\tR\tlocaleIds\x121\n" +
+	"\x06format\x18\x05 \x01(\x0e2\x19.parlance.v1.ExportFormatR\x06format\"a\n" +
 	"\x11ExportZipResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\fR\acontent\x12\x1a\n" +
@@ -564,21 +629,23 @@ var file_parlance_v1_export_proto_goTypes = []any{
 	(*ExportPoResponse)(nil),   // 5: parlance.v1.ExportPoResponse
 	(*ExportZipRequest)(nil),   // 6: parlance.v1.ExportZipRequest
 	(*ExportZipResponse)(nil),  // 7: parlance.v1.ExportZipResponse
+	(ExportFormat)(0),          // 8: parlance.v1.ExportFormat
 }
 var file_parlance_v1_export_proto_depIdxs = []int32{
-	0, // 0: parlance.v1.ExportService.ExportPhp:input_type -> parlance.v1.ExportPhpRequest
-	2, // 1: parlance.v1.ExportService.ExportJson:input_type -> parlance.v1.ExportJsonRequest
-	4, // 2: parlance.v1.ExportService.ExportPo:input_type -> parlance.v1.ExportPoRequest
-	6, // 3: parlance.v1.ExportService.ExportZip:input_type -> parlance.v1.ExportZipRequest
-	1, // 4: parlance.v1.ExportService.ExportPhp:output_type -> parlance.v1.ExportPhpResponse
-	3, // 5: parlance.v1.ExportService.ExportJson:output_type -> parlance.v1.ExportJsonResponse
-	5, // 6: parlance.v1.ExportService.ExportPo:output_type -> parlance.v1.ExportPoResponse
-	7, // 7: parlance.v1.ExportService.ExportZip:output_type -> parlance.v1.ExportZipResponse
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	8, // 0: parlance.v1.ExportZipRequest.format:type_name -> parlance.v1.ExportFormat
+	0, // 1: parlance.v1.ExportService.ExportPhp:input_type -> parlance.v1.ExportPhpRequest
+	2, // 2: parlance.v1.ExportService.ExportJson:input_type -> parlance.v1.ExportJsonRequest
+	4, // 3: parlance.v1.ExportService.ExportPo:input_type -> parlance.v1.ExportPoRequest
+	6, // 4: parlance.v1.ExportService.ExportZip:input_type -> parlance.v1.ExportZipRequest
+	1, // 5: parlance.v1.ExportService.ExportPhp:output_type -> parlance.v1.ExportPhpResponse
+	3, // 6: parlance.v1.ExportService.ExportJson:output_type -> parlance.v1.ExportJsonResponse
+	5, // 7: parlance.v1.ExportService.ExportPo:output_type -> parlance.v1.ExportPoResponse
+	7, // 8: parlance.v1.ExportService.ExportZip:output_type -> parlance.v1.ExportZipResponse
+	5, // [5:9] is the sub-list for method output_type
+	1, // [1:5] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_export_proto_init() }
@@ -586,6 +653,7 @@ func file_parlance_v1_export_proto_init() {
 	if File_parlance_v1_export_proto != nil {
 		return
 	}
+	file_parlance_v1_task_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

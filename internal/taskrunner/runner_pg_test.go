@@ -633,6 +633,42 @@ func TestGitExport(t *testing.T) {
 	})
 }
 
+func TestGitExportTags(t *testing.T) {
+	db := testutil.SetupPostgresDB(t)
+	en, _, _ := seedLocales(t, db.DB)
+
+	mail := models.Scope{Name: "Mail", Slug: "mail"}
+	create(t, db.DB, &mail)
+
+	billing := models.Tag{ScopeID: mail.ID, Name: "billing"}
+	create(t, db.DB, &billing)
+
+	for _, key := range []string{"mail.receipt", "mail.welcome"} {
+		entry := seedEntry(t, db.DB, key, map[string]string{en.ID: key}, models.StatusApproved)
+		create(t, db.DB, &models.EntryScope{EntryID: entry.ID, ScopeID: mail.ID})
+
+		if key == "mail.receipt" {
+			create(t, db.DB, &models.EntryTag{EntryID: entry.ID, TagID: billing.ID, ScopeID: mail.ID})
+		}
+	}
+
+	seedEntry(t, db.DB, "other", map[string]string{en.ID: "other"}, models.StatusApproved)
+
+	files, _, err := newTestRunner(t, db).renderFiles(context.Background(), models.GitExportConfig{
+		Files:     []models.GitExportFile{{Format: "json", Path: "lang/{locale}.json"}},
+		LocaleIDs: []string{en.ID},
+		ScopeIDs:  []string{mail.ID},
+		TagIDs:    []string{billing.ID},
+	})
+	if err != nil {
+		t.Fatalf("renderFiles() error = %v", err)
+	}
+
+	if want := "{\n  \"mail.receipt\": \"mail.receipt\"\n}\n"; len(files) != 1 || files[0].Content != want {
+		t.Errorf("files = %+v, want only the billing entry", files)
+	}
+}
+
 func datatypesJSON(value any) (datatypes.JSON, error) {
 	encoded, err := json.Marshal(value)
 	if err != nil {

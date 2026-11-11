@@ -152,7 +152,33 @@ func TestCreateTask(t *testing.T) {
 			withGit(func(c *pb.GitExportConfig) { c.Files[0].Format = pb.ExportFormat_EXPORT_FORMAT_UNSPECIFIED }),
 			withGit(func(c *pb.GitExportConfig) { c.Files = append(c.Files, c.Files[0]) }),
 			withGit(func(c *pb.GitExportConfig) { c.ScopeIds = []string{"missing"} }),
+			withGit(func(c *pb.GitExportConfig) { c.TagIds = []string{"missing"} }),
 		)
+	})
+
+	t.Run("keeps the tags it exports", func(t *testing.T) {
+		scope := models.Scope{Name: "Mail", Slug: "task-mail"}
+		server.db.Create(&scope)
+
+		tag := models.Tag{ScopeID: scope.ID, Name: "billing"}
+		server.db.Create(&tag)
+		t.Cleanup(func() {
+			server.db.Exec(`DELETE FROM tags`)
+			server.db.Exec(`DELETE FROM scopes`)
+		})
+
+		config := gitExport("acme/app")
+		config.ScopeIds = []string{scope.ID}
+		config.TagIds = []string{tag.ID, tag.ID}
+
+		res, err := server.CreateTask(ctx, connect.NewRequest(&pb.CreateTaskRequest{Name: "Billing", Type: pb.TaskType_TASK_TYPE_GIT_EXPORT, GitExport: config}))
+		if err != nil {
+			t.Fatalf("CreateTask() error = %v", err)
+		}
+
+		if got := res.Msg.Task.GitExport.TagIds; len(got) != 1 || got[0] != tag.ID {
+			t.Errorf("tag ids = %v, want [%s]", got, tag.ID)
+		}
 	})
 }
 
