@@ -75,6 +75,7 @@ func TestUpdateEntriesTagsRejectsUnknownAndDeletedTags(t *testing.T) {
 
 func TestCreateEntryTagsMustBelongToItsScopes(t *testing.T) {
 	ctx, db := testutil.Setup(t)
+	t.Cleanup(func() { db.Exec(`DELETE FROM entries WHERE key IN ('outside', 'inside')`) })
 
 	server := &Server{db: db}
 	mobile, web := insertScope(t, db), insertScope(t, db)
@@ -261,6 +262,8 @@ func insertEntryWithKey(t *testing.T, db *database.DB, key string) string {
 
 	id := uuid.NewString()
 	testutil.Exec(t, db, "INSERT INTO entries (id, key) VALUES (?, ?)", id, key)
+	// The SQLite database lives as long as the test binary, and keys are unique.
+	t.Cleanup(func() { db.Exec("DELETE FROM entries WHERE id = ?", id) })
 
 	return id
 }
