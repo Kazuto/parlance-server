@@ -30,10 +30,21 @@ func forEachDB(t *testing.T, test func(t *testing.T, db *gorm.DB)) {
 }
 
 // sqliteDB is the shared test database, emptied of webhooks when the test ends.
+//
+// It keeps to one connection. The dispatcher sends deliveries side by side, and
+// where Postgres locks only their rows, SQLite's shared in-memory database turns
+// a second connection writing to the table down: "database table is locked".
 func sqliteDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
 	_, db := testutil.Setup(t)
+
+	sqlDB, err := db.DB.DB()
+	if err != nil {
+		t.Fatalf("open the SQLite pool: %v", err)
+	}
+
+	sqlDB.SetMaxOpenConns(1)
 	t.Cleanup(func() {
 		db.Exec(`DELETE FROM webhook_deliveries`)
 		db.Exec(`DELETE FROM webhooks`)
