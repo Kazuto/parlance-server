@@ -62,6 +62,12 @@ const (
 	// EntryServiceUpdateEntriesTagsProcedure is the fully-qualified name of the EntryService's
 	// UpdateEntriesTags RPC.
 	EntryServiceUpdateEntriesTagsProcedure = "/parlance.v1.EntryService/UpdateEntriesTags"
+	// EntryServiceUpdateEntriesReleasesProcedure is the fully-qualified name of the EntryService's
+	// UpdateEntriesReleases RPC.
+	EntryServiceUpdateEntriesReleasesProcedure = "/parlance.v1.EntryService/UpdateEntriesReleases"
+	// EntryServiceCountLiveEntriesProcedure is the fully-qualified name of the EntryService's
+	// CountLiveEntries RPC.
+	EntryServiceCountLiveEntriesProcedure = "/parlance.v1.EntryService/CountLiveEntries"
 	// EntryServiceDeleteEntriesProcedure is the fully-qualified name of the EntryService's
 	// DeleteEntries RPC.
 	EntryServiceDeleteEntriesProcedure = "/parlance.v1.EntryService/DeleteEntries"
@@ -79,6 +85,10 @@ type EntryServiceClient interface {
 	GetEntryHistory(context.Context, *connect.Request[v1.GetEntryHistoryRequest]) (*connect.Response[v1.GetEntryHistoryResponse], error)
 	UpdateEntriesScopes(context.Context, *connect.Request[v1.UpdateEntriesScopesRequest]) (*connect.Response[v1.UpdateEntriesScopesResponse], error)
 	UpdateEntriesTags(context.Context, *connect.Request[v1.UpdateEntriesTagsRequest]) (*connect.Response[v1.UpdateEntriesTagsResponse], error)
+	UpdateEntriesReleases(context.Context, *connect.Request[v1.UpdateEntriesReleasesRequest]) (*connect.Response[v1.UpdateEntriesReleasesResponse], error)
+	// Counts the entries exports carry with approved texts now: adding them to a
+	// release takes texts that may be live out of exports.
+	CountLiveEntries(context.Context, *connect.Request[v1.CountLiveEntriesRequest]) (*connect.Response[v1.CountLiveEntriesResponse], error)
 	DeleteEntries(context.Context, *connect.Request[v1.DeleteEntriesRequest]) (*connect.Response[v1.DeleteEntriesResponse], error)
 }
 
@@ -153,6 +163,18 @@ func NewEntryServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(entryServiceMethods.ByName("UpdateEntriesTags")),
 			connect.WithClientOptions(opts...),
 		),
+		updateEntriesReleases: connect.NewClient[v1.UpdateEntriesReleasesRequest, v1.UpdateEntriesReleasesResponse](
+			httpClient,
+			baseURL+EntryServiceUpdateEntriesReleasesProcedure,
+			connect.WithSchema(entryServiceMethods.ByName("UpdateEntriesReleases")),
+			connect.WithClientOptions(opts...),
+		),
+		countLiveEntries: connect.NewClient[v1.CountLiveEntriesRequest, v1.CountLiveEntriesResponse](
+			httpClient,
+			baseURL+EntryServiceCountLiveEntriesProcedure,
+			connect.WithSchema(entryServiceMethods.ByName("CountLiveEntries")),
+			connect.WithClientOptions(opts...),
+		),
 		deleteEntries: connect.NewClient[v1.DeleteEntriesRequest, v1.DeleteEntriesResponse](
 			httpClient,
 			baseURL+EntryServiceDeleteEntriesProcedure,
@@ -164,17 +186,19 @@ func NewEntryServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 
 // entryServiceClient implements EntryServiceClient.
 type entryServiceClient struct {
-	listEntries         *connect.Client[v1.ListEntriesRequest, v1.ListEntriesResponse]
-	getEntry            *connect.Client[v1.GetEntryRequest, v1.GetEntryResponse]
-	createEntry         *connect.Client[v1.CreateEntryRequest, v1.CreateEntryResponse]
-	updateEntry         *connect.Client[v1.UpdateEntryRequest, v1.UpdateEntryResponse]
-	deleteEntry         *connect.Client[v1.DeleteEntryRequest, v1.DeleteEntryResponse]
-	restoreEntry        *connect.Client[v1.RestoreEntryRequest, v1.RestoreEntryResponse]
-	searchEntries       *connect.Client[v1.SearchEntriesRequest, v1.SearchEntriesResponse]
-	getEntryHistory     *connect.Client[v1.GetEntryHistoryRequest, v1.GetEntryHistoryResponse]
-	updateEntriesScopes *connect.Client[v1.UpdateEntriesScopesRequest, v1.UpdateEntriesScopesResponse]
-	updateEntriesTags   *connect.Client[v1.UpdateEntriesTagsRequest, v1.UpdateEntriesTagsResponse]
-	deleteEntries       *connect.Client[v1.DeleteEntriesRequest, v1.DeleteEntriesResponse]
+	listEntries           *connect.Client[v1.ListEntriesRequest, v1.ListEntriesResponse]
+	getEntry              *connect.Client[v1.GetEntryRequest, v1.GetEntryResponse]
+	createEntry           *connect.Client[v1.CreateEntryRequest, v1.CreateEntryResponse]
+	updateEntry           *connect.Client[v1.UpdateEntryRequest, v1.UpdateEntryResponse]
+	deleteEntry           *connect.Client[v1.DeleteEntryRequest, v1.DeleteEntryResponse]
+	restoreEntry          *connect.Client[v1.RestoreEntryRequest, v1.RestoreEntryResponse]
+	searchEntries         *connect.Client[v1.SearchEntriesRequest, v1.SearchEntriesResponse]
+	getEntryHistory       *connect.Client[v1.GetEntryHistoryRequest, v1.GetEntryHistoryResponse]
+	updateEntriesScopes   *connect.Client[v1.UpdateEntriesScopesRequest, v1.UpdateEntriesScopesResponse]
+	updateEntriesTags     *connect.Client[v1.UpdateEntriesTagsRequest, v1.UpdateEntriesTagsResponse]
+	updateEntriesReleases *connect.Client[v1.UpdateEntriesReleasesRequest, v1.UpdateEntriesReleasesResponse]
+	countLiveEntries      *connect.Client[v1.CountLiveEntriesRequest, v1.CountLiveEntriesResponse]
+	deleteEntries         *connect.Client[v1.DeleteEntriesRequest, v1.DeleteEntriesResponse]
 }
 
 // ListEntries calls parlance.v1.EntryService.ListEntries.
@@ -227,6 +251,16 @@ func (c *entryServiceClient) UpdateEntriesTags(ctx context.Context, req *connect
 	return c.updateEntriesTags.CallUnary(ctx, req)
 }
 
+// UpdateEntriesReleases calls parlance.v1.EntryService.UpdateEntriesReleases.
+func (c *entryServiceClient) UpdateEntriesReleases(ctx context.Context, req *connect.Request[v1.UpdateEntriesReleasesRequest]) (*connect.Response[v1.UpdateEntriesReleasesResponse], error) {
+	return c.updateEntriesReleases.CallUnary(ctx, req)
+}
+
+// CountLiveEntries calls parlance.v1.EntryService.CountLiveEntries.
+func (c *entryServiceClient) CountLiveEntries(ctx context.Context, req *connect.Request[v1.CountLiveEntriesRequest]) (*connect.Response[v1.CountLiveEntriesResponse], error) {
+	return c.countLiveEntries.CallUnary(ctx, req)
+}
+
 // DeleteEntries calls parlance.v1.EntryService.DeleteEntries.
 func (c *entryServiceClient) DeleteEntries(ctx context.Context, req *connect.Request[v1.DeleteEntriesRequest]) (*connect.Response[v1.DeleteEntriesResponse], error) {
 	return c.deleteEntries.CallUnary(ctx, req)
@@ -244,6 +278,10 @@ type EntryServiceHandler interface {
 	GetEntryHistory(context.Context, *connect.Request[v1.GetEntryHistoryRequest]) (*connect.Response[v1.GetEntryHistoryResponse], error)
 	UpdateEntriesScopes(context.Context, *connect.Request[v1.UpdateEntriesScopesRequest]) (*connect.Response[v1.UpdateEntriesScopesResponse], error)
 	UpdateEntriesTags(context.Context, *connect.Request[v1.UpdateEntriesTagsRequest]) (*connect.Response[v1.UpdateEntriesTagsResponse], error)
+	UpdateEntriesReleases(context.Context, *connect.Request[v1.UpdateEntriesReleasesRequest]) (*connect.Response[v1.UpdateEntriesReleasesResponse], error)
+	// Counts the entries exports carry with approved texts now: adding them to a
+	// release takes texts that may be live out of exports.
+	CountLiveEntries(context.Context, *connect.Request[v1.CountLiveEntriesRequest]) (*connect.Response[v1.CountLiveEntriesResponse], error)
 	DeleteEntries(context.Context, *connect.Request[v1.DeleteEntriesRequest]) (*connect.Response[v1.DeleteEntriesResponse], error)
 }
 
@@ -314,6 +352,18 @@ func NewEntryServiceHandler(svc EntryServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(entryServiceMethods.ByName("UpdateEntriesTags")),
 		connect.WithHandlerOptions(opts...),
 	)
+	entryServiceUpdateEntriesReleasesHandler := connect.NewUnaryHandler(
+		EntryServiceUpdateEntriesReleasesProcedure,
+		svc.UpdateEntriesReleases,
+		connect.WithSchema(entryServiceMethods.ByName("UpdateEntriesReleases")),
+		connect.WithHandlerOptions(opts...),
+	)
+	entryServiceCountLiveEntriesHandler := connect.NewUnaryHandler(
+		EntryServiceCountLiveEntriesProcedure,
+		svc.CountLiveEntries,
+		connect.WithSchema(entryServiceMethods.ByName("CountLiveEntries")),
+		connect.WithHandlerOptions(opts...),
+	)
 	entryServiceDeleteEntriesHandler := connect.NewUnaryHandler(
 		EntryServiceDeleteEntriesProcedure,
 		svc.DeleteEntries,
@@ -342,6 +392,10 @@ func NewEntryServiceHandler(svc EntryServiceHandler, opts ...connect.HandlerOpti
 			entryServiceUpdateEntriesScopesHandler.ServeHTTP(w, r)
 		case EntryServiceUpdateEntriesTagsProcedure:
 			entryServiceUpdateEntriesTagsHandler.ServeHTTP(w, r)
+		case EntryServiceUpdateEntriesReleasesProcedure:
+			entryServiceUpdateEntriesReleasesHandler.ServeHTTP(w, r)
+		case EntryServiceCountLiveEntriesProcedure:
+			entryServiceCountLiveEntriesHandler.ServeHTTP(w, r)
 		case EntryServiceDeleteEntriesProcedure:
 			entryServiceDeleteEntriesHandler.ServeHTTP(w, r)
 		default:
@@ -391,6 +445,14 @@ func (UnimplementedEntryServiceHandler) UpdateEntriesScopes(context.Context, *co
 
 func (UnimplementedEntryServiceHandler) UpdateEntriesTags(context.Context, *connect.Request[v1.UpdateEntriesTagsRequest]) (*connect.Response[v1.UpdateEntriesTagsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.EntryService.UpdateEntriesTags is not implemented"))
+}
+
+func (UnimplementedEntryServiceHandler) UpdateEntriesReleases(context.Context, *connect.Request[v1.UpdateEntriesReleasesRequest]) (*connect.Response[v1.UpdateEntriesReleasesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.EntryService.UpdateEntriesReleases is not implemented"))
+}
+
+func (UnimplementedEntryServiceHandler) CountLiveEntries(context.Context, *connect.Request[v1.CountLiveEntriesRequest]) (*connect.Response[v1.CountLiveEntriesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.EntryService.CountLiveEntries is not implemented"))
 }
 
 func (UnimplementedEntryServiceHandler) DeleteEntries(context.Context, *connect.Request[v1.DeleteEntriesRequest]) (*connect.Response[v1.DeleteEntriesResponse], error) {

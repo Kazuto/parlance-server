@@ -64,6 +64,10 @@ func SetupJoinTables(db *gorm.DB) error {
 		return fmt.Errorf("failed to set up entry tags: %w", err)
 	}
 
+	if err := db.SetupJoinTable(&models.Entry{}, "Releases", &models.ReleaseEntry{}); err != nil {
+		return fmt.Errorf("failed to set up release entries: %w", err)
+	}
+
 	return nil
 }
 
@@ -120,6 +124,8 @@ func (db *DB) AutoMigrate() error {
 		&models.EntryScope{},
 		&models.Tag{},
 		&models.EntryTag{},
+		&models.Release{},
+		&models.ReleaseEntry{},
 		&models.Localization{},
 		&models.LocalizationHistory{},
 		&models.Terminology{},
@@ -166,6 +172,7 @@ func (db *DB) AutoMigrate() error {
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_definitions_term_locale ON definitions (terminology_id, locale_id) WHERE deleted_at IS NULL")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_entry_scopes_unique ON entry_scopes (entry_id, scope_id)")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_tags_scope_name ON tags (scope_id, lower(name))")
+	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_releases_name ON releases (lower(name))")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_roles_unique ON user_roles (user_id, role_id)")
 	db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_role_permissions_unique ON role_permissions (role_id, permission_id)")
 	// A task has at most one queued run, which later triggers join.

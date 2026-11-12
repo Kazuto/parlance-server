@@ -15,6 +15,8 @@ const (
 	WebhookEventEntriesCreated               = "entries.created"
 	WebhookEventTaskRunSucceeded             = "task_run.succeeded"
 	WebhookEventTaskRunFailed                = "task_run.failed"
+	// WebhookEventTranslationsReleased is sent when a release goes out.
+	WebhookEventTranslationsReleased = "translations.released"
 	// WebhookEventPing is only sent by a test, so nothing subscribes to it.
 	WebhookEventPing = "ping"
 	// WebhookEventDigest carries what a webhook with a schedule collected.

@@ -33,7 +33,7 @@ func seedSelection(t *testing.T, db *database.DB) selectionFixture {
 
 	// The package's tests share a database: start from, and leave, empty tables.
 	emptyTables := func() {
-		for _, table := range []string{"entry_tags", "entry_scopes", "tags", "scopes", "localizations", "entries", "locales"} {
+		for _, table := range []string{"release_entries", "releases", "entry_tags", "entry_scopes", "tags", "scopes", "localizations", "entries", "locales"} {
 			db.Exec("DELETE FROM " + table)
 		}
 	}

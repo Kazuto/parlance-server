@@ -89,6 +89,17 @@ func (s *Server) UpdateEntry(
 		}
 	}
 
+	var releases []models.Release
+
+	if req.Msg.Releases != nil {
+		var err error
+
+		releases, err = common.ResolvePendingReleases(s.db.WithContext(ctx), req.Msg.Releases.Ids)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Save(&entry).Error; err != nil {
 			return err
@@ -102,7 +113,12 @@ func (s *Server) UpdateEntry(
 			}
 		}
 		if req.Msg.Tags != nil {
-			return replaceTags(tx, entry.ID, tags, entry.UpdatedBy)
+			if err := replaceTags(tx, entry.ID, tags, entry.UpdatedBy); err != nil {
+				return err
+			}
+		}
+		if req.Msg.Releases != nil {
+			return replaceReleases(tx, entry.ID, releases, entry.UpdatedBy)
 		}
 
 		return nil
@@ -111,7 +127,7 @@ func (s *Server) UpdateEntry(
 	}
 
 	// Load relationships for response
-	if err := common.PreloadTags(s.db.Preload("Localizations").Preload("Scopes")).First(&entry, "id = ?", entry.ID).Error; err != nil {
+	if err := preloadDetails(s.db.WithContext(ctx)).First(&entry, "id = ?", entry.ID).Error; err != nil {
 		return nil, errors.InternalCause(err, "failed to load updated entry")
 	}
 

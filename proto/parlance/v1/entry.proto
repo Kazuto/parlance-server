@@ -4,6 +4,7 @@ package parlance.v1;
 import "parlance/v1/common.proto";
 import "parlance/v1/scope.proto";
 import "parlance/v1/localization.proto";
+import "parlance/v1/release.proto";
 import "parlance/v1/user.proto";
 
 option go_package = "parlance/v1;parlance";
@@ -19,6 +20,10 @@ service EntryService {
   rpc GetEntryHistory(GetEntryHistoryRequest) returns (GetEntryHistoryResponse);
   rpc UpdateEntriesScopes(UpdateEntriesScopesRequest) returns (UpdateEntriesScopesResponse);
   rpc UpdateEntriesTags(UpdateEntriesTagsRequest) returns (UpdateEntriesTagsResponse);
+  rpc UpdateEntriesReleases(UpdateEntriesReleasesRequest) returns (UpdateEntriesReleasesResponse);
+  // Counts the entries exports carry with approved texts now: adding them to a
+  // release takes texts that may be live out of exports.
+  rpc CountLiveEntries(CountLiveEntriesRequest) returns (CountLiveEntriesResponse);
   rpc DeleteEntries(DeleteEntriesRequest) returns (DeleteEntriesResponse);
 }
 
@@ -44,6 +49,9 @@ message Entry {
   repeated string outdated_locale_ids = 14;
   // Tags of the entry's scopes it carries; not set by ListEntries with summary.
   repeated Tag tags = 15;
+  // Pending releases holding the entry back from exports; not set by ListEntries
+  // with summary.
+  repeated Release releases = 16;
 }
 
 message ListEntriesRequest {
@@ -74,6 +82,8 @@ message ListEntriesRequest {
   // a scope's selected tags, or is in a selected scope none of whose tags is
   // selected. A tag selects its scope too.
   repeated string tag_ids = 12;
+  // Entries in any of these releases
+  repeated string release_ids = 13;
 }
 
 message ListEntriesResponse {
@@ -99,6 +109,8 @@ message CreateEntryRequest {
   IdSelection scopes = 4;
   // Tags of the entry's scopes
   IdSelection tags = 5;
+  // Pending releases
+  IdSelection releases = 6;
 }
 
 message CreateEntryResponse {
@@ -113,6 +125,8 @@ message UpdateEntryRequest {
   // Replaces the tags when set; each must belong to one of the entry's scopes.
   // Changing scopes alone drops the tags of removed scopes.
   IdSelection tags = 5;
+  // Replaces the pending releases when set; released ones stay as a record.
+  IdSelection releases = 6;
 }
 
 message UpdateEntryResponse {
@@ -137,6 +151,24 @@ message UpdateEntriesTagsRequest {
 }
 
 message UpdateEntriesTagsResponse {}
+
+// Adds entries to and removes them from releases. Releases not listed are kept;
+// released releases can't change.
+message UpdateEntriesReleasesRequest {
+  repeated string entry_ids = 1;
+  repeated string add_release_ids = 2;
+  repeated string remove_release_ids = 3;
+}
+
+message UpdateEntriesReleasesResponse {}
+
+message CountLiveEntriesRequest {
+  repeated string entry_ids = 1;
+}
+
+message CountLiveEntriesResponse {
+  int32 count = 1;
+}
 
 message DeleteEntryRequest {
   string id = 1;

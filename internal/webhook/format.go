@@ -95,6 +95,13 @@ func message(payload string) (string, error) {
 		}
 
 		return taskRunMessage(data), nil
+	case models.WebhookEventTranslationsReleased:
+		var data ReleaseData
+		if err := decode(&data); err != nil {
+			return "", err
+		}
+
+		return releaseMessage(data), nil
 	case models.WebhookEventPing:
 		var data PingData
 		if err := decode(&data); err != nil {
@@ -194,6 +201,41 @@ func entriesMessage(data EntriesData) string {
 	return text.String()
 }
 
+func releaseMessage(data ReleaseData) string {
+	var text strings.Builder
+
+	text.WriteString(releaseHeadline(data))
+
+	for i, entry := range data.Entries {
+		if i == maxListed {
+			break
+		}
+
+		fmt.Fprintf(&text, "\n• %s", code(entry.Key))
+	}
+
+	writeMore(&text, data.Count, len(data.Entries))
+
+	return text.String()
+}
+
+// releaseHeadline says who let the release out and how many entries export since.
+func releaseHeadline(data ReleaseData) string {
+	text := fmt.Sprintf("Release “%s” went out", data.Release.Name)
+	if data.User != nil {
+		text = fmt.Sprintf("%s released “%s”", data.User.Name, data.Release.Name)
+	}
+
+	switch data.Count {
+	case 0:
+		return text
+	case 1:
+		return text + ": 1 entry exports now"
+	default:
+		return text + fmt.Sprintf(": %d entries export now", data.Count)
+	}
+}
+
 func taskRunMessage(data TaskRunData) string {
 	if data.Run.Status == models.RunFailed {
 		return fmt.Sprintf("Task “%s” failed: %s", data.Task.Name, oneLine(data.Run.Error))
@@ -258,7 +300,7 @@ var digestKinds = []struct {
 }
 
 // digestMessage sums up a digest's events: one line per kind of change, and one per
-// task run.
+// release and task run.
 func digestMessage(data DigestData) string {
 	groups := map[string]*digestGroup{}
 	group := func(event string) *digestGroup {
@@ -269,7 +311,7 @@ func digestMessage(data DigestData) string {
 		return groups[event]
 	}
 
-	var runs []string
+	var releases, runs []string
 
 	for _, raw := range data.Events {
 		var event struct {
@@ -311,6 +353,11 @@ func digestMessage(data DigestData) string {
 			}
 
 			group(event.Event).add(entries.Count, name, keys)
+		case models.WebhookEventTranslationsReleased:
+			var release ReleaseData
+			if json.Unmarshal(event.Data, &release) == nil {
+				releases = append(releases, releaseHeadline(release))
+			}
 		case models.WebhookEventTaskRunSucceeded, models.WebhookEventTaskRunFailed:
 			var run TaskRunData
 			if json.Unmarshal(event.Data, &run) == nil {
@@ -349,21 +396,27 @@ func digestMessage(data DigestData) string {
 		}
 	}
 
-	for i, run := range runs {
-		if i == maxListed {
-			fmt.Fprintf(&text, "\n• …and %s", countOf(len(runs)-i, "more task run", "more task runs"))
-
-			break
-		}
-
-		text.WriteString("\n• " + run)
-	}
+	writeLines(&text, releases, "more release", "more releases")
+	writeLines(&text, runs, "more task run", "more task runs")
 
 	if data.Truncated {
 		fmt.Fprintf(&text, "\n…and %s", countOf(data.Count-len(data.Events), "more event", "more events"))
 	}
 
 	return text.String()
+}
+
+// writeLines lists a digest's releases or task runs, a line each, the first few of them.
+func writeLines(text *strings.Builder, lines []string, more, mores string) {
+	for i, line := range lines {
+		if i == maxListed {
+			fmt.Fprintf(text, "\n• …and %s", countOf(len(lines)-i, more, mores))
+
+			break
+		}
+
+		text.WriteString("\n• " + line)
+	}
 }
 
 // names lists people and tasks, the first few by name.

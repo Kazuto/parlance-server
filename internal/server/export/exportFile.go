@@ -5,7 +5,7 @@ import "context"
 // exportFile renders the locale's file in the format, for the selected entries, and
 // names it after the selected scopes.
 func (s *Server) exportFile(
-	ctx context.Context, format, localeCode string, scopeIDs, tagIDs []string, includeDrafts bool,
+	ctx context.Context, format, localeCode string, req selectionRequest,
 ) (content, filename string, err error) {
 	db := s.db.WithContext(ctx)
 
@@ -14,7 +14,7 @@ func (s *Server) exportFile(
 		return "", "", err
 	}
 
-	sel, err := selection(db, scopeIDs, tagIDs, includeDrafts)
+	sel, err := selection(db, req)
 	if err != nil {
 		return "", "", err
 	}

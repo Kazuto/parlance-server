@@ -28,9 +28,11 @@ type ExportPhpRequest struct {
 	IncludeDrafts bool                   `protobuf:"varint,4,opt,name=include_drafts,json=includeDrafts,proto3" json:"include_drafts,omitempty"` // Also export drafts; by default only approved text
 	// Narrows each scope to the entries with any of its selected tags; a scope none of
 	// whose tags is selected exports whole. A tag selects its scope too.
-	TagIds        []string `protobuf:"bytes,5,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	TagIds []string `protobuf:"bytes,5,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
+	// Also export entries pending releases hold back
+	IncludeUnreleased bool `protobuf:"varint,6,opt,name=include_unreleased,json=includeUnreleased,proto3" json:"include_unreleased,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ExportPhpRequest) Reset() {
@@ -89,6 +91,13 @@ func (x *ExportPhpRequest) GetTagIds() []string {
 		return x.TagIds
 	}
 	return nil
+}
+
+func (x *ExportPhpRequest) GetIncludeUnreleased() bool {
+	if x != nil {
+		return x.IncludeUnreleased
+	}
+	return false
 }
 
 type ExportPhpResponse struct {
@@ -158,9 +167,11 @@ type ExportJsonRequest struct {
 	IncludeDrafts bool                   `protobuf:"varint,4,opt,name=include_drafts,json=includeDrafts,proto3" json:"include_drafts,omitempty"` // Also export drafts; by default only approved text
 	// Narrows each scope to the entries with any of its selected tags; a scope none of
 	// whose tags is selected exports whole. A tag selects its scope too.
-	TagIds        []string `protobuf:"bytes,5,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	TagIds []string `protobuf:"bytes,5,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
+	// Also export entries pending releases hold back
+	IncludeUnreleased bool `protobuf:"varint,6,opt,name=include_unreleased,json=includeUnreleased,proto3" json:"include_unreleased,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ExportJsonRequest) Reset() {
@@ -219,6 +230,13 @@ func (x *ExportJsonRequest) GetTagIds() []string {
 		return x.TagIds
 	}
 	return nil
+}
+
+func (x *ExportJsonRequest) GetIncludeUnreleased() bool {
+	if x != nil {
+		return x.IncludeUnreleased
+	}
+	return false
 }
 
 type ExportJsonResponse struct {
@@ -289,9 +307,11 @@ type ExportPoRequest struct {
 	IncludeDrafts bool                   `protobuf:"varint,4,opt,name=include_drafts,json=includeDrafts,proto3" json:"include_drafts,omitempty"` // Also export drafts; by default only approved text
 	// Narrows each scope to the entries with any of its selected tags; a scope none of
 	// whose tags is selected exports whole. A tag selects its scope too.
-	TagIds        []string `protobuf:"bytes,5,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	TagIds []string `protobuf:"bytes,5,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
+	// Also export entries pending releases hold back
+	IncludeUnreleased bool `protobuf:"varint,6,opt,name=include_unreleased,json=includeUnreleased,proto3" json:"include_unreleased,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ExportPoRequest) Reset() {
@@ -350,6 +370,13 @@ func (x *ExportPoRequest) GetTagIds() []string {
 		return x.TagIds
 	}
 	return nil
+}
+
+func (x *ExportPoRequest) GetIncludeUnreleased() bool {
+	if x != nil {
+		return x.IncludeUnreleased
+	}
+	return false
 }
 
 type ExportPoResponse struct {
@@ -423,9 +450,11 @@ type ExportZipRequest struct {
 	TagIds    []string `protobuf:"bytes,3,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
 	LocaleIds []string `protobuf:"bytes,4,rep,name=locale_ids,json=localeIds,proto3" json:"locale_ids,omitempty"` // Languages to export; empty exports all
 	// The flat files' format, and that of scopes without a default; unspecified for JSON.
-	Format        ExportFormat `protobuf:"varint,5,opt,name=format,proto3,enum=parlance.v1.ExportFormat" json:"format,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Format ExportFormat `protobuf:"varint,5,opt,name=format,proto3,enum=parlance.v1.ExportFormat" json:"format,omitempty"`
+	// Also export entries pending releases hold back
+	IncludeUnreleased bool `protobuf:"varint,6,opt,name=include_unreleased,json=includeUnreleased,proto3" json:"include_unreleased,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ExportZipRequest) Reset() {
@@ -493,6 +522,13 @@ func (x *ExportZipRequest) GetFormat() ExportFormat {
 	return ExportFormat_EXPORT_FORMAT_UNSPECIFIED
 }
 
+func (x *ExportZipRequest) GetIncludeUnreleased() bool {
+	if x != nil {
+		return x.IncludeUnreleased
+	}
+	return false
+}
+
 type ExportZipResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Format        string                 `protobuf:"bytes,1,opt,name=format,proto3" json:"format,omitempty"`     // "zip"
@@ -557,44 +593,48 @@ var File_parlance_v1_export_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_export_proto_rawDesc = "" +
 	"\n" +
-	"\x18parlance/v1/export.proto\x12\vparlance.v1\x1a\x16parlance/v1/task.proto\"\xa0\x01\n" +
+	"\x18parlance/v1/export.proto\x12\vparlance.v1\x1a\x16parlance/v1/task.proto\"\xcf\x01\n" +
 	"\x10ExportPhpRequest\x12\x1f\n" +
 	"\vlocale_code\x18\x01 \x01(\tR\n" +
 	"localeCode\x12\x1b\n" +
 	"\tscope_ids\x18\x03 \x03(\tR\bscopeIds\x12%\n" +
 	"\x0einclude_drafts\x18\x04 \x01(\bR\rincludeDrafts\x12\x17\n" +
-	"\atag_ids\x18\x05 \x03(\tR\x06tagIdsJ\x04\b\x02\x10\x03R\bscope_id\"a\n" +
+	"\atag_ids\x18\x05 \x03(\tR\x06tagIds\x12-\n" +
+	"\x12include_unreleased\x18\x06 \x01(\bR\x11includeUnreleasedJ\x04\b\x02\x10\x03R\bscope_id\"a\n" +
 	"\x11ExportPhpResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1a\n" +
-	"\bfilename\x18\x03 \x01(\tR\bfilename\"\xa1\x01\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\"\xd0\x01\n" +
 	"\x11ExportJsonRequest\x12\x1f\n" +
 	"\vlocale_code\x18\x01 \x01(\tR\n" +
 	"localeCode\x12\x1b\n" +
 	"\tscope_ids\x18\x03 \x03(\tR\bscopeIds\x12%\n" +
 	"\x0einclude_drafts\x18\x04 \x01(\bR\rincludeDrafts\x12\x17\n" +
-	"\atag_ids\x18\x05 \x03(\tR\x06tagIdsJ\x04\b\x02\x10\x03R\bscope_id\"b\n" +
+	"\atag_ids\x18\x05 \x03(\tR\x06tagIds\x12-\n" +
+	"\x12include_unreleased\x18\x06 \x01(\bR\x11includeUnreleasedJ\x04\b\x02\x10\x03R\bscope_id\"b\n" +
 	"\x12ExportJsonResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1a\n" +
-	"\bfilename\x18\x03 \x01(\tR\bfilename\"\x9f\x01\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\"\xce\x01\n" +
 	"\x0fExportPoRequest\x12\x1f\n" +
 	"\vlocale_code\x18\x01 \x01(\tR\n" +
 	"localeCode\x12\x1b\n" +
 	"\tscope_ids\x18\x03 \x03(\tR\bscopeIds\x12%\n" +
 	"\x0einclude_drafts\x18\x04 \x01(\bR\rincludeDrafts\x12\x17\n" +
-	"\atag_ids\x18\x05 \x03(\tR\x06tagIdsJ\x04\b\x02\x10\x03R\bscope_id\"`\n" +
+	"\atag_ids\x18\x05 \x03(\tR\x06tagIds\x12-\n" +
+	"\x12include_unreleased\x18\x06 \x01(\bR\x11includeUnreleasedJ\x04\b\x02\x10\x03R\bscope_id\"`\n" +
 	"\x10ExportPoResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1a\n" +
-	"\bfilename\x18\x03 \x01(\tR\bfilename\"\xc1\x01\n" +
+	"\bfilename\x18\x03 \x01(\tR\bfilename\"\xf0\x01\n" +
 	"\x10ExportZipRequest\x12\x1b\n" +
 	"\tscope_ids\x18\x01 \x03(\tR\bscopeIds\x12%\n" +
 	"\x0einclude_drafts\x18\x02 \x01(\bR\rincludeDrafts\x12\x17\n" +
 	"\atag_ids\x18\x03 \x03(\tR\x06tagIds\x12\x1d\n" +
 	"\n" +
 	"locale_ids\x18\x04 \x03(\tR\tlocaleIds\x121\n" +
-	"\x06format\x18\x05 \x01(\x0e2\x19.parlance.v1.ExportFormatR\x06format\"a\n" +
+	"\x06format\x18\x05 \x01(\x0e2\x19.parlance.v1.ExportFormatR\x06format\x12-\n" +
+	"\x12include_unreleased\x18\x06 \x01(\bR\x11includeUnreleased\"a\n" +
 	"\x11ExportZipResponse\x12\x16\n" +
 	"\x06format\x18\x01 \x01(\tR\x06format\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\fR\acontent\x12\x1a\n" +

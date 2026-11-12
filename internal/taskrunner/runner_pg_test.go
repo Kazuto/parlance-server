@@ -803,3 +803,86 @@ func TestAITranslateSendsDescriptionAndStyle(t *testing.T) {
 		t.Errorf("requests = %+v, want the description and the style", requests)
 	}
 }
+
+func TestReleaseDue(t *testing.T) {
+	db := testutil.SetupPostgresDB(t)
+
+	hook := models.Webhook{Name: "Launches", URL: "https://chat.example", Enabled: true, Events: []string{models.WebhookEventTranslationsReleased}}
+	create(t, db.DB, &hook)
+
+	// The delay keeps the run queued, so the ticks don't run it.
+	export := models.Task{Name: "Export", Type: models.TaskTypeGitExport, Enabled: true, Events: []string{models.EventTranslationsReleased}, EventDelayMinutes: 5}
+	create(t, db.DB, &export)
+
+	past, future := time.Now().Add(-time.Minute), time.Now().Add(time.Hour)
+	earlier := time.Now().Add(-time.Hour)
+	due := models.Release{Name: "Due", ReleaseAt: &past}
+	later := models.Release{Name: "Later", ReleaseAt: &future}
+	unscheduled := models.Release{Name: "Unscheduled"}
+	byHand := models.Release{Name: "By hand", ReleaseAt: &past, ReleasedAt: &earlier}
+
+	for _, release := range []*models.Release{&due, &later, &unscheduled, &byHand} {
+		create(t, db.DB, release)
+	}
+
+	entry := seedEntry(t, db.DB, "launch.title", nil, models.StatusApproved)
+	create(t, db.DB, &models.ReleaseEntry{ReleaseID: due.ID, EntryID: entry.ID})
+
+	// Releases go out while tasks are paused; their runs wait.
+	if err := taskqueue.SetPaused(db.DB, true, nil); err != nil {
+		t.Fatalf("SetPaused() error = %v", err)
+	}
+
+	runners := []*Runner{newTestRunner(t, db), newTestRunner(t, db)}
+
+	var wg sync.WaitGroup
+
+	for _, r := range runners {
+		wg.Go(func() { r.Tick(context.Background()) })
+	}
+
+	wg.Wait()
+	runners[0].Tick(context.Background())
+
+	released := map[string]bool{}
+
+	var releases []models.Release
+
+	db.Find(&releases)
+
+	for _, release := range releases {
+		released[release.Name] = release.ReleasedAt != nil
+	}
+
+	if !released["Due"] || released["Later"] || released["Unscheduled"] {
+		t.Errorf("released = %v, want only Due (and By hand) out", released)
+	}
+
+	var deliveries []models.WebhookDelivery
+
+	db.Where("webhook_id = ?", hook.ID).Find(&deliveries)
+
+	if len(deliveries) != 1 {
+		t.Fatalf("%d deliveries, want 1 for Due", len(deliveries))
+	}
+
+	var body struct {
+		Data webhook.ReleaseData `json:"data"`
+	}
+
+	if err := json.Unmarshal([]byte(deliveries[0].Payload), &body); err != nil {
+		t.Fatalf("payload: %v", err)
+	}
+
+	if body.Data.Release.ID != due.ID || body.Data.Count != 1 || body.Data.Entries[0].Key != "launch.title" || body.Data.User != nil {
+		t.Errorf("announced %+v, want Due with launch.title and no user", body.Data)
+	}
+
+	var runs []models.TaskRun
+
+	db.Where("task_id = ?", export.ID).Find(&runs)
+
+	if len(runs) != 1 || runs[0].Trigger != models.TriggerEvent || runs[0].Status != models.RunQueued {
+		t.Errorf("runs = %+v, want one queued event run", runs)
+	}
+}
