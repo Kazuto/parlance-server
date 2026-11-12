@@ -123,12 +123,13 @@ func SuggestOne(
 	formality := translate.Formality(locale.Formality)
 
 	answer, err := translator.Translate(ctx, translate.Request{
-		Text:       source.Text,
-		TargetLang: language,
-		Terms:      terms,
-		Formality:  formality,
-		Context:    source.Context,
-		Style:      source.Style,
+		Text:          source.Text,
+		TargetLang:    language,
+		TargetVariant: translate.TargetName(locale.Code),
+		Terms:         terms,
+		Formality:     formality,
+		Context:       source.Context,
+		Style:         source.Style,
 	})
 	if err != nil {
 		log.Printf("translate into %s: %v", locale.Code, err)

@@ -423,3 +423,20 @@ func TestSuggestOneFormality(t *testing.T) {
 		}
 	}
 }
+
+func TestSuggestOneRegionalVariant(t *testing.T) {
+	fake := &fakeTranslator{answers: map[string]string{"German": "Sie können Ihr Passwort ändern."}}
+	locale := models.Locale{ID: "de-at", Code: "de-AT", Formality: string(translate.Formal)}
+
+	suggestion := SuggestOne(context.Background(), fake, Source{Text: "You can change your password."}, locale, nil)
+
+	req, ok := fake.request("German")
+	if !ok || req.TargetVariant != "Austrian German" {
+		t.Errorf("got request %+v, want German as Austrian German", req)
+	}
+
+	// The form of address is checked as German's.
+	if suggestion.Translation == "" || len(suggestion.Warnings) != 0 {
+		t.Errorf("got %+v, want the formal translation without warnings", suggestion)
+	}
+}

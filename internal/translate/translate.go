@@ -18,8 +18,12 @@ type Term struct {
 type Request struct {
 	Text string
 	// TargetLang is the English language name the model expects, see LanguageName.
+	// Forms of address are looked up by it.
 	TargetLang string
-	Terms      []Term
+	// TargetVariant is the regional variant to ask for instead, see TargetName;
+	// empty asks for TargetLang.
+	TargetVariant string
+	Terms         []Term
 	// Formality is how the translation addresses the reader; empty for either.
 	Formality Formality
 	// Context tells the model what the text is for, e.g. the entry's description.
