@@ -12,7 +12,7 @@ func (s *Server) ExportJson(
 	ctx context.Context,
 	req *connect.Request[pb.ExportJsonRequest],
 ) (*connect.Response[pb.ExportJsonResponse], error) {
-	content, filename, err := s.exportFile(ctx, FormatJSON, req.Msg.LocaleCode, req.Msg.ScopeIds, req.Msg.TagIds, req.Msg.IncludeDrafts)
+	content, filename, err := s.exportFile(ctx, FormatJSON, req.Msg.LocaleCode, req.Msg)
 	if err != nil {
 		return nil, err
 	}

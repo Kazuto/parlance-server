@@ -65,6 +65,12 @@ const (
 	// ErrTagOutsideScopes rejects a tag of a scope the entry isn't in.
 	ErrTagOutsideScopes = "TAG_OUTSIDE_SCOPES"
 
+	// Release-specific errors
+	ErrReleaseNotFound      = "RELEASE_NOT_FOUND"
+	ErrReleaseAlreadyExists = "RELEASE_ALREADY_EXISTS"
+	// ErrReleaseAlreadyReleased rejects changing a release that went out.
+	ErrReleaseAlreadyReleased = "RELEASE_ALREADY_RELEASED"
+
 	// Localization-specific errors
 	ErrLocalizationNotFound = "LOCALIZATION_NOT_FOUND"
 

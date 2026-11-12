@@ -15,6 +15,7 @@ var (
 	}
 	taskEvents = map[string]pb.TaskEvent{
 		models.EventTranslationsApproved: pb.TaskEvent_TASK_EVENT_TRANSLATIONS_APPROVED,
+		models.EventTranslationsReleased: pb.TaskEvent_TASK_EVENT_TRANSLATIONS_RELEASED,
 	}
 	taskTriggers = map[string]pb.TaskTrigger{
 		models.TriggerManual:   pb.TaskTrigger_TASK_TRIGGER_MANUAL,

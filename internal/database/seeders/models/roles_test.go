@@ -33,7 +33,7 @@ func TestRoleSeederAssignsExistingPermissions(t *testing.T) {
 		}
 	}
 
-	want := map[string]int{"translator": 14, "reviewer": 10, "viewer": 6}
+	want := map[string]int{"translator": 15, "reviewer": 11, "viewer": 7}
 	for role, count := range want {
 		var names []string
 
@@ -47,8 +47,11 @@ func TestRoleSeederAssignsExistingPermissions(t *testing.T) {
 			t.Errorf("%s: got %d permissions %v, want %d", role, len(names), names, count)
 		}
 
-		if i := sort.SearchStrings(names, permissions.ReadEntry); i >= len(names) || names[i] != permissions.ReadEntry {
-			t.Errorf("%s: missing %s in %v", role, permissions.ReadEntry, names)
+		// Entries show their releases, so whoever reads entries reads releases.
+		for _, name := range []string{permissions.ReadEntry, permissions.ReadRelease} {
+			if i := sort.SearchStrings(names, name); i >= len(names) || names[i] != name {
+				t.Errorf("%s: missing %s in %v", role, name, names)
+			}
 		}
 	}
 }

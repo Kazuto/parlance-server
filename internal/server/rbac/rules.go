@@ -35,17 +35,19 @@ var Rules = map[string][]string{
 	parlancev1connect.DefinitionServiceUpdateDefinitionProcedure:  {permissions.UpdateDefinition},
 
 	// EntryService
-	parlancev1connect.EntryServiceCreateEntryProcedure:         {permissions.CreateEntry},
-	parlancev1connect.EntryServiceDeleteEntriesProcedure:       {permissions.DeleteEntry},
-	parlancev1connect.EntryServiceDeleteEntryProcedure:         {permissions.DeleteEntry},
-	parlancev1connect.EntryServiceGetEntryProcedure:            {permissions.ReadEntry},
-	parlancev1connect.EntryServiceGetEntryHistoryProcedure:     {permissions.ReadEntry},
-	parlancev1connect.EntryServiceListEntriesProcedure:         {permissions.ReadEntry},
-	parlancev1connect.EntryServiceRestoreEntryProcedure:        {permissions.DeleteEntry},
-	parlancev1connect.EntryServiceSearchEntriesProcedure:       {permissions.ReadEntry},
-	parlancev1connect.EntryServiceUpdateEntriesScopesProcedure: {permissions.UpdateEntry},
-	parlancev1connect.EntryServiceUpdateEntriesTagsProcedure:   {permissions.UpdateEntry},
-	parlancev1connect.EntryServiceUpdateEntryProcedure:         {permissions.UpdateEntry},
+	parlancev1connect.EntryServiceCountLiveEntriesProcedure:      {permissions.ReadEntry},
+	parlancev1connect.EntryServiceCreateEntryProcedure:           {permissions.CreateEntry},
+	parlancev1connect.EntryServiceDeleteEntriesProcedure:         {permissions.DeleteEntry},
+	parlancev1connect.EntryServiceDeleteEntryProcedure:           {permissions.DeleteEntry},
+	parlancev1connect.EntryServiceGetEntryProcedure:              {permissions.ReadEntry},
+	parlancev1connect.EntryServiceGetEntryHistoryProcedure:       {permissions.ReadEntry},
+	parlancev1connect.EntryServiceListEntriesProcedure:           {permissions.ReadEntry},
+	parlancev1connect.EntryServiceRestoreEntryProcedure:          {permissions.DeleteEntry},
+	parlancev1connect.EntryServiceSearchEntriesProcedure:         {permissions.ReadEntry},
+	parlancev1connect.EntryServiceUpdateEntriesReleasesProcedure: {permissions.UpdateEntry},
+	parlancev1connect.EntryServiceUpdateEntriesScopesProcedure:   {permissions.UpdateEntry},
+	parlancev1connect.EntryServiceUpdateEntriesTagsProcedure:     {permissions.UpdateEntry},
+	parlancev1connect.EntryServiceUpdateEntryProcedure:           {permissions.UpdateEntry},
 
 	// ExportService
 	parlancev1connect.ExportServiceExportJsonProcedure: {permissions.ExportEntry},
@@ -85,6 +87,14 @@ var Rules = map[string][]string{
 	// PermissionService
 	parlancev1connect.PermissionServiceGetPermissionProcedure:   {permissions.ReadPermission},
 	parlancev1connect.PermissionServiceListPermissionsProcedure: {permissions.ReadPermission},
+
+	// ReleaseService
+	parlancev1connect.ReleaseServiceCreateReleaseProcedure:  {permissions.CreateRelease},
+	parlancev1connect.ReleaseServiceDeleteReleaseProcedure:  {permissions.DeleteRelease},
+	parlancev1connect.ReleaseServiceGetReleaseProcedure:     {permissions.ReadRelease},
+	parlancev1connect.ReleaseServiceListReleasesProcedure:   {permissions.ReadRelease},
+	parlancev1connect.ReleaseServicePublishReleaseProcedure: {permissions.UpdateRelease},
+	parlancev1connect.ReleaseServiceUpdateReleaseProcedure:  {permissions.UpdateRelease},
 
 	// RoleService
 	parlancev1connect.RoleServiceCreateRoleProcedure:  {permissions.CreateRole},

@@ -133,6 +133,21 @@ func TestChatMessages(t *testing.T) {
 			TaskRunData{Task: TaskInfo{Name: "Ship"}, Run: RunInfo{Status: models.RunFailed, Error: "the token can't push & pull"}},
 			"Task “Ship” failed: the token can't push &amp; pull",
 		},
+		{
+			models.WebhookEventTranslationsReleased,
+			ReleaseData{Release: ReleaseInfo{Name: "Spring"}, Count: 2, Entries: []Entry{{Key: "one"}, {Key: "two"}}, User: &User{Name: "Rita"}},
+			"Rita released “Spring”: 2 entries export now\n• `one`\n• `two`",
+		},
+		{
+			models.WebhookEventTranslationsReleased,
+			ReleaseData{Release: ReleaseInfo{Name: "Spring"}, Count: 1, Entries: []Entry{{Key: "one"}}},
+			"Release “Spring” went out: 1 entry exports now\n• `one`",
+		},
+		{
+			models.WebhookEventTranslationsReleased,
+			ReleaseData{Release: ReleaseInfo{Name: "Empty"}, Entries: []Entry{}},
+			"Release “Empty” went out",
+		},
 	}
 
 	for _, test := range tests {
@@ -198,13 +213,14 @@ func TestDigestMessage(t *testing.T) {
 
 	data := DigestData{
 		Since: time.Date(2026, 10, 23, 9, 0, 0, 0, time.UTC),
-		Count: 7,
+		Count: 8,
 		Events: []json.RawMessage{
 			raw(models.WebhookEventTranslationsAwaitingApproval, TranslationsData{Count: 2, User: &User{Name: "Rita"}, Translations: translations("a", "b")}),
 			raw(models.WebhookEventTranslationsAwaitingApproval, TranslationsData{Count: 6, Task: &TaskInfo{Name: "Nightly"}, Translations: translations("c", "d", "e", "f", "g", "h")}),
 			raw(models.WebhookEventTranslationsApproved, TranslationsData{Count: 1, User: &User{Name: "Tom"}, Translations: translations("a")}),
 			raw(models.WebhookEventEntriesCreated, EntriesData{Count: 2, User: &User{Name: "Rita"}, Entries: []Entry{{Key: "x"}, {Key: "y"}}}),
 			raw(models.WebhookEventTaskRunFailed, TaskRunData{Task: TaskInfo{Name: "Ship"}, Run: RunInfo{Status: models.RunFailed, Error: "boom"}}),
+			raw(models.WebhookEventTranslationsReleased, ReleaseData{Release: ReleaseInfo{Name: "Spring"}, Count: 3, Entries: []Entry{{Key: "x"}}}),
 			raw(models.WebhookEventTaskRunSucceeded, TaskRunData{Task: TaskInfo{Name: "Fill"}, Run: RunInfo{Status: models.RunSucceeded, Summary: models.TaskRunSummary{PullRequestURL: "https://github.example/pr/1"}}}),
 		},
 		Truncated: true,
@@ -214,6 +230,7 @@ func TestDigestMessage(t *testing.T) {
 		"• 8 translations submitted for approval (Rita, Task “Nightly”): `a`, `b`, `c`, `d`, `e`, …\n" +
 		"• 1 translation approved (Tom): `a`\n" +
 		"• 2 entries added (Rita): `x`, `y`\n" +
+		"• Release “Spring” went out: 3 entries export now\n" +
 		"• Task “Ship” failed: boom\n" +
 		"• Task “Fill” succeeded · Pull request: https://github.example/pr/1\n" +
 		"…and 1 more event"

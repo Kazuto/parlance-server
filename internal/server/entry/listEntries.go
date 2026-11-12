@@ -64,7 +64,7 @@ func (s *Server) ListEntries(
 
 	query := s.db.Model(&models.Entry{})
 	if !req.Msg.Summary {
-		query = common.PreloadTags(query.Preload("Localizations").Preload("Scopes"))
+		query = preloadDetails(query)
 	}
 
 	allowedSorts := map[string]bool{"key": true, "description": true, "created_at": true, "created_by": true, "updated_at": true, "updated_by": true, "deleted_at": true}
@@ -93,6 +93,7 @@ func (s *Server) ListEntries(
 	}
 
 	query = common.FilterEntriesBySelection(query, common.UniqueIDs(scopeIDs), common.UniqueIDs(req.Msg.TagIds))
+	query = common.FilterEntriesByReleases(query, common.UniqueIDs(req.Msg.ReleaseIds))
 
 	// Filter by locale if provided
 	if req.Msg.LocaleId != "" {

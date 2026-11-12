@@ -12,7 +12,7 @@ func (s *Server) ExportPhp(
 	ctx context.Context,
 	req *connect.Request[pb.ExportPhpRequest],
 ) (*connect.Response[pb.ExportPhpResponse], error) {
-	content, filename, err := s.exportFile(ctx, FormatPHP, req.Msg.LocaleCode, req.Msg.ScopeIds, req.Msg.TagIds, req.Msg.IncludeDrafts)
+	content, filename, err := s.exportFile(ctx, FormatPHP, req.Msg.LocaleCode, req.Msg)
 	if err != nil {
 		return nil, err
 	}

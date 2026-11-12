@@ -56,7 +56,7 @@ func (s *Server) ExportZip(
 ) (*connect.Response[pb.ExportZipResponse], error) {
 	db := s.db.WithContext(ctx)
 
-	sel, err := selection(db, req.Msg.ScopeIds, req.Msg.TagIds, req.Msg.IncludeDrafts)
+	sel, err := selection(db, req.Msg)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +189,7 @@ func scopeFolders(db *gorm.DB, sel Selection, fallback string) ([]zipScopeFolder
 			Slug:      scope.Slug,
 			Name:      scope.Name,
 			Format:    cmp.Or(scope.ExportFormat, fallback),
-			selection: Selection{ScopeIDs: []string{scope.ID}, IncludeDrafts: sel.IncludeDrafts},
+			selection: Selection{ScopeIDs: []string{scope.ID}, IncludeDrafts: sel.IncludeDrafts, IncludeUnreleased: sel.IncludeUnreleased},
 		}
 
 		// Only the scope's own tags, so another scope's tags don't pull their entries in.

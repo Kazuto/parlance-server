@@ -25,6 +25,7 @@ func EntryToProto(e *models.Entry) *pb.Entry {
 		Localizations: LocalizationsToProto(e.Localizations),
 		Scopes:        ScopesToProto(e.Scopes),
 		Tags:          TagsToProto(e.Tags),
+		Releases:      ReleasesToProto(e.Releases),
 	}
 }
 

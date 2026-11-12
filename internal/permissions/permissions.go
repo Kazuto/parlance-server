@@ -52,6 +52,13 @@ const (
 	UpdateTag = "update_tag"
 	DeleteTag = "delete_tag"
 
+	// Release permissions; adding entries to releases needs update_entry
+	CreateRelease = "create_release"
+	ReadRelease   = "read_release"
+	// UpdateRelease also covers publishing a release
+	UpdateRelease = "update_release"
+	DeleteRelease = "delete_release"
+
 	// Definition permissions
 	CreateDefinition = "create_definition"
 	ReadDefinition   = "read_definition"
@@ -125,6 +132,10 @@ func AllPermissions() []string {
 		CreateTag,
 		UpdateTag,
 		DeleteTag,
+		CreateRelease,
+		ReadRelease,
+		UpdateRelease,
+		DeleteRelease,
 		CreateDefinition,
 		ReadDefinition,
 		UpdateDefinition,
@@ -160,4 +171,6 @@ var GrantedWith = map[string][]string{
 	CreateTag:   {UpdateScope},
 	UpdateTag:   {UpdateScope},
 	DeleteTag:   {UpdateScope},
+	// Entries show their releases, so whoever reads entries reads releases.
+	ReadRelease: {ReadEntry},
 }

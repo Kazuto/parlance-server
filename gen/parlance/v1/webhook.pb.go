@@ -40,6 +40,8 @@ const (
 	WebhookEvent_WEBHOOK_EVENT_TRANSLATIONS_AWAITING_APPROVAL WebhookEvent = 7
 	// The events a webhook with a schedule collected; webhooks can't subscribe to it.
 	WebhookEvent_WEBHOOK_EVENT_DIGEST WebhookEvent = 8
+	// A release went out, by its date or by hand, with the entries it let into exports.
+	WebhookEvent_WEBHOOK_EVENT_TRANSLATIONS_RELEASED WebhookEvent = 9
 )
 
 // Enum value maps for WebhookEvent.
@@ -54,6 +56,7 @@ var (
 		6: "WEBHOOK_EVENT_PING",
 		7: "WEBHOOK_EVENT_TRANSLATIONS_AWAITING_APPROVAL",
 		8: "WEBHOOK_EVENT_DIGEST",
+		9: "WEBHOOK_EVENT_TRANSLATIONS_RELEASED",
 	}
 	WebhookEvent_value = map[string]int32{
 		"WEBHOOK_EVENT_UNSPECIFIED":                    0,
@@ -65,6 +68,7 @@ var (
 		"WEBHOOK_EVENT_PING":                           6,
 		"WEBHOOK_EVENT_TRANSLATIONS_AWAITING_APPROVAL": 7,
 		"WEBHOOK_EVENT_DIGEST":                         8,
+		"WEBHOOK_EVENT_TRANSLATIONS_RELEASED":          9,
 	}
 )
 
@@ -1470,7 +1474,7 @@ const file_parlance_v1_webhook_proto_rawDesc = "" +
 	"\x1fRedeliverWebhookDeliveryRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\\\n" +
 	" RedeliverWebhookDeliveryResponse\x128\n" +
-	"\bdelivery\x18\x01 \x01(\v2\x1c.parlance.v1.WebhookDeliveryR\bdelivery*\xcf\x02\n" +
+	"\bdelivery\x18\x01 \x01(\v2\x1c.parlance.v1.WebhookDeliveryR\bdelivery*\xf8\x02\n" +
 	"\fWebhookEvent\x12\x1d\n" +
 	"\x19WEBHOOK_EVENT_UNSPECIFIED\x10\x00\x12'\n" +
 	"#WEBHOOK_EVENT_TRANSLATIONS_APPROVED\x10\x01\x12'\n" +
@@ -1480,7 +1484,8 @@ const file_parlance_v1_webhook_proto_rawDesc = "" +
 	"\x1dWEBHOOK_EVENT_TASK_RUN_FAILED\x10\x05\x12\x16\n" +
 	"\x12WEBHOOK_EVENT_PING\x10\x06\x120\n" +
 	",WEBHOOK_EVENT_TRANSLATIONS_AWAITING_APPROVAL\x10\a\x12\x18\n" +
-	"\x14WEBHOOK_EVENT_DIGEST\x10\b*~\n" +
+	"\x14WEBHOOK_EVENT_DIGEST\x10\b\x12'\n" +
+	"#WEBHOOK_EVENT_TRANSLATIONS_RELEASED\x10\t*~\n" +
 	"\rWebhookFormat\x12\x1e\n" +
 	"\x1aWEBHOOK_FORMAT_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13WEBHOOK_FORMAT_JSON\x10\x01\x12\x18\n" +

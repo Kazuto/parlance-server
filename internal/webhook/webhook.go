@@ -79,6 +79,29 @@ type EntriesData struct {
 	User      *User   `json:"user"`
 }
 
+// ReleaseInfo is a release that went out.
+type ReleaseInfo struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	// ReleaseAt is its date; null for a release published by hand without one.
+	ReleaseAt  *time.Time `json:"release_at"`
+	ReleasedAt *time.Time `json:"released_at"`
+}
+
+// ReleaseData is the data of translations.released.
+type ReleaseData struct {
+	Release ReleaseInfo `json:"release"`
+	// Count is how many entries the release let into exports: its entries no other
+	// release still holds back.
+	Count int `json:"count"`
+	// Entries lists the first maxItems of them, by key.
+	Entries   []Entry `json:"entries"`
+	Truncated bool    `json:"truncated"`
+	// User published the release by hand; null when its date came.
+	User *User `json:"user"`
+}
+
 // TaskRunData is the data of task_run.succeeded and task_run.failed.
 type TaskRunData struct {
 	Task TaskInfo `json:"task"`
@@ -350,6 +373,26 @@ func Entries(tx *gorm.DB, ids []string, userID *string) (EntriesData, error) {
 	data.User, err = loadUser(tx, userID)
 
 	return data, err
+}
+
+// Released loads the entries with the ids, which the release let into exports, for an
+// event about it published by the user.
+func Released(tx *gorm.DB, release *models.Release, ids []string, userID *string) (ReleaseData, error) {
+	entries, err := Entries(tx, ids, userID)
+
+	return ReleaseData{
+		Release: ReleaseInfo{
+			ID:          release.ID,
+			Name:        release.Name,
+			Description: release.Description,
+			ReleaseAt:   utc(release.ReleaseAt),
+			ReleasedAt:  utc(release.ReleasedAt),
+		},
+		Count:     entries.Count,
+		Entries:   entries.Entries,
+		Truncated: entries.Truncated,
+		User:      entries.User,
+	}, err
 }
 
 // TaskRun loads a run that ended, with its task, for an event about it.

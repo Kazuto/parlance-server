@@ -19,6 +19,7 @@ var (
 		models.WebhookEventDigest:               pb.WebhookEvent_WEBHOOK_EVENT_DIGEST,
 
 		models.WebhookEventTranslationsAwaitingApproval: pb.WebhookEvent_WEBHOOK_EVENT_TRANSLATIONS_AWAITING_APPROVAL,
+		models.WebhookEventTranslationsReleased:         pb.WebhookEvent_WEBHOOK_EVENT_TRANSLATIONS_RELEASED,
 	}
 	webhookFormats = map[string]pb.WebhookFormat{
 		models.WebhookFormatJSON:    pb.WebhookFormat_WEBHOOK_FORMAT_JSON,

@@ -21,6 +21,8 @@ message ExportPhpRequest {
   // Narrows each scope to the entries with any of its selected tags; a scope none of
   // whose tags is selected exports whole. A tag selects its scope too.
   repeated string tag_ids = 5;
+  // Also export entries pending releases hold back
+  bool include_unreleased = 6;
 }
 
 message ExportPhpResponse {
@@ -38,6 +40,8 @@ message ExportJsonRequest {
   // Narrows each scope to the entries with any of its selected tags; a scope none of
   // whose tags is selected exports whole. A tag selects its scope too.
   repeated string tag_ids = 5;
+  // Also export entries pending releases hold back
+  bool include_unreleased = 6;
 }
 
 message ExportJsonResponse {
@@ -56,6 +60,8 @@ message ExportPoRequest {
   // Narrows each scope to the entries with any of its selected tags; a scope none of
   // whose tags is selected exports whole. A tag selects its scope too.
   repeated string tag_ids = 5;
+  // Also export entries pending releases hold back
+  bool include_unreleased = 6;
 }
 
 message ExportPoResponse {
@@ -75,6 +81,8 @@ message ExportZipRequest {
   repeated string locale_ids = 4;  // Languages to export; empty exports all
   // The flat files' format, and that of scopes without a default; unspecified for JSON.
   ExportFormat format = 5;
+  // Also export entries pending releases hold back
+  bool include_unreleased = 6;
 }
 
 message ExportZipResponse {
