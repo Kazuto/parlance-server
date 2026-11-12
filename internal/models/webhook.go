@@ -23,11 +23,13 @@ const (
 	WebhookEventDigest = "digest"
 )
 
-// How a webhook posts events: the event as JSON, or a chat message describing it
+// How a webhook posts events: the event as JSON, a chat message describing it, or
+// a notification for an Apprise API server
 const (
 	WebhookFormatJSON    = "json"
 	WebhookFormatSlack   = "slack"
 	WebhookFormatDiscord = "discord"
+	WebhookFormatApprise = "apprise"
 )
 
 // Webhook delivery states

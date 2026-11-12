@@ -53,6 +53,9 @@ enum WebhookFormat {
   WEBHOOK_FORMAT_SLACK = 2;
   // A chat message as Discord's webhooks take it.
   WEBHOOK_FORMAT_DISCORD = 3;
+  // A notification as the Apprise API takes it at /notify/<key>, which passes it
+  // on to the services set up under the key: email, ntfy, Telegram and more.
+  WEBHOOK_FORMAT_APPRISE = 4;
 }
 
 enum WebhookDeliveryStatus {

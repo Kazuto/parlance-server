@@ -111,6 +111,9 @@ const (
 	WebhookFormat_WEBHOOK_FORMAT_SLACK WebhookFormat = 2
 	// A chat message as Discord's webhooks take it.
 	WebhookFormat_WEBHOOK_FORMAT_DISCORD WebhookFormat = 3
+	// A notification as the Apprise API takes it at /notify/<key>, which passes it
+	// on to the services set up under the key: email, ntfy, Telegram and more.
+	WebhookFormat_WEBHOOK_FORMAT_APPRISE WebhookFormat = 4
 )
 
 // Enum value maps for WebhookFormat.
@@ -120,12 +123,14 @@ var (
 		1: "WEBHOOK_FORMAT_JSON",
 		2: "WEBHOOK_FORMAT_SLACK",
 		3: "WEBHOOK_FORMAT_DISCORD",
+		4: "WEBHOOK_FORMAT_APPRISE",
 	}
 	WebhookFormat_value = map[string]int32{
 		"WEBHOOK_FORMAT_UNSPECIFIED": 0,
 		"WEBHOOK_FORMAT_JSON":        1,
 		"WEBHOOK_FORMAT_SLACK":       2,
 		"WEBHOOK_FORMAT_DISCORD":     3,
+		"WEBHOOK_FORMAT_APPRISE":     4,
 	}
 )
 
@@ -1485,12 +1490,13 @@ const file_parlance_v1_webhook_proto_rawDesc = "" +
 	"\x12WEBHOOK_EVENT_PING\x10\x06\x120\n" +
 	",WEBHOOK_EVENT_TRANSLATIONS_AWAITING_APPROVAL\x10\a\x12\x18\n" +
 	"\x14WEBHOOK_EVENT_DIGEST\x10\b\x12'\n" +
-	"#WEBHOOK_EVENT_TRANSLATIONS_RELEASED\x10\t*~\n" +
+	"#WEBHOOK_EVENT_TRANSLATIONS_RELEASED\x10\t*\x9a\x01\n" +
 	"\rWebhookFormat\x12\x1e\n" +
 	"\x1aWEBHOOK_FORMAT_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13WEBHOOK_FORMAT_JSON\x10\x01\x12\x18\n" +
 	"\x14WEBHOOK_FORMAT_SLACK\x10\x02\x12\x1a\n" +
-	"\x16WEBHOOK_FORMAT_DISCORD\x10\x03*\xd7\x01\n" +
+	"\x16WEBHOOK_FORMAT_DISCORD\x10\x03\x12\x1a\n" +
+	"\x16WEBHOOK_FORMAT_APPRISE\x10\x04*\xd7\x01\n" +
 	"\x15WebhookDeliveryStatus\x12'\n" +
 	"#WEBHOOK_DELIVERY_STATUS_UNSPECIFIED\x10\x00\x12#\n" +
 	"\x1fWEBHOOK_DELIVERY_STATUS_PENDING\x10\x01\x12%\n" +

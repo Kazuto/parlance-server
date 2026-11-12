@@ -32,20 +32,33 @@ type discordMessage struct {
 	} `json:"allowed_mentions"`
 }
 
+// appriseMessage is a notification as the Apprise API takes it, which passes it on
+// to the services set up under its key. The text goes as plain text: Apprise
+// converts it for each service, and keys and translations stay as written.
+type appriseMessage struct {
+	Title  string `json:"title"`
+	Body   string `json:"body"`
+	Type   string `json:"type"`
+	Format string `json:"format"`
+}
+
 // Body returns the request body that posts a delivery's payload in the format: the
-// event as JSON, or a chat message describing it.
+// event as JSON, or a chat message or notification describing it.
 func Body(format, payload string) ([]byte, error) {
-	if format != models.WebhookFormatSlack && format != models.WebhookFormatDiscord {
+	if format != models.WebhookFormatSlack && format != models.WebhookFormatDiscord && format != models.WebhookFormatApprise {
 		return []byte(payload), nil
 	}
 
-	text, err := message(payload)
+	event, text, err := describe(payload)
 	if err != nil {
 		return nil, err
 	}
 
-	if format == models.WebhookFormatSlack {
+	switch format {
+	case models.WebhookFormatSlack:
 		return json.Marshal(map[string]string{"text": escapeSlack(text)})
+	case models.WebhookFormatApprise:
+		return json.Marshal(appriseMessage{Title: eventTitle(event), Body: text, Type: appriseType(event), Format: "text"})
 	}
 
 	body := discordMessage{Content: truncate(text, discordMaxContent), Username: "Parlance"}
@@ -54,33 +67,76 @@ func Body(format, payload string) ([]byte, error) {
 	return json.Marshal(body)
 }
 
-// message describes an event in a few lines of chat text.
-func message(payload string) (string, error) {
+// eventTitles head notifications about each event.
+var eventTitles = map[string]string{
+	models.WebhookEventTranslationsAwaitingApproval: "Translations await approval",
+	models.WebhookEventTranslationsApproved:         "Translations approved",
+	models.WebhookEventTranslationsRejected:         "Translations rejected",
+	models.WebhookEventTranslationsReleased:         "Release went out",
+	models.WebhookEventEntriesCreated:               "Entries added",
+	models.WebhookEventTaskRunSucceeded:             "Task succeeded",
+	models.WebhookEventTaskRunFailed:                "Task failed",
+	models.WebhookEventPing:                         "Test message",
+	models.WebhookEventDigest:                       "Digest",
+}
+
+func eventTitle(event string) string {
+	if title, ok := eventTitles[event]; ok {
+		return "Parlance: " + title
+	}
+
+	return "Parlance: " + event
+}
+
+// appriseType is how services show a notification about the event, e.g. in red
+// for a failure; "info" for events that report nothing good or bad.
+func appriseType(event string) string {
+	switch event {
+	case models.WebhookEventTaskRunFailed:
+		return "failure"
+	case models.WebhookEventTranslationsRejected:
+		return "warning"
+	case models.WebhookEventTranslationsApproved, models.WebhookEventTaskRunSucceeded, models.WebhookEventTranslationsReleased:
+		return "success"
+	default:
+		return "info"
+	}
+}
+
+// describe reads an event's name and describes it in a few lines of chat text.
+func describe(payload string) (name, text string, err error) {
 	var event struct {
 		Event string          `json:"event"`
 		Data  json.RawMessage `json:"data"`
 	}
 
 	if err := json.Unmarshal([]byte(payload), &event); err != nil {
-		return "", fmt.Errorf("read the event: %w", err)
+		return "", "", fmt.Errorf("read the event: %w", err)
 	}
 
+	text, err = message(event.Event, event.Data)
+
+	return event.Event, text, err
+}
+
+// message describes an event in a few lines of chat text.
+func message(event string, raw json.RawMessage) (string, error) {
 	decode := func(data any) error {
-		if err := json.Unmarshal(event.Data, data); err != nil {
-			return fmt.Errorf("read the %s event: %w", event.Event, err)
+		if err := json.Unmarshal(raw, data); err != nil {
+			return fmt.Errorf("read the %s event: %w", event, err)
 		}
 
 		return nil
 	}
 
-	switch event.Event {
+	switch event {
 	case models.WebhookEventTranslationsApproved, models.WebhookEventTranslationsRejected, models.WebhookEventTranslationsAwaitingApproval:
 		var data TranslationsData
 		if err := decode(&data); err != nil {
 			return "", err
 		}
 
-		return translationsMessage(event.Event, data), nil
+		return translationsMessage(event, data), nil
 	case models.WebhookEventEntriesCreated:
 		var data EntriesData
 		if err := decode(&data); err != nil {
@@ -117,7 +173,7 @@ func message(payload string) (string, error) {
 
 		return digestMessage(data), nil
 	default:
-		return "Parlance: " + event.Event, nil
+		return "Parlance: " + event, nil
 	}
 }
 

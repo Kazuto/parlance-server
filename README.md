@@ -241,9 +241,34 @@ The format decides the request body:
   that take Slack's incoming webhooks, such as Mattermost.
 - **Discord** posts a short message as Discord's webhooks take it, with mentions
   turned off.
+- **Apprise** posts a notification to an
+  [Apprise API](https://github.com/caronc/apprise-api) server, which passes it on
+  to the services set up there: email, ntfy, Telegram, Matrix and many more.
+  Failed task runs come as failures, rejected translations as warnings, and
+  approvals, successful runs and releases as successes.
 
 Chat services turn down other bodies (Discord answers 400, "Cannot send an empty
-message"). The web app picks the format when you type a Discord or Slack address.
+message"). The web app picks the format when you type a Discord or Slack address,
+or an Apprise one ending in `/notify` or `/notify/<key>`.
+
+To notify through Apprise, run its API next to Parlance and save the services
+under a key:
+
+```yaml
+services:
+  apprise:
+    image: caronc/apprise:latest
+    volumes:
+      - ./apprise:/config
+```
+
+```sh
+curl -d "urls=ntfys://ntfy.sh/your-topic" http://apprise:8000/add/parlance
+```
+
+Then use `http://apprise:8000/notify/parlance` as the webhook's URL. Without a
+key, `http://apprise:8000/notify` notifies the services in Apprise's
+`APPRISE_STATELESS_URLS`.
 Deliveries keep the event and render the body when sent, so after changing the
 format, retries and **Send again** use the new one.
 

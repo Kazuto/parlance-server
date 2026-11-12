@@ -172,6 +172,77 @@ func TestChatMessages(t *testing.T) {
 	}
 }
 
+func TestAppriseBody(t *testing.T) {
+	apprise := func(t *testing.T, payload string) appriseMessage {
+		t.Helper()
+
+		body, err := Body(models.WebhookFormatApprise, payload)
+		if err != nil {
+			t.Fatalf("Body() error = %v", err)
+		}
+
+		var decoded appriseMessage
+		if err := json.Unmarshal(body, &decoded); err != nil {
+			t.Fatalf("body %s: %v", body, err)
+		}
+
+		return decoded
+	}
+
+	t.Run("titles the chat text, unescaped", func(t *testing.T) {
+		got := apprise(t, payloadOf(t, models.WebhookEventTranslationsRejected, TranslationsData{
+			Count: 1, Comment: "Use the <b> tag", User: &User{Name: "Rita"},
+			Translations: []Translation{{Key: "save", Locale: "fr", Translation: "Enregistrer"}},
+		}))
+		want := appriseMessage{
+			Title:  "Parlance: Translations rejected",
+			Body:   "Rita rejected 1 translation: “Use the <b> tag”\n• `save` (fr): Enregistrer",
+			Type:   "warning",
+			Format: "text",
+		}
+
+		if got != want {
+			t.Errorf("got %+v\nwant %+v", got, want)
+		}
+	})
+
+	t.Run("marks how each event went", func(t *testing.T) {
+		tests := []struct {
+			event       string
+			data        any
+			title, kind string
+		}{
+			{models.WebhookEventTaskRunFailed, TaskRunData{Run: RunInfo{Status: models.RunFailed}}, "Task failed", "failure"},
+			{models.WebhookEventTaskRunSucceeded, TaskRunData{Run: RunInfo{Status: models.RunSucceeded}}, "Task succeeded", "success"},
+			{models.WebhookEventTranslationsApproved, TranslationsData{Count: 1}, "Translations approved", "success"},
+			{models.WebhookEventTranslationsReleased, ReleaseData{Release: ReleaseInfo{Name: "Spring"}}, "Release went out", "success"},
+			{models.WebhookEventTranslationsAwaitingApproval, TranslationsData{Count: 1}, "Translations await approval", "info"},
+			{models.WebhookEventEntriesCreated, EntriesData{Count: 1}, "Entries added", "info"},
+			{models.WebhookEventDigest, DigestData{Since: time.Now()}, "Digest", "info"},
+			{"something.new", struct{}{}, "something.new", "info"},
+		}
+
+		for _, tt := range tests {
+			got := apprise(t, payloadOf(t, tt.event, tt.data))
+			if got.Title != "Parlance: "+tt.title || got.Type != tt.kind {
+				t.Errorf("%s: got %q as %q, want %q as %q", tt.event, got.Title, got.Type, "Parlance: "+tt.title, tt.kind)
+			}
+		}
+	})
+
+	t.Run("sends a test message", func(t *testing.T) {
+		ping, err := Ping(&models.Webhook{ID: "hook-1", Name: "Alerts"})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		got := apprise(t, ping.Payload)
+		if got.Title != "Parlance: Test message" || got.Body != "This is a test message from the Parlance webhook “Alerts”." {
+			t.Errorf("ping = %+v", got)
+		}
+	})
+}
+
 func TestAwaitingApprovalMessages(t *testing.T) {
 	tests := []struct {
 		data TranslationsData

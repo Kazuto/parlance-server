@@ -25,6 +25,7 @@ var (
 		models.WebhookFormatJSON:    pb.WebhookFormat_WEBHOOK_FORMAT_JSON,
 		models.WebhookFormatSlack:   pb.WebhookFormat_WEBHOOK_FORMAT_SLACK,
 		models.WebhookFormatDiscord: pb.WebhookFormat_WEBHOOK_FORMAT_DISCORD,
+		models.WebhookFormatApprise: pb.WebhookFormat_WEBHOOK_FORMAT_APPRISE,
 	}
 	deliveryStatuses = map[string]pb.WebhookDeliveryStatus{
 		models.DeliveryPending:   pb.WebhookDeliveryStatus_WEBHOOK_DELIVERY_STATUS_PENDING,
