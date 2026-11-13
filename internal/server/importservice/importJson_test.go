@@ -8,7 +8,6 @@ import (
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 )
 
 func TestParseJSONTranslations(t *testing.T) {
@@ -49,7 +48,7 @@ func TestImportJSONRejectsInvalidFilesBeforeDatabaseChanges(t *testing.T) {
 func TestImportReportsKeysOfDeletedEntries(t *testing.T) {
 	ctx, db := testutil.Setup(t)
 
-	locale := models.Locale{Code: "xx", Names: datatypes.JSON(`{"en":"Test"}`)}
+	locale := models.Locale{Code: "xx"}
 	deleted := models.Entry{Key: "gone"}
 
 	for _, row := range []any{&locale, &deleted} {

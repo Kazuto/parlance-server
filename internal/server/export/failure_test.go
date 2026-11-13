@@ -13,14 +13,13 @@ import (
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
 	"github.com/kazuto/parlance-server/internal/webhook"
-	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
 func TestFailedDownloadsAreReported(t *testing.T) {
 	ctx, db := testutil.Setup(t)
 
-	locale := models.Locale{Code: "fx", Names: datatypes.JSON(`{"en":"Failing"}`)}
+	locale := models.Locale{Code: "fx"}
 	hook := models.Webhook{Name: "Alerts", URL: "https://chat.example/hook", Enabled: true, Events: []string{models.WebhookEventExportFailed}}
 
 	for _, row := range []any{&locale, &hook} {

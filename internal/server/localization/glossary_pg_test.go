@@ -6,13 +6,12 @@ import (
 
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 )
 
 func TestGlossaryFindsWordForms(t *testing.T) {
 	db := testutil.SetupPostgresDB(t)
 
-	de := models.Locale{Code: "de", Names: datatypes.JSON(`{"en":"German"}`)}
+	de := models.Locale{Code: "de"}
 	copyTerm := models.Terminology{Term: "copy"}
 	draftTerm := models.Terminology{Term: "token"}
 

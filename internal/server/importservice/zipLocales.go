@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"cmp"
 	"context"
-	"encoding/json"
 	"fmt"
 	"slices"
 	"strings"
@@ -15,7 +14,6 @@ import (
 	"github.com/kazuto/parlance-server/internal/langnames"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
-	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -28,10 +26,8 @@ type zipImport struct {
 	// of the missing ones to create.
 	canCreate bool
 	create    []string
-	// language is the request's, which results name missing languages in; languages
-	// are those new languages get names in.
-	language  string
-	languages []string
+	// language is the request's, which results name missing languages in.
+	language string
 	// created holds the languages created for files so far, by lower-case code.
 	created map[string]bool
 	// held holds the keys of the default language's files when the import deletes the
@@ -39,23 +35,12 @@ type zipImport struct {
 	held map[string]bool
 }
 
-// newZipImport starts a ZIP import. New languages get names in English, the
-// request's language and the project's languages.
-func newZipImport(
-	ctx context.Context, db *gorm.DB, language string, scopeIDs []string, options importOptions, canCreate bool, create []string,
-) (*zipImport, error) {
-	var codes []string
-	if err := db.Model(&models.Locale{}).Order("code").Pluck("code", &codes).Error; err != nil {
-		return nil, errors.InternalCause(err, "failed to load locales")
-	}
-
-	languages := append([]string{"en", language}, codes...)
-	slices.Sort(languages)
-
+// newZipImport starts a ZIP import.
+func newZipImport(ctx context.Context, language string, scopeIDs []string, options importOptions, canCreate bool, create []string) *zipImport {
 	return &zipImport{
 		ctx: ctx, scopeIDs: scopeIDs, options: options, canCreate: canCreate, create: create,
-		language: language, languages: slices.Compact(languages), created: map[string]bool{},
-	}, nil
+		language: language, created: map[string]bool{},
+	}
 }
 
 // importFile imports a language file of the archive. What goes wrong with the file
@@ -143,7 +128,7 @@ func addSkipped(result *pb.LocaleImportResult, skipped int32) {
 // neither.
 func (z *zipImport) createAndImport(db *gorm.DB, code string, translations map[string]string, result *pb.LocaleImportResult) {
 	err := db.Transaction(func(tx *gorm.DB) error {
-		locale, err := createZipLocale(tx, code, z.languages)
+		locale, err := createZipLocale(tx, code)
 		if err != nil {
 			return err
 		}
@@ -245,19 +230,9 @@ func resolveZipLocale(db *gorm.DB, code string, canCreate bool) (*models.Locale,
 	return nil, pb.MissingLocaleReason_MISSING_LOCALE_REASON_UNSPECIFIED, nil
 }
 
-// createZipLocale creates the language of a file, named in the languages as far as
-// they are known, and in English at least by its code. It never becomes the
-// default.
-func createZipLocale(tx *gorm.DB, code string, languages []string) (*models.Locale, error) {
-	names := langnames.Names(code, languages)
-	names["en"] = cmp.Or(names["en"], code)
-
-	encoded, err := json.Marshal(names)
-	if err != nil {
-		return nil, errors.InternalCause(err, "failed to encode names")
-	}
-
-	locale := models.Locale{Code: code, Names: datatypes.JSON(encoded)}
+// createZipLocale creates the language of a file. It never becomes the default.
+func createZipLocale(tx *gorm.DB, code string) (*models.Locale, error) {
+	locale := models.Locale{Code: code}
 	if err := tx.Create(&locale).Error; err != nil {
 		return nil, errors.InternalCause(err, "failed to create language "+code)
 	}

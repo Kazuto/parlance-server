@@ -12,7 +12,6 @@ import (
 	"github.com/kazuto/parlance-server/internal/database"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 )
 
 // outdatedFixture has an English default and German translations of "a" and "b", and
@@ -43,8 +42,8 @@ func setupOutdatedFixture(t *testing.T) *outdatedFixture {
 		db:      db,
 		ctx:     ctx,
 		server:  &Server{db: db},
-		english: models.Locale{Code: "xa", IsDefault: true, Names: datatypes.JSON(`{"en":"Source"}`)},
-		german:  models.Locale{Code: "xb", Names: datatypes.JSON(`{"en":"Target"}`)},
+		english: models.Locale{Code: "xa", IsDefault: true},
+		german:  models.Locale{Code: "xb"},
 		scope:   models.Scope{Name: "app", Slug: "app"},
 		entries: map[string]*models.Entry{"a": {Key: "a"}, "b": {Key: "b"}, "c": {Key: "c"}},
 	}

@@ -146,7 +146,6 @@ func SetupTestDB() (*database.DB, error) {
 		`CREATE TABLE IF NOT EXISTS locales (
 			id TEXT PRIMARY KEY,
 			code TEXT NOT NULL UNIQUE,
-			names TEXT,
 			is_default INTEGER DEFAULT 0,
 			formality TEXT NOT NULL DEFAULT '',
 			created_at DATETIME,

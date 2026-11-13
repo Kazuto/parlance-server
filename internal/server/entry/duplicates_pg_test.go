@@ -9,7 +9,6 @@ import (
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 )
 
 func TestSimilarAndDuplicateEntries(t *testing.T) {
@@ -23,8 +22,8 @@ func TestSimilarAndDuplicateEntries(t *testing.T) {
 		t.Fatalf("create user: %v", err)
 	}
 
-	en := models.Locale{Code: "xa", IsDefault: true, Names: datatypes.JSON(`{"en":"Source"}`)}
-	de := models.Locale{Code: "xb", Names: datatypes.JSON(`{"en":"Target"}`)}
+	en := models.Locale{Code: "xa", IsDefault: true}
+	de := models.Locale{Code: "xb"}
 
 	for _, locale := range []*models.Locale{&en, &de} {
 		if err := db.Create(locale).Error; err != nil {

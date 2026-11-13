@@ -10,7 +10,6 @@ import (
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 )
 
 func TestImportReviewStates(t *testing.T) {
@@ -29,7 +28,7 @@ func TestImportReviewStates(t *testing.T) {
 		t.Fatalf("create user: %v", err)
 	}
 
-	locale := models.Locale{Code: "xx", Names: datatypes.JSON(`{"en":"Test"}`)}
+	locale := models.Locale{Code: "xx"}
 	kept, changed := models.Entry{Key: "kept"}, models.Entry{Key: "changed"}
 
 	for _, row := range []any{&locale, &kept, &changed} {

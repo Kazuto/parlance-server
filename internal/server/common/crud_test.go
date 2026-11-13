@@ -8,7 +8,6 @@ import (
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 )
 
 func TestFindByID(t *testing.T) {
@@ -39,7 +38,7 @@ func TestDeleteAndRestoreCreditTheCurrentUser(t *testing.T) {
 
 	userID := middleware.UserID(ctx)
 
-	locale := models.Locale{Code: "xx", Names: datatypes.JSON(`{"en":"Test"}`)}
+	locale := models.Locale{Code: "xx"}
 	term := models.Terminology{Term: "greeting"}
 
 	for _, row := range []any{&locale, &term} {

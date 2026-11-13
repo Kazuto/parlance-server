@@ -14,7 +14,6 @@ import (
 	"github.com/kazuto/parlance-server/internal/database"
 	"github.com/kazuto/parlance-server/internal/models"
 	"google.golang.org/protobuf/proto"
-	"gorm.io/datatypes"
 )
 
 // snapshot returns every row an import writes, deleted ones too, so a dry run can be
@@ -224,7 +223,7 @@ func TestDryRunListsChanges(t *testing.T) {
 func TestZipDryRunImportsFilesInOrder(t *testing.T) {
 	f := setupOutdatedFixture(t)
 
-	broken := models.Locale{Code: "xc", Names: datatypes.JSON(`{"en":"Broken"}`)}
+	broken := models.Locale{Code: "xc"}
 	if err := f.db.Create(&broken).Error; err != nil {
 		t.Fatal(err)
 	}

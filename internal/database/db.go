@@ -153,6 +153,13 @@ func (db *DB) AutoMigrate() error {
 		}
 	}
 
+	// Locales were named in each language; the names now come from their codes.
+	if db.Migrator().HasColumn(&models.Locale{}, "names") {
+		if err := db.Migrator().DropColumn(&models.Locale{}, "names"); err != nil {
+			return fmt.Errorf("failed to drop the locale names: %w", err)
+		}
+	}
+
 	if untracked {
 		if err := db.Session(&gorm.Session{SkipHooks: true}).Model(&models.Localization{}).Unscoped().
 			Where("created_by IS NULL AND updated_by IS NULL AND status = ?", models.StatusDraft).

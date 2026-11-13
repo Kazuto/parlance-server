@@ -7,7 +7,6 @@ import (
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 )
 
 func TestDestroyLocaleRemovesTranslatedLocale(t *testing.T) {
@@ -21,7 +20,7 @@ func TestDestroyLocaleRemovesTranslatedLocale(t *testing.T) {
 		t.Fatalf("create user: %v", err)
 	}
 
-	locale := models.Locale{Code: "xx", Names: datatypes.JSON(`{"en":"Test"}`)}
+	locale := models.Locale{Code: "xx"}
 	entry := models.Entry{Key: "greeting"}
 
 	if err := db.Create(&locale).Error; err != nil {

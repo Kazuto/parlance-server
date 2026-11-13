@@ -8,7 +8,6 @@ import (
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 )
 
 func TestReplaceAllImportDeletesScopeTranslationsWithHistory(t *testing.T) {
@@ -24,7 +23,7 @@ func TestReplaceAllImportDeletesScopeTranslationsWithHistory(t *testing.T) {
 
 	userID := ctx.Value(middleware.ContextKeyUserID).(string)
 
-	locale := models.Locale{Code: "xx", Names: datatypes.JSON(`{"en":"Test"}`)}
+	locale := models.Locale{Code: "xx"}
 	scope := models.Scope{Name: "app", Slug: "app"}
 	kept := models.Entry{Key: "kept"}
 	dropped := models.Entry{Key: "dropped"}

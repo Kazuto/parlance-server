@@ -475,11 +475,22 @@ partial update:
 - **Related ids** (`scopes`, `permissions`, `roles`) are sent as
   `{ "ids": [...] }`. Omit the field to keep the current set, send
   `{ "ids": [] }` to remove all, or send ids to replace the set.
-- **Locale names** are sent as `names: { "values": { "en": "German" } }`.
 
-Lists and maps are wrapped because protobuf cannot tell an empty list or map
-from one that was not sent. Ids are validated, and changes to the record and its
-relations are saved in one transaction.
+Lists are wrapped because protobuf cannot tell an empty list from one that was not
+sent. Ids are validated, and changes to the record and its relations are saved in
+one transaction.
+
+### Language names
+
+Languages aren't named by hand. A locale's `name` is the name of the language its
+code stands for, in the request's language (`Accept-Language`), from the CLDR data:
+`de` is "German" in English and "Deutsch" in German, `pt-BR` "Brazilian Portuguese".
+Languages CLDR has no names in fall back to English.
+
+`CreateLocale` and code changes in `UpdateLocale` therefore take only codes of known
+languages, with `-` or `_` between the parts (`de`, `pt-BR`, `pt_BR`), and reject
+others with `LOCALE_CODE_UNKNOWN`. A locale created with a made-up code before codes
+were checked, such as `en-informal`, keeps it and is named by it.
 
 ### Entry translation filters
 
@@ -568,9 +579,8 @@ language doesn't exist, the result has `localeMissing`, the language's
 code; add it under Locales) or `NO_PERMISSION` (creating languages needs
 `create_locale`). A dry run imports the files of languages it could create, so
 they show what would change. A real import creates the languages listed in
-`createLocaleCodes`, named in English, the request's language and the project's
-languages, never as the default, and imports their files in the same transaction
-(`localeCreated`). It skips the files of other missing languages.
+`createLocaleCodes`, never as the default, and imports their files in the same
+transaction (`localeCreated`). It skips the files of other missing languages.
 
 **JSON:** imports accept flat dotted keys and nested objects, also mixed:
 `{"entries": {"create": "Create Entry"}}` becomes `{"entries.create": "Create Entry"}`.

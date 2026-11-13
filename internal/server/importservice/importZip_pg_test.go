@@ -2,22 +2,19 @@ package importservice
 
 import (
 	"context"
-	"encoding/json"
-	"maps"
 	"testing"
 
 	"connectrpc.com/connect"
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 )
 
 func TestZipImportCreatesMissingLanguages(t *testing.T) {
 	f := setupOutdatedFixture(t)
 
-	german := models.Locale{Code: "de-DE", Names: datatypes.JSON(`{"en":"German"}`)}
-	dutch := models.Locale{Code: "nl", Names: datatypes.JSON(`{"en":"Dutch"}`)}
+	german := models.Locale{Code: "de-DE"}
+	dutch := models.Locale{Code: "nl"}
 
 	for _, row := range []any{&german, &dutch} {
 		if err := f.db.Create(row).Error; err != nil {
@@ -145,15 +142,8 @@ func TestZipImportCreatesMissingLanguages(t *testing.T) {
 			t.Fatalf("load sv: %v", err)
 		}
 
-		var names map[string]string
-		if err := json.Unmarshal(swedish.Names, &names); err != nil {
-			t.Fatal(err)
-		}
-
-		// In English, the request's language and the project's languages it knows;
-		// not the deleted Dutch one.
-		if want := map[string]string{"en": "Swedish", "de": "Schwedisch", "de-DE": "Schwedisch"}; !maps.Equal(names, want) || swedish.IsDefault {
-			t.Errorf("sv names %v, default %v; want %v, not default", names, swedish.IsDefault, want)
+		if swedish.IsDefault {
+			t.Error("sv became the default language")
 		}
 
 		var texts int64
