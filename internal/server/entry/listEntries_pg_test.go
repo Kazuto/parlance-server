@@ -9,7 +9,6 @@ import (
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 )
 
 func TestListEntriesFiltersByScopeAndStatus(t *testing.T) {
@@ -23,7 +22,7 @@ func TestListEntriesFiltersByScopeAndStatus(t *testing.T) {
 		t.Fatalf("create user: %v", err)
 	}
 
-	locale := models.Locale{Code: "xx", Names: datatypes.JSON(`{"en":"Test"}`)}
+	locale := models.Locale{Code: "xx"}
 	app, web := models.Scope{Name: "App", Slug: "app"}, models.Scope{Name: "Web", Slug: "web"}
 	shared, appOnly, unscoped := models.Entry{Key: "shared"}, models.Entry{Key: "app.only"}, models.Entry{Key: "unscoped"}
 
@@ -97,8 +96,8 @@ func TestListEntriesFindsDraftsForReview(t *testing.T) {
 		t.Fatalf("create user: %v", err)
 	}
 
-	de := models.Locale{Code: "de", Names: datatypes.JSON(`{"en":"German"}`)}
-	fr := models.Locale{Code: "fr", Names: datatypes.JSON(`{"en":"French"}`)}
+	de := models.Locale{Code: "de"}
+	fr := models.Locale{Code: "fr"}
 	approved, draft := models.Entry{Key: "approved"}, models.Entry{Key: "draft"}
 
 	for _, row := range []any{&de, &fr, &approved, &draft} {
@@ -153,9 +152,9 @@ func TestListEntriesToCheck(t *testing.T) {
 		t.Fatalf("create user: %v", err)
 	}
 
-	en := models.Locale{Code: "en", IsDefault: true, Names: datatypes.JSON(`{"en":"English"}`)}
-	de := models.Locale{Code: "de", Formality: "informal", Names: datatypes.JSON(`{"en":"German"}`)}
-	fr := models.Locale{Code: "fr", Names: datatypes.JSON(`{"en":"French"}`)}
+	en := models.Locale{Code: "en", IsDefault: true}
+	de := models.Locale{Code: "de", Formality: "informal"}
+	fr := models.Locale{Code: "fr"}
 
 	for _, locale := range []*models.Locale{&en, &de, &fr} {
 		if err := db.Create(locale).Error; err != nil {
@@ -226,8 +225,8 @@ func TestListEntriesStatusLocales(t *testing.T) {
 		t.Fatalf("create user: %v", err)
 	}
 
-	en := models.Locale{Code: "en", IsDefault: true, Names: datatypes.JSON(`{"en":"English"}`)}
-	de := models.Locale{Code: "de", Names: datatypes.JSON(`{"en":"German"}`)}
+	en := models.Locale{Code: "en", IsDefault: true}
+	de := models.Locale{Code: "de"}
 	entry := models.Entry{Key: "draft.source"}
 
 	for _, row := range []any{&en, &de, &entry} {

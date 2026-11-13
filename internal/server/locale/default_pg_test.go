@@ -8,7 +8,6 @@ import (
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 )
 
 func TestOneDefaultLocaleAtATime(t *testing.T) {
@@ -30,7 +29,6 @@ func TestOneDefaultLocaleAtATime(t *testing.T) {
 		res, err := server.CreateLocale(ctx, connect.NewRequest(&pb.CreateLocaleRequest{
 			Code:      code,
 			IsDefault: isDefault,
-			Names:     &pb.StringMap{Values: map[string]string{"en": code}},
 		}))
 		if err != nil {
 			t.Fatalf("CreateLocale(%s) error = %v", code, err)
@@ -49,28 +47,28 @@ func TestOneDefaultLocaleAtATime(t *testing.T) {
 	}
 
 	// Bootstrap may already have made a default; each step must leave exactly one.
-	create("aa", true)
+	create("sv", true)
 
-	if got := defaults(); len(got) != 1 || got[0] != "aa" {
-		t.Fatalf("after creating a default: defaults = %v, want [aa]", got)
+	if got := defaults(); len(got) != 1 || got[0] != "sv" {
+		t.Fatalf("after creating a default: defaults = %v, want [sv]", got)
 	}
 
-	bb := create("bb", false)
-	if _, err := server.SetDefaultLocale(ctx, connect.NewRequest(&pb.SetDefaultLocaleRequest{LocaleId: bb})); err != nil {
+	nl := create("nl", false)
+	if _, err := server.SetDefaultLocale(ctx, connect.NewRequest(&pb.SetDefaultLocaleRequest{LocaleId: nl})); err != nil {
 		t.Fatalf("SetDefaultLocale() error = %v", err)
 	}
 
-	if got := defaults(); len(got) != 1 || got[0] != "bb" {
-		t.Fatalf("after setting a default: defaults = %v, want [bb]", got)
+	if got := defaults(); len(got) != 1 || got[0] != "nl" {
+		t.Fatalf("after setting a default: defaults = %v, want [nl]", got)
 	}
 	// Saving the current default again keeps it.
 	isDefault := true
-	if _, err := server.UpdateLocale(ctx, connect.NewRequest(&pb.UpdateLocaleRequest{Id: bb, IsDefault: &isDefault})); err != nil {
+	if _, err := server.UpdateLocale(ctx, connect.NewRequest(&pb.UpdateLocaleRequest{Id: nl, IsDefault: &isDefault})); err != nil {
 		t.Fatalf("UpdateLocale() error = %v", err)
 	}
 
-	if got := defaults(); len(got) != 1 || got[0] != "bb" {
-		t.Fatalf("after re-saving the default: defaults = %v, want [bb]", got)
+	if got := defaults(); len(got) != 1 || got[0] != "nl" {
+		t.Fatalf("after re-saving the default: defaults = %v, want [nl]", got)
 	}
 }
 
@@ -86,8 +84,8 @@ func TestNewDefaultLocaleClearsOutdatedTranslations(t *testing.T) {
 		t.Fatalf("create user: %v", err)
 	}
 
-	en := models.Locale{Code: "xa", IsDefault: true, Names: datatypes.JSON(`{"en":"Source"}`)}
-	de := models.Locale{Code: "xb", Names: datatypes.JSON(`{"en":"Target"}`)}
+	en := models.Locale{Code: "xa", IsDefault: true}
+	de := models.Locale{Code: "xb"}
 	entry := models.Entry{Key: "greeting"}
 
 	for _, row := range []any{&en, &de, &entry} {

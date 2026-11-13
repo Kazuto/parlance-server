@@ -7,7 +7,6 @@ import (
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
 	"google.golang.org/protobuf/proto"
-	"gorm.io/datatypes"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -23,8 +22,8 @@ func TestSuggestTerminologiesMatchesWordForms(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	en := models.Locale{Code: "en", IsDefault: true, Names: datatypes.JSON(`{"en":"English"}`)}
-	de := models.Locale{Code: "de", Names: datatypes.JSON(`{"en":"German"}`)}
+	en := models.Locale{Code: "en", IsDefault: true}
+	de := models.Locale{Code: "de"}
 	scope := models.Terminology{Term: "scope"}
 
 	for _, row := range []any{&en, &de, &scope} {

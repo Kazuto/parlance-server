@@ -51,20 +51,6 @@ func Name(code, in string) string {
 	return string(unicode.ToUpper(first)) + name[size:]
 }
 
-// Names returns the names of the language with the code in each of the languages
-// it knows, by their codes as given.
-func Names(code string, ins []string) map[string]string {
-	names := map[string]string{}
-
-	for _, in := range ins {
-		if name := Name(code, in); name != "" {
-			names[in] = name
-		}
-	}
-
-	return names
-}
-
 // parse reads a code with "-" or "_" between its parts, which must name a known
 // language.
 func parse(code string) (language.Tag, bool) {

@@ -1,7 +1,6 @@
 package langnames
 
 import (
-	"maps"
 	"testing"
 )
 
@@ -70,12 +69,5 @@ func TestName(t *testing.T) {
 		if got := Name(tt.code, tt.in); got != tt.want {
 			t.Errorf("Name(%q, %q) = %q, want %q", tt.code, tt.in, got, tt.want)
 		}
-	}
-
-	got := Names("sv", []string{"en", "de", "xx", "en-informal"})
-	want := map[string]string{"en": "Swedish", "de": "Schwedisch"}
-
-	if !maps.Equal(got, want) {
-		t.Errorf("Names() = %v, want %v", got, want)
 	}
 }

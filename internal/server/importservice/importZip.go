@@ -68,11 +68,7 @@ func (s *Server) ImportZip(
 		fileOptions := options
 		fileOptions.deleteMissing = false
 
-		archive, err := newZipImport(ctx, db, common.GetLocaleFromRequest(req), req.Msg.ScopeIds, fileOptions, canCreate, req.Msg.CreateLocaleCodes)
-		if err != nil {
-			return err
-		}
-
+		archive := newZipImport(ctx, common.GetLocaleFromRequest(req), req.Msg.ScopeIds, fileOptions, canCreate, req.Msg.CreateLocaleCodes)
 		archive.held = held
 
 		for _, file := range sourceFirst(zipReader.File, defaultLocale) {

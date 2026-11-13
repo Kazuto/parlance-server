@@ -11,7 +11,6 @@ import (
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 )
 
 func TestPhpString(t *testing.T) {
@@ -30,7 +29,7 @@ func TestPhpString(t *testing.T) {
 
 func TestExports(t *testing.T) {
 	ctx, db := testutil.Setup(t)
-	locale := models.Locale{Code: "ex", Names: datatypes.JSON(`{"en":"Export"}`)}
+	locale := models.Locale{Code: "ex"}
 	translated, untranslated := models.Entry{Key: "ex.b.saved"}, models.Entry{Key: "ex.a.empty", Description: "No text yet"}
 	markup := models.Entry{Key: "ex.c.markup"}
 
@@ -129,7 +128,7 @@ func TestExports(t *testing.T) {
 
 func TestExportsLeaveOutDraftsUnlessIncluded(t *testing.T) {
 	ctx, db := testutil.Setup(t)
-	locale := models.Locale{Code: "dr", Names: datatypes.JSON(`{"en":"Drafts"}`)}
+	locale := models.Locale{Code: "dr"}
 	approved, draft := models.Entry{Key: "dr.approved"}, models.Entry{Key: "dr.draft"}
 
 	for _, row := range []any{&locale, &approved, &draft} {

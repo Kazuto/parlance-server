@@ -15,7 +15,6 @@ import (
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/secret"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -186,7 +185,7 @@ func TestEventData(t *testing.T) {
 	db := sqliteDB(t)
 
 	user := models.User{Email: "reviewer@example.com", Name: "Rita Reviewer", PasswordHash: "unused"}
-	locale := models.Locale{Code: "de", Names: datatypes.JSON(`{}`)}
+	locale := models.Locale{Code: "de"}
 	entry := models.Entry{Key: "button.save", Description: "Saves the form"}
 
 	create(t, db, &user)

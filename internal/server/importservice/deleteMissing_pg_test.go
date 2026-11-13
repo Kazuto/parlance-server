@@ -11,7 +11,6 @@ import (
 	"github.com/kazuto/parlance-server/internal/middleware"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 )
 
 // deleteMissingFixture holds the default language, another one and two scopes
@@ -38,8 +37,8 @@ func setupDeleteMissing(t *testing.T) *deleteMissingFixture {
 
 	f := &deleteMissingFixture{
 		ctx: ctx, db: db, server: &Server{db: db},
-		english: models.Locale{Code: "xa", IsDefault: true, Names: datatypes.JSON(`{"en":"Source"}`)},
-		other:   models.Locale{Code: "xb", Names: datatypes.JSON(`{"en":"Target"}`)},
+		english: models.Locale{Code: "xa", IsDefault: true},
+		other:   models.Locale{Code: "xb"},
 		app:     models.Scope{Name: "app", Slug: "app"},
 		web:     models.Scope{Name: "web", Slug: "web"},
 	}

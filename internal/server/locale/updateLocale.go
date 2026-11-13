@@ -25,10 +25,6 @@ func (s *Server) UpdateLocale(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale code is required")
 	}
 
-	if req.Msg.Names != nil && len(req.Msg.Names.GetValues()) == 0 {
-		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale names are required")
-	}
-
 	formality, ok := converter.FormalityFromProto(req.Msg.GetFormality())
 	if !ok {
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "unknown formality")
@@ -39,17 +35,13 @@ func (s *Server) UpdateLocale(
 		return nil, err
 	}
 
-	if req.Msg.Code != nil {
-		locale.Code = req.Msg.GetCode()
-	}
-
-	if req.Msg.Names != nil {
-		names, err := converter.NamesMapToJSON(req.Msg.Names.GetValues())
-		if err != nil {
-			return nil, errors.Internal(errors.ErrInternal, "failed to encode names")
+	// A locale with a made-up code from before codes were checked keeps it
+	if req.Msg.Code != nil && req.Msg.GetCode() != locale.Code {
+		if err := checkCode(req.Msg.GetCode()); err != nil {
+			return nil, err
 		}
 
-		locale.Names = names
+		locale.Code = req.Msg.GetCode()
 	}
 
 	if req.Msg.IsDefault != nil {

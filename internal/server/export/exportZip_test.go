@@ -15,7 +15,6 @@ import (
 	"github.com/kazuto/parlance-server/internal/database"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 )
 
 // selectionFixture holds the scopes, tags and locales seedSelection creates
@@ -43,8 +42,8 @@ func seedSelection(t *testing.T, db *database.DB) selectionFixture {
 	f := selectionFixture{
 		mail: models.Scope{Name: "Mail", Slug: "mail", ExportFormat: FormatPHP},
 		web:  models.Scope{Name: "Web", Slug: "../web site"},
-		ex:   models.Locale{Code: "ex", Names: datatypes.JSON(`{"en":"Export"}`)},
-		fr:   models.Locale{Code: "fr", Names: datatypes.JSON(`{"en":"French"}`)},
+		ex:   models.Locale{Code: "ex"},
+		fr:   models.Locale{Code: "fr"},
 	}
 
 	create := func(row any) {

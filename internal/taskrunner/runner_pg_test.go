@@ -495,9 +495,9 @@ func TestCancelRunningRun(t *testing.T) {
 func seedLocales(t *testing.T, db *gorm.DB) (en, de, fr models.Locale) {
 	t.Helper()
 
-	en = models.Locale{Code: "en", IsDefault: true, Names: datatypes.JSON(`{"en":"English"}`)}
-	de = models.Locale{Code: "de", Names: datatypes.JSON(`{"en":"German"}`)}
-	fr = models.Locale{Code: "fr", Names: datatypes.JSON(`{"en":"French"}`)}
+	en = models.Locale{Code: "en", IsDefault: true}
+	de = models.Locale{Code: "de"}
+	fr = models.Locale{Code: "fr"}
 
 	for _, locale := range []*models.Locale{&en, &de, &fr} {
 		create(t, db, locale)

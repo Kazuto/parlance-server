@@ -26,6 +26,7 @@ const (
 	ErrLocaleDefaultDelete     = "LOCALE_DEFAULT_DELETE"
 	ErrLocaleDefaultDestroy    = "LOCALE_DEFAULT_DESTROY"
 	ErrLocaleMustBeSoftDeleted = "LOCALE_MUST_BE_SOFT_DELETED"
+	ErrLocaleCodeUnknown       = "LOCALE_CODE_UNKNOWN"
 
 	// User-specific errors
 	ErrUserNotFound       = "USER_NOT_FOUND"

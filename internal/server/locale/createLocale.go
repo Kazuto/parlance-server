@@ -6,6 +6,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
+	"github.com/kazuto/parlance-server/internal/langnames"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
 
@@ -21,8 +22,8 @@ func (s *Server) CreateLocale(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale code is required")
 	}
 
-	if len(req.Msg.GetNames().GetValues()) == 0 {
-		return nil, errors.InvalidInput(errors.ErrInvalidInput, "locale names are required")
+	if err := checkCode(req.Msg.Code); err != nil {
+		return nil, err
 	}
 
 	formality, ok := converter.FormalityFromProto(req.Msg.Formality)
@@ -40,14 +41,8 @@ func (s *Server) CreateLocale(
 		return nil, errors.AlreadyExists(errors.ErrLocaleAlreadyExists, "a locale with this code already exists")
 	}
 
-	names, err := converter.NamesMapToJSON(req.Msg.GetNames().GetValues())
-	if err != nil {
-		return nil, errors.Internal(errors.ErrInternal, "failed to encode names")
-	}
-
 	locale := &models.Locale{
 		Code:      req.Msg.Code,
-		Names:     names,
 		IsDefault: req.Msg.IsDefault,
 		Formality: formality,
 	}
@@ -61,4 +56,13 @@ func (s *Server) CreateLocale(
 	return connect.NewResponse(&pb.CreateLocaleResponse{
 		Locale: converter.LocaleToProto(locale, requestLocale),
 	}), nil
+}
+
+// checkCode accepts the codes of known languages, which the locale's name comes from
+func checkCode(code string) error {
+	if !langnames.Valid(code) {
+		return errors.InvalidInput(errors.ErrLocaleCodeUnknown, "locale code must name a known language, e.g. de or pt-BR")
+	}
+
+	return nil
 }
