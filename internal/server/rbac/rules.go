@@ -44,6 +44,7 @@ var Rules = map[string][]string{
 	parlancev1connect.EntryServiceListEntriesProcedure:           {permissions.ReadEntry},
 	parlancev1connect.EntryServiceRestoreEntryProcedure:          {permissions.DeleteEntry},
 	parlancev1connect.EntryServiceSearchEntriesProcedure:         {permissions.ReadEntry},
+	parlancev1connect.EntryServiceSearchSimilarEntriesProcedure:  {permissions.ReadEntry},
 	parlancev1connect.EntryServiceUpdateEntriesReleasesProcedure: {permissions.UpdateEntry},
 	parlancev1connect.EntryServiceUpdateEntriesScopesProcedure:   {permissions.UpdateEntry},
 	parlancev1connect.EntryServiceUpdateEntriesTagsProcedure:     {permissions.UpdateEntry},

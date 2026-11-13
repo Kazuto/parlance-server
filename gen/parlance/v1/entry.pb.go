@@ -21,6 +21,60 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Texts are the same when they are equal ignoring case and surrounding space.
+type DuplicateFilter int32
+
+const (
+	DuplicateFilter_DUPLICATE_FILTER_UNSPECIFIED DuplicateFilter = 0 // All entries
+	// Entries whose default text another entry has too
+	DuplicateFilter_DUPLICATE_FILTER_SAME_TEXT DuplicateFilter = 1
+	// Entries whose default text another entry has too, while the translations of
+	// that text differ in one of the status locales (status_locale_ids, else
+	// target_locale_ids, else all active locales). Blank translations don't count.
+	DuplicateFilter_DUPLICATE_FILTER_TRANSLATED_DIFFERENTLY DuplicateFilter = 2
+)
+
+// Enum value maps for DuplicateFilter.
+var (
+	DuplicateFilter_name = map[int32]string{
+		0: "DUPLICATE_FILTER_UNSPECIFIED",
+		1: "DUPLICATE_FILTER_SAME_TEXT",
+		2: "DUPLICATE_FILTER_TRANSLATED_DIFFERENTLY",
+	}
+	DuplicateFilter_value = map[string]int32{
+		"DUPLICATE_FILTER_UNSPECIFIED":            0,
+		"DUPLICATE_FILTER_SAME_TEXT":              1,
+		"DUPLICATE_FILTER_TRANSLATED_DIFFERENTLY": 2,
+	}
+)
+
+func (x DuplicateFilter) Enum() *DuplicateFilter {
+	p := new(DuplicateFilter)
+	*p = x
+	return p
+}
+
+func (x DuplicateFilter) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DuplicateFilter) Descriptor() protoreflect.EnumDescriptor {
+	return file_parlance_v1_entry_proto_enumTypes[0].Descriptor()
+}
+
+func (DuplicateFilter) Type() protoreflect.EnumType {
+	return &file_parlance_v1_entry_proto_enumTypes[0]
+}
+
+func (x DuplicateFilter) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use DuplicateFilter.Descriptor instead.
+func (DuplicateFilter) EnumDescriptor() ([]byte, []int) {
+	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{0}
+}
+
 type Entry struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -223,7 +277,12 @@ type ListEntriesRequest struct {
 	// selected. A tag selects its scope too.
 	TagIds []string `protobuf:"bytes,12,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
 	// Entries in any of these releases
-	ReleaseIds    []string `protobuf:"bytes,13,rep,name=release_ids,json=releaseIds,proto3" json:"release_ids,omitempty"`
+	ReleaseIds []string `protobuf:"bytes,13,rep,name=release_ids,json=releaseIds,proto3" json:"release_ids,omitempty"`
+	// Only entries sharing their default text with another entry, or only those whose
+	// shared text is translated differently. Twins are looked for among the entries
+	// the scope, tag and release filters select, and listed together: by their
+	// default text first, then in the requested order. Not with deleted_only.
+	Duplicates    DuplicateFilter `protobuf:"varint,14,opt,name=duplicates,proto3,enum=parlance.v1.DuplicateFilter" json:"duplicates,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -347,6 +406,13 @@ func (x *ListEntriesRequest) GetReleaseIds() []string {
 		return x.ReleaseIds
 	}
 	return nil
+}
+
+func (x *ListEntriesRequest) GetDuplicates() DuplicateFilter {
+	if x != nil {
+		return x.Duplicates
+	}
+	return DuplicateFilter_DUPLICATE_FILTER_UNSPECIFIED
 }
 
 type ListEntriesResponse struct {
@@ -1501,6 +1567,195 @@ func (x *SearchEntriesResponse) GetPagination() *PaginationResponse {
 	return nil
 }
 
+type SearchSimilarEntriesRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A default-locale text, e.g. the one being edited with unsaved changes.
+	Text string `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
+	// Optional: leave out this entry, e.g. the one being edited.
+	ExcludeEntryId string `protobuf:"bytes,2,opt,name=exclude_entry_id,json=excludeEntryId,proto3" json:"exclude_entry_id,omitempty"`
+	// At most this many entries: 5 when unset, never more than 20.
+	Limit         int32 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchSimilarEntriesRequest) Reset() {
+	*x = SearchSimilarEntriesRequest{}
+	mi := &file_parlance_v1_entry_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchSimilarEntriesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchSimilarEntriesRequest) ProtoMessage() {}
+
+func (x *SearchSimilarEntriesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_entry_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchSimilarEntriesRequest.ProtoReflect.Descriptor instead.
+func (*SearchSimilarEntriesRequest) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *SearchSimilarEntriesRequest) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *SearchSimilarEntriesRequest) GetExcludeEntryId() string {
+	if x != nil {
+		return x.ExcludeEntryId
+	}
+	return ""
+}
+
+func (x *SearchSimilarEntriesRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type SimilarEntry struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	EntryId string                 `protobuf:"bytes,1,opt,name=entry_id,json=entryId,proto3" json:"entry_id,omitempty"`
+	Key     string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	// The entry's default-locale text.
+	Text string `protobuf:"bytes,3,opt,name=text,proto3" json:"text,omitempty"`
+	// How alike text is to the searched one, from 0.8 to 1: the share of characters
+	// that stay when editing one into the other, ignoring case. 1 is the same text.
+	Similarity    float32 `protobuf:"fixed32,4,opt,name=similarity,proto3" json:"similarity,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SimilarEntry) Reset() {
+	*x = SimilarEntry{}
+	mi := &file_parlance_v1_entry_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SimilarEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SimilarEntry) ProtoMessage() {}
+
+func (x *SimilarEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_entry_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SimilarEntry.ProtoReflect.Descriptor instead.
+func (*SimilarEntry) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *SimilarEntry) GetEntryId() string {
+	if x != nil {
+		return x.EntryId
+	}
+	return ""
+}
+
+func (x *SimilarEntry) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *SimilarEntry) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+func (x *SimilarEntry) GetSimilarity() float32 {
+	if x != nil {
+		return x.Similarity
+	}
+	return 0
+}
+
+type SearchSimilarEntriesResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The most similar first. Texts longer than 2000 characters list none.
+	Entries []*SimilarEntry `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
+	// How many entries have the same text, ignoring case and surrounding space, as
+	// the duplicates filter compares them; may be more than entries lists.
+	SameTextCount int32 `protobuf:"varint,2,opt,name=same_text_count,json=sameTextCount,proto3" json:"same_text_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchSimilarEntriesResponse) Reset() {
+	*x = SearchSimilarEntriesResponse{}
+	mi := &file_parlance_v1_entry_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchSimilarEntriesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchSimilarEntriesResponse) ProtoMessage() {}
+
+func (x *SearchSimilarEntriesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_entry_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchSimilarEntriesResponse.ProtoReflect.Descriptor instead.
+func (*SearchSimilarEntriesResponse) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *SearchSimilarEntriesResponse) GetEntries() []*SimilarEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+func (x *SearchSimilarEntriesResponse) GetSameTextCount() int32 {
+	if x != nil {
+		return x.SameTextCount
+	}
+	return 0
+}
+
 type GetEntryHistoryRequest struct {
 	state      protoimpl.MessageState `protogen:"open.v1"`
 	EntryId    string                 `protobuf:"bytes,1,opt,name=entry_id,json=entryId,proto3" json:"entry_id,omitempty"`
@@ -1516,7 +1771,7 @@ type GetEntryHistoryRequest struct {
 
 func (x *GetEntryHistoryRequest) Reset() {
 	*x = GetEntryHistoryRequest{}
-	mi := &file_parlance_v1_entry_proto_msgTypes[25]
+	mi := &file_parlance_v1_entry_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1528,7 +1783,7 @@ func (x *GetEntryHistoryRequest) String() string {
 func (*GetEntryHistoryRequest) ProtoMessage() {}
 
 func (x *GetEntryHistoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_entry_proto_msgTypes[25]
+	mi := &file_parlance_v1_entry_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1541,7 +1796,7 @@ func (x *GetEntryHistoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEntryHistoryRequest.ProtoReflect.Descriptor instead.
 func (*GetEntryHistoryRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{25}
+	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetEntryHistoryRequest) GetEntryId() string {
@@ -1582,7 +1837,7 @@ type GetEntryHistoryResponse struct {
 
 func (x *GetEntryHistoryResponse) Reset() {
 	*x = GetEntryHistoryResponse{}
-	mi := &file_parlance_v1_entry_proto_msgTypes[26]
+	mi := &file_parlance_v1_entry_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1594,7 +1849,7 @@ func (x *GetEntryHistoryResponse) String() string {
 func (*GetEntryHistoryResponse) ProtoMessage() {}
 
 func (x *GetEntryHistoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_entry_proto_msgTypes[26]
+	mi := &file_parlance_v1_entry_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1607,7 +1862,7 @@ func (x *GetEntryHistoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEntryHistoryResponse.ProtoReflect.Descriptor instead.
 func (*GetEntryHistoryResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{26}
+	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetEntryHistoryResponse) GetHistory() []*LocalizationHistory {
@@ -1644,7 +1899,7 @@ type LocalizationHistory struct {
 
 func (x *LocalizationHistory) Reset() {
 	*x = LocalizationHistory{}
-	mi := &file_parlance_v1_entry_proto_msgTypes[27]
+	mi := &file_parlance_v1_entry_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1656,7 +1911,7 @@ func (x *LocalizationHistory) String() string {
 func (*LocalizationHistory) ProtoMessage() {}
 
 func (x *LocalizationHistory) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_entry_proto_msgTypes[27]
+	mi := &file_parlance_v1_entry_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1669,7 +1924,7 @@ func (x *LocalizationHistory) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LocalizationHistory.ProtoReflect.Descriptor instead.
 func (*LocalizationHistory) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{27}
+	return file_parlance_v1_entry_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *LocalizationHistory) GetId() string {
@@ -1776,7 +2031,7 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\x10draft_locale_ids\x18\r \x03(\tR\x0edraftLocaleIds\x12.\n" +
 	"\x13outdated_locale_ids\x18\x0e \x03(\tR\x11outdatedLocaleIds\x12$\n" +
 	"\x04tags\x18\x0f \x03(\v2\x10.parlance.v1.TagR\x04tags\x120\n" +
-	"\breleases\x18\x10 \x03(\v2\x14.parlance.v1.ReleaseR\breleases\"\xf3\x03\n" +
+	"\breleases\x18\x10 \x03(\v2\x14.parlance.v1.ReleaseR\breleases\"\xb1\x04\n" +
 	"\x12ListEntriesRequest\x12\x19\n" +
 	"\bscope_id\x18\x01 \x01(\tR\ascopeId\x12\x1b\n" +
 	"\tlocale_id\x18\x02 \x01(\tR\blocaleId\x12>\n" +
@@ -1794,7 +2049,10 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\x11status_locale_ids\x18\v \x03(\tR\x0fstatusLocaleIds\x12\x17\n" +
 	"\atag_ids\x18\f \x03(\tR\x06tagIds\x12\x1f\n" +
 	"\vrelease_ids\x18\r \x03(\tR\n" +
-	"releaseIds\"\xa5\x01\n" +
+	"releaseIds\x12<\n" +
+	"\n" +
+	"duplicates\x18\x0e \x01(\x0e2\x1c.parlance.v1.DuplicateFilterR\n" +
+	"duplicates\"\xa5\x01\n" +
 	"\x13ListEntriesResponse\x12,\n" +
 	"\aentries\x18\x01 \x03(\v2\x12.parlance.v1.EntryR\aentries\x12?\n" +
 	"\n" +
@@ -1865,7 +2123,21 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\aentries\x18\x01 \x03(\v2\x12.parlance.v1.EntryR\aentries\x12?\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1f.parlance.v1.PaginationResponseR\n" +
-	"pagination\"\xa8\x01\n" +
+	"pagination\"q\n" +
+	"\x1bSearchSimilarEntriesRequest\x12\x12\n" +
+	"\x04text\x18\x01 \x01(\tR\x04text\x12(\n" +
+	"\x10exclude_entry_id\x18\x02 \x01(\tR\x0eexcludeEntryId\x12\x14\n" +
+	"\x05limit\x18\x03 \x01(\x05R\x05limit\"o\n" +
+	"\fSimilarEntry\x12\x19\n" +
+	"\bentry_id\x18\x01 \x01(\tR\aentryId\x12\x10\n" +
+	"\x03key\x18\x02 \x01(\tR\x03key\x12\x12\n" +
+	"\x04text\x18\x03 \x01(\tR\x04text\x12\x1e\n" +
+	"\n" +
+	"similarity\x18\x04 \x01(\x02R\n" +
+	"similarity\"{\n" +
+	"\x1cSearchSimilarEntriesResponse\x123\n" +
+	"\aentries\x18\x01 \x03(\v2\x19.parlance.v1.SimilarEntryR\aentries\x12&\n" +
+	"\x0fsame_text_count\x18\x02 \x01(\x05R\rsameTextCount\"\xa8\x01\n" +
 	"\x16GetEntryHistoryRequest\x12\x19\n" +
 	"\bentry_id\x18\x01 \x01(\tR\aentryId\x12>\n" +
 	"\n" +
@@ -1891,7 +2163,12 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\x04user\x18\t \x01(\v2\x11.parlance.v1.UserR\x04user\x121\n" +
 	"\x06status\x18\n" +
 	" \x01(\x0e2\x19.parlance.v1.ReviewStatusR\x06status\x12\x18\n" +
-	"\acomment\x18\v \x01(\tR\acomment2\xa1\t\n" +
+	"\acomment\x18\v \x01(\tR\acomment*\x80\x01\n" +
+	"\x0fDuplicateFilter\x12 \n" +
+	"\x1cDUPLICATE_FILTER_UNSPECIFIED\x10\x00\x12\x1e\n" +
+	"\x1aDUPLICATE_FILTER_SAME_TEXT\x10\x01\x12+\n" +
+	"'DUPLICATE_FILTER_TRANSLATED_DIFFERENTLY\x10\x022\x8e\n" +
+	"\n" +
 	"\fEntryService\x12P\n" +
 	"\vListEntries\x12\x1f.parlance.v1.ListEntriesRequest\x1a .parlance.v1.ListEntriesResponse\x12G\n" +
 	"\bGetEntry\x12\x1c.parlance.v1.GetEntryRequest\x1a\x1d.parlance.v1.GetEntryResponse\x12P\n" +
@@ -1899,7 +2176,8 @@ const file_parlance_v1_entry_proto_rawDesc = "" +
 	"\vUpdateEntry\x12\x1f.parlance.v1.UpdateEntryRequest\x1a .parlance.v1.UpdateEntryResponse\x12P\n" +
 	"\vDeleteEntry\x12\x1f.parlance.v1.DeleteEntryRequest\x1a .parlance.v1.DeleteEntryResponse\x12S\n" +
 	"\fRestoreEntry\x12 .parlance.v1.RestoreEntryRequest\x1a!.parlance.v1.RestoreEntryResponse\x12V\n" +
-	"\rSearchEntries\x12!.parlance.v1.SearchEntriesRequest\x1a\".parlance.v1.SearchEntriesResponse\x12\\\n" +
+	"\rSearchEntries\x12!.parlance.v1.SearchEntriesRequest\x1a\".parlance.v1.SearchEntriesResponse\x12k\n" +
+	"\x14SearchSimilarEntries\x12(.parlance.v1.SearchSimilarEntriesRequest\x1a).parlance.v1.SearchSimilarEntriesResponse\x12\\\n" +
 	"\x0fGetEntryHistory\x12#.parlance.v1.GetEntryHistoryRequest\x1a$.parlance.v1.GetEntryHistoryResponse\x12h\n" +
 	"\x13UpdateEntriesScopes\x12'.parlance.v1.UpdateEntriesScopesRequest\x1a(.parlance.v1.UpdateEntriesScopesResponse\x12b\n" +
 	"\x11UpdateEntriesTags\x12%.parlance.v1.UpdateEntriesTagsRequest\x1a&.parlance.v1.UpdateEntriesTagsResponse\x12n\n" +
@@ -1921,105 +2199,114 @@ func file_parlance_v1_entry_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_entry_proto_rawDescData
 }
 
-var file_parlance_v1_entry_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
+var file_parlance_v1_entry_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_parlance_v1_entry_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
 var file_parlance_v1_entry_proto_goTypes = []any{
-	(*Entry)(nil),                         // 0: parlance.v1.Entry
-	(*ListEntriesRequest)(nil),            // 1: parlance.v1.ListEntriesRequest
-	(*ListEntriesResponse)(nil),           // 2: parlance.v1.ListEntriesResponse
-	(*GetEntryRequest)(nil),               // 3: parlance.v1.GetEntryRequest
-	(*GetEntryResponse)(nil),              // 4: parlance.v1.GetEntryResponse
-	(*CreateEntryRequest)(nil),            // 5: parlance.v1.CreateEntryRequest
-	(*CreateEntryResponse)(nil),           // 6: parlance.v1.CreateEntryResponse
-	(*UpdateEntryRequest)(nil),            // 7: parlance.v1.UpdateEntryRequest
-	(*UpdateEntryResponse)(nil),           // 8: parlance.v1.UpdateEntryResponse
-	(*UpdateEntriesScopesRequest)(nil),    // 9: parlance.v1.UpdateEntriesScopesRequest
-	(*UpdateEntriesScopesResponse)(nil),   // 10: parlance.v1.UpdateEntriesScopesResponse
-	(*UpdateEntriesTagsRequest)(nil),      // 11: parlance.v1.UpdateEntriesTagsRequest
-	(*UpdateEntriesTagsResponse)(nil),     // 12: parlance.v1.UpdateEntriesTagsResponse
-	(*UpdateEntriesReleasesRequest)(nil),  // 13: parlance.v1.UpdateEntriesReleasesRequest
-	(*UpdateEntriesReleasesResponse)(nil), // 14: parlance.v1.UpdateEntriesReleasesResponse
-	(*CountLiveEntriesRequest)(nil),       // 15: parlance.v1.CountLiveEntriesRequest
-	(*CountLiveEntriesResponse)(nil),      // 16: parlance.v1.CountLiveEntriesResponse
-	(*DeleteEntryRequest)(nil),            // 17: parlance.v1.DeleteEntryRequest
-	(*DeleteEntryResponse)(nil),           // 18: parlance.v1.DeleteEntryResponse
-	(*DeleteEntriesRequest)(nil),          // 19: parlance.v1.DeleteEntriesRequest
-	(*DeleteEntriesResponse)(nil),         // 20: parlance.v1.DeleteEntriesResponse
-	(*RestoreEntryRequest)(nil),           // 21: parlance.v1.RestoreEntryRequest
-	(*RestoreEntryResponse)(nil),          // 22: parlance.v1.RestoreEntryResponse
-	(*SearchEntriesRequest)(nil),          // 23: parlance.v1.SearchEntriesRequest
-	(*SearchEntriesResponse)(nil),         // 24: parlance.v1.SearchEntriesResponse
-	(*GetEntryHistoryRequest)(nil),        // 25: parlance.v1.GetEntryHistoryRequest
-	(*GetEntryHistoryResponse)(nil),       // 26: parlance.v1.GetEntryHistoryResponse
-	(*LocalizationHistory)(nil),           // 27: parlance.v1.LocalizationHistory
-	(*Localization)(nil),                  // 28: parlance.v1.Localization
-	(*Scope)(nil),                         // 29: parlance.v1.Scope
-	(*Tag)(nil),                           // 30: parlance.v1.Tag
-	(*Release)(nil),                       // 31: parlance.v1.Release
-	(*PaginationRequest)(nil),             // 32: parlance.v1.PaginationRequest
-	(*FilterRequest)(nil),                 // 33: parlance.v1.FilterRequest
-	(*PaginationResponse)(nil),            // 34: parlance.v1.PaginationResponse
-	(*IdSelection)(nil),                   // 35: parlance.v1.IdSelection
-	(*User)(nil),                          // 36: parlance.v1.User
-	(ReviewStatus)(0),                     // 37: parlance.v1.ReviewStatus
+	(DuplicateFilter)(0),                  // 0: parlance.v1.DuplicateFilter
+	(*Entry)(nil),                         // 1: parlance.v1.Entry
+	(*ListEntriesRequest)(nil),            // 2: parlance.v1.ListEntriesRequest
+	(*ListEntriesResponse)(nil),           // 3: parlance.v1.ListEntriesResponse
+	(*GetEntryRequest)(nil),               // 4: parlance.v1.GetEntryRequest
+	(*GetEntryResponse)(nil),              // 5: parlance.v1.GetEntryResponse
+	(*CreateEntryRequest)(nil),            // 6: parlance.v1.CreateEntryRequest
+	(*CreateEntryResponse)(nil),           // 7: parlance.v1.CreateEntryResponse
+	(*UpdateEntryRequest)(nil),            // 8: parlance.v1.UpdateEntryRequest
+	(*UpdateEntryResponse)(nil),           // 9: parlance.v1.UpdateEntryResponse
+	(*UpdateEntriesScopesRequest)(nil),    // 10: parlance.v1.UpdateEntriesScopesRequest
+	(*UpdateEntriesScopesResponse)(nil),   // 11: parlance.v1.UpdateEntriesScopesResponse
+	(*UpdateEntriesTagsRequest)(nil),      // 12: parlance.v1.UpdateEntriesTagsRequest
+	(*UpdateEntriesTagsResponse)(nil),     // 13: parlance.v1.UpdateEntriesTagsResponse
+	(*UpdateEntriesReleasesRequest)(nil),  // 14: parlance.v1.UpdateEntriesReleasesRequest
+	(*UpdateEntriesReleasesResponse)(nil), // 15: parlance.v1.UpdateEntriesReleasesResponse
+	(*CountLiveEntriesRequest)(nil),       // 16: parlance.v1.CountLiveEntriesRequest
+	(*CountLiveEntriesResponse)(nil),      // 17: parlance.v1.CountLiveEntriesResponse
+	(*DeleteEntryRequest)(nil),            // 18: parlance.v1.DeleteEntryRequest
+	(*DeleteEntryResponse)(nil),           // 19: parlance.v1.DeleteEntryResponse
+	(*DeleteEntriesRequest)(nil),          // 20: parlance.v1.DeleteEntriesRequest
+	(*DeleteEntriesResponse)(nil),         // 21: parlance.v1.DeleteEntriesResponse
+	(*RestoreEntryRequest)(nil),           // 22: parlance.v1.RestoreEntryRequest
+	(*RestoreEntryResponse)(nil),          // 23: parlance.v1.RestoreEntryResponse
+	(*SearchEntriesRequest)(nil),          // 24: parlance.v1.SearchEntriesRequest
+	(*SearchEntriesResponse)(nil),         // 25: parlance.v1.SearchEntriesResponse
+	(*SearchSimilarEntriesRequest)(nil),   // 26: parlance.v1.SearchSimilarEntriesRequest
+	(*SimilarEntry)(nil),                  // 27: parlance.v1.SimilarEntry
+	(*SearchSimilarEntriesResponse)(nil),  // 28: parlance.v1.SearchSimilarEntriesResponse
+	(*GetEntryHistoryRequest)(nil),        // 29: parlance.v1.GetEntryHistoryRequest
+	(*GetEntryHistoryResponse)(nil),       // 30: parlance.v1.GetEntryHistoryResponse
+	(*LocalizationHistory)(nil),           // 31: parlance.v1.LocalizationHistory
+	(*Localization)(nil),                  // 32: parlance.v1.Localization
+	(*Scope)(nil),                         // 33: parlance.v1.Scope
+	(*Tag)(nil),                           // 34: parlance.v1.Tag
+	(*Release)(nil),                       // 35: parlance.v1.Release
+	(*PaginationRequest)(nil),             // 36: parlance.v1.PaginationRequest
+	(*FilterRequest)(nil),                 // 37: parlance.v1.FilterRequest
+	(*PaginationResponse)(nil),            // 38: parlance.v1.PaginationResponse
+	(*IdSelection)(nil),                   // 39: parlance.v1.IdSelection
+	(*User)(nil),                          // 40: parlance.v1.User
+	(ReviewStatus)(0),                     // 41: parlance.v1.ReviewStatus
 }
 var file_parlance_v1_entry_proto_depIdxs = []int32{
-	28, // 0: parlance.v1.Entry.localizations:type_name -> parlance.v1.Localization
-	29, // 1: parlance.v1.Entry.scopes:type_name -> parlance.v1.Scope
-	30, // 2: parlance.v1.Entry.tags:type_name -> parlance.v1.Tag
-	31, // 3: parlance.v1.Entry.releases:type_name -> parlance.v1.Release
-	32, // 4: parlance.v1.ListEntriesRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	33, // 5: parlance.v1.ListEntriesRequest.filter:type_name -> parlance.v1.FilterRequest
-	0,  // 6: parlance.v1.ListEntriesResponse.entries:type_name -> parlance.v1.Entry
-	34, // 7: parlance.v1.ListEntriesResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	0,  // 8: parlance.v1.GetEntryResponse.entry:type_name -> parlance.v1.Entry
-	35, // 9: parlance.v1.CreateEntryRequest.scopes:type_name -> parlance.v1.IdSelection
-	35, // 10: parlance.v1.CreateEntryRequest.tags:type_name -> parlance.v1.IdSelection
-	35, // 11: parlance.v1.CreateEntryRequest.releases:type_name -> parlance.v1.IdSelection
-	0,  // 12: parlance.v1.CreateEntryResponse.entry:type_name -> parlance.v1.Entry
-	35, // 13: parlance.v1.UpdateEntryRequest.scopes:type_name -> parlance.v1.IdSelection
-	35, // 14: parlance.v1.UpdateEntryRequest.tags:type_name -> parlance.v1.IdSelection
-	35, // 15: parlance.v1.UpdateEntryRequest.releases:type_name -> parlance.v1.IdSelection
-	0,  // 16: parlance.v1.UpdateEntryResponse.entry:type_name -> parlance.v1.Entry
-	0,  // 17: parlance.v1.RestoreEntryResponse.entry:type_name -> parlance.v1.Entry
-	32, // 18: parlance.v1.SearchEntriesRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	0,  // 19: parlance.v1.SearchEntriesResponse.entries:type_name -> parlance.v1.Entry
-	34, // 20: parlance.v1.SearchEntriesResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	32, // 21: parlance.v1.GetEntryHistoryRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	27, // 22: parlance.v1.GetEntryHistoryResponse.history:type_name -> parlance.v1.LocalizationHistory
-	34, // 23: parlance.v1.GetEntryHistoryResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	36, // 24: parlance.v1.LocalizationHistory.user:type_name -> parlance.v1.User
-	37, // 25: parlance.v1.LocalizationHistory.status:type_name -> parlance.v1.ReviewStatus
-	1,  // 26: parlance.v1.EntryService.ListEntries:input_type -> parlance.v1.ListEntriesRequest
-	3,  // 27: parlance.v1.EntryService.GetEntry:input_type -> parlance.v1.GetEntryRequest
-	5,  // 28: parlance.v1.EntryService.CreateEntry:input_type -> parlance.v1.CreateEntryRequest
-	7,  // 29: parlance.v1.EntryService.UpdateEntry:input_type -> parlance.v1.UpdateEntryRequest
-	17, // 30: parlance.v1.EntryService.DeleteEntry:input_type -> parlance.v1.DeleteEntryRequest
-	21, // 31: parlance.v1.EntryService.RestoreEntry:input_type -> parlance.v1.RestoreEntryRequest
-	23, // 32: parlance.v1.EntryService.SearchEntries:input_type -> parlance.v1.SearchEntriesRequest
-	25, // 33: parlance.v1.EntryService.GetEntryHistory:input_type -> parlance.v1.GetEntryHistoryRequest
-	9,  // 34: parlance.v1.EntryService.UpdateEntriesScopes:input_type -> parlance.v1.UpdateEntriesScopesRequest
-	11, // 35: parlance.v1.EntryService.UpdateEntriesTags:input_type -> parlance.v1.UpdateEntriesTagsRequest
-	13, // 36: parlance.v1.EntryService.UpdateEntriesReleases:input_type -> parlance.v1.UpdateEntriesReleasesRequest
-	15, // 37: parlance.v1.EntryService.CountLiveEntries:input_type -> parlance.v1.CountLiveEntriesRequest
-	19, // 38: parlance.v1.EntryService.DeleteEntries:input_type -> parlance.v1.DeleteEntriesRequest
-	2,  // 39: parlance.v1.EntryService.ListEntries:output_type -> parlance.v1.ListEntriesResponse
-	4,  // 40: parlance.v1.EntryService.GetEntry:output_type -> parlance.v1.GetEntryResponse
-	6,  // 41: parlance.v1.EntryService.CreateEntry:output_type -> parlance.v1.CreateEntryResponse
-	8,  // 42: parlance.v1.EntryService.UpdateEntry:output_type -> parlance.v1.UpdateEntryResponse
-	18, // 43: parlance.v1.EntryService.DeleteEntry:output_type -> parlance.v1.DeleteEntryResponse
-	22, // 44: parlance.v1.EntryService.RestoreEntry:output_type -> parlance.v1.RestoreEntryResponse
-	24, // 45: parlance.v1.EntryService.SearchEntries:output_type -> parlance.v1.SearchEntriesResponse
-	26, // 46: parlance.v1.EntryService.GetEntryHistory:output_type -> parlance.v1.GetEntryHistoryResponse
-	10, // 47: parlance.v1.EntryService.UpdateEntriesScopes:output_type -> parlance.v1.UpdateEntriesScopesResponse
-	12, // 48: parlance.v1.EntryService.UpdateEntriesTags:output_type -> parlance.v1.UpdateEntriesTagsResponse
-	14, // 49: parlance.v1.EntryService.UpdateEntriesReleases:output_type -> parlance.v1.UpdateEntriesReleasesResponse
-	16, // 50: parlance.v1.EntryService.CountLiveEntries:output_type -> parlance.v1.CountLiveEntriesResponse
-	20, // 51: parlance.v1.EntryService.DeleteEntries:output_type -> parlance.v1.DeleteEntriesResponse
-	39, // [39:52] is the sub-list for method output_type
-	26, // [26:39] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	32, // 0: parlance.v1.Entry.localizations:type_name -> parlance.v1.Localization
+	33, // 1: parlance.v1.Entry.scopes:type_name -> parlance.v1.Scope
+	34, // 2: parlance.v1.Entry.tags:type_name -> parlance.v1.Tag
+	35, // 3: parlance.v1.Entry.releases:type_name -> parlance.v1.Release
+	36, // 4: parlance.v1.ListEntriesRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	37, // 5: parlance.v1.ListEntriesRequest.filter:type_name -> parlance.v1.FilterRequest
+	0,  // 6: parlance.v1.ListEntriesRequest.duplicates:type_name -> parlance.v1.DuplicateFilter
+	1,  // 7: parlance.v1.ListEntriesResponse.entries:type_name -> parlance.v1.Entry
+	38, // 8: parlance.v1.ListEntriesResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	1,  // 9: parlance.v1.GetEntryResponse.entry:type_name -> parlance.v1.Entry
+	39, // 10: parlance.v1.CreateEntryRequest.scopes:type_name -> parlance.v1.IdSelection
+	39, // 11: parlance.v1.CreateEntryRequest.tags:type_name -> parlance.v1.IdSelection
+	39, // 12: parlance.v1.CreateEntryRequest.releases:type_name -> parlance.v1.IdSelection
+	1,  // 13: parlance.v1.CreateEntryResponse.entry:type_name -> parlance.v1.Entry
+	39, // 14: parlance.v1.UpdateEntryRequest.scopes:type_name -> parlance.v1.IdSelection
+	39, // 15: parlance.v1.UpdateEntryRequest.tags:type_name -> parlance.v1.IdSelection
+	39, // 16: parlance.v1.UpdateEntryRequest.releases:type_name -> parlance.v1.IdSelection
+	1,  // 17: parlance.v1.UpdateEntryResponse.entry:type_name -> parlance.v1.Entry
+	1,  // 18: parlance.v1.RestoreEntryResponse.entry:type_name -> parlance.v1.Entry
+	36, // 19: parlance.v1.SearchEntriesRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	1,  // 20: parlance.v1.SearchEntriesResponse.entries:type_name -> parlance.v1.Entry
+	38, // 21: parlance.v1.SearchEntriesResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	27, // 22: parlance.v1.SearchSimilarEntriesResponse.entries:type_name -> parlance.v1.SimilarEntry
+	36, // 23: parlance.v1.GetEntryHistoryRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	31, // 24: parlance.v1.GetEntryHistoryResponse.history:type_name -> parlance.v1.LocalizationHistory
+	38, // 25: parlance.v1.GetEntryHistoryResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	40, // 26: parlance.v1.LocalizationHistory.user:type_name -> parlance.v1.User
+	41, // 27: parlance.v1.LocalizationHistory.status:type_name -> parlance.v1.ReviewStatus
+	2,  // 28: parlance.v1.EntryService.ListEntries:input_type -> parlance.v1.ListEntriesRequest
+	4,  // 29: parlance.v1.EntryService.GetEntry:input_type -> parlance.v1.GetEntryRequest
+	6,  // 30: parlance.v1.EntryService.CreateEntry:input_type -> parlance.v1.CreateEntryRequest
+	8,  // 31: parlance.v1.EntryService.UpdateEntry:input_type -> parlance.v1.UpdateEntryRequest
+	18, // 32: parlance.v1.EntryService.DeleteEntry:input_type -> parlance.v1.DeleteEntryRequest
+	22, // 33: parlance.v1.EntryService.RestoreEntry:input_type -> parlance.v1.RestoreEntryRequest
+	24, // 34: parlance.v1.EntryService.SearchEntries:input_type -> parlance.v1.SearchEntriesRequest
+	26, // 35: parlance.v1.EntryService.SearchSimilarEntries:input_type -> parlance.v1.SearchSimilarEntriesRequest
+	29, // 36: parlance.v1.EntryService.GetEntryHistory:input_type -> parlance.v1.GetEntryHistoryRequest
+	10, // 37: parlance.v1.EntryService.UpdateEntriesScopes:input_type -> parlance.v1.UpdateEntriesScopesRequest
+	12, // 38: parlance.v1.EntryService.UpdateEntriesTags:input_type -> parlance.v1.UpdateEntriesTagsRequest
+	14, // 39: parlance.v1.EntryService.UpdateEntriesReleases:input_type -> parlance.v1.UpdateEntriesReleasesRequest
+	16, // 40: parlance.v1.EntryService.CountLiveEntries:input_type -> parlance.v1.CountLiveEntriesRequest
+	20, // 41: parlance.v1.EntryService.DeleteEntries:input_type -> parlance.v1.DeleteEntriesRequest
+	3,  // 42: parlance.v1.EntryService.ListEntries:output_type -> parlance.v1.ListEntriesResponse
+	5,  // 43: parlance.v1.EntryService.GetEntry:output_type -> parlance.v1.GetEntryResponse
+	7,  // 44: parlance.v1.EntryService.CreateEntry:output_type -> parlance.v1.CreateEntryResponse
+	9,  // 45: parlance.v1.EntryService.UpdateEntry:output_type -> parlance.v1.UpdateEntryResponse
+	19, // 46: parlance.v1.EntryService.DeleteEntry:output_type -> parlance.v1.DeleteEntryResponse
+	23, // 47: parlance.v1.EntryService.RestoreEntry:output_type -> parlance.v1.RestoreEntryResponse
+	25, // 48: parlance.v1.EntryService.SearchEntries:output_type -> parlance.v1.SearchEntriesResponse
+	28, // 49: parlance.v1.EntryService.SearchSimilarEntries:output_type -> parlance.v1.SearchSimilarEntriesResponse
+	30, // 50: parlance.v1.EntryService.GetEntryHistory:output_type -> parlance.v1.GetEntryHistoryResponse
+	11, // 51: parlance.v1.EntryService.UpdateEntriesScopes:output_type -> parlance.v1.UpdateEntriesScopesResponse
+	13, // 52: parlance.v1.EntryService.UpdateEntriesTags:output_type -> parlance.v1.UpdateEntriesTagsResponse
+	15, // 53: parlance.v1.EntryService.UpdateEntriesReleases:output_type -> parlance.v1.UpdateEntriesReleasesResponse
+	17, // 54: parlance.v1.EntryService.CountLiveEntries:output_type -> parlance.v1.CountLiveEntriesResponse
+	21, // 55: parlance.v1.EntryService.DeleteEntries:output_type -> parlance.v1.DeleteEntriesResponse
+	42, // [42:56] is the sub-list for method output_type
+	28, // [28:42] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_entry_proto_init() }
@@ -2038,13 +2325,14 @@ func file_parlance_v1_entry_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_entry_proto_rawDesc), len(file_parlance_v1_entry_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   28,
+			NumEnums:      1,
+			NumMessages:   31,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_parlance_v1_entry_proto_goTypes,
 		DependencyIndexes: file_parlance_v1_entry_proto_depIdxs,
+		EnumInfos:         file_parlance_v1_entry_proto_enumTypes,
 		MessageInfos:      file_parlance_v1_entry_proto_msgTypes,
 	}.Build()
 	File_parlance_v1_entry_proto = out.File
