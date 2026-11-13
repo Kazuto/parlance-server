@@ -548,6 +548,18 @@ many translations in other languages a changed default text would mark outdated,
 and the first 500 changes by key with their old and new text. A ZIP dry run imports
 its files in one transaction, so each sees the ones before it, as a real import does.
 
+**Deleting missing entries:** with `deleteMissing`, an import deletes the entries its
+file doesn't hold: those of `scopeIds`, or all entries without scopes. An entry that
+other scopes keep only leaves `scopeIds`, with its tags of them. Only the default
+language's file counts, as other languages' files may leave out the entries they
+don't translate. A single-file import must go into the default language. A ZIP import
+goes by its files of the default language (one per scope folder, say), skips the keys
+of the other files that those don't hold, and deletes once all files are in. Files
+without keys are rejected, and it needs `delete_entry`. The result's `deletion` counts
+`entriesDeleted` and `entriesUnscoped`; on a dry run it lists the first 500 entries by
+key with their default texts. Deleted entries can be restored as usual. Untranslated
+and failed PO records count as held.
+
 **Missing languages in ZIP imports:** a file goes into the language whose code
 matches its name in any case, so `de-de.json` goes into `de-DE`. For a file whose
 language doesn't exist, the result has `localeMissing`, the language's

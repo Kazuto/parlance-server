@@ -144,6 +144,11 @@ func importTranslations(
 			return err
 		}
 
+		// Other languages' files may leave out the entries they don't translate
+		if options.deleteMissing && !locale.IsDefault {
+			return errors.InvalidInput(errors.ErrInvalidInput, "delete_missing needs the default language's file")
+		}
+
 		target := importTarget{localeID: localeID, source: locale.IsDefault}
 
 		if options.mode == pb.ImportMode_IMPORT_MODE_REPLACE_ALL && len(scopeIDs) > 0 {
@@ -167,6 +172,12 @@ func importTranslations(
 		}
 
 		result.TranslationsOutdated = int32(outdated)
+
+		if options.deleteMissing {
+			if result.Deletion, err = deleteMissingEntries(tx, userID, scopeIDs, heldKeys(translations, options.heldKeys), options.dryRun); err != nil {
+				return err
+			}
+		}
 
 		if err := summarizeChanges(tx, result, plan, target, options.dryRun); err != nil {
 			return err
@@ -602,13 +613,15 @@ func emitImported(tx *gorm.DB, plan *importPlan, userID *string, options importO
 }
 
 // startImport authorizes the import and checks its content, returning its options with
-// CREATE_OR_UPDATE as the default mode. On top of the rule for imports, REPLACE_ALL needs
-// delete_entry, as it removes existing localizations, and approving needs review_entry.
-// A dry run needs the same.
-func (s *Server) startImport(ctx context.Context, mode pb.ImportMode, approve, dryRun bool, content []byte) (importOptions, error) {
-	options := importOptions{mode: mode, approve: approve, dryRun: dryRun}
+// CREATE_OR_UPDATE as the default mode. On top of the rule for imports, REPLACE_ALL and
+// delete_missing need delete_entry, as they remove existing localizations or entries, and
+// approving needs review_entry. A dry run needs the same.
+func (s *Server) startImport(
+	ctx context.Context, mode pb.ImportMode, approve, dryRun, deleteMissing bool, content []byte,
+) (importOptions, error) {
+	options := importOptions{mode: mode, approve: approve, dryRun: dryRun, deleteMissing: deleteMissing}
 
-	if mode == pb.ImportMode_IMPORT_MODE_REPLACE_ALL {
+	if mode == pb.ImportMode_IMPORT_MODE_REPLACE_ALL || deleteMissing {
 		if err := middleware.RequirePermission(ctx, s.db, permissions.DeleteEntry); err != nil {
 			return options, err
 		}
@@ -641,6 +654,11 @@ type importOptions struct {
 	// The entries' descriptions by key, from formats that carry them. An empty or missing
 	// one keeps the entry's description.
 	descriptions map[string]string
+	// Deletes the entries the file doesn't hold, see deleteMissingEntries
+	deleteMissing bool
+	// The keys the file holds without importing them, e.g. a PO file's untranslated
+	// records, whose entries delete_missing keeps
+	heldKeys []string
 }
 
 // newReview is the review state of a translation the import creates

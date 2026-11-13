@@ -34,6 +34,9 @@ type zipImport struct {
 	languages []string
 	// created holds the languages created for files so far, by lower-case code.
 	created map[string]bool
+	// held holds the keys of the default language's files when the import deletes the
+	// entries they don't hold. The other files' keys of those entries are skipped.
+	held map[string]bool
 }
 
 // newZipImport starts a ZIP import. New languages get names in English, the
@@ -68,6 +71,8 @@ func (z *zipImport) importFile(db *gorm.DB, file *zip.File) (*pb.LocaleImportRes
 		return result, nil
 	}
 
+	skipped := z.skipUnheld(translations)
+
 	locale, reason, err := resolveZipLocale(db, code, z.canCreate)
 	if err != nil {
 		return nil, err
@@ -80,6 +85,7 @@ func (z *zipImport) importFile(db *gorm.DB, file *zip.File) (*pb.LocaleImportRes
 		}
 
 		z.importInto(db, locale.ID, translations, result)
+		addSkipped(result, skipped)
 
 		return result, nil
 	}
@@ -100,9 +106,37 @@ func (z *zipImport) importFile(db *gorm.DB, file *zip.File) (*pb.LocaleImportRes
 	default:
 		// A dry run creates every language it can, so it shows what their files change.
 		z.createAndImport(db, code, translations, result)
+		addSkipped(result, skipped)
 	}
 
 	return result, nil
+}
+
+// skipUnheld drops the keys the default language's files don't hold, when the import
+// deletes their entries, and counts them
+func (z *zipImport) skipUnheld(translations map[string]string) int32 {
+	if z.held == nil {
+		return 0
+	}
+
+	var skipped int32
+
+	for key := range translations {
+		if !z.held[key] {
+			delete(translations, key)
+
+			skipped++
+		}
+	}
+
+	return skipped
+}
+
+// addSkipped counts the keys skipUnheld dropped in the file's result
+func addSkipped(result *pb.LocaleImportResult, skipped int32) {
+	if result.Result != nil {
+		result.Result.EntriesSkipped += skipped
+	}
 }
 
 // createAndImport creates the file's language and imports the file into it, both or

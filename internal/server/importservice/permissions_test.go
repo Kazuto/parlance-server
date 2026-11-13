@@ -8,7 +8,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/testutil"
 )
 
-func TestReplaceAllImportRequiresDeletePermission(t *testing.T) {
+func TestDeletingImportsRequireDeletePermission(t *testing.T) {
 	_, db := testutil.Setup(t)
 
 	ctx, err := testutil.ContextWithPermissions(db, "create_entry", "update_entry")
@@ -21,6 +21,11 @@ func TestReplaceAllImportRequiresDeletePermission(t *testing.T) {
 	_, err = server.ImportJson(ctx, connect.NewRequest(&pb.ImportJsonRequest{Mode: pb.ImportMode_IMPORT_MODE_REPLACE_ALL}))
 	if connect.CodeOf(err) != connect.CodePermissionDenied {
 		t.Fatalf("expected permission denied, got %v", err)
+	}
+
+	_, err = server.ImportJson(ctx, connect.NewRequest(&pb.ImportJsonRequest{DeleteMissing: true}))
+	if connect.CodeOf(err) != connect.CodePermissionDenied {
+		t.Fatalf("expected permission denied for delete_missing, got %v", err)
 	}
 
 	_, err = server.ImportJson(ctx, connect.NewRequest(&pb.ImportJsonRequest{}))
