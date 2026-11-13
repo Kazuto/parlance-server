@@ -237,6 +237,19 @@ func planImport(
 		return nil, err
 	}
 
+	// Deleted entries keep their keys, so the import can't create them again
+	var deletedKeys []string
+	if err := tx.Unscoped().Model(&models.Entry{}).
+		Where("key IN ? AND deleted_at IS NOT NULL", keys).
+		Pluck("key", &deletedKeys).Error; err != nil {
+		return nil, err
+	}
+
+	deleted := make(map[string]bool, len(deletedKeys))
+	for _, key := range deletedKeys {
+		deleted[key] = true
+	}
+
 	entryMap := make(map[string]*models.Entry, len(existingEntries))
 	entryIDs := make([]string, 0, len(existingEntries))
 
@@ -276,6 +289,15 @@ func planImport(
 
 		if options.mode == pb.ImportMode_IMPORT_MODE_UPDATE_ONLY && !entryExists {
 			result.EntriesSkipped++
+
+			continue
+		}
+
+		if !entryExists && deleted[key] {
+			result.EntriesFailed++
+			result.Errors = append(result.Errors, &pb.ImportError{
+				Key: key, Message: "the entry was deleted; restore it under Deleted entries to import it",
+			})
 
 			continue
 		}
@@ -363,6 +385,8 @@ func planImport(
 			result.EntriesCreated++
 		}
 	}
+
+	slices.SortStableFunc(result.Errors, func(a, b *pb.ImportError) int { return cmp.Compare(a.Key, b.Key) })
 
 	if err := planRemovals(tx, plan, target, imported); err != nil {
 		return nil, err

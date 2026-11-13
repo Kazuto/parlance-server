@@ -539,7 +539,8 @@ and ZIP files with one file per language. Imports take a `localeId`, optional
 requests). The modes are create or update (the default), create only, update only,
 and replace all. Exports take a `localeCode` and optional `scopeIds`; without
 scopes they export all active entries. ZIP imports and exports cover all languages
-at once, so they take no language.
+at once, so they take no language. A key of a deleted entry isn't imported: it is
+reported in `result.errors` and counted as failed until the entry is restored.
 
 With `dryRun`, an import changes nothing and reports what it would do: the same
 counts, `translationsAdded`, `translationsChanged` and `translationsRemoved`, how
