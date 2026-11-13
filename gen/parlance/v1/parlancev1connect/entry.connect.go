@@ -53,6 +53,9 @@ const (
 	// EntryServiceSearchEntriesProcedure is the fully-qualified name of the EntryService's
 	// SearchEntries RPC.
 	EntryServiceSearchEntriesProcedure = "/parlance.v1.EntryService/SearchEntries"
+	// EntryServiceSearchSimilarEntriesProcedure is the fully-qualified name of the EntryService's
+	// SearchSimilarEntries RPC.
+	EntryServiceSearchSimilarEntriesProcedure = "/parlance.v1.EntryService/SearchSimilarEntries"
 	// EntryServiceGetEntryHistoryProcedure is the fully-qualified name of the EntryService's
 	// GetEntryHistory RPC.
 	EntryServiceGetEntryHistoryProcedure = "/parlance.v1.EntryService/GetEntryHistory"
@@ -82,6 +85,9 @@ type EntryServiceClient interface {
 	DeleteEntry(context.Context, *connect.Request[v1.DeleteEntryRequest]) (*connect.Response[v1.DeleteEntryResponse], error)
 	RestoreEntry(context.Context, *connect.Request[v1.RestoreEntryRequest]) (*connect.Response[v1.RestoreEntryResponse], error)
 	SearchEntries(context.Context, *connect.Request[v1.SearchEntriesRequest]) (*connect.Response[v1.SearchEntriesResponse], error)
+	// Finds the entries whose default text is the same as or similar to a text, e.g.
+	// to point out twins while the default text is being written.
+	SearchSimilarEntries(context.Context, *connect.Request[v1.SearchSimilarEntriesRequest]) (*connect.Response[v1.SearchSimilarEntriesResponse], error)
 	GetEntryHistory(context.Context, *connect.Request[v1.GetEntryHistoryRequest]) (*connect.Response[v1.GetEntryHistoryResponse], error)
 	UpdateEntriesScopes(context.Context, *connect.Request[v1.UpdateEntriesScopesRequest]) (*connect.Response[v1.UpdateEntriesScopesResponse], error)
 	UpdateEntriesTags(context.Context, *connect.Request[v1.UpdateEntriesTagsRequest]) (*connect.Response[v1.UpdateEntriesTagsResponse], error)
@@ -145,6 +151,12 @@ func NewEntryServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(entryServiceMethods.ByName("SearchEntries")),
 			connect.WithClientOptions(opts...),
 		),
+		searchSimilarEntries: connect.NewClient[v1.SearchSimilarEntriesRequest, v1.SearchSimilarEntriesResponse](
+			httpClient,
+			baseURL+EntryServiceSearchSimilarEntriesProcedure,
+			connect.WithSchema(entryServiceMethods.ByName("SearchSimilarEntries")),
+			connect.WithClientOptions(opts...),
+		),
 		getEntryHistory: connect.NewClient[v1.GetEntryHistoryRequest, v1.GetEntryHistoryResponse](
 			httpClient,
 			baseURL+EntryServiceGetEntryHistoryProcedure,
@@ -193,6 +205,7 @@ type entryServiceClient struct {
 	deleteEntry           *connect.Client[v1.DeleteEntryRequest, v1.DeleteEntryResponse]
 	restoreEntry          *connect.Client[v1.RestoreEntryRequest, v1.RestoreEntryResponse]
 	searchEntries         *connect.Client[v1.SearchEntriesRequest, v1.SearchEntriesResponse]
+	searchSimilarEntries  *connect.Client[v1.SearchSimilarEntriesRequest, v1.SearchSimilarEntriesResponse]
 	getEntryHistory       *connect.Client[v1.GetEntryHistoryRequest, v1.GetEntryHistoryResponse]
 	updateEntriesScopes   *connect.Client[v1.UpdateEntriesScopesRequest, v1.UpdateEntriesScopesResponse]
 	updateEntriesTags     *connect.Client[v1.UpdateEntriesTagsRequest, v1.UpdateEntriesTagsResponse]
@@ -236,6 +249,11 @@ func (c *entryServiceClient) SearchEntries(ctx context.Context, req *connect.Req
 	return c.searchEntries.CallUnary(ctx, req)
 }
 
+// SearchSimilarEntries calls parlance.v1.EntryService.SearchSimilarEntries.
+func (c *entryServiceClient) SearchSimilarEntries(ctx context.Context, req *connect.Request[v1.SearchSimilarEntriesRequest]) (*connect.Response[v1.SearchSimilarEntriesResponse], error) {
+	return c.searchSimilarEntries.CallUnary(ctx, req)
+}
+
 // GetEntryHistory calls parlance.v1.EntryService.GetEntryHistory.
 func (c *entryServiceClient) GetEntryHistory(ctx context.Context, req *connect.Request[v1.GetEntryHistoryRequest]) (*connect.Response[v1.GetEntryHistoryResponse], error) {
 	return c.getEntryHistory.CallUnary(ctx, req)
@@ -275,6 +293,9 @@ type EntryServiceHandler interface {
 	DeleteEntry(context.Context, *connect.Request[v1.DeleteEntryRequest]) (*connect.Response[v1.DeleteEntryResponse], error)
 	RestoreEntry(context.Context, *connect.Request[v1.RestoreEntryRequest]) (*connect.Response[v1.RestoreEntryResponse], error)
 	SearchEntries(context.Context, *connect.Request[v1.SearchEntriesRequest]) (*connect.Response[v1.SearchEntriesResponse], error)
+	// Finds the entries whose default text is the same as or similar to a text, e.g.
+	// to point out twins while the default text is being written.
+	SearchSimilarEntries(context.Context, *connect.Request[v1.SearchSimilarEntriesRequest]) (*connect.Response[v1.SearchSimilarEntriesResponse], error)
 	GetEntryHistory(context.Context, *connect.Request[v1.GetEntryHistoryRequest]) (*connect.Response[v1.GetEntryHistoryResponse], error)
 	UpdateEntriesScopes(context.Context, *connect.Request[v1.UpdateEntriesScopesRequest]) (*connect.Response[v1.UpdateEntriesScopesResponse], error)
 	UpdateEntriesTags(context.Context, *connect.Request[v1.UpdateEntriesTagsRequest]) (*connect.Response[v1.UpdateEntriesTagsResponse], error)
@@ -334,6 +355,12 @@ func NewEntryServiceHandler(svc EntryServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(entryServiceMethods.ByName("SearchEntries")),
 		connect.WithHandlerOptions(opts...),
 	)
+	entryServiceSearchSimilarEntriesHandler := connect.NewUnaryHandler(
+		EntryServiceSearchSimilarEntriesProcedure,
+		svc.SearchSimilarEntries,
+		connect.WithSchema(entryServiceMethods.ByName("SearchSimilarEntries")),
+		connect.WithHandlerOptions(opts...),
+	)
 	entryServiceGetEntryHistoryHandler := connect.NewUnaryHandler(
 		EntryServiceGetEntryHistoryProcedure,
 		svc.GetEntryHistory,
@@ -386,6 +413,8 @@ func NewEntryServiceHandler(svc EntryServiceHandler, opts ...connect.HandlerOpti
 			entryServiceRestoreEntryHandler.ServeHTTP(w, r)
 		case EntryServiceSearchEntriesProcedure:
 			entryServiceSearchEntriesHandler.ServeHTTP(w, r)
+		case EntryServiceSearchSimilarEntriesProcedure:
+			entryServiceSearchSimilarEntriesHandler.ServeHTTP(w, r)
 		case EntryServiceGetEntryHistoryProcedure:
 			entryServiceGetEntryHistoryHandler.ServeHTTP(w, r)
 		case EntryServiceUpdateEntriesScopesProcedure:
@@ -433,6 +462,10 @@ func (UnimplementedEntryServiceHandler) RestoreEntry(context.Context, *connect.R
 
 func (UnimplementedEntryServiceHandler) SearchEntries(context.Context, *connect.Request[v1.SearchEntriesRequest]) (*connect.Response[v1.SearchEntriesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.EntryService.SearchEntries is not implemented"))
+}
+
+func (UnimplementedEntryServiceHandler) SearchSimilarEntries(context.Context, *connect.Request[v1.SearchSimilarEntriesRequest]) (*connect.Response[v1.SearchSimilarEntriesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("parlance.v1.EntryService.SearchSimilarEntries is not implemented"))
 }
 
 func (UnimplementedEntryServiceHandler) GetEntryHistory(context.Context, *connect.Request[v1.GetEntryHistoryRequest]) (*connect.Response[v1.GetEntryHistoryResponse], error) {

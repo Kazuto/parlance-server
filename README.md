@@ -37,9 +37,9 @@ port 8080. It needs PostgreSQL and S3-compatible storage, configured with the
 variables below.
 
 PostgreSQL must be version 13 or later and offer the `pg_trgm` extension, as the
-official images do; the translation memory compares texts with it. The API creates
-the extension on start, which needs the `CREATE` privilege on the database; the
-database's owner has it. Without it, the API does not start.
+official images do; the translation memory and the similar entries search compare
+texts with it. The API creates the extension on start, which needs the `CREATE`
+privilege on the database; the database's owner has it. Without it, the API does not start.
 
 ## Configuration
 
@@ -491,6 +491,22 @@ is evaluated before pagination against active, non-empty saved translations:
 
 An empty target list checks all active locales. Omit `translationStatus` to include
 entries regardless of status.
+
+`duplicates` keeps entries that share their default text with another entry, compared
+ignoring case and surrounding space:
+
+- `DUPLICATE_FILTER_SAME_TEXT`: another entry has the same default text.
+- `DUPLICATE_FILTER_TRANSLATED_DIFFERENTLY`: another entry has the same default text,
+  and their translations into one of the status locales differ. Blank translations
+  don't count.
+
+Twins are looked for among the entries that `scopeIds`, `tagIds` and `releaseIds`
+select, so a scope finds the twins within it. Search and status narrow only the
+listed entries. Twins are listed together, by their default text and then by key.
+
+`SearchSimilarEntries` finds the entries whose default text is the same as or at
+least 80% alike to a given text, e.g. one being typed, and counts those with the same
+text.
 
 ### Releases
 
