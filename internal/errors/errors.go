@@ -1,8 +1,10 @@
 package errors
 
 import (
+	stderrors "errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"connectrpc.com/connect"
 )
@@ -112,6 +114,42 @@ const (
 // ErrorWithCode creates a Connect error with an error code in the message
 func ErrorWithCode(code connect.Code, errorCode string, message string) error {
 	return connect.NewError(code, fmt.Errorf("[%s] %s", errorCode, message))
+}
+
+// CodeOf returns the error code of an error made by ErrorWithCode, e.g.
+// "SSO_NO_ACCOUNT", and "" for other errors.
+func CodeOf(err error) string {
+	code, _ := split(err)
+
+	return code
+}
+
+// MessageOf returns the message of an error without its error code.
+func MessageOf(err error) string {
+	_, message := split(err)
+
+	return message
+}
+
+func split(err error) (code, message string) {
+	if err == nil {
+		return "", ""
+	}
+
+	message = err.Error()
+
+	var connectErr *connect.Error
+	if stderrors.As(err, &connectErr) {
+		message = connectErr.Message()
+	}
+
+	if rest, ok := strings.CutPrefix(message, "["); ok {
+		if code, text, ok := strings.Cut(rest, "] "); ok {
+			return code, text
+		}
+	}
+
+	return "", message
 }
 
 // InvalidInput returns an invalid argument error

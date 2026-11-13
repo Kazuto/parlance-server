@@ -18,14 +18,17 @@ type Server struct {
 	config *config.Config
 	// sso signs users in with single sign-on providers.
 	sso *sso.Client
+	// failures reports failed sign-ins to webhooks.
+	failures *loginReporter
 }
 
 // NewServer creates a new AuthService server
 func NewServer(db *database.DB, cfg *config.Config, ssoClient *sso.Client) parlancev1connect.AuthServiceHandler {
 	return &Server{
-		db:     db,
-		config: cfg,
-		sso:    ssoClient,
+		db:       db,
+		config:   cfg,
+		sso:      ssoClient,
+		failures: newLoginReporter(db, cfg.Server.TrustedProxies),
 	}
 }
 

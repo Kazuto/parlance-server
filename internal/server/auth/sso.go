@@ -4,11 +4,14 @@ import (
 	"context"
 	"net/url"
 	"slices"
+	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/sso"
+	"github.com/kazuto/parlance-server/internal/webhook"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -61,8 +64,10 @@ func (s *Server) FinishSso(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "state and code are required")
 	}
 
-	user, err := s.sso.Finish(ctx, req.Msg.State, req.Msg.Code)
+	user, attempt, err := s.sso.FinishAttempt(ctx, req.Msg.State, req.Msg.Code)
 	if err != nil {
+		s.reportSsoFailure(ctx, req, attempt, err)
+
 		return nil, err
 	}
 
@@ -76,6 +81,28 @@ func (s *Server) FinishSso(
 		RefreshToken: tokens.RefreshToken,
 		User:         converter.UserToProto(user),
 	}), nil
+}
+
+// reportSsoFailure reports a single sign-on that failed. An expired sign-in is
+// mostly a reload or the back button, and the server's own errors are no failed
+// sign-in, so neither is reported.
+func (s *Server) reportSsoFailure(ctx context.Context, req connect.AnyRequest, attempt sso.Attempt, err error) {
+	code := errors.CodeOf(err)
+	if code == "" || code == errors.ErrSSOLoginExpired || connect.CodeOf(err) == connect.CodeInternal {
+		return
+	}
+
+	data := webhook.LoginFailedData{
+		Email:  attempt.Email,
+		Method: webhook.LoginMethodSSO,
+		Reason: strings.ToLower(code),
+	}
+
+	if attempt.ProviderID != "" {
+		data.Provider = &webhook.ProviderInfo{ID: attempt.ProviderID, Name: attempt.ProviderName}
+	}
+
+	s.failures.report(ctx, req.Peer().Addr, req.Header(), data)
 }
 
 // checkRedirectURI accepts an absolute http or https URL of a web app the API

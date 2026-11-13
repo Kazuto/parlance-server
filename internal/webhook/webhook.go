@@ -148,6 +148,65 @@ type PingData struct {
 	} `json:"webhook"`
 }
 
+// ExportFailedData is the data of export.failed.
+type ExportFailedData struct {
+	// Source is "download" for an export someone downloaded, or "task" for a run of
+	// a git export task.
+	Source string `json:"source"`
+	Error  string `json:"error"`
+	// Format is a download's: "json", "php", "po" or "zip".
+	Format string `json:"format,omitempty"`
+	// Locales holds the language code of a file download, and LocaleIDs the
+	// languages a ZIP download was for; none for all.
+	Locales   []string `json:"locales,omitempty"`
+	LocaleIDs []string `json:"locale_ids,omitempty"`
+	ScopeIDs  []string `json:"scope_ids,omitempty"`
+	TagIDs    []string `json:"tag_ids,omitempty"`
+	// User asked for the download.
+	User *User `json:"user,omitempty"`
+	// Task and RunID name the git export task and its run.
+	Task  *TaskInfo `json:"task,omitempty"`
+	RunID string    `json:"run_id,omitempty"`
+}
+
+// The sources of failed exports
+const (
+	ExportSourceDownload = "download"
+	ExportSourceTask     = "task"
+)
+
+// LoginFailedData is the data of login.failed. It never holds the password.
+type LoginFailedData struct {
+	Email string `json:"email"`
+	// Method is "password" or "sso".
+	Method string `json:"method"`
+	// Provider is the single sign-on provider, when known.
+	Provider *ProviderInfo `json:"provider,omitempty"`
+	// Reason is "unknown_email" or "wrong_password" for a password, and the error
+	// code in lower case for single sign-on, e.g. "sso_no_account".
+	Reason    string `json:"reason"`
+	IP        string `json:"ip"`
+	UserAgent string `json:"user_agent"`
+	// Attempts counts the failed sign-ins with the email from the address since the
+	// last event about them, this one included.
+	Attempts int `json:"attempts"`
+}
+
+// ProviderInfo is a single sign-on provider.
+type ProviderInfo struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// The ways to sign in, and why a sign-in with a password failed
+const (
+	LoginMethodPassword = "password"
+	LoginMethodSSO      = "sso"
+
+	LoginReasonUnknownEmail  = "unknown_email"
+	LoginReasonWrongPassword = "wrong_password"
+)
+
 // Emit queues a delivery of the event to each enabled webhook subscribed to it, or
 // collects it for the webhook's next digest. It runs in the transaction of the
 // change, so a change that is rolled back sends nothing. data is only called when
@@ -423,6 +482,28 @@ func TaskRun(tx *gorm.DB, runID string) (TaskRunData, error) {
 	}
 
 	return data, nil
+}
+
+// FailedGitExport is the export.failed data of a git export run that failed.
+func FailedGitExport(run TaskRunData) ExportFailedData {
+	task := run.Task
+
+	return ExportFailedData{
+		Source: ExportSourceTask,
+		Error:  run.Run.Error,
+		User:   run.Run.User,
+		Task:   &task,
+		RunID:  run.Run.ID,
+	}
+}
+
+// FailedDownload is the export.failed data of a download the user asked for.
+func FailedDownload(tx *gorm.DB, userID *string, data ExportFailedData) (ExportFailedData, error) {
+	user, err := loadUser(tx, userID)
+	data.Source = ExportSourceDownload
+	data.User = user
+
+	return data, err
 }
 
 // capItems keeps the first maxItems ids, telling whether it dropped any.
