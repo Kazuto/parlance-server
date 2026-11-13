@@ -108,6 +108,10 @@ message ImportZipRequest {
   ImportMode mode = 3;            // How to handle conflicts
   bool approve = 4;              // Approve the imported translations; needs review_entry
   bool dry_run = 5;              // Reports what the import would change, without changing anything
+  // Codes of files whose languages don't exist yet, to create them and import the
+  // files, e.g. "sv"; needs create_locale. Files of other missing languages are
+  // skipped.
+  repeated string create_locale_codes = 6;
 }
 
 message ImportZipResponse {
@@ -122,4 +126,22 @@ message LocaleImportResult {
   string locale_code = 1;         // Which locale file was processed
   ImportResult result = 2;        // Result for this locale
   string error = 3;               // Error message if the whole file failed
+  // The file's language doesn't exist. A dry run imports the file into a new
+  // language when one can be created, so the result shows what would change.
+  bool locale_missing = 4;
+  // The missing or created language's name in the request's language, e.g.
+  // "Swedish", or its code without a known name.
+  string locale_name = 5;
+  // Why the missing language can't be created; unspecified when it can.
+  MissingLocaleReason missing_reason = 6;
+  // The import created the language for the file.
+  bool locale_created = 7;
+}
+
+// Why a ZIP import can't create a file's missing language
+enum MissingLocaleReason {
+  MISSING_LOCALE_REASON_UNSPECIFIED = 0;  // It can be created
+  MISSING_LOCALE_REASON_DELETED = 1;  // A deleted language has the code; restoring it imports the file
+  MISSING_LOCALE_REASON_INVALID_CODE = 2;  // The file's name is no known language code
+  MISSING_LOCALE_REASON_NO_PERMISSION = 3;  // Creating languages needs create_locale
 }

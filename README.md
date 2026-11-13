@@ -524,6 +524,18 @@ many translations in other languages a changed default text would mark outdated,
 and the first 500 changes by key with their old and new text. A ZIP dry run imports
 its files in one transaction, so each sees the ones before it, as a real import does.
 
+**Missing languages in ZIP imports:** a file goes into the language whose code
+matches its name in any case, so `de-de.json` goes into `de-DE`. For a file whose
+language doesn't exist, the result has `localeMissing`, the language's
+`localeName` and a `missingReason`: unspecified when it can be created, or
+`DELETED` (restoring it imports the file), `INVALID_CODE` (no known language
+code; add it under Locales) or `NO_PERMISSION` (creating languages needs
+`create_locale`). A dry run imports the files of languages it could create, so
+they show what would change. A real import creates the languages listed in
+`createLocaleCodes`, named in English, the request's language and the project's
+languages, never as the default, and imports their files in the same transaction
+(`localeCreated`). It skips the files of other missing languages.
+
 **JSON:** imports accept flat dotted keys and nested objects, also mixed:
 `{"entries": {"create": "Create Entry"}}` becomes `{"entries.create": "Create Entry"}`.
 Values must be strings (empty ones too). Arrays, numbers, booleans, null, empty
