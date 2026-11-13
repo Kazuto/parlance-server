@@ -148,6 +148,36 @@ func TestChatMessages(t *testing.T) {
 			ReleaseData{Release: ReleaseInfo{Name: "Empty"}, Entries: []Entry{}},
 			"Release “Empty” went out",
 		},
+		{
+			models.WebhookEventExportFailed,
+			ExportFailedData{Source: ExportSourceTask, Task: &TaskInfo{Name: "Ship"}, Error: "the token can't push\nto main"},
+			"Git export “Ship” failed: the token can't push to main",
+		},
+		{
+			models.WebhookEventExportFailed,
+			ExportFailedData{Source: ExportSourceDownload, Format: "po", Locales: []string{"de"}, User: &User{Name: "Rita"}, Error: "failed to query entries"},
+			"Rita’s download of de as PO failed: failed to query entries",
+		},
+		{
+			models.WebhookEventExportFailed,
+			ExportFailedData{Source: ExportSourceDownload, Format: "zip", Error: "failed to close ZIP archive"},
+			"A ZIP download failed: failed to close ZIP archive",
+		},
+		{
+			models.WebhookEventLoginFailed,
+			LoginFailedData{Email: "rita@example.com", Method: LoginMethodPassword, Reason: LoginReasonWrongPassword, IP: "198.51.100.1", Attempts: 4},
+			"Failed sign-in as rita@example.com from 198.51.100.1: wrong password (4 attempts)",
+		},
+		{
+			models.WebhookEventLoginFailed,
+			LoginFailedData{Email: "tom@example.com", Method: LoginMethodSSO, Provider: &ProviderInfo{ID: "p1", Name: "Keycloak"}, Reason: "sso_no_account", IP: "2001:db8::1", Attempts: 1},
+			"Failed sign-in as tom@example.com with Keycloak from 2001:db8::1: no account has this email",
+		},
+		{
+			models.WebhookEventLoginFailed,
+			LoginFailedData{Method: LoginMethodSSO, Provider: &ProviderInfo{ID: "p1"}, Reason: "sso_something_new", Attempts: 1},
+			"Failed sign-in: sso_something_new",
+		},
 	}
 
 	for _, test := range tests {
@@ -214,6 +244,8 @@ func TestAppriseBody(t *testing.T) {
 		}{
 			{models.WebhookEventTaskRunFailed, TaskRunData{Run: RunInfo{Status: models.RunFailed}}, "Task failed", "failure"},
 			{models.WebhookEventTaskRunSucceeded, TaskRunData{Run: RunInfo{Status: models.RunSucceeded}}, "Task succeeded", "success"},
+			{models.WebhookEventExportFailed, ExportFailedData{Source: ExportSourceDownload, Format: "json"}, "Export failed", "failure"},
+			{models.WebhookEventLoginFailed, LoginFailedData{Email: "rita@example.com"}, "Sign-in failed", "warning"},
 			{models.WebhookEventTranslationsApproved, TranslationsData{Count: 1}, "Translations approved", "success"},
 			{models.WebhookEventTranslationsReleased, ReleaseData{Release: ReleaseInfo{Name: "Spring"}}, "Release went out", "success"},
 			{models.WebhookEventTranslationsAwaitingApproval, TranslationsData{Count: 1}, "Translations await approval", "info"},
@@ -284,7 +316,7 @@ func TestDigestMessage(t *testing.T) {
 
 	data := DigestData{
 		Since: time.Date(2026, 10, 23, 9, 0, 0, 0, time.UTC),
-		Count: 8,
+		Count: 9,
 		Events: []json.RawMessage{
 			raw(models.WebhookEventTranslationsAwaitingApproval, TranslationsData{Count: 2, User: &User{Name: "Rita"}, Translations: translations("a", "b")}),
 			raw(models.WebhookEventTranslationsAwaitingApproval, TranslationsData{Count: 6, Task: &TaskInfo{Name: "Nightly"}, Translations: translations("c", "d", "e", "f", "g", "h")}),
@@ -293,6 +325,7 @@ func TestDigestMessage(t *testing.T) {
 			raw(models.WebhookEventTaskRunFailed, TaskRunData{Task: TaskInfo{Name: "Ship"}, Run: RunInfo{Status: models.RunFailed, Error: "boom"}}),
 			raw(models.WebhookEventTranslationsReleased, ReleaseData{Release: ReleaseInfo{Name: "Spring"}, Count: 3, Entries: []Entry{{Key: "x"}}}),
 			raw(models.WebhookEventTaskRunSucceeded, TaskRunData{Task: TaskInfo{Name: "Fill"}, Run: RunInfo{Status: models.RunSucceeded, Summary: models.TaskRunSummary{PullRequestURL: "https://github.example/pr/1"}}}),
+			raw(models.WebhookEventLoginFailed, LoginFailedData{Email: "rita@example.com", Reason: LoginReasonUnknownEmail, IP: "198.51.100.1", Attempts: 2}),
 		},
 		Truncated: true,
 	}
@@ -304,6 +337,7 @@ func TestDigestMessage(t *testing.T) {
 		"• Release “Spring” went out: 3 entries export now\n" +
 		"• Task “Ship” failed: boom\n" +
 		"• Task “Fill” succeeded · Pull request: https://github.example/pr/1\n" +
+		"• Failed sign-in as rita@example.com from 198.51.100.1: no account has this email (2 attempts)\n" +
 		"…and 1 more event"
 
 	if got := slackText(t, payloadOf(t, models.WebhookEventDigest, data)); got != want {

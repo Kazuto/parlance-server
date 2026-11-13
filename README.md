@@ -56,6 +56,7 @@ Set these as environment variables or in a `.env` file (see `.env.example`):
 | `JWT_EXPIRY`                            | `24h`                            | How long a sign-in lasts; refresh tokens last 7 times as long                                                                                                                                                                                                    |
 | `ENCRYPTION_KEY`                        | (none)                           | Encrypts stored API keys of translation servers, access tokens of tasks and signing secrets of webhooks, and client secrets of sign-in providers. Needed only to save them. Changing it makes saved ones unreadable. Generate one with `openssl rand -base64 32` |
 | `CORS_ALLOWED_ORIGINS`                  | `http://localhost:3000`          | Comma-separated addresses of the web apps allowed to call the API; single sign-on only returns to these                                                                                                                                                          |
+| `TRUSTED_PROXIES`                       | (none)                           | Comma-separated addresses or CIDR ranges of reverse proxies in front of the API, e.g. `172.16.0.0/12`. From them, `X-Forwarded-For` tells where a request came from, e.g. for `login.failed` webhooks                                                            |
 | `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET` | (none)                           | S3-compatible storage for avatars, which the API serves at `/avatars/{id}`; the bucket is created if missing and needs no public access                                                                                                                          |
 | `S3_ACCESS_KEY`, `S3_SECRET_KEY`        | (none)                           | Credentials for that storage                                                                                                                                                                                                                                     |
 
@@ -272,16 +273,18 @@ key, `http://apprise:8000/notify` notifies the services in Apprise's
 Deliveries keep the event and render the body when sent, so after changing the
 format, retries and **Send again** use the new one.
 
-| Event                                   | Sent when                                                                                                                                        | `data`                                                                                                              |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `translations.awaiting_approval`        | Translations become drafts: new or changed in the editor, by machine translation (in the editor or a task), or by an import that doesn't approve | `translations` (`id`, `entry_id`, `key`, `locale`, `translation`), `user`, and `task` for a task's drafts           |
-| `translations.approved`                 | Translations are approved in the editor or by an approving import                                                                                | `translations` and `user`                                                                                           |
-| `translations.rejected`                 | A reviewer sends translations back                                                                                                               | The same, plus the reviewer's `comment`                                                                             |
-| `entries.created`                       | Entries are created in the app or by an import                                                                                                   | `entries` (`id`, `key`, `description`) and `user`                                                                   |
-| `task_run.succeeded`, `task_run.failed` | A task run ends, including runs that stopped responding; canceled runs don't                                                                     | `task` (`id`, `name`, `type`) and `run` (`id`, `trigger`, `status`, times, `error`, `summary`, `user`)              |
-| `translations.released`                 | A release goes out, at its date or by hand                                                                                                       | `release` (`id`, `name`, `description`, `release_at`, `released_at`), the `entries` it let into exports, and `user` |
-| `digest`                                | A webhook with a schedule sends what it collected                                                                                                | `since`, `count`, `events` (the bodies above, oldest first) and `truncated`                                         |
-| `ping`                                  | Someone presses **Send test**                                                                                                                    | `webhook` (`id`, `name`, `events`)                                                                                  |
+| Event                                   | Sent when                                                                                                                                        | `data`                                                                                                                                                           |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `translations.awaiting_approval`        | Translations become drafts: new or changed in the editor, by machine translation (in the editor or a task), or by an import that doesn't approve | `translations` (`id`, `entry_id`, `key`, `locale`, `translation`), `user`, and `task` for a task's drafts                                                        |
+| `translations.approved`                 | Translations are approved in the editor or by an approving import                                                                                | `translations` and `user`                                                                                                                                        |
+| `translations.rejected`                 | A reviewer sends translations back                                                                                                               | The same, plus the reviewer's `comment`                                                                                                                          |
+| `entries.created`                       | Entries are created in the app or by an import                                                                                                   | `entries` (`id`, `key`, `description`) and `user`                                                                                                                |
+| `task_run.succeeded`, `task_run.failed` | A task run ends, including runs that stopped responding; canceled runs don't                                                                     | `task` (`id`, `name`, `type`) and `run` (`id`, `trigger`, `status`, times, `error`, `summary`, `user`)                                                           |
+| `translations.released`                 | A release goes out, at its date or by hand                                                                                                       | `release` (`id`, `name`, `description`, `release_at`, `released_at`), the `entries` it let into exports, and `user`                                              |
+| `export.failed`                         | A download or a git export task fails with an error of the server's own; a failed git export also sends `task_run.failed`                        | `source` (`download` or `task`) and `error`; for downloads `format`, `locales` or `locale_ids`, `scope_ids`, `tag_ids` and `user`, for tasks `task` and `run_id` |
+| `login.failed`                          | Someone fails to sign in with a password or single sign-on, at most once per email and address every 15 minutes                                  | `email`, `method` (`password` or `sso`), `provider` (`id`, `name`), `reason`, `ip`, `user_agent` and `attempts`; never the password                              |
+| `digest`                                | A webhook with a schedule sends what it collected                                                                                                | `since`, `count`, `events` (the bodies above, oldest first) and `truncated`                                                                                      |
+| `ping`                                  | Someone presses **Send test**                                                                                                                    | `webhook` (`id`, `name`, `events`)                                                                                                                               |
 
 One action sends one event, however many translations or entries it touches: the
 lists hold the first 1000, `count` says how many there were and `truncated` whether
@@ -289,14 +292,25 @@ some were left out. `user` is who did it, or `null`. In the editor, each saved
 translation is one action; a batch of machine translations, an import or a task
 run is one too.
 
+**Failed sign-ins:** the `reason` is `unknown_email` or `wrong_password` for a
+password, and the error code in lower case for single sign-on, such as
+`sso_no_account` or `sso_email_unverified`. Expired single sign-ons (mostly a
+reload) and the server's own errors aren't reported. The first failure with an
+email from an address is sent right away; more of them are counted and sent at
+most every 15 minutes, with `attempts` since the last event. Once the failures
+stop for 15 minutes, those since the last event are dropped unsent. Across all
+emails and addresses, at most 30 events go out in 15 minutes. `ip` is the address the
+request came from; behind a reverse proxy, list it in `TRUSTED_PROXIES`, or every
+sign-in seems to come from the proxy.
+
 **Digests:** a webhook sends each event right away, or collects them and sends
 one `digest` on a schedule: a standard 5-field cron expression in UTC, picked as
 hourly, daily, weekly or custom in the app. Nothing is sent when nothing was
 collected. In the chat formats, a digest is one message with a line per kind of
 change, for example "12 translations submitted for approval (Rita, Task
-“Nightly”): …", and one per release and task run. A digest carries up to a
-megabyte of events; `count` holds them all. Removing the schedule sends what was
-collected right away; turning the webhook off drops it.
+“Nightly”): …", and one per release, task run and failure. A digest carries up
+to a megabyte of events; `count` holds them all. Removing the schedule sends what
+was collected right away; turning the webhook off drops it.
 
 In the JSON format, each event is posted like this:
 

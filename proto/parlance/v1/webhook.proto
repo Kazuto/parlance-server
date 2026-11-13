@@ -41,6 +41,12 @@ enum WebhookEvent {
   WEBHOOK_EVENT_DIGEST = 8;
   // A release went out, by its date or by hand, with the entries it let into exports.
   WEBHOOK_EVENT_TRANSLATIONS_RELEASED = 9;
+  // A download or a git export task failed. A failed git export also sends
+  // TASK_RUN_FAILED.
+  WEBHOOK_EVENT_EXPORT_FAILED = 10;
+  // Someone failed to sign in with a password or single sign-on; at most once per
+  // email and address every 15 minutes, counting the attempts.
+  WEBHOOK_EVENT_LOGIN_FAILED = 11;
 }
 
 // How a webhook posts events.

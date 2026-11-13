@@ -395,6 +395,63 @@ func TestEndedRunsAreSentToWebhooks(t *testing.T) {
 	}
 }
 
+func TestFailedGitExportsAreFailedExports(t *testing.T) {
+	db := testutil.SetupPostgresDB(t)
+	r := newTestRunner(t, db)
+	failing := func(context.Context, *models.Task, *runLog) (models.TaskRunSummary, error) {
+		return models.TaskRunSummary{}, stderrors.New("it broke")
+	}
+	r.executors = map[string]executor{models.TaskTypeGitExport: failing, models.TaskTypeAITranslate: failing}
+
+	hook := models.Webhook{Name: "Exports", URL: "https://alerts.example", Enabled: true, Events: []string{models.WebhookEventExportFailed}}
+	create(t, db.DB, &hook)
+
+	export := models.Task{Name: "Ship", Type: models.TaskTypeGitExport}
+	create(t, db.DB, &export)
+
+	translate := models.Task{Name: "Fill", Type: models.TaskTypeAITranslate}
+	create(t, db.DB, &translate)
+
+	old := time.Now().Add(-time.Hour)
+	stale := models.TaskRun{TaskID: export.ID, Trigger: models.TriggerSchedule, Status: models.RunRunning, RunAfter: old, HeartbeatAt: &old}
+	create(t, db.DB, &stale)
+
+	r.Tick(context.Background())
+
+	broken := queue(t, db.DB, export.ID)
+	queue(t, db.DB, translate.ID)
+
+	r.Tick(context.Background())
+
+	var deliveries []models.WebhookDelivery
+
+	db.Where("webhook_id = ?", hook.ID).Order("created_at").Find(&deliveries)
+
+	runs := map[string]webhook.ExportFailedData{}
+
+	for _, delivery := range deliveries {
+		var body struct {
+			Data webhook.ExportFailedData `json:"data"`
+		}
+
+		if err := json.Unmarshal([]byte(delivery.Payload), &body); err != nil {
+			t.Fatalf("payload: %v", err)
+		}
+
+		if delivery.Event != models.WebhookEventExportFailed || body.Data.Source != webhook.ExportSourceTask ||
+			body.Data.Task == nil || body.Data.Task.ID != export.ID {
+			t.Errorf("sent %s %+v, want export.failed of the git export", delivery.Event, body.Data)
+		}
+
+		runs[body.Data.RunID] = body.Data
+	}
+
+	// The stale and the broken run, but not the AI task's.
+	if len(deliveries) != 2 || !strings.Contains(runs[stale.ID].Error, "stopped responding") || runs[broken.ID].Error != "it broke" {
+		t.Errorf("sent %+v, want the stale and the broken git export", runs)
+	}
+}
+
 func TestCancelRunningRun(t *testing.T) {
 	db := testutil.SetupPostgresDB(t)
 	r := newTestRunner(t, db)

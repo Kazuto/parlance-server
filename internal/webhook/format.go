@@ -76,6 +76,8 @@ var eventTitles = map[string]string{
 	models.WebhookEventEntriesCreated:               "Entries added",
 	models.WebhookEventTaskRunSucceeded:             "Task succeeded",
 	models.WebhookEventTaskRunFailed:                "Task failed",
+	models.WebhookEventExportFailed:                 "Export failed",
+	models.WebhookEventLoginFailed:                  "Sign-in failed",
 	models.WebhookEventPing:                         "Test message",
 	models.WebhookEventDigest:                       "Digest",
 }
@@ -92,9 +94,9 @@ func eventTitle(event string) string {
 // for a failure; "info" for events that report nothing good or bad.
 func appriseType(event string) string {
 	switch event {
-	case models.WebhookEventTaskRunFailed:
+	case models.WebhookEventTaskRunFailed, models.WebhookEventExportFailed:
 		return "failure"
-	case models.WebhookEventTranslationsRejected:
+	case models.WebhookEventTranslationsRejected, models.WebhookEventLoginFailed:
 		return "warning"
 	case models.WebhookEventTranslationsApproved, models.WebhookEventTaskRunSucceeded, models.WebhookEventTranslationsReleased:
 		return "success"
@@ -158,6 +160,20 @@ func message(event string, raw json.RawMessage) (string, error) {
 		}
 
 		return releaseMessage(data), nil
+	case models.WebhookEventExportFailed:
+		var data ExportFailedData
+		if err := decode(&data); err != nil {
+			return "", err
+		}
+
+		return exportFailedMessage(data), nil
+	case models.WebhookEventLoginFailed:
+		var data LoginFailedData
+		if err := decode(&data); err != nil {
+			return "", err
+		}
+
+		return loginFailedMessage(data), nil
 	case models.WebhookEventPing:
 		var data PingData
 		if err := decode(&data); err != nil {
@@ -292,6 +308,63 @@ func releaseHeadline(data ReleaseData) string {
 	}
 }
 
+func exportFailedMessage(data ExportFailedData) string {
+	if data.Source == ExportSourceTask && data.Task != nil {
+		return fmt.Sprintf("Git export “%s” failed: %s", data.Task.Name, oneLine(data.Error))
+	}
+
+	what := strings.ToUpper(data.Format) + " download"
+	if len(data.Locales) > 0 {
+		what = fmt.Sprintf("download of %s as %s", strings.Join(data.Locales, ", "), strings.ToUpper(data.Format))
+	}
+
+	if data.User != nil {
+		return fmt.Sprintf("%s’s %s failed: %s", data.User.Name, what, oneLine(data.Error))
+	}
+
+	return fmt.Sprintf("A %s failed: %s", what, oneLine(data.Error))
+}
+
+// loginReasons say why a sign-in failed.
+var loginReasons = map[string]string{
+	LoginReasonUnknownEmail:  "no account has this email",
+	LoginReasonWrongPassword: "wrong password",
+	"sso_failed":             "the provider turned it down",
+	"sso_no_email":           "the provider shared no email",
+	"sso_email_unverified":   "the provider hasn't verified the email",
+	"sso_no_account":         "no account has this email",
+	"sso_account_deleted":    "the account was deleted",
+	"sso_provider_not_found": "the provider is turned off",
+}
+
+func loginFailedMessage(data LoginFailedData) string {
+	text := "Failed sign-in"
+	if data.Email != "" {
+		text += " as " + data.Email
+	}
+
+	if data.Provider != nil && data.Provider.Name != "" {
+		text += " with " + data.Provider.Name
+	}
+
+	if data.IP != "" {
+		text += " from " + data.IP
+	}
+
+	reason, ok := loginReasons[data.Reason]
+	if !ok {
+		reason = data.Reason
+	}
+
+	text += ": " + reason
+
+	if data.Attempts > 1 {
+		text += fmt.Sprintf(" (%d attempts)", data.Attempts)
+	}
+
+	return text
+}
+
 func taskRunMessage(data TaskRunData) string {
 	if data.Run.Status == models.RunFailed {
 		return fmt.Sprintf("Task “%s” failed: %s", data.Task.Name, oneLine(data.Run.Error))
@@ -356,7 +429,7 @@ var digestKinds = []struct {
 }
 
 // digestMessage sums up a digest's events: one line per kind of change, and one per
-// release and task run.
+// release, task run and failure.
 func digestMessage(data DigestData) string {
 	groups := map[string]*digestGroup{}
 	group := func(event string) *digestGroup {
@@ -367,7 +440,7 @@ func digestMessage(data DigestData) string {
 		return groups[event]
 	}
 
-	var releases, runs []string
+	var releases, runs, failures []string
 
 	for _, raw := range data.Events {
 		var event struct {
@@ -419,6 +492,10 @@ func digestMessage(data DigestData) string {
 			if json.Unmarshal(event.Data, &run) == nil {
 				runs = append(runs, strings.ReplaceAll(taskRunMessage(run), "\n", " · "))
 			}
+		case models.WebhookEventExportFailed, models.WebhookEventLoginFailed:
+			if text, err := message(event.Event, event.Data); err == nil {
+				failures = append(failures, text)
+			}
 		}
 	}
 
@@ -454,6 +531,7 @@ func digestMessage(data DigestData) string {
 
 	writeLines(&text, releases, "more release", "more releases")
 	writeLines(&text, runs, "more task run", "more task runs")
+	writeLines(&text, failures, "more failure", "more failures")
 
 	if data.Truncated {
 		fmt.Fprintf(&text, "\n…and %s", countOf(data.Count-len(data.Events), "more event", "more events"))

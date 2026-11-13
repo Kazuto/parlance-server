@@ -436,13 +436,32 @@ var endedEvents = map[string]string{
 }
 
 // emitEnded sends a run that ended with the status to the webhooks subscribed to it.
+// A git export that failed is an export that failed, too.
 func emitEnded(tx *gorm.DB, runID, status string) error {
 	event, ok := endedEvents[status]
 	if !ok {
 		return nil
 	}
 
-	return webhook.Emit(tx, event, func() (any, error) {
+	run := sync.OnceValues(func() (webhook.TaskRunData, error) {
 		return webhook.TaskRun(tx, runID)
+	})
+
+	if err := webhook.Emit(tx, event, func() (any, error) { return run() }); err != nil {
+		return err
+	}
+
+	if status != models.RunFailed {
+		return nil
+	}
+
+	// Only the run tells whether it exported, so failed runs always load it.
+	data, err := run()
+	if err != nil || data.Task.Type != models.TaskTypeGitExport {
+		return err
+	}
+
+	return webhook.Emit(tx, models.WebhookEventExportFailed, func() (any, error) {
+		return webhook.FailedGitExport(data), nil
 	})
 }

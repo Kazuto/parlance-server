@@ -1,8 +1,11 @@
 package config
 
 import (
+	"log"
+	"net/netip"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -19,6 +22,9 @@ type Config struct {
 type ServerConfig struct {
 	Port string
 	Env  string
+	// TrustedProxies are the proxies whose X-Forwarded-For header tells where a
+	// request came from.
+	TrustedProxies []netip.Prefix
 }
 
 type DatabaseConfig struct {
@@ -68,8 +74,9 @@ func Load() *Config {
 
 	return &Config{
 		Server: ServerConfig{
-			Port: port,
-			Env:  getEnv("ENV", "development"),
+			Port:           port,
+			Env:            getEnv("ENV", "development"),
+			TrustedProxies: parsePrefixes("TRUSTED_PROXIES", getEnv("TRUSTED_PROXIES", "")),
 		},
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
@@ -133,6 +140,41 @@ func parseCommaSeparated(value string) []string {
 	}
 
 	return result
+}
+
+// parsePrefixes reads comma-separated addresses and CIDR ranges, skipping the ones
+// it can't read.
+func parsePrefixes(name, value string) []netip.Prefix {
+	var prefixes []netip.Prefix
+
+	for _, item := range parseCommaSeparated(value) {
+		prefix, err := parsePrefix(item)
+		if err != nil {
+			log.Printf("config: %s: skipping %q, which is no address or CIDR range", name, item)
+
+			continue
+		}
+
+		prefixes = append(prefixes, prefix.Masked())
+	}
+
+	return prefixes
+}
+
+// parsePrefix reads a CIDR range, or an address as the range of just itself.
+func parsePrefix(value string) (netip.Prefix, error) {
+	if strings.Contains(value, "/") {
+		return netip.ParsePrefix(value)
+	}
+
+	addr, err := netip.ParseAddr(value)
+	if err != nil {
+		return netip.Prefix{}, err
+	}
+
+	addr = addr.Unmap()
+
+	return netip.PrefixFrom(addr, addr.BitLen()), nil
 }
 
 func (c *Config) IsDevelopment() bool {

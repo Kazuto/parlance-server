@@ -16,6 +16,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
+	"github.com/kazuto/parlance-server/internal/webhook"
 	"gorm.io/gorm"
 )
 
@@ -53,7 +54,18 @@ type zipScopeFolder struct {
 func (s *Server) ExportZip(
 	ctx context.Context,
 	req *connect.Request[pb.ExportZipRequest],
-) (*connect.Response[pb.ExportZipResponse], error) {
+) (_ *connect.Response[pb.ExportZipResponse], err error) {
+	defer func() {
+		if err != nil {
+			s.reportFailure(ctx, err, webhook.ExportFailedData{
+				Format:    "zip",
+				LocaleIDs: req.Msg.LocaleIds,
+				ScopeIDs:  req.Msg.ScopeIds,
+				TagIDs:    req.Msg.TagIds,
+			})
+		}
+	}()
+
 	db := s.db.WithContext(ctx)
 
 	sel, err := selection(db, req.Msg)
