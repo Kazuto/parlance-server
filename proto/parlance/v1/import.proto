@@ -19,6 +19,10 @@ message ImportPhpRequest {
   ImportMode mode = 5;            // How to handle conflicts
   bool approve = 6;  // Approve the imported translations; needs review_entry
   bool dry_run = 7;  // Reports what the import would change, without changing anything
+  // Deletes the entries the file doesn't hold: those of scope_ids, or all without
+  // scopes. An entry other scopes keep only leaves scope_ids. Only for the default
+  // language, whose file holds every entry. Needs delete_entry.
+  bool delete_missing = 8;
 }
 
 message ImportPhpResponse {
@@ -34,6 +38,10 @@ message ImportJsonRequest {
   ImportMode mode = 5;
   bool approve = 6;  // Approve the imported translations; needs review_entry
   bool dry_run = 7;  // Reports what the import would change, without changing anything
+  // Deletes the entries the file doesn't hold: those of scope_ids, or all without
+  // scopes. An entry other scopes keep only leaves scope_ids. Only for the default
+  // language, whose file holds every entry. Needs delete_entry.
+  bool delete_missing = 8;
 }
 
 message ImportJsonResponse {
@@ -49,6 +57,10 @@ message ImportPoRequest {
   ImportMode mode = 5;
   bool approve = 6;  // Approve the imported translations; needs review_entry
   bool dry_run = 7;  // Reports what the import would change, without changing anything
+  // Deletes the entries the file doesn't hold: those of scope_ids, or all without
+  // scopes. An entry other scopes keep only leaves scope_ids. Only for the default
+  // language, whose file holds every entry. Needs delete_entry.
+  bool delete_missing = 8;
 }
 
 message ImportPoResponse {
@@ -78,6 +90,22 @@ message ImportResult {
   int32 translations_changed = 8;   // Existing translations given a different text
   int32 translations_removed = 9;   // Translations REPLACE_ALL removes and doesn't import again
   int32 translations_outdated = 10; // Other languages' translations of the default texts it changes
+  ImportDeletion deletion = 11;     // What delete_missing deletes; unset without it and in a ZIP's files
+}
+
+// The entries delete_missing deletes, or takes out of the import's scopes when other
+// scopes keep them
+message ImportDeletion {
+  int32 entries_deleted = 1;
+  int32 entries_unscoped = 2;
+  // On a dry run, the first 500 of those entries by key
+  repeated ImportDeletedEntry entries = 3;
+}
+
+message ImportDeletedEntry {
+  string key = 1;
+  string source_translation = 2;  // The entry's default text
+  bool unscoped = 3;              // It only leaves the import's scopes
 }
 
 // One translation an import adds, changes or removes
@@ -112,6 +140,11 @@ message ImportZipRequest {
   // files, e.g. "sv"; needs create_locale. Files of other missing languages are
   // skipped.
   repeated string create_locale_codes = 6;
+  // Deletes the entries the default language's files don't hold, once the files are
+  // imported: those of scope_ids, or all without scopes. An entry other scopes keep
+  // only leaves scope_ids. The archive must hold the default language's file. Needs
+  // delete_entry.
+  bool delete_missing = 7;
 }
 
 message ImportZipResponse {
@@ -120,6 +153,7 @@ message ImportZipResponse {
   int32 total_updated = 3;                  // Sum of all entries updated
   int32 total_skipped = 4;                  // Sum of all entries skipped
   int32 total_failed = 5;                   // Sum of all entries failed
+  ImportDeletion deletion = 6;              // What delete_missing deletes; unset without it
 }
 
 message LocaleImportResult {

@@ -23,7 +23,7 @@ func (s *Server) ImportZip(
 	ctx context.Context,
 	req *connect.Request[pb.ImportZipRequest],
 ) (*connect.Response[pb.ImportZipResponse], error) {
-	options, err := s.startImport(ctx, req.Msg.Mode, req.Msg.Approve, req.Msg.DryRun, req.Msg.FileContent)
+	options, err := s.startImport(ctx, req.Msg.Mode, req.Msg.Approve, req.Msg.DryRun, req.Msg.DeleteMissing, req.Msg.FileContent)
 	if err != nil {
 		return nil, err
 	}
@@ -48,23 +48,35 @@ func (s *Server) ImportZip(
 		Results: make([]*pb.LocaleImportResult, 0),
 	}
 
-	// Each file is imported in its own transaction, the default locale's first. A dry run
-	// imports them all in one, which it rolls back.
+	// Each file is imported in its own transaction, the default locale's first, and then
+	// delete_missing deletes in one more. A dry run does all in one, which it rolls back.
 	err = s.runImport(ctx, options.dryRun, func(db *gorm.DB) error {
 		defaultLocale, err := common.DefaultLocale(db)
 		if err != nil {
 			return err
 		}
 
-		archive, err := newZipImport(ctx, db, common.GetLocaleFromRequest(req), req.Msg.ScopeIds, options, canCreate, req.Msg.CreateLocaleCodes)
+		// delete_missing goes by the default language's files, once all files are in
+		var held map[string]bool
+
+		if options.deleteMissing {
+			if held, err = zipHeldKeys(zipReader.File, defaultLocale); err != nil {
+				return err
+			}
+		}
+
+		fileOptions := options
+		fileOptions.deleteMissing = false
+
+		archive, err := newZipImport(ctx, db, common.GetLocaleFromRequest(req), req.Msg.ScopeIds, fileOptions, canCreate, req.Msg.CreateLocaleCodes)
 		if err != nil {
 			return err
 		}
 
+		archive.held = held
+
 		for _, file := range sourceFirst(zipReader.File, defaultLocale) {
-			// Only language files: no folders, manifest.json or other files
-			if file.FileInfo().IsDir() || strings.EqualFold(file.Name, "manifest.json") ||
-				!strings.EqualFold(filepath.Ext(file.Name), ".json") {
+			if !isZipLanguageFile(file) {
 				continue
 			}
 
@@ -83,7 +95,20 @@ func (s *Server) ImportZip(
 			}
 		}
 
-		return nil
+		if !options.deleteMissing {
+			return nil
+		}
+
+		err = db.Transaction(func(tx *gorm.DB) (err error) {
+			response.Deletion, err = deleteMissingEntries(tx, middleware.UserID(ctx), req.Msg.ScopeIds, held, options.dryRun)
+
+			return err
+		})
+		if err != nil && connect.CodeOf(err) == connect.CodeUnknown {
+			return errors.InternalCause(err, "failed to delete the missing entries")
+		}
+
+		return err
 	})
 	if err != nil {
 		return nil, err
@@ -94,6 +119,13 @@ func (s *Server) ImportZip(
 	}
 
 	return connect.NewResponse(response), nil
+}
+
+// isZipLanguageFile tells the archive's language files from folders, manifest.json and
+// other files
+func isZipLanguageFile(file *zip.File) bool {
+	return !file.FileInfo().IsDir() && !strings.EqualFold(file.Name, "manifest.json") &&
+		strings.EqualFold(filepath.Ext(file.Name), ".json")
 }
 
 // zipLocaleCode returns the code of the locale a file holds, e.g. "en" for "en.json"
