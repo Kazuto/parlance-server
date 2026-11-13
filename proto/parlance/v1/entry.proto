@@ -17,6 +17,9 @@ service EntryService {
   rpc DeleteEntry(DeleteEntryRequest) returns (DeleteEntryResponse);
   rpc RestoreEntry(RestoreEntryRequest) returns (RestoreEntryResponse);
   rpc SearchEntries(SearchEntriesRequest) returns (SearchEntriesResponse);
+  // Finds the entries whose default text is the same as or similar to a text, e.g.
+  // to point out twins while the default text is being written.
+  rpc SearchSimilarEntries(SearchSimilarEntriesRequest) returns (SearchSimilarEntriesResponse);
   rpc GetEntryHistory(GetEntryHistoryRequest) returns (GetEntryHistoryResponse);
   rpc UpdateEntriesScopes(UpdateEntriesScopesRequest) returns (UpdateEntriesScopesResponse);
   rpc UpdateEntriesTags(UpdateEntriesTagsRequest) returns (UpdateEntriesTagsResponse);
@@ -84,6 +87,22 @@ message ListEntriesRequest {
   repeated string tag_ids = 12;
   // Entries in any of these releases
   repeated string release_ids = 13;
+  // Only entries sharing their default text with another entry, or only those whose
+  // shared text is translated differently. Twins are looked for among the entries
+  // the scope, tag and release filters select, and listed together: by their
+  // default text first, then in the requested order. Not with deleted_only.
+  DuplicateFilter duplicates = 14;
+}
+
+// Texts are the same when they are equal ignoring case and surrounding space.
+enum DuplicateFilter {
+  DUPLICATE_FILTER_UNSPECIFIED = 0;  // All entries
+  // Entries whose default text another entry has too
+  DUPLICATE_FILTER_SAME_TEXT = 1;
+  // Entries whose default text another entry has too, while the translations of
+  // that text differ in one of the status locales (status_locale_ids, else
+  // target_locale_ids, else all active locales). Blank translations don't count.
+  DUPLICATE_FILTER_TRANSLATED_DIFFERENTLY = 2;
 }
 
 message ListEntriesResponse {
@@ -202,6 +221,33 @@ message SearchEntriesRequest {
 message SearchEntriesResponse {
   repeated Entry entries = 1;
   PaginationResponse pagination = 2;
+}
+
+message SearchSimilarEntriesRequest {
+  // A default-locale text, e.g. the one being edited with unsaved changes.
+  string text = 1;
+  // Optional: leave out this entry, e.g. the one being edited.
+  string exclude_entry_id = 2;
+  // At most this many entries: 5 when unset, never more than 20.
+  int32 limit = 3;
+}
+
+message SimilarEntry {
+  string entry_id = 1;
+  string key = 2;
+  // The entry's default-locale text.
+  string text = 3;
+  // How alike text is to the searched one, from 0.8 to 1: the share of characters
+  // that stay when editing one into the other, ignoring case. 1 is the same text.
+  float similarity = 4;
+}
+
+message SearchSimilarEntriesResponse {
+  // The most similar first. Texts longer than 2000 characters list none.
+  repeated SimilarEntry entries = 1;
+  // How many entries have the same text, ignoring case and surrounding space, as
+  // the duplicates filter compares them; may be more than entries lists.
+  int32 same_text_count = 2;
 }
 
 message GetEntryHistoryRequest {
