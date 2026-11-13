@@ -21,13 +21,19 @@ func (s *Server) UpdateDefinition(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "definition id is required")
 	}
 
-	if req.Msg.Translation != nil && req.Msg.GetTranslation() == "" {
-		return nil, errors.InvalidInput(errors.ErrInvalidInput, "translation is required")
-	}
-
 	definition, err := common.FindByID[models.Definition](s.db.WithContext(ctx), req.Msg.Id, errors.ErrDefinitionNotFound, "definition not found")
 	if err != nil {
 		return nil, err
+	}
+
+	// Clearing a definition in the glossary sends an empty text, which removes it, as for
+	// an entry's translation
+	if req.Msg.Translation != nil && req.Msg.GetTranslation() == "" {
+		if err := common.DeleteRow(ctx, s.db.DB, &definition); err != nil {
+			return nil, errors.Internal(errors.ErrInternal, "failed to delete definition")
+		}
+
+		return connect.NewResponse(&pb.UpdateDefinitionResponse{}), nil
 	}
 
 	// Extract user ID from context
