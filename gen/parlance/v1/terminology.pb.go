@@ -135,8 +135,12 @@ type ListTerminologiesRequest struct {
 	Filter     *FilterRequest         `protobuf:"bytes,2,opt,name=filter,proto3" json:"filter,omitempty"`
 	// Definitions in these locales match the search too; any locale when empty.
 	TargetLocaleIds []string `protobuf:"bytes,3,rep,name=target_locale_ids,json=targetLocaleIds,proto3" json:"target_locale_ids,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// "", "missing" (a definition is missing), "complete" (none is) or "review" (a
+	// definition is a draft awaiting approval) in target_locale_ids, all active locales
+	// when empty. The default locale counts like any other.
+	TranslationStatus string `protobuf:"bytes,4,opt,name=translation_status,json=translationStatus,proto3" json:"translation_status,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ListTerminologiesRequest) Reset() {
@@ -188,6 +192,13 @@ func (x *ListTerminologiesRequest) GetTargetLocaleIds() []string {
 		return x.TargetLocaleIds
 	}
 	return nil
+}
+
+func (x *ListTerminologiesRequest) GetTranslationStatus() string {
+	if x != nil {
+		return x.TranslationStatus
+	}
+	return ""
 }
 
 type ListTerminologiesResponse struct {
@@ -1138,13 +1149,14 @@ const file_parlance_v1_terminology_proto_rawDesc = "" +
 	"\n" +
 	"created_by\x18\b \x01(\tR\tcreatedBy\x12\x1d\n" +
 	"\n" +
-	"updated_by\x18\t \x01(\tR\tupdatedBy\"\xba\x01\n" +
+	"updated_by\x18\t \x01(\tR\tupdatedBy\"\xe9\x01\n" +
 	"\x18ListTerminologiesRequest\x12>\n" +
 	"\n" +
 	"pagination\x18\x01 \x01(\v2\x1e.parlance.v1.PaginationRequestR\n" +
 	"pagination\x122\n" +
 	"\x06filter\x18\x02 \x01(\v2\x1a.parlance.v1.FilterRequestR\x06filter\x12*\n" +
-	"\x11target_locale_ids\x18\x03 \x03(\tR\x0ftargetLocaleIds\"\x9c\x01\n" +
+	"\x11target_locale_ids\x18\x03 \x03(\tR\x0ftargetLocaleIds\x12-\n" +
+	"\x12translation_status\x18\x04 \x01(\tR\x11translationStatus\"\x9c\x01\n" +
 	"\x19ListTerminologiesResponse\x12>\n" +
 	"\rterminologies\x18\x01 \x03(\v2\x18.parlance.v1.TerminologyR\rterminologies\x12?\n" +
 	"\n" +
