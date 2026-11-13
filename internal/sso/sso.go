@@ -111,60 +111,84 @@ func (c *Client) Start(ctx context.Context, providerID, redirectURI string) (str
 // Finish completes the sign-in the state belongs to with the code the provider
 // sent back, and returns the user, with their roles and permissions.
 func (c *Client) Finish(ctx context.Context, state, code string) (*models.User, error) {
+	user, _, err := c.FinishAttempt(ctx, state, code)
+
+	return user, err
+}
+
+// Attempt is what a sign-in learned of who signed in where before it ended, e.g.
+// to report one that failed. What it didn't get to is empty.
+type Attempt struct {
+	ProviderID   string
+	ProviderName string
+	Email        string
+}
+
+// FinishAttempt is Finish, also returning what it learned of the attempt.
+func (c *Client) FinishAttempt(ctx context.Context, state, code string) (*models.User, Attempt, error) {
+	var attempt Attempt
+
 	login, err := c.takeLogin(ctx, state)
 	if err != nil {
-		return nil, err
+		return nil, attempt, err
 	}
+
+	attempt.ProviderID = login.ProviderID
 
 	provider, err := c.enabledProvider(ctx, login.ProviderID)
 	if err != nil {
-		return nil, err
+		return nil, attempt, err
 	}
+
+	attempt.ProviderName = provider.Name
 
 	config, discovered, err := c.connect(provider, login.RedirectURI)
 	if err != nil {
-		return nil, err
+		return nil, attempt, err
 	}
 
 	ctx = oidc.ClientContext(ctx, c.http)
 
 	token, err := config.Exchange(ctx, code, oauth2.VerifierOption(login.CodeVerifier))
 	if err != nil {
-		return nil, failed("the provider turned down the sign-in", err)
+		return nil, attempt, failed("the provider turned down the sign-in", err)
 	}
 
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
-		return nil, failed("the provider sent no ID token", nil)
+		return nil, attempt, failed("the provider sent no ID token", nil)
 	}
 
 	idToken, err := discovered.VerifierContext(ctx, &oidc.Config{ClientID: provider.ClientID, Now: c.now}).Verify(ctx, rawIDToken)
 	if err != nil {
-		return nil, failed("the ID token is not valid", err)
+		return nil, attempt, failed("the ID token is not valid", err)
 	}
 
 	if idToken.Nonce != login.Nonce {
-		return nil, failed("the ID token belongs to another sign-in", nil)
+		return nil, attempt, failed("the ID token belongs to another sign-in", nil)
 	}
 
 	var claims profile
 	if err := idToken.Claims(&claims); err != nil {
-		return nil, failed("the ID token can't be read", err)
+		return nil, attempt, failed("the ID token can't be read", err)
 	}
 
 	// Some providers only share the email through the userinfo endpoint.
 	if claims.Email == "" && discovered.UserInfoEndpoint() != "" {
 		info, err := discovered.UserInfo(ctx, oauth2.StaticTokenSource(token))
 		if err != nil {
-			return nil, failed("the provider's user info can't be read", err)
+			return nil, attempt, failed("the provider's user info can't be read", err)
 		}
 
 		if err := info.Claims(&claims); err != nil {
-			return nil, failed("the provider's user info can't be read", err)
+			return nil, attempt, failed("the provider's user info can't be read", err)
 		}
 	}
 
-	return c.signIn(ctx, &provider, idToken.Subject, claims)
+	attempt.Email = strings.TrimSpace(claims.Email)
+	user, err := c.signIn(ctx, &provider, idToken.Subject, claims)
+
+	return user, attempt, err
 }
 
 // profile is what Parlance reads from the ID token or user info.

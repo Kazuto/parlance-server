@@ -57,6 +57,10 @@ func SetupTestDB() (*database.DB, error) {
 		return nil, err
 	}
 
+	if err := database.SetupJoinTables(db); err != nil {
+		return nil, err
+	}
+
 	// Add UUID generation hook for tests (SQLite doesn't support uuid_generate_v4())
 	if err := db.Callback().Create().Before("gorm:create").Register("test:uuid", uuidHook); err != nil {
 		return nil, err
@@ -198,6 +202,7 @@ func SetupTestDB() (*database.DB, error) {
 			slug TEXT NOT NULL UNIQUE,
 			description TEXT,
 			color TEXT,
+			export_format TEXT NOT NULL DEFAULT '',
 			created_at DATETIME,
 			updated_at DATETIME,
 			deleted_at DATETIME
@@ -210,6 +215,43 @@ func SetupTestDB() (*database.DB, error) {
 			created_by TEXT
 		)`,
 		`CREATE UNIQUE INDEX IF NOT EXISTS idx_entry_scopes_unique ON entry_scopes (entry_id, scope_id)`,
+		`CREATE TABLE IF NOT EXISTS tags (
+			id TEXT PRIMARY KEY,
+			scope_id TEXT NOT NULL,
+			name TEXT NOT NULL,
+			created_at DATETIME,
+			updated_at DATETIME,
+			created_by TEXT,
+			updated_by TEXT
+		)`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS idx_tags_scope_name ON tags (scope_id, lower(name))`,
+		`CREATE TABLE IF NOT EXISTS entry_tags (
+			entry_id TEXT NOT NULL,
+			tag_id TEXT NOT NULL,
+			scope_id TEXT NOT NULL,
+			created_at DATETIME,
+			created_by TEXT,
+			PRIMARY KEY (entry_id, tag_id)
+		)`,
+		`CREATE TABLE IF NOT EXISTS releases (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			description TEXT NOT NULL DEFAULT '',
+			release_at DATETIME,
+			released_at DATETIME,
+			created_at DATETIME,
+			updated_at DATETIME,
+			created_by TEXT,
+			updated_by TEXT
+		)`,
+		`CREATE UNIQUE INDEX IF NOT EXISTS idx_releases_name ON releases (lower(name))`,
+		`CREATE TABLE IF NOT EXISTS release_entries (
+			release_id TEXT NOT NULL,
+			entry_id TEXT NOT NULL,
+			created_at DATETIME,
+			created_by TEXT,
+			PRIMARY KEY (release_id, entry_id)
+		)`,
 		`CREATE TABLE IF NOT EXISTS terminologies (
 			id TEXT PRIMARY KEY,
 			term TEXT NOT NULL,

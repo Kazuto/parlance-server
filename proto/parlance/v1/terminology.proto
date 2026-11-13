@@ -35,6 +35,10 @@ message ListTerminologiesRequest {
   FilterRequest filter = 2;
   // Definitions in these locales match the search too; any locale when empty.
   repeated string target_locale_ids = 3;
+  // "", "missing" (a definition is missing), "complete" (none is) or "review" (a
+  // definition is a draft awaiting approval) in target_locale_ids, all active locales
+  // when empty. The default locale counts like any other.
+  string translation_status = 4;
 }
 
 message ListTerminologiesResponse {

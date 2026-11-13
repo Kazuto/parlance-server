@@ -25,6 +25,11 @@ func (s *Server) CreateScope(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "scope slug is required")
 	}
 
+	format, err := exportFormat(req.Msg.ExportFormat)
+	if err != nil {
+		return nil, err
+	}
+
 	// Slugs stay unique across deleted scopes too.
 	exists, err := common.Exists(s.db.WithContext(ctx).Unscoped().Model(&models.Scope{}).Where("slug = ?", req.Msg.Slug))
 	if err != nil {
@@ -36,10 +41,11 @@ func (s *Server) CreateScope(
 	}
 
 	scope := &models.Scope{
-		Name:        req.Msg.Name,
-		Slug:        req.Msg.Slug,
-		Description: req.Msg.Description,
-		Color:       req.Msg.Color,
+		Name:         req.Msg.Name,
+		Slug:         req.Msg.Slug,
+		Description:  req.Msg.Description,
+		Color:        req.Msg.Color,
+		ExportFormat: format,
 	}
 
 	if err := s.db.Create(scope).Error; err != nil {

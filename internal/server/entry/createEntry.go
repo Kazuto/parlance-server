@@ -35,6 +35,20 @@ func (s *Server) CreateEntry(
 		return nil, err
 	}
 
+	tags, err := common.ResolveActiveTags(s.db.WithContext(ctx), req.Msg.GetTags().GetIds())
+	if err != nil {
+		return nil, err
+	}
+
+	if err := checkTagsInScopes(tags, scopeIDsOf(scopes)); err != nil {
+		return nil, err
+	}
+
+	releases, err := common.ResolvePendingReleases(s.db.WithContext(ctx), req.Msg.GetReleases().GetIds())
+	if err != nil {
+		return nil, err
+	}
+
 	if err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(entry).Error; err != nil {
 			return err
@@ -43,6 +57,12 @@ func (s *Server) CreateEntry(
 			if err := tx.Model(entry).Association("Scopes").Append(scopes); err != nil {
 				return err
 			}
+		}
+		if err := replaceTags(tx, entry.ID, tags, entry.CreatedBy); err != nil {
+			return err
+		}
+		if err := replaceReleases(tx, entry.ID, releases, entry.CreatedBy); err != nil {
+			return err
 		}
 
 		return webhook.Emit(tx, models.WebhookEventEntriesCreated, func() (any, error) {
@@ -53,7 +73,7 @@ func (s *Server) CreateEntry(
 	}
 
 	// Load relationships for response
-	if err := s.db.Preload("Localizations").Preload("Scopes").First(entry, "id = ?", entry.ID).Error; err != nil {
+	if err := preloadDetails(s.db.WithContext(ctx)).First(entry, "id = ?", entry.ID).Error; err != nil {
 		return nil, errors.InternalCause(err, "failed to load created entry")
 	}
 

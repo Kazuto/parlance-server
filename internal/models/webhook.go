@@ -15,17 +15,25 @@ const (
 	WebhookEventEntriesCreated               = "entries.created"
 	WebhookEventTaskRunSucceeded             = "task_run.succeeded"
 	WebhookEventTaskRunFailed                = "task_run.failed"
+	// WebhookEventTranslationsReleased is sent when a release goes out.
+	WebhookEventTranslationsReleased = "translations.released"
+	// WebhookEventExportFailed is sent when a download or a git export task fails.
+	WebhookEventExportFailed = "export.failed"
+	// WebhookEventLoginFailed is sent when someone fails to sign in, throttled.
+	WebhookEventLoginFailed = "login.failed"
 	// WebhookEventPing is only sent by a test, so nothing subscribes to it.
 	WebhookEventPing = "ping"
 	// WebhookEventDigest carries what a webhook with a schedule collected.
 	WebhookEventDigest = "digest"
 )
 
-// How a webhook posts events: the event as JSON, or a chat message describing it
+// How a webhook posts events: the event as JSON, a chat message describing it, or
+// a notification for an Apprise API server
 const (
 	WebhookFormatJSON    = "json"
 	WebhookFormatSlack   = "slack"
 	WebhookFormatDiscord = "discord"
+	WebhookFormatApprise = "apprise"
 )
 
 // Webhook delivery states

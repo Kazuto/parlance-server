@@ -135,12 +135,17 @@ func (r *Runner) Start(ctx context.Context) <-chan struct{} {
 	return done
 }
 
-// Tick queues the scheduled runs that are due, fails runs that stopped beating,
-// and runs every queued run that may start. While tasks are paused, it only fails
-// stale runs; schedules that came due fire once they are resumed.
+// Tick lets out releases whose date came, queues the scheduled runs that are due,
+// fails runs that stopped beating, and runs every queued run that may start. While
+// tasks are paused, it only fails stale runs and lets out releases, whose tasks queue;
+// schedules that came due fire once they are resumed.
 func (r *Runner) Tick(ctx context.Context) {
 	if err := r.failStale(ctx); err != nil {
 		log.Printf("tasks: fail stale runs: %v", err)
+	}
+
+	if err := r.releaseDue(ctx); err != nil {
+		log.Printf("tasks: let out due releases: %v", err)
 	}
 
 	paused, _, err := taskqueue.Paused(r.db.WithContext(ctx))
@@ -431,13 +436,32 @@ var endedEvents = map[string]string{
 }
 
 // emitEnded sends a run that ended with the status to the webhooks subscribed to it.
+// A git export that failed is an export that failed, too.
 func emitEnded(tx *gorm.DB, runID, status string) error {
 	event, ok := endedEvents[status]
 	if !ok {
 		return nil
 	}
 
-	return webhook.Emit(tx, event, func() (any, error) {
+	run := sync.OnceValues(func() (webhook.TaskRunData, error) {
 		return webhook.TaskRun(tx, runID)
+	})
+
+	if err := webhook.Emit(tx, event, func() (any, error) { return run() }); err != nil {
+		return err
+	}
+
+	if status != models.RunFailed {
+		return nil
+	}
+
+	// Only the run tells whether it exported, so failed runs always load it.
+	data, err := run()
+	if err != nil || data.Task.Type != models.TaskTypeGitExport {
+		return err
+	}
+
+	return webhook.Emit(tx, models.WebhookEventExportFailed, func() (any, error) {
+		return webhook.FailedGitExport(data), nil
 	})
 }

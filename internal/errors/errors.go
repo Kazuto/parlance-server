@@ -1,8 +1,10 @@
 package errors
 
 import (
+	stderrors "errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"connectrpc.com/connect"
 )
@@ -59,6 +61,18 @@ const (
 	ErrScopeNotFound      = "SCOPE_NOT_FOUND"
 	ErrScopeAlreadyExists = "SCOPE_ALREADY_EXISTS"
 
+	// Tag-specific errors
+	ErrTagNotFound      = "TAG_NOT_FOUND"
+	ErrTagAlreadyExists = "TAG_ALREADY_EXISTS"
+	// ErrTagOutsideScopes rejects a tag of a scope the entry isn't in.
+	ErrTagOutsideScopes = "TAG_OUTSIDE_SCOPES"
+
+	// Release-specific errors
+	ErrReleaseNotFound      = "RELEASE_NOT_FOUND"
+	ErrReleaseAlreadyExists = "RELEASE_ALREADY_EXISTS"
+	// ErrReleaseAlreadyReleased rejects changing a release that went out.
+	ErrReleaseAlreadyReleased = "RELEASE_ALREADY_RELEASED"
+
 	// Localization-specific errors
 	ErrLocalizationNotFound = "LOCALIZATION_NOT_FOUND"
 
@@ -100,6 +114,42 @@ const (
 // ErrorWithCode creates a Connect error with an error code in the message
 func ErrorWithCode(code connect.Code, errorCode string, message string) error {
 	return connect.NewError(code, fmt.Errorf("[%s] %s", errorCode, message))
+}
+
+// CodeOf returns the error code of an error made by ErrorWithCode, e.g.
+// "SSO_NO_ACCOUNT", and "" for other errors.
+func CodeOf(err error) string {
+	code, _ := split(err)
+
+	return code
+}
+
+// MessageOf returns the message of an error without its error code.
+func MessageOf(err error) string {
+	_, message := split(err)
+
+	return message
+}
+
+func split(err error) (code, message string) {
+	if err == nil {
+		return "", ""
+	}
+
+	message = err.Error()
+
+	var connectErr *connect.Error
+	if stderrors.As(err, &connectErr) {
+		message = connectErr.Message()
+	}
+
+	if rest, ok := strings.CutPrefix(message, "["); ok {
+		if code, text, ok := strings.Cut(rest, "] "); ok {
+			return code, text
+		}
+	}
+
+	return "", message
 }
 
 // InvalidInput returns an invalid argument error

@@ -3,6 +3,7 @@ package export
 import (
 	stderrors "errors"
 	"strings"
+	"time"
 
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
@@ -36,19 +37,66 @@ func findLocale(db *gorm.DB, code string) (models.Locale, error) {
 	return locale, nil
 }
 
-// loadEntries loads the entries in any of the scopes (all entries without scopes), ordered by
-// key, with their translation in the locale. Drafts count as untranslated unless included.
-func loadEntries(db *gorm.DB, localeID string, scopeIDs []string, includeDrafts bool) ([]exportedEntry, error) {
+// Selection picks the entries an export holds.
+type Selection struct {
+	// ScopeIDs keeps the entries in any of the scopes; none keeps all entries.
+	ScopeIDs []string
+	// TagIDs narrows each scope to the entries with any of its selected tags. A scope
+	// none of whose tags is selected exports whole, and a tag selects its scope too.
+	TagIDs []string
+	// IncludeDrafts exports drafts too; by default only approved text.
+	IncludeDrafts bool
+	// IncludeUnreleased exports entries pending releases hold back too.
+	IncludeUnreleased bool
+}
+
+// selectionRequest is what export requests pick entries by
+type selectionRequest interface {
+	GetScopeIds() []string
+	GetTagIds() []string
+	GetIncludeDrafts() bool
+	GetIncludeUnreleased() bool
+}
+
+// selection checks the scopes and tags an export request picks. Unknown scopes and
+// tags, or tags of a deleted scope, are invalid input.
+func selection(db *gorm.DB, req selectionRequest) (Selection, error) {
+	sel := Selection{
+		ScopeIDs:          common.UniqueIDs(req.GetScopeIds()),
+		TagIDs:            common.UniqueIDs(req.GetTagIds()),
+		IncludeDrafts:     req.GetIncludeDrafts(),
+		IncludeUnreleased: req.GetIncludeUnreleased(),
+	}
+
+	if _, err := common.ResolveByIDs[models.Scope](db, sel.ScopeIDs, errors.ErrScopeNotFound, "one or more scopes do not exist"); err != nil {
+		return sel, err
+	}
+
+	if _, err := common.ResolveActiveTags(db, sel.TagIDs); err != nil {
+		return sel, err
+	}
+
+	return sel, nil
+}
+
+// loadEntries loads the selected entries, ordered by key, with their translation in the
+// locale. Drafts count as untranslated unless included; entries releases hold back are
+// left out unless included.
+func loadEntries(db *gorm.DB, localeID string, sel Selection) ([]exportedEntry, error) {
 	translations := db.Where("locale_id = ?", localeID)
-	if !includeDrafts {
+	if !sel.IncludeDrafts {
 		translations = translations.Where("status = ?", models.StatusApproved)
 	}
 
 	var entries []models.Entry
 
-	query := common.FilterEntriesByScopes(db.Model(&models.Entry{}), scopeIDs).
+	query := common.FilterEntriesBySelection(db.Model(&models.Entry{}), sel.ScopeIDs, sel.TagIDs).
 		Preload("Localizations", translations).
 		Order("key")
+	if !sel.IncludeUnreleased {
+		query = common.ExcludeHeldBack(query, time.Now())
+	}
+
 	if err := query.Find(&entries).Error; err != nil {
 		return nil, errors.InternalCause(err, "failed to query entries")
 	}

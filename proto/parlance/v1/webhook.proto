@@ -39,6 +39,14 @@ enum WebhookEvent {
   WEBHOOK_EVENT_TRANSLATIONS_AWAITING_APPROVAL = 7;
   // The events a webhook with a schedule collected; webhooks can't subscribe to it.
   WEBHOOK_EVENT_DIGEST = 8;
+  // A release went out, by its date or by hand, with the entries it let into exports.
+  WEBHOOK_EVENT_TRANSLATIONS_RELEASED = 9;
+  // A download or a git export task failed. A failed git export also sends
+  // TASK_RUN_FAILED.
+  WEBHOOK_EVENT_EXPORT_FAILED = 10;
+  // Someone failed to sign in with a password or single sign-on; at most once per
+  // email and address every 15 minutes, counting the attempts.
+  WEBHOOK_EVENT_LOGIN_FAILED = 11;
 }
 
 // How a webhook posts events.
@@ -51,6 +59,9 @@ enum WebhookFormat {
   WEBHOOK_FORMAT_SLACK = 2;
   // A chat message as Discord's webhooks take it.
   WEBHOOK_FORMAT_DISCORD = 3;
+  // A notification as the Apprise API takes it at /notify/<key>, which passes it
+  // on to the services set up under the key: email, ntfy, Telegram and more.
+  WEBHOOK_FORMAT_APPRISE = 4;
 }
 
 enum WebhookDeliveryStatus {

@@ -48,6 +48,7 @@ func (i *RoleSeeder) Run(db *gorm.DB) error {
 			permissions.ReadTerminology, permissions.CreateTerminology, permissions.UpdateTerminology,
 			permissions.ReadDefinition, permissions.CreateDefinition, permissions.UpdateDefinition,
 			permissions.ReadScope,
+			permissions.ReadRelease,
 			permissions.UseMachineTranslation,
 			permissions.ImportEntry, permissions.ExportEntry,
 		},
@@ -57,6 +58,7 @@ func (i *RoleSeeder) Run(db *gorm.DB) error {
 			permissions.ReadTerminology,
 			permissions.ReadDefinition, permissions.UpdateDefinition, permissions.ReviewDefinition,
 			permissions.ReadScope,
+			permissions.ReadRelease,
 			permissions.ExportEntry,
 		},
 		"viewer": {
@@ -65,6 +67,7 @@ func (i *RoleSeeder) Run(db *gorm.DB) error {
 			permissions.ReadTerminology,
 			permissions.ReadDefinition,
 			permissions.ReadScope,
+			permissions.ReadRelease,
 			permissions.ExportEntry,
 		},
 	}

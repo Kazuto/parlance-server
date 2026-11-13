@@ -1,0 +1,16 @@
+name: Release PR
+
+on:
+  push:
+    branches: [develop]
+  # A new release changes the version the next one is calculated from
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  release-pr:
+    uses: Kazuto/actions/.github/workflows/release-pr.yml@v1

@@ -22,10 +22,10 @@ const (
 // Formats lists the formats Render takes.
 var Formats = []string{FormatJSON, FormatPHP, FormatPO}
 
-// Render renders the locale's translations of the entries in any of the scopes (all
-// entries without scopes) as a file in the format. Drafts are left out unless included.
-func Render(db *gorm.DB, format string, locale models.Locale, scopeIDs []string, includeDrafts bool) (string, error) {
-	entries, err := loadEntries(db, locale.ID, scopeIDs, includeDrafts)
+// Render renders the locale's translations of the selected entries as a file in the
+// format. Drafts are left out unless the selection includes them.
+func Render(db *gorm.DB, format string, locale models.Locale, sel Selection) (string, error) {
+	entries, err := loadEntries(db, locale.ID, sel)
 	if err != nil {
 		return "", err
 	}

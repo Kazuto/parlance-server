@@ -118,8 +118,10 @@ func TestCreateWebhook(t *testing.T) {
 			t.Errorf("unspecified format = %v, want JSON", got)
 		}
 
-		if got := create(pb.WebhookFormat_WEBHOOK_FORMAT_DISCORD); got != pb.WebhookFormat_WEBHOOK_FORMAT_DISCORD {
-			t.Errorf("format = %v, want Discord", got)
+		for _, format := range []pb.WebhookFormat{pb.WebhookFormat_WEBHOOK_FORMAT_DISCORD, pb.WebhookFormat_WEBHOOK_FORMAT_APPRISE} {
+			if got := create(format); got != format {
+				t.Errorf("format = %v, want %v", got, format)
+			}
 		}
 
 		testutil.ExpectInvalidArgument(t, ctx, server.CreateWebhook,

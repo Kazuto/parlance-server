@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Server) ImportPo(ctx context.Context, req *connect.Request[pb.ImportPoRequest]) (*connect.Response[pb.ImportPoResponse], error) {
-	options, err := s.startImport(ctx, req.Msg.Mode, req.Msg.Approve, req.Msg.DryRun, req.Msg.FileContent)
+	options, err := s.startImport(ctx, req.Msg.Mode, req.Msg.Approve, req.Msg.DryRun, req.Msg.DeleteMissing, req.Msg.FileContent)
 	if err != nil {
 		return nil, err
 	}
@@ -54,6 +54,7 @@ func (s *Server) ImportPo(ctx context.Context, req *connect.Request[pb.ImportPoR
 
 		if reason != "" {
 			failures = append(failures, &pb.ImportError{Key: entry.ID, Message: reason})
+			options.heldKeys = append(options.heldKeys, entry.ID)
 
 			continue
 		}
@@ -61,6 +62,7 @@ func (s *Server) ImportPo(ctx context.Context, req *connect.Request[pb.ImportPoR
 		seen[entry.ID] = true
 
 		if entry.Translation == "" {
+			options.heldKeys = append(options.heldKeys, entry.ID)
 			skipped++ // Untranslated gettext records must not erase existing translations.
 
 			continue

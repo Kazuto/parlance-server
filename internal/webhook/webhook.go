@@ -79,6 +79,29 @@ type EntriesData struct {
 	User      *User   `json:"user"`
 }
 
+// ReleaseInfo is a release that went out.
+type ReleaseInfo struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	// ReleaseAt is its date; null for a release published by hand without one.
+	ReleaseAt  *time.Time `json:"release_at"`
+	ReleasedAt *time.Time `json:"released_at"`
+}
+
+// ReleaseData is the data of translations.released.
+type ReleaseData struct {
+	Release ReleaseInfo `json:"release"`
+	// Count is how many entries the release let into exports: its entries no other
+	// release still holds back.
+	Count int `json:"count"`
+	// Entries lists the first maxItems of them, by key.
+	Entries   []Entry `json:"entries"`
+	Truncated bool    `json:"truncated"`
+	// User published the release by hand; null when its date came.
+	User *User `json:"user"`
+}
+
 // TaskRunData is the data of task_run.succeeded and task_run.failed.
 type TaskRunData struct {
 	Task TaskInfo `json:"task"`
@@ -124,6 +147,65 @@ type PingData struct {
 		Events []string `json:"events"`
 	} `json:"webhook"`
 }
+
+// ExportFailedData is the data of export.failed.
+type ExportFailedData struct {
+	// Source is "download" for an export someone downloaded, or "task" for a run of
+	// a git export task.
+	Source string `json:"source"`
+	Error  string `json:"error"`
+	// Format is a download's: "json", "php", "po" or "zip".
+	Format string `json:"format,omitempty"`
+	// Locales holds the language code of a file download, and LocaleIDs the
+	// languages a ZIP download was for; none for all.
+	Locales   []string `json:"locales,omitempty"`
+	LocaleIDs []string `json:"locale_ids,omitempty"`
+	ScopeIDs  []string `json:"scope_ids,omitempty"`
+	TagIDs    []string `json:"tag_ids,omitempty"`
+	// User asked for the download.
+	User *User `json:"user,omitempty"`
+	// Task and RunID name the git export task and its run.
+	Task  *TaskInfo `json:"task,omitempty"`
+	RunID string    `json:"run_id,omitempty"`
+}
+
+// The sources of failed exports
+const (
+	ExportSourceDownload = "download"
+	ExportSourceTask     = "task"
+)
+
+// LoginFailedData is the data of login.failed. It never holds the password.
+type LoginFailedData struct {
+	Email string `json:"email"`
+	// Method is "password" or "sso".
+	Method string `json:"method"`
+	// Provider is the single sign-on provider, when known.
+	Provider *ProviderInfo `json:"provider,omitempty"`
+	// Reason is "unknown_email" or "wrong_password" for a password, and the error
+	// code in lower case for single sign-on, e.g. "sso_no_account".
+	Reason    string `json:"reason"`
+	IP        string `json:"ip"`
+	UserAgent string `json:"user_agent"`
+	// Attempts counts the failed sign-ins with the email from the address since the
+	// last event about them, this one included.
+	Attempts int `json:"attempts"`
+}
+
+// ProviderInfo is a single sign-on provider.
+type ProviderInfo struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// The ways to sign in, and why a sign-in with a password failed
+const (
+	LoginMethodPassword = "password"
+	LoginMethodSSO      = "sso"
+
+	LoginReasonUnknownEmail  = "unknown_email"
+	LoginReasonWrongPassword = "wrong_password"
+)
 
 // Emit queues a delivery of the event to each enabled webhook subscribed to it, or
 // collects it for the webhook's next digest. It runs in the transaction of the
@@ -352,6 +434,26 @@ func Entries(tx *gorm.DB, ids []string, userID *string) (EntriesData, error) {
 	return data, err
 }
 
+// Released loads the entries with the ids, which the release let into exports, for an
+// event about it published by the user.
+func Released(tx *gorm.DB, release *models.Release, ids []string, userID *string) (ReleaseData, error) {
+	entries, err := Entries(tx, ids, userID)
+
+	return ReleaseData{
+		Release: ReleaseInfo{
+			ID:          release.ID,
+			Name:        release.Name,
+			Description: release.Description,
+			ReleaseAt:   utc(release.ReleaseAt),
+			ReleasedAt:  utc(release.ReleasedAt),
+		},
+		Count:     entries.Count,
+		Entries:   entries.Entries,
+		Truncated: entries.Truncated,
+		User:      entries.User,
+	}, err
+}
+
 // TaskRun loads a run that ended, with its task, for an event about it.
 func TaskRun(tx *gorm.DB, runID string) (TaskRunData, error) {
 	var run models.TaskRun
@@ -380,6 +482,28 @@ func TaskRun(tx *gorm.DB, runID string) (TaskRunData, error) {
 	}
 
 	return data, nil
+}
+
+// FailedGitExport is the export.failed data of a git export run that failed.
+func FailedGitExport(run TaskRunData) ExportFailedData {
+	task := run.Task
+
+	return ExportFailedData{
+		Source: ExportSourceTask,
+		Error:  run.Run.Error,
+		User:   run.Run.User,
+		Task:   &task,
+		RunID:  run.Run.ID,
+	}
+}
+
+// FailedDownload is the export.failed data of a download the user asked for.
+func FailedDownload(tx *gorm.DB, userID *string, data ExportFailedData) (ExportFailedData, error) {
+	user, err := loadUser(tx, userID)
+	data.Source = ExportSourceDownload
+	data.User = user
+
+	return data, err
 }
 
 // capItems keeps the first maxItems ids, telling whether it dropped any.

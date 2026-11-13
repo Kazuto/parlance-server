@@ -31,6 +31,15 @@ func (s *Server) ListEntries(
 		return nil, errors.InvalidInput(errors.ErrInvalidInput, "invalid translation status")
 	}
 
+	if _, ok := pb.DuplicateFilter_name[int32(req.Msg.Duplicates)]; !ok {
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "invalid duplicates filter")
+	}
+
+	duplicates := req.Msg.Duplicates != pb.DuplicateFilter_DUPLICATE_FILTER_UNSPECIFIED
+	if duplicates && req.Msg.DeletedOnly {
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "the duplicates filter lists active entries only")
+	}
+
 	// Deleted entries are listed to restore them, which takes the same permission.
 	if req.Msg.DeletedOnly {
 		if err := middleware.RequirePermission(ctx, s.db, permissions.DeleteEntry); err != nil {
@@ -41,19 +50,28 @@ func (s *Server) ListEntries(
 	keyOrdered := req.Msg.Filter == nil || req.Msg.Filter.Sort == "" ||
 		(strings.EqualFold(req.Msg.Filter.Sort, "key") && !strings.EqualFold(req.Msg.Filter.Order, "desc"))
 
-	var afterKey string
+	var afterKey, afterText string
 
 	if req.Msg.Cursor != "" {
 		if !keyOrdered {
 			return nil, errors.InvalidInput(errors.ErrInvalidInput, "cursor requires key ordering")
 		}
 
-		key, err := decodeCursor(req.Msg.Cursor)
-		if err != nil {
-			return nil, errors.InvalidInput(errors.ErrInvalidInput, "invalid cursor")
-		}
+		if duplicates {
+			text, key, ok := decodeDuplicateCursor(req.Msg.Cursor)
+			if !ok {
+				return nil, errors.InvalidInput(errors.ErrInvalidInput, "invalid cursor")
+			}
 
-		afterKey = key
+			afterText, afterKey = text, key
+		} else {
+			key, err := decodeCursor(req.Msg.Cursor)
+			if err != nil {
+				return nil, errors.InvalidInput(errors.ErrInvalidInput, "invalid cursor")
+			}
+
+			afterKey = key
+		}
 	}
 
 	page, perPage := converter.GetPaginationParams(req.Msg.Pagination)
@@ -64,7 +82,12 @@ func (s *Server) ListEntries(
 
 	query := s.db.Model(&models.Entry{})
 	if !req.Msg.Summary {
-		query = query.Preload("Localizations").Preload("Scopes")
+		query = preloadDetails(query)
+	}
+
+	// Twins are listed together, then in the requested order.
+	if duplicates {
+		query = query.Order(defaultTextOf)
 	}
 
 	allowedSorts := map[string]bool{"key": true, "description": true, "created_at": true, "created_by": true, "updated_at": true, "updated_by": true, "deleted_at": true}
@@ -85,15 +108,15 @@ func (s *Server) ListEntries(
 		query = query.Unscoped().Where("entries.deleted_at IS NOT NULL")
 	}
 
-	// Filter by scopes if provided; an entry matches when it is in any of them.
+	// Filter by scopes if provided; an entry matches when it is in any of them,
+	// narrowed to their selected tags.
 	scopeIDs := req.Msg.ScopeIds
 	if req.Msg.ScopeId != "" {
 		scopeIDs = append(scopeIDs, req.Msg.ScopeId)
 	}
 
-	if len(scopeIDs) > 0 {
-		query = common.FilterEntriesByScopes(query, scopeIDs)
-	}
+	query = common.FilterEntriesBySelection(query, common.UniqueIDs(scopeIDs), common.UniqueIDs(req.Msg.TagIds))
+	query = common.FilterEntriesByReleases(query, common.UniqueIDs(req.Msg.ReleaseIds))
 
 	// Filter by locale if provided
 	if req.Msg.LocaleId != "" {
@@ -106,6 +129,14 @@ func (s *Server) ListEntries(
 		statusLocaleIDs = req.Msg.TargetLocaleIds
 	}
 
+	if duplicates {
+		query = filterDuplicates(query, req.Msg.Duplicates, duplicateSelection{
+			scopeIDs:   common.UniqueIDs(scopeIDs),
+			tagIDs:     common.UniqueIDs(req.Msg.TagIds),
+			releaseIDs: common.UniqueIDs(req.Msg.ReleaseIds),
+		}, statusLocaleIDs)
+	}
+
 	switch req.Msg.TranslationStatus {
 	case "":
 	case "check":
@@ -116,7 +147,7 @@ func (s *Server) ListEntries(
 
 		query = query.Where("entries.id IN ?", entryIDs)
 	default:
-		query = filterTranslationStatus(query, req.Msg.TranslationStatus, statusLocaleIDs)
+		query = common.FilterTranslationStatus(query, common.Localizations, req.Msg.TranslationStatus, statusLocaleIDs)
 	}
 
 	var pagination *pb.PaginationResponse
@@ -128,6 +159,8 @@ func (s *Server) ListEntries(
 
 		pagination = converter.PaginationToProto(total, page, perPage)
 		query = query.Offset(int((page - 1) * perPage))
+	} else if duplicates {
+		query = query.Where("("+defaultTextOf+" > ? OR ("+defaultTextOf+" = ? AND entries.key > ?))", afterText, afterText, afterKey)
 	} else {
 		query = query.Where("entries.key > ?", afterKey)
 	}
@@ -141,8 +174,18 @@ func (s *Server) ListEntries(
 
 	if len(entries) > int(perPage) {
 		entries = entries[:perPage]
-		if keyOrdered {
-			nextCursor = encodeCursor(entries[len(entries)-1].Key)
+		last := entries[len(entries)-1]
+
+		switch {
+		case keyOrdered && duplicates:
+			var text string
+			if err := s.db.Model(&models.Entry{}).Select(defaultTextOf).Where("entries.id = ?", last.ID).Scan(&text).Error; err != nil {
+				return nil, errors.InternalCause(err, "failed to read the default text")
+			}
+
+			nextCursor = encodeDuplicateCursor(text, last.Key)
+		case keyOrdered:
+			nextCursor = encodeCursor(last.Key)
 		}
 	}
 
@@ -332,32 +375,4 @@ func searchEntries(query *gorm.DB, search string, localeIDs []string) *gorm.DB {
 	}
 
 	return query.Where("(LOWER(entries.key) LIKE ? OR EXISTS (?))", pattern, translations)
-}
-
-// filterTranslationStatus keeps entries by their translations in the given locales (all
-// when none are given): "missing" one, "complete" in all, one in "review" as a draft, or
-// one "outdated".
-func filterTranslationStatus(query *gorm.DB, status string, localeIDs []string) *gorm.DB {
-	// Start a separate statement so the correlated subquery doesn't inherit entry filters.
-	targets := query.Session(&gorm.Session{NewDB: true}).Model(&models.Locale{}).Select("1")
-	if len(localeIDs) > 0 {
-		targets = targets.Where("locales.id IN ?", localeIDs)
-	}
-
-	// The entry's non-blank translation in the locale
-	const translation = "SELECT 1 FROM localizations WHERE localizations.entry_id = entries.id AND localizations.locale_id = locales.id AND localizations.deleted_at IS NULL AND TRIM(localizations.translation) <> ''"
-
-	switch status {
-	case "review":
-		return query.Where("EXISTS (?)", targets.Where("EXISTS ("+translation+" AND localizations.status = ?)", models.StatusDraft))
-	case "outdated":
-		return query.Where("EXISTS (?)", targets.Where("EXISTS ("+translation+" AND localizations.outdated_at IS NOT NULL)"))
-	}
-
-	targets = targets.Where("NOT EXISTS (" + translation + ")")
-	if status == "missing" {
-		return query.Where("EXISTS (?)", targets)
-	}
-
-	return query.Where("NOT EXISTS (?)", targets)
 }

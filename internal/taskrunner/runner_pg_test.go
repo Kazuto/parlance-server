@@ -395,6 +395,63 @@ func TestEndedRunsAreSentToWebhooks(t *testing.T) {
 	}
 }
 
+func TestFailedGitExportsAreFailedExports(t *testing.T) {
+	db := testutil.SetupPostgresDB(t)
+	r := newTestRunner(t, db)
+	failing := func(context.Context, *models.Task, *runLog) (models.TaskRunSummary, error) {
+		return models.TaskRunSummary{}, stderrors.New("it broke")
+	}
+	r.executors = map[string]executor{models.TaskTypeGitExport: failing, models.TaskTypeAITranslate: failing}
+
+	hook := models.Webhook{Name: "Exports", URL: "https://alerts.example", Enabled: true, Events: []string{models.WebhookEventExportFailed}}
+	create(t, db.DB, &hook)
+
+	export := models.Task{Name: "Ship", Type: models.TaskTypeGitExport}
+	create(t, db.DB, &export)
+
+	translate := models.Task{Name: "Fill", Type: models.TaskTypeAITranslate}
+	create(t, db.DB, &translate)
+
+	old := time.Now().Add(-time.Hour)
+	stale := models.TaskRun{TaskID: export.ID, Trigger: models.TriggerSchedule, Status: models.RunRunning, RunAfter: old, HeartbeatAt: &old}
+	create(t, db.DB, &stale)
+
+	r.Tick(context.Background())
+
+	broken := queue(t, db.DB, export.ID)
+	queue(t, db.DB, translate.ID)
+
+	r.Tick(context.Background())
+
+	var deliveries []models.WebhookDelivery
+
+	db.Where("webhook_id = ?", hook.ID).Order("created_at").Find(&deliveries)
+
+	runs := map[string]webhook.ExportFailedData{}
+
+	for _, delivery := range deliveries {
+		var body struct {
+			Data webhook.ExportFailedData `json:"data"`
+		}
+
+		if err := json.Unmarshal([]byte(delivery.Payload), &body); err != nil {
+			t.Fatalf("payload: %v", err)
+		}
+
+		if delivery.Event != models.WebhookEventExportFailed || body.Data.Source != webhook.ExportSourceTask ||
+			body.Data.Task == nil || body.Data.Task.ID != export.ID {
+			t.Errorf("sent %s %+v, want export.failed of the git export", delivery.Event, body.Data)
+		}
+
+		runs[body.Data.RunID] = body.Data
+	}
+
+	// The stale and the broken run, but not the AI task's.
+	if len(deliveries) != 2 || !strings.Contains(runs[stale.ID].Error, "stopped responding") || runs[broken.ID].Error != "it broke" {
+		t.Errorf("sent %+v, want the stale and the broken git export", runs)
+	}
+}
+
 func TestCancelRunningRun(t *testing.T) {
 	db := testutil.SetupPostgresDB(t)
 	r := newTestRunner(t, db)
@@ -633,6 +690,42 @@ func TestGitExport(t *testing.T) {
 	})
 }
 
+func TestGitExportTags(t *testing.T) {
+	db := testutil.SetupPostgresDB(t)
+	en, _, _ := seedLocales(t, db.DB)
+
+	mail := models.Scope{Name: "Mail", Slug: "mail"}
+	create(t, db.DB, &mail)
+
+	billing := models.Tag{ScopeID: mail.ID, Name: "billing"}
+	create(t, db.DB, &billing)
+
+	for _, key := range []string{"mail.receipt", "mail.welcome"} {
+		entry := seedEntry(t, db.DB, key, map[string]string{en.ID: key}, models.StatusApproved)
+		create(t, db.DB, &models.EntryScope{EntryID: entry.ID, ScopeID: mail.ID})
+
+		if key == "mail.receipt" {
+			create(t, db.DB, &models.EntryTag{EntryID: entry.ID, TagID: billing.ID, ScopeID: mail.ID})
+		}
+	}
+
+	seedEntry(t, db.DB, "other", map[string]string{en.ID: "other"}, models.StatusApproved)
+
+	files, _, err := newTestRunner(t, db).renderFiles(context.Background(), models.GitExportConfig{
+		Files:     []models.GitExportFile{{Format: "json", Path: "lang/{locale}.json"}},
+		LocaleIDs: []string{en.ID},
+		ScopeIDs:  []string{mail.ID},
+		TagIDs:    []string{billing.ID},
+	})
+	if err != nil {
+		t.Fatalf("renderFiles() error = %v", err)
+	}
+
+	if want := "{\n  \"mail.receipt\": \"mail.receipt\"\n}\n"; len(files) != 1 || files[0].Content != want {
+		t.Errorf("files = %+v, want only the billing entry", files)
+	}
+}
+
 func datatypesJSON(value any) (datatypes.JSON, error) {
 	encoded, err := json.Marshal(value)
 	if err != nil {
@@ -765,5 +858,88 @@ func TestAITranslateSendsDescriptionAndStyle(t *testing.T) {
 
 	if len(requests) != 1 || requests[0].Context != "Button in the editor toolbar" || requests[0].Style != "website of a bakery" {
 		t.Errorf("requests = %+v, want the description and the style", requests)
+	}
+}
+
+func TestReleaseDue(t *testing.T) {
+	db := testutil.SetupPostgresDB(t)
+
+	hook := models.Webhook{Name: "Launches", URL: "https://chat.example", Enabled: true, Events: []string{models.WebhookEventTranslationsReleased}}
+	create(t, db.DB, &hook)
+
+	// The delay keeps the run queued, so the ticks don't run it.
+	export := models.Task{Name: "Export", Type: models.TaskTypeGitExport, Enabled: true, Events: []string{models.EventTranslationsReleased}, EventDelayMinutes: 5}
+	create(t, db.DB, &export)
+
+	past, future := time.Now().Add(-time.Minute), time.Now().Add(time.Hour)
+	earlier := time.Now().Add(-time.Hour)
+	due := models.Release{Name: "Due", ReleaseAt: &past}
+	later := models.Release{Name: "Later", ReleaseAt: &future}
+	unscheduled := models.Release{Name: "Unscheduled"}
+	byHand := models.Release{Name: "By hand", ReleaseAt: &past, ReleasedAt: &earlier}
+
+	for _, release := range []*models.Release{&due, &later, &unscheduled, &byHand} {
+		create(t, db.DB, release)
+	}
+
+	entry := seedEntry(t, db.DB, "launch.title", nil, models.StatusApproved)
+	create(t, db.DB, &models.ReleaseEntry{ReleaseID: due.ID, EntryID: entry.ID})
+
+	// Releases go out while tasks are paused; their runs wait.
+	if err := taskqueue.SetPaused(db.DB, true, nil); err != nil {
+		t.Fatalf("SetPaused() error = %v", err)
+	}
+
+	runners := []*Runner{newTestRunner(t, db), newTestRunner(t, db)}
+
+	var wg sync.WaitGroup
+
+	for _, r := range runners {
+		wg.Go(func() { r.Tick(context.Background()) })
+	}
+
+	wg.Wait()
+	runners[0].Tick(context.Background())
+
+	released := map[string]bool{}
+
+	var releases []models.Release
+
+	db.Find(&releases)
+
+	for _, release := range releases {
+		released[release.Name] = release.ReleasedAt != nil
+	}
+
+	if !released["Due"] || released["Later"] || released["Unscheduled"] {
+		t.Errorf("released = %v, want only Due (and By hand) out", released)
+	}
+
+	var deliveries []models.WebhookDelivery
+
+	db.Where("webhook_id = ?", hook.ID).Find(&deliveries)
+
+	if len(deliveries) != 1 {
+		t.Fatalf("%d deliveries, want 1 for Due", len(deliveries))
+	}
+
+	var body struct {
+		Data webhook.ReleaseData `json:"data"`
+	}
+
+	if err := json.Unmarshal([]byte(deliveries[0].Payload), &body); err != nil {
+		t.Fatalf("payload: %v", err)
+	}
+
+	if body.Data.Release.ID != due.ID || body.Data.Count != 1 || body.Data.Entries[0].Key != "launch.title" || body.Data.User != nil {
+		t.Errorf("announced %+v, want Due with launch.title and no user", body.Data)
+	}
+
+	var runs []models.TaskRun
+
+	db.Where("task_id = ?", export.ID).Find(&runs)
+
+	if len(runs) != 1 || runs[0].Trigger != models.TriggerEvent || runs[0].Status != models.RunQueued {
+		t.Errorf("runs = %+v, want one queued event run", runs)
 	}
 }

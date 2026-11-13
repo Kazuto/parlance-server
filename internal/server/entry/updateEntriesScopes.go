@@ -66,6 +66,11 @@ func (s *Server) UpdateEntriesScopes(
 
 	if err := db.Transaction(func(tx *gorm.DB) error {
 		if len(removeIDs) > 0 {
+			// The entries' tags of the scopes go with them.
+			if err := tx.Where("entry_id IN ? AND scope_id IN ?", entryIDs, removeIDs).
+				Delete(&models.EntryTag{}).Error; err != nil {
+				return err
+			}
 			if err := tx.Where("entry_id IN ? AND scope_id IN ?", entryIDs, removeIDs).
 				Delete(&models.EntryScope{}).Error; err != nil {
 				return err

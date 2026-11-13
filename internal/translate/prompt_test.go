@@ -36,6 +36,21 @@ func TestPrompt(t *testing.T) {
 		}
 	})
 
+	t.Run("asks for the regional variant, addressing the user as in the language", func(t *testing.T) {
+		req := Request{Text: "Save changes", TargetLang: "German", TargetVariant: "Austrian German", Formality: Formal}
+
+		for _, want := range []string{"into Austrian German.", "[software user interface text, formal, addressing the user as Sie]"} {
+			if got := Prompt(req); !strings.Contains(got, want) {
+				t.Errorf("got %q, want it to contain %q", got, want)
+			}
+		}
+
+		req.Context = "Button that saves the form."
+		if got, want := Prompt(req), "into Austrian German, taking the provided background information"; !strings.Contains(got, want) {
+			t.Errorf("with a context: got %q, want it to contain %q", got, want)
+		}
+	})
+
 	t.Run("uses the configured style", func(t *testing.T) {
 		got := Prompt(Request{Text: "Save changes", TargetLang: "German", Style: " website of a bakery ", Formality: Informal})
 		want := "[website of a bakery, informal, addressing the user as du]"

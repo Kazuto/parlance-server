@@ -77,6 +77,8 @@ type TaskEvent int32
 const (
 	TaskEvent_TASK_EVENT_UNSPECIFIED           TaskEvent = 0
 	TaskEvent_TASK_EVENT_TRANSLATIONS_APPROVED TaskEvent = 1
+	// A release went out, by its date or by hand.
+	TaskEvent_TASK_EVENT_TRANSLATIONS_RELEASED TaskEvent = 2
 )
 
 // Enum value maps for TaskEvent.
@@ -84,10 +86,12 @@ var (
 	TaskEvent_name = map[int32]string{
 		0: "TASK_EVENT_UNSPECIFIED",
 		1: "TASK_EVENT_TRANSLATIONS_APPROVED",
+		2: "TASK_EVENT_TRANSLATIONS_RELEASED",
 	}
 	TaskEvent_value = map[string]int32{
 		"TASK_EVENT_UNSPECIFIED":           0,
 		"TASK_EVENT_TRANSLATIONS_APPROVED": 1,
+		"TASK_EVENT_TRANSLATIONS_RELEASED": 2,
 	}
 )
 
@@ -439,6 +443,8 @@ type GitExportConfig struct {
 	// Entries in any of the scopes; empty for all entries.
 	ScopeIds      []string `protobuf:"bytes,7,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`
 	IncludeDrafts bool     `protobuf:"varint,8,opt,name=include_drafts,json=includeDrafts,proto3" json:"include_drafts,omitempty"`
+	// Narrows each scope to the entries with any of its selected tags.
+	TagIds        []string `protobuf:"bytes,9,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -527,6 +533,13 @@ func (x *GitExportConfig) GetIncludeDrafts() bool {
 		return x.IncludeDrafts
 	}
 	return false
+}
+
+func (x *GitExportConfig) GetTagIds() []string {
+	if x != nil {
+		return x.TagIds
+	}
+	return nil
 }
 
 type TaskRunSummary struct {
@@ -2206,7 +2219,7 @@ const file_parlance_v1_task_proto_rawDesc = "" +
 	"\x13redo_machine_drafts\x18\x06 \x01(\bR\x11redoMachineDrafts\"V\n" +
 	"\rGitExportFile\x121\n" +
 	"\x06format\x18\x01 \x01(\x0e2\x19.parlance.v1.ExportFormatR\x06format\x12\x12\n" +
-	"\x04path\x18\x02 \x01(\tR\x04path\"\x98\x02\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\"\xb1\x02\n" +
 	"\x0fGitExportConfig\x12\x17\n" +
 	"\aapi_url\x18\x01 \x01(\tR\x06apiUrl\x12\x1e\n" +
 	"\n" +
@@ -2219,7 +2232,8 @@ const file_parlance_v1_task_proto_rawDesc = "" +
 	"\n" +
 	"locale_ids\x18\x06 \x03(\tR\tlocaleIds\x12\x1b\n" +
 	"\tscope_ids\x18\a \x03(\tR\bscopeIds\x12%\n" +
-	"\x0einclude_drafts\x18\b \x01(\bR\rincludeDrafts\"\xe7\x01\n" +
+	"\x0einclude_drafts\x18\b \x01(\bR\rincludeDrafts\x12\x17\n" +
+	"\atag_ids\x18\t \x03(\tR\x06tagIds\"\xe7\x01\n" +
 	"\x0eTaskRunSummary\x12\x1e\n" +
 	"\n" +
 	"translated\x18\x01 \x01(\x05R\n" +
@@ -2355,10 +2369,11 @@ const file_parlance_v1_task_proto_rawDesc = "" +
 	"\bTaskType\x12\x19\n" +
 	"\x15TASK_TYPE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16TASK_TYPE_AI_TRANSLATE\x10\x01\x12\x18\n" +
-	"\x14TASK_TYPE_GIT_EXPORT\x10\x02*M\n" +
+	"\x14TASK_TYPE_GIT_EXPORT\x10\x02*s\n" +
 	"\tTaskEvent\x12\x1a\n" +
 	"\x16TASK_EVENT_UNSPECIFIED\x10\x00\x12$\n" +
-	" TASK_EVENT_TRANSLATIONS_APPROVED\x10\x01*w\n" +
+	" TASK_EVENT_TRANSLATIONS_APPROVED\x10\x01\x12$\n" +
+	" TASK_EVENT_TRANSLATIONS_RELEASED\x10\x02*w\n" +
 	"\vTaskTrigger\x12\x1c\n" +
 	"\x18TASK_TRIGGER_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13TASK_TRIGGER_MANUAL\x10\x01\x12\x19\n" +

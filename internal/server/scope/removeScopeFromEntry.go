@@ -7,6 +7,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/common"
+	"gorm.io/gorm"
 
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
 )
@@ -34,7 +35,14 @@ func (s *Server) RemoveScopeFromEntry(
 		return nil, err
 	}
 
-	if err := s.db.Model(&entry).Association("Scopes").Delete(&scope); err != nil {
+	// The entry's tags of the scope go with it.
+	if err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("entry_id = ? AND scope_id = ?", entry.ID, scope.ID).Delete(&models.EntryTag{}).Error; err != nil {
+			return err
+		}
+
+		return tx.Model(&entry).Association("Scopes").Delete(&scope)
+	}); err != nil {
 		return nil, errors.Internal(errors.ErrInternal, "failed to remove scope from entry")
 	}
 

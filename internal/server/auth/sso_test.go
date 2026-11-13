@@ -13,6 +13,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/testutil"
 	"github.com/kazuto/parlance-server/internal/sso"
 	"github.com/kazuto/parlance-server/internal/sso/ssotest"
+	"github.com/kazuto/parlance-server/internal/webhook"
 )
 
 func TestSignInWithSso(t *testing.T) {
@@ -72,5 +73,66 @@ func TestSignInWithSso(t *testing.T) {
 
 	if _, err := authpkg.ValidateRefreshToken(finished.Msg.RefreshToken, "jwt-secret"); err != nil {
 		t.Errorf("refresh token: %v", err)
+	}
+}
+
+func TestFailedSsoSignInsAreReported(t *testing.T) {
+	_, db := testutil.Setup(t)
+	sent := loginHook(t, db)
+
+	t.Cleanup(func() {
+		db.Exec(`DELETE FROM sso_logins`)
+		db.Exec(`DELETE FROM sso_identities`)
+		db.Exec(`DELETE FROM sso_providers`)
+	})
+
+	// Without a default role, nobody new may sign in.
+	idp := ssotest.New(t)
+	idp.Account = map[string]any{"sub": "stranger-1", "email": "stranger@example.com", "email_verified": true}
+
+	box, _ := secret.New("test key")
+	encrypted, _ := box.Encrypt(idp.ClientSecret)
+	provider := models.SSOProvider{Name: "Keycloak", IssuerURL: idp.Issuer(), ClientID: idp.ClientID, ClientSecret: encrypted, Enabled: true}
+	db.Create(&provider)
+
+	cfg := &config.Config{
+		JWT:  config.JWTConfig{Secret: "jwt-secret", Expiry: "1h"},
+		CORS: config.CORSConfig{AllowedOrigins: []string{"http://app.test"}},
+	}
+	server := NewServer(db, cfg, sso.New(db.DB, box, nil))
+	ctx := context.Background()
+
+	started, err := server.StartSso(ctx, connect.NewRequest(&pb.StartSsoRequest{ProviderId: provider.ID, RedirectUri: "http://app.test/login/sso"}))
+	if err != nil {
+		t.Fatalf("StartSso() error = %v", err)
+	}
+
+	state, code := idp.SignIn(t, started.Msg.AuthorizationUrl)
+
+	if _, err := server.FinishSso(ctx, connect.NewRequest(&pb.FinishSsoRequest{State: state, Code: code})); connect.CodeOf(err) != connect.CodePermissionDenied {
+		t.Fatalf("FinishSso() error = %v, want no account", err)
+	}
+
+	// Finishing it again, e.g. on reload, is an expired sign-in, which isn't reported.
+	if _, err := server.FinishSso(ctx, connect.NewRequest(&pb.FinishSsoRequest{State: state, Code: code})); connect.CodeOf(err) != connect.CodeFailedPrecondition {
+		t.Fatalf("FinishSso() again error = %v, want expired", err)
+	}
+
+	got, _ := sent()
+	want := webhook.LoginFailedData{
+		Email:    "stranger@example.com",
+		Method:   webhook.LoginMethodSSO,
+		Provider: &webhook.ProviderInfo{ID: provider.ID, Name: "Keycloak"},
+		Reason:   "sso_no_account",
+		Attempts: 1,
+	}
+
+	if len(got) != 1 || got[0].Provider == nil || *got[0].Provider != *want.Provider {
+		t.Fatalf("sent %+v, want one event about the provider", got)
+	}
+
+	got[0].Provider = want.Provider
+	if got[0] != want {
+		t.Errorf("sent %+v\nwant %+v", got[0], want)
 	}
 }

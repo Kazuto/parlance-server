@@ -150,6 +150,7 @@ Table scopes {
   slug varchar(50) [not null, unique]
   description text [null]
   color varchar(7) [null]
+  export_format varchar(10) [not null, default: '', note: 'json, php or po; empty for none']
   created_at timestamp
   updated_at timestamp
   deleted_at timestamp [null]
@@ -171,6 +172,63 @@ Table entry_scopes {
     (entry_id, scope_id) [unique]
     entry_id
     scope_id
+  }
+}
+
+Table tags {
+  id integer [primary key]
+  scope_id integer [not null]
+  name varchar(100) [not null, note: 'Unique within the scope, ignoring case']
+  created_at timestamp
+  updated_at timestamp
+  created_by integer
+  updated_by integer
+
+  indexes {
+    scope_id
+    (id, scope_id) [unique]
+  }
+}
+
+Table entry_tags {
+  entry_id integer [not null]
+  tag_id integer [not null]
+  scope_id integer [not null, note: 'The tag\'s scope, which the entry must be in']
+  created_at timestamp
+  created_by integer
+
+  indexes {
+    (entry_id, tag_id) [pk]
+    tag_id
+  }
+}
+
+Table releases {
+  id integer [primary key]
+  name varchar(100) [not null, note: 'Unique, ignoring case']
+  description text [not null, default: '']
+  release_at timestamp [null, note: 'When it goes out; null holds it until released by hand']
+  released_at timestamp [null, note: 'When it went out and was announced']
+  created_at timestamp
+  updated_at timestamp
+  created_by integer
+  updated_by integer
+
+  indexes {
+    release_at
+    released_at
+  }
+}
+
+Table release_entries {
+  release_id integer [not null]
+  entry_id integer [not null]
+  created_at timestamp
+  created_by integer
+
+  indexes {
+    (release_id, entry_id) [pk]
+    entry_id
   }
 }
 
@@ -250,6 +308,15 @@ Ref: localization_history.user_id > users.id
 Ref: entry_scopes.entry_id > entries.id [delete: cascade]
 Ref: entry_scopes.scope_id > scopes.id [delete: cascade]
 Ref: entry_scopes.created_by > users.id [delete: set null]
+
+Ref: tags.scope_id > scopes.id [delete: cascade]
+Ref: entry_tags.entry_id > entries.id [delete: cascade]
+Ref: entry_tags.tag_id > tags.id [delete: cascade]
+Ref: entry_tags.(entry_id, scope_id) > entry_scopes.(entry_id, scope_id) [delete: cascade]
+Ref: entry_tags.(tag_id, scope_id) > tags.(id, scope_id) [delete: cascade]
+
+Ref: release_entries.release_id > releases.id [delete: cascade]
+Ref: release_entries.entry_id > entries.id [delete: cascade]
 
 Ref: definitions.locale_id > locales.id 
 Ref: definitions.terminology_id > terminologies.id

@@ -36,6 +36,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/localization"
 	"github.com/kazuto/parlance-server/internal/server/permission"
 	"github.com/kazuto/parlance-server/internal/server/rbac"
+	"github.com/kazuto/parlance-server/internal/server/release"
 	"github.com/kazuto/parlance-server/internal/server/role"
 	"github.com/kazuto/parlance-server/internal/server/scope"
 	"github.com/kazuto/parlance-server/internal/server/setup"
@@ -162,6 +163,9 @@ func main() {
 		}, true},
 		{"AccountService", func(o ...connect.HandlerOption) (string, http.Handler) {
 			return parlancev1connect.NewAccountServiceHandler(account.NewServer(db, avatars), o...)
+		}, true},
+		{"ReleaseService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewReleaseServiceHandler(release.NewServer(db), o...)
 		}, true},
 		{"EntryService", func(o ...connect.HandlerOption) (string, http.Handler) {
 			return parlancev1connect.NewEntryServiceHandler(entry.NewServer(db), o...)

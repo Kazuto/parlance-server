@@ -207,6 +207,11 @@ func gitExportConfig(db *gorm.DB, in *pb.GitExportConfig) (models.GitExportConfi
 		return config, err
 	}
 
+	config.TagIDs = common.UniqueIDs(in.TagIds)
+	if _, err := common.ResolveActiveTags(db, config.TagIDs); err != nil {
+		return config, err
+	}
+
 	config.IncludeDrafts = in.IncludeDrafts
 
 	return config, nil

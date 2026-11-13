@@ -15,6 +15,7 @@ var (
 	}
 	taskEvents = map[string]pb.TaskEvent{
 		models.EventTranslationsApproved: pb.TaskEvent_TASK_EVENT_TRANSLATIONS_APPROVED,
+		models.EventTranslationsReleased: pb.TaskEvent_TASK_EVENT_TRANSLATIONS_RELEASED,
 	}
 	taskTriggers = map[string]pb.TaskTrigger{
 		models.TriggerManual:   pb.TaskTrigger_TASK_TRIGGER_MANUAL,
@@ -54,6 +55,9 @@ func TaskEventFromProto(value pb.TaskEvent) string { return lookup(taskEvents, v
 
 // ExportFormatFromProto returns the format's file extension, or "" for none.
 func ExportFormatFromProto(value pb.ExportFormat) string { return lookup(exportFormats, value) }
+
+// ExportFormatToProto returns the format of a file extension, or unspecified for none.
+func ExportFormatToProto(format string) pb.ExportFormat { return exportFormats[format] }
 
 // TaskToProto converts a Task with its newest run, if any. The token stays out:
 // only whether one is set is sent.
@@ -111,11 +115,12 @@ func GitExportConfigToProto(config models.GitExportConfig) *pb.GitExportConfig {
 		Branch:        config.Branch,
 		LocaleIds:     config.LocaleIDs,
 		ScopeIds:      config.ScopeIDs,
+		TagIds:        config.TagIDs,
 		IncludeDrafts: config.IncludeDrafts,
 	}
 
 	for _, file := range config.Files {
-		result.Files = append(result.Files, &pb.GitExportFile{Format: exportFormats[file.Format], Path: file.Path})
+		result.Files = append(result.Files, &pb.GitExportFile{Format: ExportFormatToProto(file.Format), Path: file.Path})
 	}
 
 	return result

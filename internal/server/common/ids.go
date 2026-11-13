@@ -51,3 +51,25 @@ func FilterEntriesByScopes(query *gorm.DB, scopeIDs []string) *gorm.DB {
 
 	return query.Where("entries.id IN (SELECT entry_id FROM entry_scopes WHERE scope_id IN ?)", scopeIDs)
 }
+
+// FilterEntriesBySelection keeps entries in any of the scopes, narrowed to the selected
+// tags of each scope: an entry matches when it carries one of the tags, or is in a scope
+// none of whose tags is selected. A tag selects its scope too. Without tags it is
+// FilterEntriesByScopes.
+func FilterEntriesBySelection(query *gorm.DB, scopeIDs, tagIDs []string) *gorm.DB {
+	if len(tagIDs) == 0 {
+		return FilterEntriesByScopes(query, scopeIDs)
+	}
+
+	tagged := "entries.id IN (SELECT entry_id FROM entry_tags WHERE tag_id IN @tags)"
+	if len(scopeIDs) == 0 {
+		return query.Where(tagged, map[string]any{"tags": tagIDs})
+	}
+
+	return query.Where(
+		"(entries.id IN (SELECT es.entry_id FROM entry_scopes es WHERE es.scope_id IN @scopes"+
+			" AND NOT EXISTS (SELECT 1 FROM tags t WHERE t.scope_id = es.scope_id AND t.id IN @tags))"+
+			" OR "+tagged+")",
+		map[string]any{"scopes": scopeIDs, "tags": tagIDs},
+	)
+}

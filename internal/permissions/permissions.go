@@ -47,6 +47,18 @@ const (
 	UpdateScope = "update_scope"
 	DeleteScope = "delete_scope"
 
+	// Tag permissions; tags are listed with their scopes, so reading them needs read_scope
+	CreateTag = "create_tag"
+	UpdateTag = "update_tag"
+	DeleteTag = "delete_tag"
+
+	// Release permissions; adding entries to releases needs update_entry
+	CreateRelease = "create_release"
+	ReadRelease   = "read_release"
+	// UpdateRelease also covers publishing a release
+	UpdateRelease = "update_release"
+	DeleteRelease = "delete_release"
+
 	// Definition permissions
 	CreateDefinition = "create_definition"
 	ReadDefinition   = "read_definition"
@@ -117,6 +129,13 @@ func AllPermissions() []string {
 		ReadScope,
 		UpdateScope,
 		DeleteScope,
+		CreateTag,
+		UpdateTag,
+		DeleteTag,
+		CreateRelease,
+		ReadRelease,
+		UpdateRelease,
+		DeleteRelease,
 		CreateDefinition,
 		ReadDefinition,
 		UpdateDefinition,
@@ -149,4 +168,9 @@ func AllPermissions() []string {
 var GrantedWith = map[string][]string{
 	ImportEntry: {CreateEntry, UpdateEntry},
 	ExportEntry: {ReadEntry},
+	CreateTag:   {UpdateScope},
+	UpdateTag:   {UpdateScope},
+	DeleteTag:   {UpdateScope},
+	// Entries show their releases, so whoever reads entries reads releases.
+	ReadRelease: {ReadEntry},
 }

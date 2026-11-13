@@ -19,11 +19,15 @@ var (
 		models.WebhookEventDigest:               pb.WebhookEvent_WEBHOOK_EVENT_DIGEST,
 
 		models.WebhookEventTranslationsAwaitingApproval: pb.WebhookEvent_WEBHOOK_EVENT_TRANSLATIONS_AWAITING_APPROVAL,
+		models.WebhookEventTranslationsReleased:         pb.WebhookEvent_WEBHOOK_EVENT_TRANSLATIONS_RELEASED,
+		models.WebhookEventExportFailed:                 pb.WebhookEvent_WEBHOOK_EVENT_EXPORT_FAILED,
+		models.WebhookEventLoginFailed:                  pb.WebhookEvent_WEBHOOK_EVENT_LOGIN_FAILED,
 	}
 	webhookFormats = map[string]pb.WebhookFormat{
 		models.WebhookFormatJSON:    pb.WebhookFormat_WEBHOOK_FORMAT_JSON,
 		models.WebhookFormatSlack:   pb.WebhookFormat_WEBHOOK_FORMAT_SLACK,
 		models.WebhookFormatDiscord: pb.WebhookFormat_WEBHOOK_FORMAT_DISCORD,
+		models.WebhookFormatApprise: pb.WebhookFormat_WEBHOOK_FORMAT_APPRISE,
 	}
 	deliveryStatuses = map[string]pb.WebhookDeliveryStatus{
 		models.DeliveryPending:   pb.WebhookDeliveryStatus_WEBHOOK_DELIVERY_STATUS_PENDING,

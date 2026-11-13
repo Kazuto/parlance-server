@@ -129,16 +129,73 @@ func (ImportChangeAction) EnumDescriptor() ([]byte, []int) {
 	return file_parlance_v1_import_proto_rawDescGZIP(), []int{1}
 }
 
+// Why a ZIP import can't create a file's missing language
+type MissingLocaleReason int32
+
+const (
+	MissingLocaleReason_MISSING_LOCALE_REASON_UNSPECIFIED   MissingLocaleReason = 0 // It can be created
+	MissingLocaleReason_MISSING_LOCALE_REASON_DELETED       MissingLocaleReason = 1 // A deleted language has the code; restoring it imports the file
+	MissingLocaleReason_MISSING_LOCALE_REASON_INVALID_CODE  MissingLocaleReason = 2 // The file's name is no known language code
+	MissingLocaleReason_MISSING_LOCALE_REASON_NO_PERMISSION MissingLocaleReason = 3 // Creating languages needs create_locale
+)
+
+// Enum value maps for MissingLocaleReason.
+var (
+	MissingLocaleReason_name = map[int32]string{
+		0: "MISSING_LOCALE_REASON_UNSPECIFIED",
+		1: "MISSING_LOCALE_REASON_DELETED",
+		2: "MISSING_LOCALE_REASON_INVALID_CODE",
+		3: "MISSING_LOCALE_REASON_NO_PERMISSION",
+	}
+	MissingLocaleReason_value = map[string]int32{
+		"MISSING_LOCALE_REASON_UNSPECIFIED":   0,
+		"MISSING_LOCALE_REASON_DELETED":       1,
+		"MISSING_LOCALE_REASON_INVALID_CODE":  2,
+		"MISSING_LOCALE_REASON_NO_PERMISSION": 3,
+	}
+)
+
+func (x MissingLocaleReason) Enum() *MissingLocaleReason {
+	p := new(MissingLocaleReason)
+	*p = x
+	return p
+}
+
+func (x MissingLocaleReason) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (MissingLocaleReason) Descriptor() protoreflect.EnumDescriptor {
+	return file_parlance_v1_import_proto_enumTypes[2].Descriptor()
+}
+
+func (MissingLocaleReason) Type() protoreflect.EnumType {
+	return &file_parlance_v1_import_proto_enumTypes[2]
+}
+
+func (x MissingLocaleReason) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use MissingLocaleReason.Descriptor instead.
+func (MissingLocaleReason) EnumDescriptor() ([]byte, []int) {
+	return file_parlance_v1_import_proto_rawDescGZIP(), []int{2}
+}
+
 // PHP array import
 type ImportPhpRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	LocaleId      string                 `protobuf:"bytes,1,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`          // Target locale
-	ScopeIds      []string               `protobuf:"bytes,2,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`          // Scopes to assign
-	FileContent   []byte                 `protobuf:"bytes,3,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"` // File content as bytes
-	Filename      string                 `protobuf:"bytes,4,opt,name=filename,proto3" json:"filename,omitempty"`                          // Original filename (optional, for logging)
-	Mode          ImportMode             `protobuf:"varint,5,opt,name=mode,proto3,enum=parlance.v1.ImportMode" json:"mode,omitempty"`     // How to handle conflicts
-	Approve       bool                   `protobuf:"varint,6,opt,name=approve,proto3" json:"approve,omitempty"`                           // Approve the imported translations; needs review_entry
-	DryRun        bool                   `protobuf:"varint,7,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`               // Reports what the import would change, without changing anything
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	LocaleId    string                 `protobuf:"bytes,1,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`          // Target locale
+	ScopeIds    []string               `protobuf:"bytes,2,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`          // Scopes to assign
+	FileContent []byte                 `protobuf:"bytes,3,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"` // File content as bytes
+	Filename    string                 `protobuf:"bytes,4,opt,name=filename,proto3" json:"filename,omitempty"`                          // Original filename (optional, for logging)
+	Mode        ImportMode             `protobuf:"varint,5,opt,name=mode,proto3,enum=parlance.v1.ImportMode" json:"mode,omitempty"`     // How to handle conflicts
+	Approve     bool                   `protobuf:"varint,6,opt,name=approve,proto3" json:"approve,omitempty"`                           // Approve the imported translations; needs review_entry
+	DryRun      bool                   `protobuf:"varint,7,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`               // Reports what the import would change, without changing anything
+	// Deletes the entries the file doesn't hold: those of scope_ids, or all without
+	// scopes. An entry other scopes keep only leaves scope_ids. Only for the default
+	// language, whose file holds every entry. Needs delete_entry.
+	DeleteMissing bool `protobuf:"varint,8,opt,name=delete_missing,json=deleteMissing,proto3" json:"delete_missing,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -222,6 +279,13 @@ func (x *ImportPhpRequest) GetDryRun() bool {
 	return false
 }
 
+func (x *ImportPhpRequest) GetDeleteMissing() bool {
+	if x != nil {
+		return x.DeleteMissing
+	}
+	return false
+}
+
 type ImportPhpResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Result        *ImportResult          `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
@@ -268,14 +332,18 @@ func (x *ImportPhpResponse) GetResult() *ImportResult {
 
 // Flat JSON import
 type ImportJsonRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	LocaleId      string                 `protobuf:"bytes,1,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
-	ScopeIds      []string               `protobuf:"bytes,2,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`
-	FileContent   []byte                 `protobuf:"bytes,3,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"` // File content as bytes
-	Filename      string                 `protobuf:"bytes,4,opt,name=filename,proto3" json:"filename,omitempty"`                          // Original filename (optional)
-	Mode          ImportMode             `protobuf:"varint,5,opt,name=mode,proto3,enum=parlance.v1.ImportMode" json:"mode,omitempty"`
-	Approve       bool                   `protobuf:"varint,6,opt,name=approve,proto3" json:"approve,omitempty"`             // Approve the imported translations; needs review_entry
-	DryRun        bool                   `protobuf:"varint,7,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"` // Reports what the import would change, without changing anything
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	LocaleId    string                 `protobuf:"bytes,1,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
+	ScopeIds    []string               `protobuf:"bytes,2,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`
+	FileContent []byte                 `protobuf:"bytes,3,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"` // File content as bytes
+	Filename    string                 `protobuf:"bytes,4,opt,name=filename,proto3" json:"filename,omitempty"`                          // Original filename (optional)
+	Mode        ImportMode             `protobuf:"varint,5,opt,name=mode,proto3,enum=parlance.v1.ImportMode" json:"mode,omitempty"`
+	Approve     bool                   `protobuf:"varint,6,opt,name=approve,proto3" json:"approve,omitempty"`             // Approve the imported translations; needs review_entry
+	DryRun      bool                   `protobuf:"varint,7,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"` // Reports what the import would change, without changing anything
+	// Deletes the entries the file doesn't hold: those of scope_ids, or all without
+	// scopes. An entry other scopes keep only leaves scope_ids. Only for the default
+	// language, whose file holds every entry. Needs delete_entry.
+	DeleteMissing bool `protobuf:"varint,8,opt,name=delete_missing,json=deleteMissing,proto3" json:"delete_missing,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -359,6 +427,13 @@ func (x *ImportJsonRequest) GetDryRun() bool {
 	return false
 }
 
+func (x *ImportJsonRequest) GetDeleteMissing() bool {
+	if x != nil {
+		return x.DeleteMissing
+	}
+	return false
+}
+
 type ImportJsonResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Result        *ImportResult          `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
@@ -405,14 +480,18 @@ func (x *ImportJsonResponse) GetResult() *ImportResult {
 
 // UTF-8, singular key-based gettext PO import. msgid is the entry key.
 type ImportPoRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	LocaleId      string                 `protobuf:"bytes,1,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
-	ScopeIds      []string               `protobuf:"bytes,2,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`
-	FileContent   []byte                 `protobuf:"bytes,3,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"`
-	Filename      string                 `protobuf:"bytes,4,opt,name=filename,proto3" json:"filename,omitempty"`
-	Mode          ImportMode             `protobuf:"varint,5,opt,name=mode,proto3,enum=parlance.v1.ImportMode" json:"mode,omitempty"`
-	Approve       bool                   `protobuf:"varint,6,opt,name=approve,proto3" json:"approve,omitempty"`             // Approve the imported translations; needs review_entry
-	DryRun        bool                   `protobuf:"varint,7,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"` // Reports what the import would change, without changing anything
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	LocaleId    string                 `protobuf:"bytes,1,opt,name=locale_id,json=localeId,proto3" json:"locale_id,omitempty"`
+	ScopeIds    []string               `protobuf:"bytes,2,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`
+	FileContent []byte                 `protobuf:"bytes,3,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"`
+	Filename    string                 `protobuf:"bytes,4,opt,name=filename,proto3" json:"filename,omitempty"`
+	Mode        ImportMode             `protobuf:"varint,5,opt,name=mode,proto3,enum=parlance.v1.ImportMode" json:"mode,omitempty"`
+	Approve     bool                   `protobuf:"varint,6,opt,name=approve,proto3" json:"approve,omitempty"`             // Approve the imported translations; needs review_entry
+	DryRun      bool                   `protobuf:"varint,7,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"` // Reports what the import would change, without changing anything
+	// Deletes the entries the file doesn't hold: those of scope_ids, or all without
+	// scopes. An entry other scopes keep only leaves scope_ids. Only for the default
+	// language, whose file holds every entry. Needs delete_entry.
+	DeleteMissing bool `protobuf:"varint,8,opt,name=delete_missing,json=deleteMissing,proto3" json:"delete_missing,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -496,6 +575,13 @@ func (x *ImportPoRequest) GetDryRun() bool {
 	return false
 }
 
+func (x *ImportPoRequest) GetDeleteMissing() bool {
+	if x != nil {
+		return x.DeleteMissing
+	}
+	return false
+}
+
 type ImportPoResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Result        *ImportResult          `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
@@ -555,6 +641,7 @@ type ImportResult struct {
 	TranslationsChanged  int32           `protobuf:"varint,8,opt,name=translations_changed,json=translationsChanged,proto3" json:"translations_changed,omitempty"`     // Existing translations given a different text
 	TranslationsRemoved  int32           `protobuf:"varint,9,opt,name=translations_removed,json=translationsRemoved,proto3" json:"translations_removed,omitempty"`     // Translations REPLACE_ALL removes and doesn't import again
 	TranslationsOutdated int32           `protobuf:"varint,10,opt,name=translations_outdated,json=translationsOutdated,proto3" json:"translations_outdated,omitempty"` // Other languages' translations of the default texts it changes
+	Deletion             *ImportDeletion `protobuf:"bytes,11,opt,name=deletion,proto3" json:"deletion,omitempty"`                                                      // What delete_missing deletes; unset without it and in a ZIP's files
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -659,6 +746,136 @@ func (x *ImportResult) GetTranslationsOutdated() int32 {
 	return 0
 }
 
+func (x *ImportResult) GetDeletion() *ImportDeletion {
+	if x != nil {
+		return x.Deletion
+	}
+	return nil
+}
+
+// The entries delete_missing deletes, or takes out of the import's scopes when other
+// scopes keep them
+type ImportDeletion struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	EntriesDeleted  int32                  `protobuf:"varint,1,opt,name=entries_deleted,json=entriesDeleted,proto3" json:"entries_deleted,omitempty"`
+	EntriesUnscoped int32                  `protobuf:"varint,2,opt,name=entries_unscoped,json=entriesUnscoped,proto3" json:"entries_unscoped,omitempty"`
+	// On a dry run, the first 500 of those entries by key
+	Entries       []*ImportDeletedEntry `protobuf:"bytes,3,rep,name=entries,proto3" json:"entries,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportDeletion) Reset() {
+	*x = ImportDeletion{}
+	mi := &file_parlance_v1_import_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportDeletion) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportDeletion) ProtoMessage() {}
+
+func (x *ImportDeletion) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_import_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportDeletion.ProtoReflect.Descriptor instead.
+func (*ImportDeletion) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_import_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ImportDeletion) GetEntriesDeleted() int32 {
+	if x != nil {
+		return x.EntriesDeleted
+	}
+	return 0
+}
+
+func (x *ImportDeletion) GetEntriesUnscoped() int32 {
+	if x != nil {
+		return x.EntriesUnscoped
+	}
+	return 0
+}
+
+func (x *ImportDeletion) GetEntries() []*ImportDeletedEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+type ImportDeletedEntry struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Key               string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	SourceTranslation string                 `protobuf:"bytes,2,opt,name=source_translation,json=sourceTranslation,proto3" json:"source_translation,omitempty"` // The entry's default text
+	Unscoped          bool                   `protobuf:"varint,3,opt,name=unscoped,proto3" json:"unscoped,omitempty"`                                           // It only leaves the import's scopes
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *ImportDeletedEntry) Reset() {
+	*x = ImportDeletedEntry{}
+	mi := &file_parlance_v1_import_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportDeletedEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportDeletedEntry) ProtoMessage() {}
+
+func (x *ImportDeletedEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_import_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportDeletedEntry.ProtoReflect.Descriptor instead.
+func (*ImportDeletedEntry) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_import_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ImportDeletedEntry) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *ImportDeletedEntry) GetSourceTranslation() string {
+	if x != nil {
+		return x.SourceTranslation
+	}
+	return ""
+}
+
+func (x *ImportDeletedEntry) GetUnscoped() bool {
+	if x != nil {
+		return x.Unscoped
+	}
+	return false
+}
+
 // One translation an import adds, changes or removes
 type ImportChange struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
@@ -673,7 +890,7 @@ type ImportChange struct {
 
 func (x *ImportChange) Reset() {
 	*x = ImportChange{}
-	mi := &file_parlance_v1_import_proto_msgTypes[7]
+	mi := &file_parlance_v1_import_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -685,7 +902,7 @@ func (x *ImportChange) String() string {
 func (*ImportChange) ProtoMessage() {}
 
 func (x *ImportChange) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_import_proto_msgTypes[7]
+	mi := &file_parlance_v1_import_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -698,7 +915,7 @@ func (x *ImportChange) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportChange.ProtoReflect.Descriptor instead.
 func (*ImportChange) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_import_proto_rawDescGZIP(), []int{7}
+	return file_parlance_v1_import_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ImportChange) GetKey() string {
@@ -746,7 +963,7 @@ type ImportError struct {
 
 func (x *ImportError) Reset() {
 	*x = ImportError{}
-	mi := &file_parlance_v1_import_proto_msgTypes[8]
+	mi := &file_parlance_v1_import_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -758,7 +975,7 @@ func (x *ImportError) String() string {
 func (*ImportError) ProtoMessage() {}
 
 func (x *ImportError) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_import_proto_msgTypes[8]
+	mi := &file_parlance_v1_import_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -771,7 +988,7 @@ func (x *ImportError) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportError.ProtoReflect.Descriptor instead.
 func (*ImportError) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_import_proto_rawDescGZIP(), []int{8}
+	return file_parlance_v1_import_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ImportError) GetKey() string {
@@ -790,19 +1007,28 @@ func (x *ImportError) GetMessage() string {
 
 // Import multiple locales from a ZIP archive containing JSON files
 type ImportZipRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	FileContent   []byte                 `protobuf:"bytes,1,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"` // ZIP file content as bytes
-	ScopeIds      []string               `protobuf:"bytes,2,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`          // Scopes to assign to all imported entries
-	Mode          ImportMode             `protobuf:"varint,3,opt,name=mode,proto3,enum=parlance.v1.ImportMode" json:"mode,omitempty"`     // How to handle conflicts
-	Approve       bool                   `protobuf:"varint,4,opt,name=approve,proto3" json:"approve,omitempty"`                           // Approve the imported translations; needs review_entry
-	DryRun        bool                   `protobuf:"varint,5,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`               // Reports what the import would change, without changing anything
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	FileContent []byte                 `protobuf:"bytes,1,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"` // ZIP file content as bytes
+	ScopeIds    []string               `protobuf:"bytes,2,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`          // Scopes to assign to all imported entries
+	Mode        ImportMode             `protobuf:"varint,3,opt,name=mode,proto3,enum=parlance.v1.ImportMode" json:"mode,omitempty"`     // How to handle conflicts
+	Approve     bool                   `protobuf:"varint,4,opt,name=approve,proto3" json:"approve,omitempty"`                           // Approve the imported translations; needs review_entry
+	DryRun      bool                   `protobuf:"varint,5,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`               // Reports what the import would change, without changing anything
+	// Codes of files whose languages don't exist yet, to create them and import the
+	// files, e.g. "sv"; needs create_locale. Files of other missing languages are
+	// skipped.
+	CreateLocaleCodes []string `protobuf:"bytes,6,rep,name=create_locale_codes,json=createLocaleCodes,proto3" json:"create_locale_codes,omitempty"`
+	// Deletes the entries the default language's files don't hold, once the files are
+	// imported: those of scope_ids, or all without scopes. An entry other scopes keep
+	// only leaves scope_ids. The archive must hold the default language's file. Needs
+	// delete_entry.
+	DeleteMissing bool `protobuf:"varint,7,opt,name=delete_missing,json=deleteMissing,proto3" json:"delete_missing,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ImportZipRequest) Reset() {
 	*x = ImportZipRequest{}
-	mi := &file_parlance_v1_import_proto_msgTypes[9]
+	mi := &file_parlance_v1_import_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -814,7 +1040,7 @@ func (x *ImportZipRequest) String() string {
 func (*ImportZipRequest) ProtoMessage() {}
 
 func (x *ImportZipRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_import_proto_msgTypes[9]
+	mi := &file_parlance_v1_import_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -827,7 +1053,7 @@ func (x *ImportZipRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportZipRequest.ProtoReflect.Descriptor instead.
 func (*ImportZipRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_import_proto_rawDescGZIP(), []int{9}
+	return file_parlance_v1_import_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ImportZipRequest) GetFileContent() []byte {
@@ -865,6 +1091,20 @@ func (x *ImportZipRequest) GetDryRun() bool {
 	return false
 }
 
+func (x *ImportZipRequest) GetCreateLocaleCodes() []string {
+	if x != nil {
+		return x.CreateLocaleCodes
+	}
+	return nil
+}
+
+func (x *ImportZipRequest) GetDeleteMissing() bool {
+	if x != nil {
+		return x.DeleteMissing
+	}
+	return false
+}
+
 type ImportZipResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Results       []*LocaleImportResult  `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`                                // Results per locale file
@@ -872,13 +1112,14 @@ type ImportZipResponse struct {
 	TotalUpdated  int32                  `protobuf:"varint,3,opt,name=total_updated,json=totalUpdated,proto3" json:"total_updated,omitempty"` // Sum of all entries updated
 	TotalSkipped  int32                  `protobuf:"varint,4,opt,name=total_skipped,json=totalSkipped,proto3" json:"total_skipped,omitempty"` // Sum of all entries skipped
 	TotalFailed   int32                  `protobuf:"varint,5,opt,name=total_failed,json=totalFailed,proto3" json:"total_failed,omitempty"`    // Sum of all entries failed
+	Deletion      *ImportDeletion        `protobuf:"bytes,6,opt,name=deletion,proto3" json:"deletion,omitempty"`                              // What delete_missing deletes; unset without it
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ImportZipResponse) Reset() {
 	*x = ImportZipResponse{}
-	mi := &file_parlance_v1_import_proto_msgTypes[10]
+	mi := &file_parlance_v1_import_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -890,7 +1131,7 @@ func (x *ImportZipResponse) String() string {
 func (*ImportZipResponse) ProtoMessage() {}
 
 func (x *ImportZipResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_import_proto_msgTypes[10]
+	mi := &file_parlance_v1_import_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -903,7 +1144,7 @@ func (x *ImportZipResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportZipResponse.ProtoReflect.Descriptor instead.
 func (*ImportZipResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_import_proto_rawDescGZIP(), []int{10}
+	return file_parlance_v1_import_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ImportZipResponse) GetResults() []*LocaleImportResult {
@@ -941,18 +1182,35 @@ func (x *ImportZipResponse) GetTotalFailed() int32 {
 	return 0
 }
 
+func (x *ImportZipResponse) GetDeletion() *ImportDeletion {
+	if x != nil {
+		return x.Deletion
+	}
+	return nil
+}
+
 type LocaleImportResult struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	LocaleCode    string                 `protobuf:"bytes,1,opt,name=locale_code,json=localeCode,proto3" json:"locale_code,omitempty"` // Which locale file was processed
-	Result        *ImportResult          `protobuf:"bytes,2,opt,name=result,proto3" json:"result,omitempty"`                           // Result for this locale
-	Error         string                 `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`                             // Error message if the whole file failed
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	LocaleCode string                 `protobuf:"bytes,1,opt,name=locale_code,json=localeCode,proto3" json:"locale_code,omitempty"` // Which locale file was processed
+	Result     *ImportResult          `protobuf:"bytes,2,opt,name=result,proto3" json:"result,omitempty"`                           // Result for this locale
+	Error      string                 `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`                             // Error message if the whole file failed
+	// The file's language doesn't exist. A dry run imports the file into a new
+	// language when one can be created, so the result shows what would change.
+	LocaleMissing bool `protobuf:"varint,4,opt,name=locale_missing,json=localeMissing,proto3" json:"locale_missing,omitempty"`
+	// The missing or created language's name in the request's language, e.g.
+	// "Swedish", or its code without a known name.
+	LocaleName string `protobuf:"bytes,5,opt,name=locale_name,json=localeName,proto3" json:"locale_name,omitempty"`
+	// Why the missing language can't be created; unspecified when it can.
+	MissingReason MissingLocaleReason `protobuf:"varint,6,opt,name=missing_reason,json=missingReason,proto3,enum=parlance.v1.MissingLocaleReason" json:"missing_reason,omitempty"`
+	// The import created the language for the file.
+	LocaleCreated bool `protobuf:"varint,7,opt,name=locale_created,json=localeCreated,proto3" json:"locale_created,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LocaleImportResult) Reset() {
 	*x = LocaleImportResult{}
-	mi := &file_parlance_v1_import_proto_msgTypes[11]
+	mi := &file_parlance_v1_import_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -964,7 +1222,7 @@ func (x *LocaleImportResult) String() string {
 func (*LocaleImportResult) ProtoMessage() {}
 
 func (x *LocaleImportResult) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_import_proto_msgTypes[11]
+	mi := &file_parlance_v1_import_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -977,7 +1235,7 @@ func (x *LocaleImportResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LocaleImportResult.ProtoReflect.Descriptor instead.
 func (*LocaleImportResult) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_import_proto_rawDescGZIP(), []int{11}
+	return file_parlance_v1_import_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *LocaleImportResult) GetLocaleCode() string {
@@ -1001,11 +1259,39 @@ func (x *LocaleImportResult) GetError() string {
 	return ""
 }
 
+func (x *LocaleImportResult) GetLocaleMissing() bool {
+	if x != nil {
+		return x.LocaleMissing
+	}
+	return false
+}
+
+func (x *LocaleImportResult) GetLocaleName() string {
+	if x != nil {
+		return x.LocaleName
+	}
+	return ""
+}
+
+func (x *LocaleImportResult) GetMissingReason() MissingLocaleReason {
+	if x != nil {
+		return x.MissingReason
+	}
+	return MissingLocaleReason_MISSING_LOCALE_REASON_UNSPECIFIED
+}
+
+func (x *LocaleImportResult) GetLocaleCreated() bool {
+	if x != nil {
+		return x.LocaleCreated
+	}
+	return false
+}
+
 var File_parlance_v1_import_proto protoreflect.FileDescriptor
 
 const file_parlance_v1_import_proto_rawDesc = "" +
 	"\n" +
-	"\x18parlance/v1/import.proto\x12\vparlance.v1\"\xeb\x01\n" +
+	"\x18parlance/v1/import.proto\x12\vparlance.v1\"\x92\x02\n" +
 	"\x10ImportPhpRequest\x12\x1b\n" +
 	"\tlocale_id\x18\x01 \x01(\tR\blocaleId\x12\x1b\n" +
 	"\tscope_ids\x18\x02 \x03(\tR\bscopeIds\x12!\n" +
@@ -1013,9 +1299,10 @@ const file_parlance_v1_import_proto_rawDesc = "" +
 	"\bfilename\x18\x04 \x01(\tR\bfilename\x12+\n" +
 	"\x04mode\x18\x05 \x01(\x0e2\x17.parlance.v1.ImportModeR\x04mode\x12\x18\n" +
 	"\aapprove\x18\x06 \x01(\bR\aapprove\x12\x17\n" +
-	"\adry_run\x18\a \x01(\bR\x06dryRun\"F\n" +
+	"\adry_run\x18\a \x01(\bR\x06dryRun\x12%\n" +
+	"\x0edelete_missing\x18\b \x01(\bR\rdeleteMissing\"F\n" +
 	"\x11ImportPhpResponse\x121\n" +
-	"\x06result\x18\x01 \x01(\v2\x19.parlance.v1.ImportResultR\x06result\"\xec\x01\n" +
+	"\x06result\x18\x01 \x01(\v2\x19.parlance.v1.ImportResultR\x06result\"\x93\x02\n" +
 	"\x11ImportJsonRequest\x12\x1b\n" +
 	"\tlocale_id\x18\x01 \x01(\tR\blocaleId\x12\x1b\n" +
 	"\tscope_ids\x18\x02 \x03(\tR\bscopeIds\x12!\n" +
@@ -1023,9 +1310,10 @@ const file_parlance_v1_import_proto_rawDesc = "" +
 	"\bfilename\x18\x04 \x01(\tR\bfilename\x12+\n" +
 	"\x04mode\x18\x05 \x01(\x0e2\x17.parlance.v1.ImportModeR\x04mode\x12\x18\n" +
 	"\aapprove\x18\x06 \x01(\bR\aapprove\x12\x17\n" +
-	"\adry_run\x18\a \x01(\bR\x06dryRun\"G\n" +
+	"\adry_run\x18\a \x01(\bR\x06dryRun\x12%\n" +
+	"\x0edelete_missing\x18\b \x01(\bR\rdeleteMissing\"G\n" +
 	"\x12ImportJsonResponse\x121\n" +
-	"\x06result\x18\x01 \x01(\v2\x19.parlance.v1.ImportResultR\x06result\"\xea\x01\n" +
+	"\x06result\x18\x01 \x01(\v2\x19.parlance.v1.ImportResultR\x06result\"\x91\x02\n" +
 	"\x0fImportPoRequest\x12\x1b\n" +
 	"\tlocale_id\x18\x01 \x01(\tR\blocaleId\x12\x1b\n" +
 	"\tscope_ids\x18\x02 \x03(\tR\bscopeIds\x12!\n" +
@@ -1033,9 +1321,10 @@ const file_parlance_v1_import_proto_rawDesc = "" +
 	"\bfilename\x18\x04 \x01(\tR\bfilename\x12+\n" +
 	"\x04mode\x18\x05 \x01(\x0e2\x17.parlance.v1.ImportModeR\x04mode\x12\x18\n" +
 	"\aapprove\x18\x06 \x01(\bR\aapprove\x12\x17\n" +
-	"\adry_run\x18\a \x01(\bR\x06dryRun\"E\n" +
+	"\adry_run\x18\a \x01(\bR\x06dryRun\x12%\n" +
+	"\x0edelete_missing\x18\b \x01(\bR\rdeleteMissing\"E\n" +
 	"\x10ImportPoResponse\x121\n" +
-	"\x06result\x18\x01 \x01(\v2\x19.parlance.v1.ImportResultR\x06result\"\xe1\x03\n" +
+	"\x06result\x18\x01 \x01(\v2\x19.parlance.v1.ImportResultR\x06result\"\x9a\x04\n" +
 	"\fImportResult\x12'\n" +
 	"\x0fentries_created\x18\x01 \x01(\x05R\x0eentriesCreated\x12'\n" +
 	"\x0fentries_updated\x18\x02 \x01(\x05R\x0eentriesUpdated\x12'\n" +
@@ -1047,7 +1336,16 @@ const file_parlance_v1_import_proto_rawDesc = "" +
 	"\x14translations_changed\x18\b \x01(\x05R\x13translationsChanged\x121\n" +
 	"\x14translations_removed\x18\t \x01(\x05R\x13translationsRemoved\x123\n" +
 	"\x15translations_outdated\x18\n" +
-	" \x01(\x05R\x14translationsOutdated\"\xda\x01\n" +
+	" \x01(\x05R\x14translationsOutdated\x127\n" +
+	"\bdeletion\x18\v \x01(\v2\x1b.parlance.v1.ImportDeletionR\bdeletion\"\x9f\x01\n" +
+	"\x0eImportDeletion\x12'\n" +
+	"\x0fentries_deleted\x18\x01 \x01(\x05R\x0eentriesDeleted\x12)\n" +
+	"\x10entries_unscoped\x18\x02 \x01(\x05R\x0fentriesUnscoped\x129\n" +
+	"\aentries\x18\x03 \x03(\v2\x1f.parlance.v1.ImportDeletedEntryR\aentries\"q\n" +
+	"\x12ImportDeletedEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12-\n" +
+	"\x12source_translation\x18\x02 \x01(\tR\x11sourceTranslation\x12\x1a\n" +
+	"\bunscoped\x18\x03 \x01(\bR\bunscoped\"\xda\x01\n" +
 	"\fImportChange\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x127\n" +
 	"\x06action\x18\x02 \x01(\x0e2\x1f.parlance.v1.ImportChangeActionR\x06action\x12'\n" +
@@ -1056,24 +1354,32 @@ const file_parlance_v1_import_proto_rawDesc = "" +
 	"\x12source_translation\x18\x05 \x01(\tR\x11sourceTranslation\"9\n" +
 	"\vImportError\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\xb2\x01\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\x89\x02\n" +
 	"\x10ImportZipRequest\x12!\n" +
 	"\ffile_content\x18\x01 \x01(\fR\vfileContent\x12\x1b\n" +
 	"\tscope_ids\x18\x02 \x03(\tR\bscopeIds\x12+\n" +
 	"\x04mode\x18\x03 \x01(\x0e2\x17.parlance.v1.ImportModeR\x04mode\x12\x18\n" +
 	"\aapprove\x18\x04 \x01(\bR\aapprove\x12\x17\n" +
-	"\adry_run\x18\x05 \x01(\bR\x06dryRun\"\xe0\x01\n" +
+	"\adry_run\x18\x05 \x01(\bR\x06dryRun\x12.\n" +
+	"\x13create_locale_codes\x18\x06 \x03(\tR\x11createLocaleCodes\x12%\n" +
+	"\x0edelete_missing\x18\a \x01(\bR\rdeleteMissing\"\x99\x02\n" +
 	"\x11ImportZipResponse\x129\n" +
 	"\aresults\x18\x01 \x03(\v2\x1f.parlance.v1.LocaleImportResultR\aresults\x12#\n" +
 	"\rtotal_created\x18\x02 \x01(\x05R\ftotalCreated\x12#\n" +
 	"\rtotal_updated\x18\x03 \x01(\x05R\ftotalUpdated\x12#\n" +
 	"\rtotal_skipped\x18\x04 \x01(\x05R\ftotalSkipped\x12!\n" +
-	"\ftotal_failed\x18\x05 \x01(\x05R\vtotalFailed\"~\n" +
+	"\ftotal_failed\x18\x05 \x01(\x05R\vtotalFailed\x127\n" +
+	"\bdeletion\x18\x06 \x01(\v2\x1b.parlance.v1.ImportDeletionR\bdeletion\"\xb6\x02\n" +
 	"\x12LocaleImportResult\x12\x1f\n" +
 	"\vlocale_code\x18\x01 \x01(\tR\n" +
 	"localeCode\x121\n" +
 	"\x06result\x18\x02 \x01(\v2\x19.parlance.v1.ImportResultR\x06result\x12\x14\n" +
-	"\x05error\x18\x03 \x01(\tR\x05error*\xa2\x01\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\x12%\n" +
+	"\x0elocale_missing\x18\x04 \x01(\bR\rlocaleMissing\x12\x1f\n" +
+	"\vlocale_name\x18\x05 \x01(\tR\n" +
+	"localeName\x12G\n" +
+	"\x0emissing_reason\x18\x06 \x01(\x0e2 .parlance.v1.MissingLocaleReasonR\rmissingReason\x12%\n" +
+	"\x0elocale_created\x18\a \x01(\bR\rlocaleCreated*\xa2\x01\n" +
 	"\n" +
 	"ImportMode\x12\x1b\n" +
 	"\x17IMPORT_MODE_UNSPECIFIED\x10\x00\x12\x1b\n" +
@@ -1085,7 +1391,12 @@ const file_parlance_v1_import_proto_rawDesc = "" +
 	" IMPORT_CHANGE_ACTION_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18IMPORT_CHANGE_ACTION_ADD\x10\x01\x12\x1f\n" +
 	"\x1bIMPORT_CHANGE_ACTION_CHANGE\x10\x02\x12\x1f\n" +
-	"\x1bIMPORT_CHANGE_ACTION_REMOVE\x10\x032\xbf\x02\n" +
+	"\x1bIMPORT_CHANGE_ACTION_REMOVE\x10\x03*\xb0\x01\n" +
+	"\x13MissingLocaleReason\x12%\n" +
+	"!MISSING_LOCALE_REASON_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dMISSING_LOCALE_REASON_DELETED\x10\x01\x12&\n" +
+	"\"MISSING_LOCALE_REASON_INVALID_CODE\x10\x02\x12'\n" +
+	"#MISSING_LOCALE_REASON_NO_PERMISSION\x10\x032\xbf\x02\n" +
 	"\rImportService\x12J\n" +
 	"\tImportPhp\x12\x1d.parlance.v1.ImportPhpRequest\x1a\x1e.parlance.v1.ImportPhpResponse\x12M\n" +
 	"\n" +
@@ -1106,50 +1417,57 @@ func file_parlance_v1_import_proto_rawDescGZIP() []byte {
 	return file_parlance_v1_import_proto_rawDescData
 }
 
-var file_parlance_v1_import_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_parlance_v1_import_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_parlance_v1_import_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_parlance_v1_import_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_parlance_v1_import_proto_goTypes = []any{
 	(ImportMode)(0),            // 0: parlance.v1.ImportMode
 	(ImportChangeAction)(0),    // 1: parlance.v1.ImportChangeAction
-	(*ImportPhpRequest)(nil),   // 2: parlance.v1.ImportPhpRequest
-	(*ImportPhpResponse)(nil),  // 3: parlance.v1.ImportPhpResponse
-	(*ImportJsonRequest)(nil),  // 4: parlance.v1.ImportJsonRequest
-	(*ImportJsonResponse)(nil), // 5: parlance.v1.ImportJsonResponse
-	(*ImportPoRequest)(nil),    // 6: parlance.v1.ImportPoRequest
-	(*ImportPoResponse)(nil),   // 7: parlance.v1.ImportPoResponse
-	(*ImportResult)(nil),       // 8: parlance.v1.ImportResult
-	(*ImportChange)(nil),       // 9: parlance.v1.ImportChange
-	(*ImportError)(nil),        // 10: parlance.v1.ImportError
-	(*ImportZipRequest)(nil),   // 11: parlance.v1.ImportZipRequest
-	(*ImportZipResponse)(nil),  // 12: parlance.v1.ImportZipResponse
-	(*LocaleImportResult)(nil), // 13: parlance.v1.LocaleImportResult
+	(MissingLocaleReason)(0),   // 2: parlance.v1.MissingLocaleReason
+	(*ImportPhpRequest)(nil),   // 3: parlance.v1.ImportPhpRequest
+	(*ImportPhpResponse)(nil),  // 4: parlance.v1.ImportPhpResponse
+	(*ImportJsonRequest)(nil),  // 5: parlance.v1.ImportJsonRequest
+	(*ImportJsonResponse)(nil), // 6: parlance.v1.ImportJsonResponse
+	(*ImportPoRequest)(nil),    // 7: parlance.v1.ImportPoRequest
+	(*ImportPoResponse)(nil),   // 8: parlance.v1.ImportPoResponse
+	(*ImportResult)(nil),       // 9: parlance.v1.ImportResult
+	(*ImportDeletion)(nil),     // 10: parlance.v1.ImportDeletion
+	(*ImportDeletedEntry)(nil), // 11: parlance.v1.ImportDeletedEntry
+	(*ImportChange)(nil),       // 12: parlance.v1.ImportChange
+	(*ImportError)(nil),        // 13: parlance.v1.ImportError
+	(*ImportZipRequest)(nil),   // 14: parlance.v1.ImportZipRequest
+	(*ImportZipResponse)(nil),  // 15: parlance.v1.ImportZipResponse
+	(*LocaleImportResult)(nil), // 16: parlance.v1.LocaleImportResult
 }
 var file_parlance_v1_import_proto_depIdxs = []int32{
 	0,  // 0: parlance.v1.ImportPhpRequest.mode:type_name -> parlance.v1.ImportMode
-	8,  // 1: parlance.v1.ImportPhpResponse.result:type_name -> parlance.v1.ImportResult
+	9,  // 1: parlance.v1.ImportPhpResponse.result:type_name -> parlance.v1.ImportResult
 	0,  // 2: parlance.v1.ImportJsonRequest.mode:type_name -> parlance.v1.ImportMode
-	8,  // 3: parlance.v1.ImportJsonResponse.result:type_name -> parlance.v1.ImportResult
+	9,  // 3: parlance.v1.ImportJsonResponse.result:type_name -> parlance.v1.ImportResult
 	0,  // 4: parlance.v1.ImportPoRequest.mode:type_name -> parlance.v1.ImportMode
-	8,  // 5: parlance.v1.ImportPoResponse.result:type_name -> parlance.v1.ImportResult
-	10, // 6: parlance.v1.ImportResult.errors:type_name -> parlance.v1.ImportError
-	9,  // 7: parlance.v1.ImportResult.changes:type_name -> parlance.v1.ImportChange
-	1,  // 8: parlance.v1.ImportChange.action:type_name -> parlance.v1.ImportChangeAction
-	0,  // 9: parlance.v1.ImportZipRequest.mode:type_name -> parlance.v1.ImportMode
-	13, // 10: parlance.v1.ImportZipResponse.results:type_name -> parlance.v1.LocaleImportResult
-	8,  // 11: parlance.v1.LocaleImportResult.result:type_name -> parlance.v1.ImportResult
-	2,  // 12: parlance.v1.ImportService.ImportPhp:input_type -> parlance.v1.ImportPhpRequest
-	4,  // 13: parlance.v1.ImportService.ImportJson:input_type -> parlance.v1.ImportJsonRequest
-	6,  // 14: parlance.v1.ImportService.ImportPo:input_type -> parlance.v1.ImportPoRequest
-	11, // 15: parlance.v1.ImportService.ImportZip:input_type -> parlance.v1.ImportZipRequest
-	3,  // 16: parlance.v1.ImportService.ImportPhp:output_type -> parlance.v1.ImportPhpResponse
-	5,  // 17: parlance.v1.ImportService.ImportJson:output_type -> parlance.v1.ImportJsonResponse
-	7,  // 18: parlance.v1.ImportService.ImportPo:output_type -> parlance.v1.ImportPoResponse
-	12, // 19: parlance.v1.ImportService.ImportZip:output_type -> parlance.v1.ImportZipResponse
-	16, // [16:20] is the sub-list for method output_type
-	12, // [12:16] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	9,  // 5: parlance.v1.ImportPoResponse.result:type_name -> parlance.v1.ImportResult
+	13, // 6: parlance.v1.ImportResult.errors:type_name -> parlance.v1.ImportError
+	12, // 7: parlance.v1.ImportResult.changes:type_name -> parlance.v1.ImportChange
+	10, // 8: parlance.v1.ImportResult.deletion:type_name -> parlance.v1.ImportDeletion
+	11, // 9: parlance.v1.ImportDeletion.entries:type_name -> parlance.v1.ImportDeletedEntry
+	1,  // 10: parlance.v1.ImportChange.action:type_name -> parlance.v1.ImportChangeAction
+	0,  // 11: parlance.v1.ImportZipRequest.mode:type_name -> parlance.v1.ImportMode
+	16, // 12: parlance.v1.ImportZipResponse.results:type_name -> parlance.v1.LocaleImportResult
+	10, // 13: parlance.v1.ImportZipResponse.deletion:type_name -> parlance.v1.ImportDeletion
+	9,  // 14: parlance.v1.LocaleImportResult.result:type_name -> parlance.v1.ImportResult
+	2,  // 15: parlance.v1.LocaleImportResult.missing_reason:type_name -> parlance.v1.MissingLocaleReason
+	3,  // 16: parlance.v1.ImportService.ImportPhp:input_type -> parlance.v1.ImportPhpRequest
+	5,  // 17: parlance.v1.ImportService.ImportJson:input_type -> parlance.v1.ImportJsonRequest
+	7,  // 18: parlance.v1.ImportService.ImportPo:input_type -> parlance.v1.ImportPoRequest
+	14, // 19: parlance.v1.ImportService.ImportZip:input_type -> parlance.v1.ImportZipRequest
+	4,  // 20: parlance.v1.ImportService.ImportPhp:output_type -> parlance.v1.ImportPhpResponse
+	6,  // 21: parlance.v1.ImportService.ImportJson:output_type -> parlance.v1.ImportJsonResponse
+	8,  // 22: parlance.v1.ImportService.ImportPo:output_type -> parlance.v1.ImportPoResponse
+	15, // 23: parlance.v1.ImportService.ImportZip:output_type -> parlance.v1.ImportZipResponse
+	20, // [20:24] is the sub-list for method output_type
+	16, // [16:20] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_import_proto_init() }
@@ -1162,8 +1480,8 @@ func file_parlance_v1_import_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_import_proto_rawDesc), len(file_parlance_v1_import_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   12,
+			NumEnums:      3,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

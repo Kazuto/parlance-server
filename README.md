@@ -37,9 +37,9 @@ port 8080. It needs PostgreSQL and S3-compatible storage, configured with the
 variables below.
 
 PostgreSQL must be version 13 or later and offer the `pg_trgm` extension, as the
-official images do; the translation memory compares texts with it. The API creates
-the extension on start, which needs the `CREATE` privilege on the database; the
-database's owner has it. Without it, the API does not start.
+official images do; the translation memory and the similar entries search compare
+texts with it. The API creates the extension on start, which needs the `CREATE`
+privilege on the database; the database's owner has it. Without it, the API does not start.
 
 ## Configuration
 
@@ -56,6 +56,7 @@ Set these as environment variables or in a `.env` file (see `.env.example`):
 | `JWT_EXPIRY`                            | `24h`                            | How long a sign-in lasts; refresh tokens last 7 times as long                                                                                                                                                                                                    |
 | `ENCRYPTION_KEY`                        | (none)                           | Encrypts stored API keys of translation servers, access tokens of tasks and signing secrets of webhooks, and client secrets of sign-in providers. Needed only to save them. Changing it makes saved ones unreadable. Generate one with `openssl rand -base64 32` |
 | `CORS_ALLOWED_ORIGINS`                  | `http://localhost:3000`          | Comma-separated addresses of the web apps allowed to call the API; single sign-on only returns to these                                                                                                                                                          |
+| `TRUSTED_PROXIES`                       | (none)                           | Comma-separated addresses or CIDR ranges of reverse proxies in front of the API, e.g. `172.16.0.0/12`. From them, `X-Forwarded-For` tells where a request came from, e.g. for `login.failed` webhooks                                                            |
 | `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET` | (none)                           | S3-compatible storage for avatars, which the API serves at `/avatars/{id}`; the bucket is created if missing and needs no public access                                                                                                                          |
 | `S3_ACCESS_KEY`, `S3_SECRET_KEY`        | (none)                           | Credentials for that storage                                                                                                                                                                                                                                     |
 
@@ -207,10 +208,10 @@ its first run with a 403.
 ### Running tasks
 
 A task runs on its cron schedule (5 fields, UTC), after events, or when started by
-hand. Events, for now approving translations (in the editor or with an approving
-import), start a run after the task's delay; further events join that run, so a
-burst of approvals runs once. Each task has at most one queued and one running
-run.
+hand. Events (approving translations in the editor or with an approving import,
+and a release going out) start a run after the task's delay; further events join
+that run, so a burst of approvals runs once. Each task has at most one queued and
+one running run.
 
 Tasks and their settings are kept in the database and set up in the app; nothing
 about them is configured at deployment. The switch at the top of the Automation
@@ -241,21 +242,49 @@ The format decides the request body:
   that take Slack's incoming webhooks, such as Mattermost.
 - **Discord** posts a short message as Discord's webhooks take it, with mentions
   turned off.
+- **Apprise** posts a notification to an
+  [Apprise API](https://github.com/caronc/apprise-api) server, which passes it on
+  to the services set up there: email, ntfy, Telegram, Matrix and many more.
+  Failed task runs come as failures, rejected translations as warnings, and
+  approvals, successful runs and releases as successes.
 
 Chat services turn down other bodies (Discord answers 400, "Cannot send an empty
-message"). The web app picks the format when you type a Discord or Slack address.
+message"). The web app picks the format when you type a Discord or Slack address,
+or an Apprise one ending in `/notify` or `/notify/<key>`.
+
+To notify through Apprise, run its API next to Parlance and save the services
+under a key:
+
+```yaml
+services:
+  apprise:
+    image: caronc/apprise:latest
+    volumes:
+      - ./apprise:/config
+```
+
+```sh
+curl -d "urls=ntfys://ntfy.sh/your-topic" http://apprise:8000/add/parlance
+```
+
+Then use `http://apprise:8000/notify/parlance` as the webhook's URL. Without a
+key, `http://apprise:8000/notify` notifies the services in Apprise's
+`APPRISE_STATELESS_URLS`.
 Deliveries keep the event and render the body when sent, so after changing the
 format, retries and **Send again** use the new one.
 
-| Event                                   | Sent when                                                                                                                                        | `data`                                                                                                    |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| `translations.awaiting_approval`        | Translations become drafts: new or changed in the editor, by machine translation (in the editor or a task), or by an import that doesn't approve | `translations` (`id`, `entry_id`, `key`, `locale`, `translation`), `user`, and `task` for a task's drafts |
-| `translations.approved`                 | Translations are approved in the editor or by an approving import                                                                                | `translations` and `user`                                                                                 |
-| `translations.rejected`                 | A reviewer sends translations back                                                                                                               | The same, plus the reviewer's `comment`                                                                   |
-| `entries.created`                       | Entries are created in the app or by an import                                                                                                   | `entries` (`id`, `key`, `description`) and `user`                                                         |
-| `task_run.succeeded`, `task_run.failed` | A task run ends, including runs that stopped responding; canceled runs don't                                                                     | `task` (`id`, `name`, `type`) and `run` (`id`, `trigger`, `status`, times, `error`, `summary`, `user`)    |
-| `digest`                                | A webhook with a schedule sends what it collected                                                                                                | `since`, `count`, `events` (the bodies above, oldest first) and `truncated`                               |
-| `ping`                                  | Someone presses **Send test**                                                                                                                    | `webhook` (`id`, `name`, `events`)                                                                        |
+| Event                                   | Sent when                                                                                                                                        | `data`                                                                                                                                                           |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `translations.awaiting_approval`        | Translations become drafts: new or changed in the editor, by machine translation (in the editor or a task), or by an import that doesn't approve | `translations` (`id`, `entry_id`, `key`, `locale`, `translation`), `user`, and `task` for a task's drafts                                                        |
+| `translations.approved`                 | Translations are approved in the editor or by an approving import                                                                                | `translations` and `user`                                                                                                                                        |
+| `translations.rejected`                 | A reviewer sends translations back                                                                                                               | The same, plus the reviewer's `comment`                                                                                                                          |
+| `entries.created`                       | Entries are created in the app or by an import                                                                                                   | `entries` (`id`, `key`, `description`) and `user`                                                                                                                |
+| `task_run.succeeded`, `task_run.failed` | A task run ends, including runs that stopped responding; canceled runs don't                                                                     | `task` (`id`, `name`, `type`) and `run` (`id`, `trigger`, `status`, times, `error`, `summary`, `user`)                                                           |
+| `translations.released`                 | A release goes out, at its date or by hand                                                                                                       | `release` (`id`, `name`, `description`, `release_at`, `released_at`), the `entries` it let into exports, and `user`                                              |
+| `export.failed`                         | A download or a git export task fails with an error of the server's own; a failed git export also sends `task_run.failed`                        | `source` (`download` or `task`) and `error`; for downloads `format`, `locales` or `locale_ids`, `scope_ids`, `tag_ids` and `user`, for tasks `task` and `run_id` |
+| `login.failed`                          | Someone fails to sign in with a password or single sign-on, at most once per email and address every 15 minutes                                  | `email`, `method` (`password` or `sso`), `provider` (`id`, `name`), `reason`, `ip`, `user_agent` and `attempts`; never the password                              |
+| `digest`                                | A webhook with a schedule sends what it collected                                                                                                | `since`, `count`, `events` (the bodies above, oldest first) and `truncated`                                                                                      |
+| `ping`                                  | Someone presses **Send test**                                                                                                                    | `webhook` (`id`, `name`, `events`)                                                                                                                               |
 
 One action sends one event, however many translations or entries it touches: the
 lists hold the first 1000, `count` says how many there were and `truncated` whether
@@ -263,14 +292,25 @@ some were left out. `user` is who did it, or `null`. In the editor, each saved
 translation is one action; a batch of machine translations, an import or a task
 run is one too.
 
+**Failed sign-ins:** the `reason` is `unknown_email` or `wrong_password` for a
+password, and the error code in lower case for single sign-on, such as
+`sso_no_account` or `sso_email_unverified`. Expired single sign-ons (mostly a
+reload) and the server's own errors aren't reported. The first failure with an
+email from an address is sent right away; more of them are counted and sent at
+most every 15 minutes, with `attempts` since the last event. Once the failures
+stop for 15 minutes, those since the last event are dropped unsent. Across all
+emails and addresses, at most 30 events go out in 15 minutes. `ip` is the address the
+request came from; behind a reverse proxy, list it in `TRUSTED_PROXIES`, or every
+sign-in seems to come from the proxy.
+
 **Digests:** a webhook sends each event right away, or collects them and sends
 one `digest` on a schedule: a standard 5-field cron expression in UTC, picked as
 hourly, daily, weekly or custom in the app. Nothing is sent when nothing was
 collected. In the chat formats, a digest is one message with a line per kind of
 change, for example "12 translations submitted for approval (Rita, Task
-“Nightly”): …", and one per task run. A digest carries up to a megabyte of events;
-`count` holds them all. Removing the schedule sends what was collected right away;
-turning the webhook off drops it.
+“Nightly”): …", and one per release, task run and failure. A digest carries up
+to a megabyte of events; `count` holds them all. Removing the schedule sends what
+was collected right away; turning the webhook off drops it.
 
 In the JSON format, each event is posted like this:
 
@@ -429,6 +469,9 @@ partial update:
 - **Omitted field:** the current value is kept.
 - **Sent field:** the value is set. An empty value clears it; required fields
   (e.g. `key`, `name`, `email`) reject an empty value with `InvalidArgument`.
+- **Translations:** an empty `translation` in `UpdateLocalization` or
+  `UpdateDefinition` deletes the translation, as clearing its field in the
+  editor does. The response then has none.
 - **Related ids** (`scopes`, `permissions`, `roles`) are sent as
   `{ "ids": [...] }`. Omit the field to keep the current set, send
   `{ "ids": [] }` to remove all, or send ids to replace the set.
@@ -452,6 +495,42 @@ is evaluated before pagination against active, non-empty saved translations:
 An empty target list checks all active locales. Omit `translationStatus` to include
 entries regardless of status.
 
+`duplicates` keeps entries that share their default text with another entry, compared
+ignoring case and surrounding space:
+
+- `DUPLICATE_FILTER_SAME_TEXT`: another entry has the same default text.
+- `DUPLICATE_FILTER_TRANSLATED_DIFFERENTLY`: another entry has the same default text,
+  and their translations into one of the status locales differ. Blank translations
+  don't count.
+
+Twins are looked for among the entries that `scopeIds`, `tagIds` and `releaseIds`
+select, so a scope finds the twins within it. Search and status narrow only the
+listed entries. Twins are listed together, by their default text and then by key.
+
+`SearchSimilarEntries` finds the entries whose default text is the same as or at
+least 80% alike to a given text, e.g. one being typed, and counts those with the same
+text.
+
+`ListTerminologies` takes `translationStatus` too, for the glossary's definitions in
+its `targetLocaleIds`: `missing`, `complete` or `review`. Definitions are never
+outdated, and the default locale counts like any other.
+
+### Releases
+
+A release holds its entries back from exports until it goes out: at its date
+(`releaseAt`), or when it's published by hand (`PublishRelease`, "Release now"),
+which a release without a date waits for. An entry in several releases waits for
+all of them; releases that went out keep their entries as a record. Exports take
+`includeUnreleased` to export held entries anyway; git export tasks never do.
+
+Exports leave out held entries until the date passes. The task runner then lets the
+release out within 15 seconds, also while tasks are paused, and announces it once:
+the `translations.released` webhook, and tasks that run after releases.
+
+Permissions: `read_release`, `create_release`, `update_release` (also to publish)
+and `delete_release`. Adding entries to releases and removing them needs
+`update_entry`.
+
 ### Import and export
 
 `ImportService` and `ExportService` handle JSON, PHP arrays (Laravel), gettext PO
@@ -460,13 +539,38 @@ and ZIP files with one file per language. Imports take a `localeId`, optional
 requests). The modes are create or update (the default), create only, update only,
 and replace all. Exports take a `localeCode` and optional `scopeIds`; without
 scopes they export all active entries. ZIP imports and exports cover all languages
-at once, so they take no language.
+at once, so they take no language. A key of a deleted entry isn't imported: it is
+reported in `result.errors` and counted as failed until the entry is restored.
 
 With `dryRun`, an import changes nothing and reports what it would do: the same
 counts, `translationsAdded`, `translationsChanged` and `translationsRemoved`, how
 many translations in other languages a changed default text would mark outdated,
 and the first 500 changes by key with their old and new text. A ZIP dry run imports
 its files in one transaction, so each sees the ones before it, as a real import does.
+
+**Deleting missing entries:** with `deleteMissing`, an import deletes the entries its
+file doesn't hold: those of `scopeIds`, or all entries without scopes. An entry that
+other scopes keep only leaves `scopeIds`, with its tags of them. Only the default
+language's file counts, as other languages' files may leave out the entries they
+don't translate. A single-file import must go into the default language. A ZIP import
+goes by its files of the default language (one per scope folder, say), skips the keys
+of the other files that those don't hold, and deletes once all files are in. Files
+without keys are rejected, and it needs `delete_entry`. The result's `deletion` counts
+`entriesDeleted` and `entriesUnscoped`; on a dry run it lists the first 500 entries by
+key with their default texts. Deleted entries can be restored as usual. Untranslated
+and failed PO records count as held.
+
+**Missing languages in ZIP imports:** a file goes into the language whose code
+matches its name in any case, so `de-de.json` goes into `de-DE`. For a file whose
+language doesn't exist, the result has `localeMissing`, the language's
+`localeName` and a `missingReason`: unspecified when it can be created, or
+`DELETED` (restoring it imports the file), `INVALID_CODE` (no known language
+code; add it under Locales) or `NO_PERMISSION` (creating languages needs
+`create_locale`). A dry run imports the files of languages it could create, so
+they show what would change. A real import creates the languages listed in
+`createLocaleCodes`, named in English, the request's language and the project's
+languages, never as the default, and imports their files in the same transaction
+(`localeCreated`). It skips the files of other missing languages.
 
 **JSON:** imports accept flat dotted keys and nested objects, also mixed:
 `{"entries": {"create": "Create Entry"}}` becomes `{"entries.create": "Create Entry"}`.

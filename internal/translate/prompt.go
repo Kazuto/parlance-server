@@ -1,6 +1,7 @@
 package translate
 
 import (
+	"cmp"
 	"fmt"
 	"regexp"
 	"strings"
@@ -23,20 +24,24 @@ const DefaultStyle = "software user interface text"
 //
 // A form of address goes into the style, e.g. "formal, addressing the user as Sie".
 //
+// The text is translated into the regional variant when there is one, e.g. into
+// "Austrian German", while the form of address follows the language.
+//
 // The style template ends with the default template's "only output" sentence.
 // Without it the models take a short text that reads like an instruction as one:
 // they answered "Translate" with "Please translate" and "Language" in Portuguese
 // with a translation of the prompt.
 func Prompt(req Request) string {
+	target := cmp.Or(req.TargetVariant, req.TargetLang)
 	prompt := fmt.Sprintf(
 		"Please translate the following text into %s. Note that the translation style must strictly conform to [%s]. Only output the translated result without any additional explanation:\n\n%s",
-		req.TargetLang, style(req), req.Text,
+		target, style(req), req.Text,
 	)
 
 	if context := strings.TrimSpace(req.Context); context != "" {
 		prompt = fmt.Sprintf(
 			"[Background Information]\n%s\n\nPlease translate the following text into %s, taking the provided background information into consideration. Note that the translation style must strictly conform to [%s]. Only output the translated result without any additional explanation:\n\n[Source Text]\n%s",
-			context, req.TargetLang, style(req), req.Text,
+			context, target, style(req), req.Text,
 		)
 	}
 

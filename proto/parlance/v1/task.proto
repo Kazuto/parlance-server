@@ -38,6 +38,8 @@ enum TaskType {
 enum TaskEvent {
   TASK_EVENT_UNSPECIFIED = 0;
   TASK_EVENT_TRANSLATIONS_APPROVED = 1;
+  // A release went out, by its date or by hand.
+  TASK_EVENT_TRANSLATIONS_RELEASED = 2;
 }
 
 enum TaskTrigger {
@@ -99,6 +101,8 @@ message GitExportConfig {
   // Entries in any of the scopes; empty for all entries.
   repeated string scope_ids = 7;
   bool include_drafts = 8;
+  // Narrows each scope to the entries with any of its selected tags.
+  repeated string tag_ids = 9;
 }
 
 message TaskRunSummary {

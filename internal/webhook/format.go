@@ -32,20 +32,33 @@ type discordMessage struct {
 	} `json:"allowed_mentions"`
 }
 
+// appriseMessage is a notification as the Apprise API takes it, which passes it on
+// to the services set up under its key. The text goes as plain text: Apprise
+// converts it for each service, and keys and translations stay as written.
+type appriseMessage struct {
+	Title  string `json:"title"`
+	Body   string `json:"body"`
+	Type   string `json:"type"`
+	Format string `json:"format"`
+}
+
 // Body returns the request body that posts a delivery's payload in the format: the
-// event as JSON, or a chat message describing it.
+// event as JSON, or a chat message or notification describing it.
 func Body(format, payload string) ([]byte, error) {
-	if format != models.WebhookFormatSlack && format != models.WebhookFormatDiscord {
+	if format != models.WebhookFormatSlack && format != models.WebhookFormatDiscord && format != models.WebhookFormatApprise {
 		return []byte(payload), nil
 	}
 
-	text, err := message(payload)
+	event, text, err := describe(payload)
 	if err != nil {
 		return nil, err
 	}
 
-	if format == models.WebhookFormatSlack {
+	switch format {
+	case models.WebhookFormatSlack:
 		return json.Marshal(map[string]string{"text": escapeSlack(text)})
+	case models.WebhookFormatApprise:
+		return json.Marshal(appriseMessage{Title: eventTitle(event), Body: text, Type: appriseType(event), Format: "text"})
 	}
 
 	body := discordMessage{Content: truncate(text, discordMaxContent), Username: "Parlance"}
@@ -54,33 +67,78 @@ func Body(format, payload string) ([]byte, error) {
 	return json.Marshal(body)
 }
 
-// message describes an event in a few lines of chat text.
-func message(payload string) (string, error) {
+// eventTitles head notifications about each event.
+var eventTitles = map[string]string{
+	models.WebhookEventTranslationsAwaitingApproval: "Translations await approval",
+	models.WebhookEventTranslationsApproved:         "Translations approved",
+	models.WebhookEventTranslationsRejected:         "Translations rejected",
+	models.WebhookEventTranslationsReleased:         "Release went out",
+	models.WebhookEventEntriesCreated:               "Entries added",
+	models.WebhookEventTaskRunSucceeded:             "Task succeeded",
+	models.WebhookEventTaskRunFailed:                "Task failed",
+	models.WebhookEventExportFailed:                 "Export failed",
+	models.WebhookEventLoginFailed:                  "Sign-in failed",
+	models.WebhookEventPing:                         "Test message",
+	models.WebhookEventDigest:                       "Digest",
+}
+
+func eventTitle(event string) string {
+	if title, ok := eventTitles[event]; ok {
+		return "Parlance: " + title
+	}
+
+	return "Parlance: " + event
+}
+
+// appriseType is how services show a notification about the event, e.g. in red
+// for a failure; "info" for events that report nothing good or bad.
+func appriseType(event string) string {
+	switch event {
+	case models.WebhookEventTaskRunFailed, models.WebhookEventExportFailed:
+		return "failure"
+	case models.WebhookEventTranslationsRejected, models.WebhookEventLoginFailed:
+		return "warning"
+	case models.WebhookEventTranslationsApproved, models.WebhookEventTaskRunSucceeded, models.WebhookEventTranslationsReleased:
+		return "success"
+	default:
+		return "info"
+	}
+}
+
+// describe reads an event's name and describes it in a few lines of chat text.
+func describe(payload string) (name, text string, err error) {
 	var event struct {
 		Event string          `json:"event"`
 		Data  json.RawMessage `json:"data"`
 	}
 
 	if err := json.Unmarshal([]byte(payload), &event); err != nil {
-		return "", fmt.Errorf("read the event: %w", err)
+		return "", "", fmt.Errorf("read the event: %w", err)
 	}
 
+	text, err = message(event.Event, event.Data)
+
+	return event.Event, text, err
+}
+
+// message describes an event in a few lines of chat text.
+func message(event string, raw json.RawMessage) (string, error) {
 	decode := func(data any) error {
-		if err := json.Unmarshal(event.Data, data); err != nil {
-			return fmt.Errorf("read the %s event: %w", event.Event, err)
+		if err := json.Unmarshal(raw, data); err != nil {
+			return fmt.Errorf("read the %s event: %w", event, err)
 		}
 
 		return nil
 	}
 
-	switch event.Event {
+	switch event {
 	case models.WebhookEventTranslationsApproved, models.WebhookEventTranslationsRejected, models.WebhookEventTranslationsAwaitingApproval:
 		var data TranslationsData
 		if err := decode(&data); err != nil {
 			return "", err
 		}
 
-		return translationsMessage(event.Event, data), nil
+		return translationsMessage(event, data), nil
 	case models.WebhookEventEntriesCreated:
 		var data EntriesData
 		if err := decode(&data); err != nil {
@@ -95,6 +153,27 @@ func message(payload string) (string, error) {
 		}
 
 		return taskRunMessage(data), nil
+	case models.WebhookEventTranslationsReleased:
+		var data ReleaseData
+		if err := decode(&data); err != nil {
+			return "", err
+		}
+
+		return releaseMessage(data), nil
+	case models.WebhookEventExportFailed:
+		var data ExportFailedData
+		if err := decode(&data); err != nil {
+			return "", err
+		}
+
+		return exportFailedMessage(data), nil
+	case models.WebhookEventLoginFailed:
+		var data LoginFailedData
+		if err := decode(&data); err != nil {
+			return "", err
+		}
+
+		return loginFailedMessage(data), nil
 	case models.WebhookEventPing:
 		var data PingData
 		if err := decode(&data); err != nil {
@@ -110,7 +189,7 @@ func message(payload string) (string, error) {
 
 		return digestMessage(data), nil
 	default:
-		return "Parlance: " + event.Event, nil
+		return "Parlance: " + event, nil
 	}
 }
 
@@ -194,6 +273,98 @@ func entriesMessage(data EntriesData) string {
 	return text.String()
 }
 
+func releaseMessage(data ReleaseData) string {
+	var text strings.Builder
+
+	text.WriteString(releaseHeadline(data))
+
+	for i, entry := range data.Entries {
+		if i == maxListed {
+			break
+		}
+
+		fmt.Fprintf(&text, "\n• %s", code(entry.Key))
+	}
+
+	writeMore(&text, data.Count, len(data.Entries))
+
+	return text.String()
+}
+
+// releaseHeadline says who let the release out and how many entries export since.
+func releaseHeadline(data ReleaseData) string {
+	text := fmt.Sprintf("Release “%s” went out", data.Release.Name)
+	if data.User != nil {
+		text = fmt.Sprintf("%s released “%s”", data.User.Name, data.Release.Name)
+	}
+
+	switch data.Count {
+	case 0:
+		return text
+	case 1:
+		return text + ": 1 entry exports now"
+	default:
+		return text + fmt.Sprintf(": %d entries export now", data.Count)
+	}
+}
+
+func exportFailedMessage(data ExportFailedData) string {
+	if data.Source == ExportSourceTask && data.Task != nil {
+		return fmt.Sprintf("Git export “%s” failed: %s", data.Task.Name, oneLine(data.Error))
+	}
+
+	what := strings.ToUpper(data.Format) + " download"
+	if len(data.Locales) > 0 {
+		what = fmt.Sprintf("download of %s as %s", strings.Join(data.Locales, ", "), strings.ToUpper(data.Format))
+	}
+
+	if data.User != nil {
+		return fmt.Sprintf("%s’s %s failed: %s", data.User.Name, what, oneLine(data.Error))
+	}
+
+	return fmt.Sprintf("A %s failed: %s", what, oneLine(data.Error))
+}
+
+// loginReasons say why a sign-in failed.
+var loginReasons = map[string]string{
+	LoginReasonUnknownEmail:  "no account has this email",
+	LoginReasonWrongPassword: "wrong password",
+	"sso_failed":             "the provider turned it down",
+	"sso_no_email":           "the provider shared no email",
+	"sso_email_unverified":   "the provider hasn't verified the email",
+	"sso_no_account":         "no account has this email",
+	"sso_account_deleted":    "the account was deleted",
+	"sso_provider_not_found": "the provider is turned off",
+}
+
+func loginFailedMessage(data LoginFailedData) string {
+	text := "Failed sign-in"
+	if data.Email != "" {
+		text += " as " + data.Email
+	}
+
+	if data.Provider != nil && data.Provider.Name != "" {
+		text += " with " + data.Provider.Name
+	}
+
+	if data.IP != "" {
+		text += " from " + data.IP
+	}
+
+	reason, ok := loginReasons[data.Reason]
+	if !ok {
+		reason = data.Reason
+	}
+
+	text += ": " + reason
+
+	if data.Attempts > 1 {
+		text += fmt.Sprintf(" (%d attempts)", data.Attempts)
+	}
+
+	return text
+}
+
 func taskRunMessage(data TaskRunData) string {
 	if data.Run.Status == models.RunFailed {
 		return fmt.Sprintf("Task “%s” failed: %s", data.Task.Name, oneLine(data.Run.Error))
@@ -258,7 +429,7 @@ var digestKinds = []struct {
 }
 
 // digestMessage sums up a digest's events: one line per kind of change, and one per
-// task run.
+// release, task run and failure.
 func digestMessage(data DigestData) string {
 	groups := map[string]*digestGroup{}
 	group := func(event string) *digestGroup {
@@ -269,7 +440,7 @@ func digestMessage(data DigestData) string {
 		return groups[event]
 	}
 
-	var runs []string
+	var releases, runs, failures []string
 
 	for _, raw := range data.Events {
 		var event struct {
@@ -311,10 +482,19 @@ func digestMessage(data DigestData) string {
 			}
 
 			group(event.Event).add(entries.Count, name, keys)
+		case models.WebhookEventTranslationsReleased:
+			var release ReleaseData
+			if json.Unmarshal(event.Data, &release) == nil {
+				releases = append(releases, releaseHeadline(release))
+			}
 		case models.WebhookEventTaskRunSucceeded, models.WebhookEventTaskRunFailed:
 			var run TaskRunData
 			if json.Unmarshal(event.Data, &run) == nil {
 				runs = append(runs, strings.ReplaceAll(taskRunMessage(run), "\n", " · "))
+			}
+		case models.WebhookEventExportFailed, models.WebhookEventLoginFailed:
+			if text, err := message(event.Event, event.Data); err == nil {
+				failures = append(failures, text)
 			}
 		}
 	}
@@ -349,21 +529,28 @@ func digestMessage(data DigestData) string {
 		}
 	}
 
-	for i, run := range runs {
-		if i == maxListed {
-			fmt.Fprintf(&text, "\n• …and %s", countOf(len(runs)-i, "more task run", "more task runs"))
-
-			break
-		}
-
-		text.WriteString("\n• " + run)
-	}
+	writeLines(&text, releases, "more release", "more releases")
+	writeLines(&text, runs, "more task run", "more task runs")
+	writeLines(&text, failures, "more failure", "more failures")
 
 	if data.Truncated {
 		fmt.Fprintf(&text, "\n…and %s", countOf(data.Count-len(data.Events), "more event", "more events"))
 	}
 
 	return text.String()
+}
+
+// writeLines lists a digest's releases or task runs, a line each, the first few of them.
+func writeLines(text *strings.Builder, lines []string, more, mores string) {
+	for i, line := range lines {
+		if i == maxListed {
+			fmt.Fprintf(text, "\n• …and %s", countOf(len(lines)-i, more, mores))
+
+			break
+		}
+
+		text.WriteString("\n• " + line)
+	}
 }
 
 // names lists people and tasks, the first few by name.

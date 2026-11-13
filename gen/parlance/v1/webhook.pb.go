@@ -40,20 +40,31 @@ const (
 	WebhookEvent_WEBHOOK_EVENT_TRANSLATIONS_AWAITING_APPROVAL WebhookEvent = 7
 	// The events a webhook with a schedule collected; webhooks can't subscribe to it.
 	WebhookEvent_WEBHOOK_EVENT_DIGEST WebhookEvent = 8
+	// A release went out, by its date or by hand, with the entries it let into exports.
+	WebhookEvent_WEBHOOK_EVENT_TRANSLATIONS_RELEASED WebhookEvent = 9
+	// A download or a git export task failed. A failed git export also sends
+	// TASK_RUN_FAILED.
+	WebhookEvent_WEBHOOK_EVENT_EXPORT_FAILED WebhookEvent = 10
+	// Someone failed to sign in with a password or single sign-on; at most once per
+	// email and address every 15 minutes, counting the attempts.
+	WebhookEvent_WEBHOOK_EVENT_LOGIN_FAILED WebhookEvent = 11
 )
 
 // Enum value maps for WebhookEvent.
 var (
 	WebhookEvent_name = map[int32]string{
-		0: "WEBHOOK_EVENT_UNSPECIFIED",
-		1: "WEBHOOK_EVENT_TRANSLATIONS_APPROVED",
-		2: "WEBHOOK_EVENT_TRANSLATIONS_REJECTED",
-		3: "WEBHOOK_EVENT_ENTRIES_CREATED",
-		4: "WEBHOOK_EVENT_TASK_RUN_SUCCEEDED",
-		5: "WEBHOOK_EVENT_TASK_RUN_FAILED",
-		6: "WEBHOOK_EVENT_PING",
-		7: "WEBHOOK_EVENT_TRANSLATIONS_AWAITING_APPROVAL",
-		8: "WEBHOOK_EVENT_DIGEST",
+		0:  "WEBHOOK_EVENT_UNSPECIFIED",
+		1:  "WEBHOOK_EVENT_TRANSLATIONS_APPROVED",
+		2:  "WEBHOOK_EVENT_TRANSLATIONS_REJECTED",
+		3:  "WEBHOOK_EVENT_ENTRIES_CREATED",
+		4:  "WEBHOOK_EVENT_TASK_RUN_SUCCEEDED",
+		5:  "WEBHOOK_EVENT_TASK_RUN_FAILED",
+		6:  "WEBHOOK_EVENT_PING",
+		7:  "WEBHOOK_EVENT_TRANSLATIONS_AWAITING_APPROVAL",
+		8:  "WEBHOOK_EVENT_DIGEST",
+		9:  "WEBHOOK_EVENT_TRANSLATIONS_RELEASED",
+		10: "WEBHOOK_EVENT_EXPORT_FAILED",
+		11: "WEBHOOK_EVENT_LOGIN_FAILED",
 	}
 	WebhookEvent_value = map[string]int32{
 		"WEBHOOK_EVENT_UNSPECIFIED":                    0,
@@ -65,6 +76,9 @@ var (
 		"WEBHOOK_EVENT_PING":                           6,
 		"WEBHOOK_EVENT_TRANSLATIONS_AWAITING_APPROVAL": 7,
 		"WEBHOOK_EVENT_DIGEST":                         8,
+		"WEBHOOK_EVENT_TRANSLATIONS_RELEASED":          9,
+		"WEBHOOK_EVENT_EXPORT_FAILED":                  10,
+		"WEBHOOK_EVENT_LOGIN_FAILED":                   11,
 	}
 )
 
@@ -107,6 +121,9 @@ const (
 	WebhookFormat_WEBHOOK_FORMAT_SLACK WebhookFormat = 2
 	// A chat message as Discord's webhooks take it.
 	WebhookFormat_WEBHOOK_FORMAT_DISCORD WebhookFormat = 3
+	// A notification as the Apprise API takes it at /notify/<key>, which passes it
+	// on to the services set up under the key: email, ntfy, Telegram and more.
+	WebhookFormat_WEBHOOK_FORMAT_APPRISE WebhookFormat = 4
 )
 
 // Enum value maps for WebhookFormat.
@@ -116,12 +133,14 @@ var (
 		1: "WEBHOOK_FORMAT_JSON",
 		2: "WEBHOOK_FORMAT_SLACK",
 		3: "WEBHOOK_FORMAT_DISCORD",
+		4: "WEBHOOK_FORMAT_APPRISE",
 	}
 	WebhookFormat_value = map[string]int32{
 		"WEBHOOK_FORMAT_UNSPECIFIED": 0,
 		"WEBHOOK_FORMAT_JSON":        1,
 		"WEBHOOK_FORMAT_SLACK":       2,
 		"WEBHOOK_FORMAT_DISCORD":     3,
+		"WEBHOOK_FORMAT_APPRISE":     4,
 	}
 )
 
@@ -1470,7 +1489,7 @@ const file_parlance_v1_webhook_proto_rawDesc = "" +
 	"\x1fRedeliverWebhookDeliveryRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\\\n" +
 	" RedeliverWebhookDeliveryResponse\x128\n" +
-	"\bdelivery\x18\x01 \x01(\v2\x1c.parlance.v1.WebhookDeliveryR\bdelivery*\xcf\x02\n" +
+	"\bdelivery\x18\x01 \x01(\v2\x1c.parlance.v1.WebhookDeliveryR\bdelivery*\xb9\x03\n" +
 	"\fWebhookEvent\x12\x1d\n" +
 	"\x19WEBHOOK_EVENT_UNSPECIFIED\x10\x00\x12'\n" +
 	"#WEBHOOK_EVENT_TRANSLATIONS_APPROVED\x10\x01\x12'\n" +
@@ -1480,12 +1499,17 @@ const file_parlance_v1_webhook_proto_rawDesc = "" +
 	"\x1dWEBHOOK_EVENT_TASK_RUN_FAILED\x10\x05\x12\x16\n" +
 	"\x12WEBHOOK_EVENT_PING\x10\x06\x120\n" +
 	",WEBHOOK_EVENT_TRANSLATIONS_AWAITING_APPROVAL\x10\a\x12\x18\n" +
-	"\x14WEBHOOK_EVENT_DIGEST\x10\b*~\n" +
+	"\x14WEBHOOK_EVENT_DIGEST\x10\b\x12'\n" +
+	"#WEBHOOK_EVENT_TRANSLATIONS_RELEASED\x10\t\x12\x1f\n" +
+	"\x1bWEBHOOK_EVENT_EXPORT_FAILED\x10\n" +
+	"\x12\x1e\n" +
+	"\x1aWEBHOOK_EVENT_LOGIN_FAILED\x10\v*\x9a\x01\n" +
 	"\rWebhookFormat\x12\x1e\n" +
 	"\x1aWEBHOOK_FORMAT_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13WEBHOOK_FORMAT_JSON\x10\x01\x12\x18\n" +
 	"\x14WEBHOOK_FORMAT_SLACK\x10\x02\x12\x1a\n" +
-	"\x16WEBHOOK_FORMAT_DISCORD\x10\x03*\xd7\x01\n" +
+	"\x16WEBHOOK_FORMAT_DISCORD\x10\x03\x12\x1a\n" +
+	"\x16WEBHOOK_FORMAT_APPRISE\x10\x04*\xd7\x01\n" +
 	"\x15WebhookDeliveryStatus\x12'\n" +
 	"#WEBHOOK_DELIVERY_STATUS_UNSPECIFIED\x10\x00\x12#\n" +
 	"\x1fWEBHOOK_DELIVERY_STATUS_PENDING\x10\x01\x12%\n" +

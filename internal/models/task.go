@@ -16,6 +16,7 @@ const (
 // Events a task can run after
 const (
 	EventTranslationsApproved = "translations_approved"
+	EventTranslationsReleased = "translations_released"
 )
 
 // What started a task run
@@ -89,11 +90,13 @@ type GitExportConfig struct {
 	Repository string `json:"repository"`
 	BaseBranch string `json:"base_branch"`
 	// Branch is the pull request's branch, rebuilt from BaseBranch on each run.
-	Branch        string          `json:"branch"`
-	Files         []GitExportFile `json:"files"`
-	LocaleIDs     []string        `json:"locale_ids,omitempty"`
-	ScopeIDs      []string        `json:"scope_ids,omitempty"`
-	IncludeDrafts bool            `json:"include_drafts,omitempty"`
+	Branch    string          `json:"branch"`
+	Files     []GitExportFile `json:"files"`
+	LocaleIDs []string        `json:"locale_ids,omitempty"`
+	ScopeIDs  []string        `json:"scope_ids,omitempty"`
+	// TagIDs narrows each scope to the entries with any of its selected tags.
+	TagIDs        []string `json:"tag_ids,omitempty"`
+	IncludeDrafts bool     `json:"include_drafts,omitempty"`
 }
 
 // AITranslate decodes the config of an ai_translate task.
