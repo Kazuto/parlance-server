@@ -508,6 +508,10 @@ listed entries. Twins are listed together, by their default text and then by key
 least 80% alike to a given text, e.g. one being typed, and counts those with the same
 text.
 
+`ListTerminologies` takes `translationStatus` too, for the glossary's definitions in
+its `targetLocaleIds`: `missing`, `complete` or `review`. Definitions are never
+outdated, and the default locale counts like any other.
+
 ### Releases
 
 A release holds its entries back from exports until it goes out: at its date

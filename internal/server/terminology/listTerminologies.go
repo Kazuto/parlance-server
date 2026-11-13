@@ -2,10 +2,12 @@ package terminology
 
 import (
 	"context"
+	"slices"
 	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/kazuto/parlance-server/internal/converter"
+	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
 	"github.com/kazuto/parlance-server/internal/server/common"
@@ -18,6 +20,10 @@ func (s *Server) ListTerminologies(
 	ctx context.Context,
 	req *connect.Request[pb.ListTerminologiesRequest],
 ) (*connect.Response[pb.ListTerminologiesResponse], error) {
+	if !slices.Contains([]string{"", "missing", "complete", "review"}, req.Msg.TranslationStatus) {
+		return nil, errors.InvalidInput(errors.ErrInvalidInput, "invalid translation status")
+	}
+
 	query, err := common.NewFilter(s.db.WithContext(ctx).Model(&models.Terminology{}), req.Msg.Filter).
 		IncludeDeletedRequires(ctx, s.db, permissions.DeleteTerminology).
 		AllowedSorts(map[string]bool{"term": true, "created_at": true, "updated_at": true}).
@@ -28,6 +34,10 @@ func (s *Server) ListTerminologies(
 		Apply()
 	if err != nil {
 		return nil, err
+	}
+
+	if req.Msg.TranslationStatus != "" {
+		query = common.FilterTranslationStatus(query, common.Definitions, req.Msg.TranslationStatus, req.Msg.TargetLocaleIds)
 	}
 
 	var terminologies []models.Terminology

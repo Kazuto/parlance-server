@@ -147,7 +147,7 @@ func (s *Server) ListEntries(
 
 		query = query.Where("entries.id IN ?", entryIDs)
 	default:
-		query = filterTranslationStatus(query, req.Msg.TranslationStatus, statusLocaleIDs)
+		query = common.FilterTranslationStatus(query, common.Localizations, req.Msg.TranslationStatus, statusLocaleIDs)
 	}
 
 	var pagination *pb.PaginationResponse
@@ -375,32 +375,4 @@ func searchEntries(query *gorm.DB, search string, localeIDs []string) *gorm.DB {
 	}
 
 	return query.Where("(LOWER(entries.key) LIKE ? OR EXISTS (?))", pattern, translations)
-}
-
-// filterTranslationStatus keeps entries by their translations in the given locales (all
-// when none are given): "missing" one, "complete" in all, one in "review" as a draft, or
-// one "outdated".
-func filterTranslationStatus(query *gorm.DB, status string, localeIDs []string) *gorm.DB {
-	// Start a separate statement so the correlated subquery doesn't inherit entry filters.
-	targets := query.Session(&gorm.Session{NewDB: true}).Model(&models.Locale{}).Select("1")
-	if len(localeIDs) > 0 {
-		targets = targets.Where("locales.id IN ?", localeIDs)
-	}
-
-	// The entry's non-blank translation in the locale
-	const translation = "SELECT 1 FROM localizations WHERE localizations.entry_id = entries.id AND localizations.locale_id = locales.id AND localizations.deleted_at IS NULL AND TRIM(localizations.translation) <> ''"
-
-	switch status {
-	case "review":
-		return query.Where("EXISTS (?)", targets.Where("EXISTS ("+translation+" AND localizations.status = ?)", models.StatusDraft))
-	case "outdated":
-		return query.Where("EXISTS (?)", targets.Where("EXISTS ("+translation+" AND localizations.outdated_at IS NOT NULL)"))
-	}
-
-	targets = targets.Where("NOT EXISTS (" + translation + ")")
-	if status == "missing" {
-		return query.Where("EXISTS (?)", targets)
-	}
-
-	return query.Where("NOT EXISTS (?)", targets)
 }
