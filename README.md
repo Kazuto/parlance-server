@@ -469,6 +469,9 @@ partial update:
 - **Omitted field:** the current value is kept.
 - **Sent field:** the value is set. An empty value clears it; required fields
   (e.g. `key`, `name`, `email`) reject an empty value with `InvalidArgument`.
+- **Translations:** an empty `translation` in `UpdateLocalization` or
+  `UpdateDefinition` deletes the translation, as clearing its field in the
+  editor does. The response then has none.
 - **Related ids** (`scopes`, `permissions`, `roles`) are sent as
   `{ "ids": [...] }`. Omit the field to keep the current set, send
   `{ "ids": [] }` to remove all, or send ids to replace the set.
