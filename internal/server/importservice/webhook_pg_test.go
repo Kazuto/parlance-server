@@ -9,7 +9,6 @@ import (
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
 	"github.com/kazuto/parlance-server/internal/webhook"
-	"gorm.io/datatypes"
 )
 
 func TestImportsAreSentToWebhooks(t *testing.T) {
@@ -23,7 +22,7 @@ func TestImportsAreSentToWebhooks(t *testing.T) {
 		t.Fatalf("create user: %v", err)
 	}
 
-	locale := models.Locale{Code: "xx", Names: datatypes.JSON(`{"en":"Test"}`)}
+	locale := models.Locale{Code: "xx"}
 	existing := models.Entry{Key: "existing"}
 	hook := models.Webhook{
 		Name: "CI", URL: "https://ci.example/hook", Enabled: true,

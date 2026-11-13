@@ -1,12 +1,11 @@
 package converter
 
 import (
-	"encoding/json"
+	"cmp"
 	"time"
 
-	"gorm.io/datatypes"
-
 	pb "github.com/kazuto/parlance-server/gen/parlance/v1"
+	"github.com/kazuto/parlance-server/internal/langnames"
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/translate"
 )
@@ -29,45 +28,18 @@ func FormalityFromProto(value pb.Formality) (string, bool) {
 	return formality, formality != ""
 }
 
-// LocaleToProto converts a database Locale model to protobuf
-// requestLocale is the locale code for localizing the name field (e.g., "de", "en")
+// LocaleToProto converts a database Locale model to protobuf. requestLocale is the
+// language its name is given in, e.g. "de"; the name falls back to English, then to
+// the code.
 func LocaleToProto(l *models.Locale, requestLocale string) *pb.Locale {
 	if l == nil {
 		return nil
 	}
 
-	// Parse names from JSONB (datatypes.JSON is []byte)
-	var names map[string]string
-	if l.Names != nil {
-		if err := json.Unmarshal(l.Names, &names); err != nil {
-			names = make(map[string]string)
-		}
-	} else {
-		names = make(map[string]string)
-	}
-
-	// Get localized name based on request locale, fallback to English, then first available
-	localizedName := names["en"] // Default to English
-
-	if requestLocale != "" {
-		if name, ok := names[requestLocale]; ok {
-			localizedName = name
-		}
-	}
-	// If still empty, use first available name
-	if localizedName == "" {
-		for _, name := range names {
-			localizedName = name
-
-			break
-		}
-	}
-
 	return &pb.Locale{
 		Id:        l.ID,
 		Code:      l.Code,
-		Name:      localizedName,
-		Names:     names,
+		Name:      cmp.Or(langnames.Name(l.Code, requestLocale), langnames.Name(l.Code, "en"), l.Code),
 		IsDefault: l.IsDefault,
 		Formality: formalities[l.Formality],
 		CreatedAt: l.CreatedAt.Format(time.RFC3339),
@@ -84,18 +56,4 @@ func LocalesToProto(locales []models.Locale, requestLocale string) []*pb.Locale 
 	}
 
 	return result
-}
-
-// NamesMapToJSON converts a proto names map to JSONB
-func NamesMapToJSON(names map[string]string) (datatypes.JSON, error) {
-	if names == nil {
-		names = make(map[string]string)
-	}
-
-	data, err := json.Marshal(names)
-	if err != nil {
-		return nil, err
-	}
-
-	return datatypes.JSON(data), nil
 }

@@ -56,7 +56,7 @@ func gitExport(repository string) *pb.GitExportConfig {
 func TestCreateTask(t *testing.T) {
 	ctx, server, _, _ := setup(t)
 
-	locale := models.Locale{Code: "de", Names: datatypes.JSON(`{}`)}
+	locale := models.Locale{Code: "de"}
 	server.db.Create(&locale)
 
 	t.Run("creates a scheduled machine translation", func(t *testing.T) {

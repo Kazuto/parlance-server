@@ -9,7 +9,6 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/localization"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
 	"google.golang.org/protobuf/proto"
-	"gorm.io/datatypes"
 )
 
 func TestListEntriesFindsOutdatedTranslations(t *testing.T) {
@@ -23,8 +22,8 @@ func TestListEntriesFindsOutdatedTranslations(t *testing.T) {
 		t.Fatalf("create user: %v", err)
 	}
 
-	de := models.Locale{Code: "de", Names: datatypes.JSON(`{"en":"German"}`)}
-	fr := models.Locale{Code: "fr", Names: datatypes.JSON(`{"en":"French"}`)}
+	de := models.Locale{Code: "de"}
+	fr := models.Locale{Code: "fr"}
 	current, outdated := models.Entry{Key: "current"}, models.Entry{Key: "outdated"}
 
 	for _, row := range []any{&de, &fr, &current, &outdated} {
@@ -94,8 +93,8 @@ func TestEntryHistoryBeforeTheDefaultTextChanged(t *testing.T) {
 		t.Fatalf("create user: %v", err)
 	}
 
-	en := models.Locale{Code: "xa", IsDefault: true, Names: datatypes.JSON(`{"en":"Source"}`)}
-	de := models.Locale{Code: "xb", Names: datatypes.JSON(`{"en":"Target"}`)}
+	en := models.Locale{Code: "xa", IsDefault: true}
+	de := models.Locale{Code: "xb"}
 	entry := models.Entry{Key: "greeting"}
 
 	for _, row := range []any{&en, &de, &entry} {

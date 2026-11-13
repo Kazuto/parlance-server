@@ -7,7 +7,6 @@ import (
 	"github.com/kazuto/parlance-server/internal/models"
 	"github.com/kazuto/parlance-server/internal/permissions"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
-	"gorm.io/datatypes"
 )
 
 func TestMigrationApprovesExistingTranslations(t *testing.T) {
@@ -18,7 +17,7 @@ func TestMigrationApprovesExistingTranslations(t *testing.T) {
 		testutil.Exec(t, db, "ALTER TABLE "+table+" DROP COLUMN status")
 	}
 
-	locale := models.Locale{Code: "xx", Names: datatypes.JSON(`{"en":"Test"}`)}
+	locale := models.Locale{Code: "xx"}
 	entry := models.Entry{Key: "old"}
 
 	for _, row := range []any{&locale, &entry} {
@@ -130,7 +129,7 @@ func TestMigrationMarksAuthorlessDraftsAsMachineText(t *testing.T) {
 	// A database from before origins were tracked.
 	testutil.Exec(t, db, "ALTER TABLE localizations DROP COLUMN origin, DROP COLUMN machine_model")
 
-	locale := models.Locale{Code: "xx", Names: datatypes.JSON(`{"en":"Test"}`)}
+	locale := models.Locale{Code: "xx"}
 	user := models.User{Email: "writer@example.com", Name: "Writer", PasswordHash: "unused"}
 
 	for _, row := range []any{&locale, &user} {

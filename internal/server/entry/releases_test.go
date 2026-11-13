@@ -185,7 +185,7 @@ func TestCountLiveEntries(t *testing.T) {
 
 	server := &Server{db: db}
 	locale, gone := uuid.NewString(), uuid.NewString()
-	testutil.Exec(t, db, "INSERT INTO locales (id, code, names) VALUES (?, ?, '{}'), (?, ?, '{}')", locale, "live-"+locale[:8], gone, "gone-"+gone[:8])
+	testutil.Exec(t, db, "INSERT INTO locales (id, code) VALUES (?, ?), (?, ?)", locale, "live-"+locale[:8], gone, "gone-"+gone[:8])
 	testutil.Exec(t, db, "UPDATE locales SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?", gone)
 
 	live, draft, held, deletedLocale, untranslated := insertEntry(t, db), insertEntry(t, db), insertEntry(t, db), insertEntry(t, db), insertEntry(t, db)
