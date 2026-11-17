@@ -1180,8 +1180,11 @@ type ReviewLocalizationsRequest struct {
 	// When approving, also approve outdated translations that are approved already,
 	// confirming they still fit the default text. Otherwise they are skipped.
 	ConfirmOutdated bool `protobuf:"varint,7,opt,name=confirm_outdated,json=confirmOutdated,proto3" json:"confirm_outdated,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// When approving, only the approved translations that are outdated, confirming they
+	// still fit the default text; drafts wait for their own review. Not for rejecting.
+	OnlyOutdated  bool `protobuf:"varint,8,opt,name=only_outdated,json=onlyOutdated,proto3" json:"only_outdated,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ReviewLocalizationsRequest) Reset() {
@@ -1259,6 +1262,13 @@ func (x *ReviewLocalizationsRequest) GetSkipApproved() bool {
 func (x *ReviewLocalizationsRequest) GetConfirmOutdated() bool {
 	if x != nil {
 		return x.ConfirmOutdated
+	}
+	return false
+}
+
+func (x *ReviewLocalizationsRequest) GetOnlyOutdated() bool {
+	if x != nil {
+		return x.OnlyOutdated
 	}
 	return false
 }
@@ -1599,7 +1609,7 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\rlocalizations\x18\x01 \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations\x12#\n" +
 	"\rsuccess_count\x18\x02 \x01(\x05R\fsuccessCount\x12#\n" +
 	"\rfailure_count\x18\x03 \x01(\x05R\ffailureCount\x12#\n" +
-	"\rskipped_count\x18\x04 \x01(\x05R\fskippedCount\"\xa6\x02\n" +
+	"\rskipped_count\x18\x04 \x01(\x05R\fskippedCount\"\xcb\x02\n" +
 	"\x1aReviewLocalizationsRequest\x12)\n" +
 	"\x10localization_ids\x18\x01 \x03(\tR\x0flocalizationIds\x12\x1b\n" +
 	"\tentry_ids\x18\x02 \x03(\tR\bentryIds\x12\x1d\n" +
@@ -1608,7 +1618,8 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\bdecision\x18\x04 \x01(\x0e2\x1b.parlance.v1.ReviewDecisionR\bdecision\x12\x18\n" +
 	"\acomment\x18\x05 \x01(\tR\acomment\x12#\n" +
 	"\rskip_approved\x18\x06 \x01(\bR\fskipApproved\x12)\n" +
-	"\x10confirm_outdated\x18\a \x01(\bR\x0fconfirmOutdated\"^\n" +
+	"\x10confirm_outdated\x18\a \x01(\bR\x0fconfirmOutdated\x12#\n" +
+	"\ronly_outdated\x18\b \x01(\bR\fonlyOutdated\"^\n" +
 	"\x1bReviewLocalizationsResponse\x12?\n" +
 	"\rlocalizations\x18\x01 \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations\"\xab\x01\n" +
 	"\x1eSearchTranslationMemoryRequest\x12\x1f\n" +
