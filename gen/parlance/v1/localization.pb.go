@@ -519,9 +519,12 @@ type UpdateLocalizationRequest struct {
 	Translation *string                `protobuf:"bytes,2,opt,name=translation,proto3,oneof" json:"translation,omitempty"`
 	// Set when the new text is a machine suggestion saved as it is: the suggestion's
 	// model. Without it, a changed text counts as the user's.
-	MachineModel  string `protobuf:"bytes,3,opt,name=machine_model,json=machineModel,proto3" json:"machine_model,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	MachineModel string `protobuf:"bytes,3,opt,name=machine_model,json=machineModel,proto3" json:"machine_model,omitempty"`
+	// For a default-locale text: the change is small, e.g. a typo or punctuation fix,
+	// so the entry's other translations still fit and are not marked outdated.
+	KeepTranslationsCurrent bool `protobuf:"varint,4,opt,name=keep_translations_current,json=keepTranslationsCurrent,proto3" json:"keep_translations_current,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *UpdateLocalizationRequest) Reset() {
@@ -573,6 +576,13 @@ func (x *UpdateLocalizationRequest) GetMachineModel() string {
 		return x.MachineModel
 	}
 	return ""
+}
+
+func (x *UpdateLocalizationRequest) GetKeepTranslationsCurrent() bool {
+	if x != nil {
+		return x.KeepTranslationsCurrent
+	}
+	return false
 }
 
 type UpdateLocalizationResponse struct {
@@ -1549,11 +1559,12 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\vtranslation\x18\x03 \x01(\tR\vtranslation\x12#\n" +
 	"\rmachine_model\x18\x04 \x01(\tR\fmachineModel\"[\n" +
 	"\x1aCreateLocalizationResponse\x12=\n" +
-	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"\x87\x01\n" +
+	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"\xc3\x01\n" +
 	"\x19UpdateLocalizationRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
 	"\vtranslation\x18\x02 \x01(\tH\x00R\vtranslation\x88\x01\x01\x12#\n" +
-	"\rmachine_model\x18\x03 \x01(\tR\fmachineModelB\x0e\n" +
+	"\rmachine_model\x18\x03 \x01(\tR\fmachineModel\x12:\n" +
+	"\x19keep_translations_current\x18\x04 \x01(\bR\x17keepTranslationsCurrentB\x0e\n" +
 	"\f_translation\"[\n" +
 	"\x1aUpdateLocalizationResponse\x12=\n" +
 	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"+\n" +

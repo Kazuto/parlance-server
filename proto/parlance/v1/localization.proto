@@ -86,6 +86,9 @@ message UpdateLocalizationRequest {
   // Set when the new text is a machine suggestion saved as it is: the suggestion's
   // model. Without it, a changed text counts as the user's.
   string machine_model = 3;
+  // For a default-locale text: the change is small, e.g. a typo or punctuation fix,
+  // so the entry's other translations still fit and are not marked outdated.
+  bool keep_translations_current = 4;
 }
 
 message UpdateLocalizationResponse {

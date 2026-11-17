@@ -129,6 +129,30 @@ func TestOutdatedTranslations(t *testing.T) {
 		}
 	})
 
+	t.Run("a small fix can keep the translations current", func(t *testing.T) {
+		seed(t)
+		mark(t, "od-fr")
+
+		res, err := server.UpdateLocalization(ctx, connect.NewRequest(&pb.UpdateLocalizationRequest{
+			Id:                      "od-en",
+			Translation:             proto.String("Hello!"),
+			KeepTranslationsCurrent: true,
+		}))
+		if err != nil {
+			t.Fatalf("UpdateLocalization: %v", err)
+		}
+
+		// The French stays outdated from the change before.
+		if got := outdated(t, all...); len(got) != 1 || got[0] != "od-fr" {
+			t.Errorf("outdated = %v, want [od-fr]", got)
+		}
+
+		// The new default text still needs review.
+		if source := res.Msg.Localization; source.Translation != "Hello!" || source.Status != pb.ReviewStatus_REVIEW_STATUS_DRAFT {
+			t.Errorf("default text = %+v, want the new text as a draft", source)
+		}
+	})
+
 	t.Run("editing a translation makes it current", func(t *testing.T) {
 		seed(t)
 		mark(t, "od-de", "od-fr")
