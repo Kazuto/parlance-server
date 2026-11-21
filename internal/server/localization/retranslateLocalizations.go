@@ -38,9 +38,13 @@ func (s *Server) RetranslateLocalizations(
 	var count, pending int64
 
 	err = db.Transaction(func(tx *gorm.DB) error {
-		// The language's translations of live entries in the scopes
+		// The language's translations of live entries in the scopes, and of the given
+		// entries if any
 		texts := func() *gorm.DB {
 			entries := common.FilterEntriesByScopes(tx.Model(&models.Entry{}).Select("entries.id"), req.Msg.ScopeIds)
+			if len(req.Msg.EntryIds) > 0 {
+				entries = entries.Where("entries.id IN ?", req.Msg.EntryIds)
+			}
 
 			return tx.Model(&models.Localization{}).Where("locale_id = ? AND entry_id IN (?)", locale.ID, entries)
 		}

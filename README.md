@@ -179,11 +179,12 @@ Tasks do work on their own, set up by admins under **Automation** in the web app
 
   **Translate again** on a language (`RetranslateLocalizations`) marks its
   translations for the next runs, e.g. to redo a whole language with a new model:
-  the machine translations, or all of them, optionally only in some scopes. A run
-  does missing translations first, then marked ones, and replaces each marked text
-  with a draft, approved ones too. Until then the text stays, in exports as well. A
-  new text, a person's edit or an import, clears the mark, and the marks can be
-  taken back. It needs `update_entry` and `use_machine_translation`.
+  the machine translations, or all of them, optionally only in some scopes or of
+  some entries (`entryIds`, e.g. those ticked in the editor). A run does missing
+  translations first, then marked ones, and replaces each marked text with a draft,
+  approved ones too. Until then the text stays, in exports as well. A new text, a
+  person's edit or an import, clears the mark, and the marks can be taken back. It
+  needs `update_entry` and `use_machine_translation`.
 - **Git export** renders the chosen formats for each language, for example
   `lang/{locale}.json`, and proposes them as a GitHub pull request from its own
   branch. Only approved translations are exported unless drafts are included. The
