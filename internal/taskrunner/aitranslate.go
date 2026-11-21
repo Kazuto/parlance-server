@@ -26,7 +26,7 @@ const defaultMaxPairs = 200
 const maxParallelTranslations = 4
 
 // missingPair is an entry without a translation in a locale, with its source text,
-// or with a machine draft to translate again, which ExistingID names.
+// or with a text to translate again, which ExistingID names.
 type missingPair struct {
 	EntryID     string
 	Key         string
@@ -37,8 +37,9 @@ type missingPair struct {
 }
 
 // aiTranslate fills missing translations with machine translations, saved as drafts
-// without an author. Existing translations, drafts included, are kept, except that
-// the task may translate again unedited machine drafts of models no longer served.
+// without an author. Existing translations, drafts included, are kept, except those
+// marked to be translated again, and, if the task says so, unedited machine drafts of
+// models no longer served.
 func (r *Runner) aiTranslate(ctx context.Context, task *models.Task, runLog *runLog) (models.TaskRunSummary, error) {
 	var summary models.TaskRunSummary
 
@@ -111,10 +112,10 @@ func (r *Runner) aiTranslate(ctx context.Context, task *models.Task, runLog *run
 		Where("entries.deleted_at IS NULL AND locales.deleted_at IS NULL AND locales.id IN ?", targetIDs)
 
 	if len(currentModels) > 0 {
-		missing = missing.Where("target.id IS NULL OR (target.origin = ? AND target.status = ? AND target.review_comment = '' AND target.machine_model NOT IN ?)",
+		missing = missing.Where("target.id IS NULL OR target.retranslate_at IS NOT NULL OR (target.origin = ? AND target.status = ? AND target.review_comment = '' AND target.machine_model NOT IN ?)",
 			models.OriginMachine, models.StatusDraft, currentModels)
 	} else {
-		missing = missing.Where("target.id IS NULL")
+		missing = missing.Where("target.id IS NULL OR target.retranslate_at IS NOT NULL")
 	}
 
 	missing = missing.Session(&gorm.Session{}) // counted, then listed
@@ -132,8 +133,9 @@ func (r *Runner) aiTranslate(ctx context.Context, task *models.Task, runLog *run
 	var pairs []missingPair
 	if err := missing.
 		Select("entries.id AS entry_id, entries.key, entries.description, source.translation AS source, locales.id AS locale_id, COALESCE(target.id::text, '') AS existing_id").
-		// Missing translations come first; redoing drafts can wait for later runs.
-		Order("target.id IS NOT NULL, entries.key, locales.code").
+		// Missing translations come first, then marked ones; redoing drafts can wait for
+		// later runs.
+		Order("target.id IS NOT NULL, target.retranslate_at IS NULL, entries.key, locales.code").
 		Limit(maxPairs).
 		Scan(&pairs).Error; err != nil {
 		return summary, err
@@ -258,7 +260,7 @@ func (r *Runner) translatePair(
 	}
 
 	if pair.ExistingID != "" {
-		return r.redoDraft(ctx, pair, locale, suggestion.Translation, suggestion.Model, runLog)
+		return r.redo(ctx, pair, locale, suggestion.Translation, suggestion.Model, runLog)
 	}
 
 	draft := models.Localization{
@@ -279,35 +281,38 @@ func (r *Runner) translatePair(
 	return draft.ID
 }
 
-// redoDraft replaces a machine draft with the new translation, unless someone
-// edited, approved or rejected it since it was picked. The old text stays in the
-// history.
-func (r *Runner) redoDraft(ctx context.Context, pair missingPair, locale models.Locale, text, model string, runLog *runLog) string {
-	var draft models.Localization
-	if err := r.db.WithContext(ctx).First(&draft, "id = ?", pair.ExistingID).Error; err != nil {
+// redo replaces a text marked to be translated again, or a machine draft, with the
+// new translation as a draft, unless someone changed it since it was picked: a new
+// text clears the mark, and editing, approving or rejecting a draft keeps it. The
+// old text stays in the history.
+func (r *Runner) redo(ctx context.Context, pair missingPair, locale models.Locale, text, model string, runLog *runLog) string {
+	var existing models.Localization
+	if err := r.db.WithContext(ctx).First(&existing, "id = ?", pair.ExistingID).Error; err != nil {
 		runLog.Printf("%s → %s: not saved, %v", pair.Key, locale.Code, err)
 
 		return ""
 	}
 
-	if !draft.IsMachine() || draft.Status != models.StatusDraft || draft.ReviewComment != "" {
+	machineDraft := existing.IsMachine() && existing.Status == models.StatusDraft && existing.ReviewComment == ""
+	if existing.RetranslateAt == nil && !machineDraft {
 		runLog.Printf("%s → %s: kept, it changed since the run started", pair.Key, locale.Code)
 
 		return ""
 	}
 
-	draft.Translation = text
-	draft.UpdatedBy = nil
-	draft.WrittenBy(model)
-	draft.ClearOutdated()
+	existing.Translation = text
+	existing.UpdatedBy = nil
+	existing.WrittenBy(model)
+	existing.MarkDraft()
+	existing.ClearOutdated()
 
-	if err := r.db.WithContext(ctx).Save(&draft).Error; err != nil {
+	if err := r.db.WithContext(ctx).Save(&existing).Error; err != nil {
 		runLog.Printf("%s → %s: not saved, %v", pair.Key, locale.Code, err)
 
 		return ""
 	}
 
-	return draft.ID
+	return existing.ID
 }
 
 // currentModels returns the models the translation servers serve, or none when

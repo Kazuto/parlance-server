@@ -20,6 +20,10 @@ service LocalizationService {
   // Finds approved, current translations of entries whose default text is like the
   // given one: the translation memory.
   rpc SearchTranslationMemory(SearchTranslationMemoryRequest) returns (SearchTranslationMemoryResponse);
+  // Marks a language's translations for the machine translation tasks to translate
+  // again, e.g. after switching models, or takes the marks back. Each text stays until
+  // a task replaces it with a draft.
+  rpc RetranslateLocalizations(RetranslateLocalizationsRequest) returns (RetranslateLocalizationsResponse);
 }
 
 message Localization {
@@ -47,6 +51,8 @@ message Localization {
   bool machine = 16;
   // The model that wrote it, as its server names it; empty for a person's text.
   string machine_model = 17;
+  // Marked for the machine translation tasks to translate again; a new text clears it.
+  bool retranslate = 18;
 }
 
 message ListLocalizationsRequest {
@@ -86,6 +92,9 @@ message UpdateLocalizationRequest {
   // Set when the new text is a machine suggestion saved as it is: the suggestion's
   // model. Without it, a changed text counts as the user's.
   string machine_model = 3;
+  // For a default-locale text: the change is small, e.g. a typo or punctuation fix,
+  // so the entry's other translations still fit and are not marked outdated.
+  bool keep_translations_current = 4;
 }
 
 message UpdateLocalizationResponse {
@@ -164,6 +173,9 @@ message ReviewLocalizationsRequest {
   // When approving, also approve outdated translations that are approved already,
   // confirming they still fit the default text. Otherwise they are skipped.
   bool confirm_outdated = 7;
+  // When approving, only the approved translations that are outdated, confirming they
+  // still fit the default text; drafts wait for their own review. Not for rejecting.
+  bool only_outdated = 8;
 }
 
 message ReviewLocalizationsResponse {
@@ -198,4 +210,29 @@ message SearchTranslationMemoryResponse {
   // The most similar first. A source text with the same translation in several
   // entries is listed once, with the first key.
   repeated TranslationMemoryMatch matches = 1;
+}
+
+message RetranslateLocalizationsRequest {
+  // The language, which can't be the default one.
+  string locale_id = 1;
+  // Only the translations of entries in these scopes; all entries when empty.
+  repeated string scope_ids = 2;
+  // People's translations too; by default only those a model wrote.
+  bool include_human = 3;
+  // Takes the marks back instead, from people's and machine translations alike.
+  bool cancel = 4;
+  // Only counts, changing nothing.
+  bool dry_run = 5;
+  // Only these entries' translations, e.g. those ticked in the editor; with scopes
+  // too, the entries in both.
+  repeated string entry_ids = 6;
+}
+
+message RetranslateLocalizationsResponse {
+  // The translations marked, or whose marks were taken back; on a dry run, how many
+  // would be.
+  int32 count = 1;
+  // The language's marked translations in the scopes after the change, waiting for a
+  // task.
+  int32 pending = 2;
 }

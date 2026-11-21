@@ -1,0 +1,34 @@
+syntax = "proto3";
+package parlance.v1;
+
+option go_package = "parlance/v1;parlance";
+
+service UpdateService {
+  // The newest releases of the server and the web app on GitHub, to compare with
+  // the running ones. The server asks at most every 12 hours and keeps the answer;
+  // UPDATE_CHECK=false stops it.
+  rpc GetUpdates(GetUpdatesRequest) returns (GetUpdatesResponse);
+}
+
+message GetUpdatesRequest {}
+
+message GetUpdatesResponse {
+  // Whether the server checks for releases.
+  bool enabled = 1;
+  // The newest releases, once GitHub answered.
+  AvailableRelease server = 2;
+  AvailableRelease web = 3;
+  // When GitHub last answered.
+  optional string checked_at = 4;
+  // Why the latest check failed, if it did; the releases are then the ones found
+  // before, if any.
+  string error = 5;
+}
+
+message AvailableRelease {
+  // E.g. "2.1.0", without the tag's "v".
+  string version = 1;
+  // The release notes on GitHub.
+  string url = 2;
+  string published_at = 3;
+}

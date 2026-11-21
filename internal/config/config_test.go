@@ -6,6 +6,14 @@ import (
 	"testing"
 )
 
+func TestParseBool(t *testing.T) {
+	for value, want := range map[string]bool{"true": true, "false": false, "0": false, "TRUE": true, "off": true} {
+		if got := parseBool("UPDATE_CHECK", value, true); got != want {
+			t.Errorf("parseBool(%q) = %t, want %t", value, got, want)
+		}
+	}
+}
+
 func TestParsePrefixes(t *testing.T) {
 	got := parsePrefixes("TRUSTED_PROXIES", "10.0.0.0/8, 172.18.0.5,fd00::/8, ::ffff:192.0.2.1, 192.0.2.77/24, proxy.local, 300.1.1.1")
 	want := []netip.Prefix{

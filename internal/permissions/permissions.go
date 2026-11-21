@@ -95,6 +95,10 @@ const (
 	ReadSSOProvider   = "read_sso_provider"
 	UpdateSSOProvider = "update_sso_provider"
 	DeleteSSOProvider = "delete_sso_provider"
+
+	// Whether newer releases of Parlance are out; everyone signed in sees the
+	// running versions
+	ReadUpdate = "read_update"
 )
 
 // AllPermissions returns all defined permissions
@@ -159,6 +163,7 @@ func AllPermissions() []string {
 		ReadSSOProvider,
 		UpdateSSOProvider,
 		DeleteSSOProvider,
+		ReadUpdate,
 	}
 }
 

@@ -74,16 +74,17 @@ var Rules = map[string][]string{
 	parlancev1connect.LocaleServiceUpdateLocaleProcedure:     {permissions.UpdateLocale},
 
 	// LocalizationService
-	parlancev1connect.LocalizationServiceBatchTranslateProcedure:          {permissions.UpdateEntry, permissions.UseMachineTranslation},
-	parlancev1connect.LocalizationServiceCreateLocalizationProcedure:      {permissions.UpdateEntry},
-	parlancev1connect.LocalizationServiceDeleteLocalizationProcedure:      {permissions.UpdateEntry},
-	parlancev1connect.LocalizationServiceGetLocalizationProcedure:         {permissions.ReadEntry},
-	parlancev1connect.LocalizationServiceListLocalizationsProcedure:       {permissions.ReadEntry},
-	parlancev1connect.LocalizationServiceReviewLocalizationsProcedure:     {permissions.ReviewEntry},
-	parlancev1connect.LocalizationServiceRestoreLocalizationProcedure:     {permissions.UpdateEntry},
-	parlancev1connect.LocalizationServiceSearchTranslationMemoryProcedure: {permissions.ReadEntry},
-	parlancev1connect.LocalizationServiceSuggestTranslationsProcedure:     {permissions.UpdateEntry, permissions.UseMachineTranslation},
-	parlancev1connect.LocalizationServiceUpdateLocalizationProcedure:      {permissions.UpdateEntry},
+	parlancev1connect.LocalizationServiceBatchTranslateProcedure:           {permissions.UpdateEntry, permissions.UseMachineTranslation},
+	parlancev1connect.LocalizationServiceCreateLocalizationProcedure:       {permissions.UpdateEntry},
+	parlancev1connect.LocalizationServiceDeleteLocalizationProcedure:       {permissions.UpdateEntry},
+	parlancev1connect.LocalizationServiceGetLocalizationProcedure:          {permissions.ReadEntry},
+	parlancev1connect.LocalizationServiceListLocalizationsProcedure:        {permissions.ReadEntry},
+	parlancev1connect.LocalizationServiceReviewLocalizationsProcedure:      {permissions.ReviewEntry},
+	parlancev1connect.LocalizationServiceRestoreLocalizationProcedure:      {permissions.UpdateEntry},
+	parlancev1connect.LocalizationServiceRetranslateLocalizationsProcedure: {permissions.UpdateEntry, permissions.UseMachineTranslation},
+	parlancev1connect.LocalizationServiceSearchTranslationMemoryProcedure:  {permissions.ReadEntry},
+	parlancev1connect.LocalizationServiceSuggestTranslationsProcedure:      {permissions.UpdateEntry, permissions.UseMachineTranslation},
+	parlancev1connect.LocalizationServiceUpdateLocalizationProcedure:       {permissions.UpdateEntry},
 
 	// PermissionService
 	parlancev1connect.PermissionServiceGetPermissionProcedure:   {permissions.ReadPermission},
@@ -161,6 +162,9 @@ var Rules = map[string][]string{
 	parlancev1connect.TranslationServerServiceTestTranslationServerProcedure:     {permissions.UpdateTranslationServer},
 	parlancev1connect.TranslationServerServiceUpdateTranslationServerProcedure:   {permissions.UpdateTranslationServer},
 	parlancev1connect.TranslationServerServiceUpdateTranslationSettingsProcedure: {permissions.UpdateTranslationServer},
+
+	// UpdateService
+	parlancev1connect.UpdateServiceGetUpdatesProcedure: {permissions.ReadUpdate},
 
 	// UserService
 	parlancev1connect.UserServiceAssignRoleProcedure:  {permissions.UpdateUser},

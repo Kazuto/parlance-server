@@ -823,6 +823,95 @@ func TestAITranslateRedoesOtherModelsDrafts(t *testing.T) {
 	}
 }
 
+// Texts marked to be translated again are replaced after the missing ones, whoever
+// wrote them and whatever their review, without the redo setting.
+func TestAITranslateRedoesMarkedTexts(t *testing.T) {
+	db := testutil.SetupPostgresDB(t)
+	en, de, _ := seedLocales(t, db.DB)
+	marked := time.Now()
+	outdated := time.Now()
+	approved := models.Review{Status: models.StatusApproved}
+
+	// German texts, by entry key; keys order the run after the missing ones.
+	texts := map[string]*models.Localization{
+		"b marked machine": {Review: approved, RetranslateAt: &marked},
+		"c marked person":  {Review: approved, RetranslateAt: &marked, OutdatedAt: &outdated},
+		"d unmarked":       {Review: approved},
+	}
+
+	for key, german := range texts {
+		entry := seedEntry(t, db.DB, key, map[string]string{en.ID: key}, models.StatusApproved)
+
+		german.EntryID, german.LocaleID, german.Translation = entry.ID, de.ID, "alt: "+key
+		if key != "c marked person" {
+			german.Origin, german.MachineModel = models.OriginMachine, "old-model"
+		}
+
+		create(t, db.DB, german)
+	}
+
+	seedEntry(t, db.DB, "a missing", map[string]string{en.ID: "a missing"}, models.StatusApproved)
+
+	r := newTestRunner(t, db)
+	r.translators = fixedSource{translator: translatorFunc(func(_ context.Context, req translate.Request) (string, error) {
+		return "neu: " + req.Text, nil
+	})}
+
+	task := newTask(t, db.DB, models.TaskTypeAITranslate, models.AITranslateConfig{TargetLocaleIDs: []string{de.ID}, MaxPairs: 2})
+	run := func() models.TaskRunSummary {
+		t.Helper()
+
+		summary, err := r.aiTranslate(context.Background(), &task, &runLog{})
+		if err != nil {
+			t.Fatalf("aiTranslate() error = %v", err)
+		}
+
+		return summary
+	}
+
+	// The missing one first, then the first marked one.
+	if summary := run(); summary.Translated != 2 || summary.Redone != 1 || summary.Remaining != 1 {
+		t.Fatalf("first run: %+v, want the missing text and one marked", summary)
+	}
+
+	var first models.Localization
+
+	db.First(&first, "id = ?", texts["b marked machine"].ID)
+
+	if first.Translation != "neu: b marked machine" {
+		t.Errorf("first run redid %q, want the first marked text", first.Translation)
+	}
+
+	if summary := run(); summary.Translated != 1 || summary.Redone != 1 || summary.Remaining != 0 {
+		t.Fatalf("second run: %+v, want the other marked text", summary)
+	}
+
+	for key, german := range texts {
+		var saved models.Localization
+
+		db.First(&saved, "id = ?", german.ID)
+
+		redone := key != "d unmarked"
+		if redone != (saved.Translation == "neu: "+key) {
+			t.Errorf("%s: %q, redone = %v", key, saved.Translation, redone)
+		}
+
+		// Redone texts are unreviewed drafts by the model, current and unmarked.
+		if redone && (saved.Status != models.StatusDraft || saved.MachineModel != "test-model" ||
+			saved.RetranslateAt != nil || saved.OutdatedAt != nil) {
+			t.Errorf("%s: %+v, want an unmarked, current draft by test-model", key, saved)
+		}
+
+		if !redone && saved.Status != models.StatusApproved {
+			t.Errorf("%s: %+v, want it kept", key, saved)
+		}
+	}
+
+	if summary := run(); summary.Translated != 0 {
+		t.Errorf("third run: %+v, want nothing left", summary)
+	}
+}
+
 func TestAITranslateSendsDescriptionAndStyle(t *testing.T) {
 	db := testutil.SetupPostgresDB(t)
 	en, de, _ := seedLocales(t, db.DB)

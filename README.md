@@ -59,6 +59,7 @@ Set these as environment variables or in a `.env` file (see `.env.example`):
 | `TRUSTED_PROXIES`                       | (none)                           | Comma-separated addresses or CIDR ranges of reverse proxies in front of the API, e.g. `172.16.0.0/12`. From them, `X-Forwarded-For` tells where a request came from, e.g. for `login.failed` webhooks                                                            |
 | `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET` | (none)                           | S3-compatible storage for avatars, which the API serves at `/avatars/{id}`; the bucket is created if missing and needs no public access                                                                                                                          |
 | `S3_ACCESS_KEY`, `S3_SECRET_KEY`        | (none)                           | Credentials for that storage                                                                                                                                                                                                                                     |
+| `UPDATE_CHECK`                          | `true`                           | Whether the server asks GitHub for the newest releases of Parlance, see [Updates](#updates)                                                                                                                                                                      |
 
 The Docker Compose file sets development values for all of them; set your own
 `JWT_SECRET` and `ENCRYPTION_KEY` anywhere else.
@@ -176,6 +177,15 @@ Tasks do work on their own, set up by admins under **Automation** in the web app
   machine drafts qualify: each translation records whether a model or a person
   wrote it, and which model. Approved, edited and rejected ones stay, and the old
   text stays in the history.
+
+  **Translate again** on a language (`RetranslateLocalizations`) marks its
+  translations for the next runs, e.g. to redo a whole language with a new model:
+  the machine translations, or all of them, optionally only in some scopes or of
+  some entries (`entryIds`, e.g. those ticked in the editor). A run does missing
+  translations first, then marked ones, and replaces each marked text with a draft,
+  approved ones too. Until then the text stays, in exports as well. A new text, a
+  person's edit or an import, clears the mark, and the marks can be taken back. It
+  needs `update_entry` and `use_machine_translation`.
 - **Git export** renders the chosen formats for each language, for example
   `lang/{locale}.json`, and proposes them as a GitHub pull request from its own
   branch. Only approved translations are exported unless drafts are included. The
@@ -407,6 +417,21 @@ The sign-in page then offers "Sign in with …" for each enabled provider.
 Permissions: `read_sso_provider`, `create_sso_provider`, `update_sso_provider`
 (also to test) and `delete_sso_provider`. The code is in `internal/sso`, with a
 test provider in `internal/sso/ssotest`.
+
+## Updates
+
+Everyone signed in sees the running versions of the server and the web app on their
+account page; `GetCurrentUser` returns the server's as `serverVersion`. Those with
+`read_update`, which the admin role has, also see in the settings whether newer
+releases are out (`UpdateService.GetUpdates`).
+
+For that, the server asks GitHub for the newest releases at most every 12 hours, and
+only when someone looks. The request tells GitHub the server's address and version,
+nothing else. `UPDATE_CHECK=false` stops it.
+
+The images carry their release. Building one yourself, pass it with
+`--build-arg VERSION=2.0.0`; builds without it are `dev`, and aren't compared with
+the releases.
 
 ## API
 
