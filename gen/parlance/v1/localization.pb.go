@@ -1536,7 +1536,10 @@ type RetranslateLocalizationsRequest struct {
 	// Takes the marks back instead, from people's and machine translations alike.
 	Cancel bool `protobuf:"varint,4,opt,name=cancel,proto3" json:"cancel,omitempty"`
 	// Only counts, changing nothing.
-	DryRun        bool `protobuf:"varint,5,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
+	DryRun bool `protobuf:"varint,5,opt,name=dry_run,json=dryRun,proto3" json:"dry_run,omitempty"`
+	// Only these entries' translations, e.g. those ticked in the editor; with scopes
+	// too, the entries in both.
+	EntryIds      []string `protobuf:"bytes,6,rep,name=entry_ids,json=entryIds,proto3" json:"entry_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1604,6 +1607,13 @@ func (x *RetranslateLocalizationsRequest) GetDryRun() bool {
 		return x.DryRun
 	}
 	return false
+}
+
+func (x *RetranslateLocalizationsRequest) GetEntryIds() []string {
+	if x != nil {
+		return x.EntryIds
+	}
+	return nil
 }
 
 type RetranslateLocalizationsResponse struct {
@@ -1785,13 +1795,14 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"similarity\x18\x05 \x01(\x02R\n" +
 	"similarity\"`\n" +
 	"\x1fSearchTranslationMemoryResponse\x12=\n" +
-	"\amatches\x18\x01 \x03(\v2#.parlance.v1.TranslationMemoryMatchR\amatches\"\xb1\x01\n" +
+	"\amatches\x18\x01 \x03(\v2#.parlance.v1.TranslationMemoryMatchR\amatches\"\xce\x01\n" +
 	"\x1fRetranslateLocalizationsRequest\x12\x1b\n" +
 	"\tlocale_id\x18\x01 \x01(\tR\blocaleId\x12\x1b\n" +
 	"\tscope_ids\x18\x02 \x03(\tR\bscopeIds\x12#\n" +
 	"\rinclude_human\x18\x03 \x01(\bR\fincludeHuman\x12\x16\n" +
 	"\x06cancel\x18\x04 \x01(\bR\x06cancel\x12\x17\n" +
-	"\adry_run\x18\x05 \x01(\bR\x06dryRun\"R\n" +
+	"\adry_run\x18\x05 \x01(\bR\x06dryRun\x12\x1b\n" +
+	"\tentry_ids\x18\x06 \x03(\tR\bentryIds\"R\n" +
 	" RetranslateLocalizationsResponse\x12\x14\n" +
 	"\x05count\x18\x01 \x01(\x05R\x05count\x12\x18\n" +
 	"\apending\x18\x02 \x01(\x05R\apending2\x94\t\n" +

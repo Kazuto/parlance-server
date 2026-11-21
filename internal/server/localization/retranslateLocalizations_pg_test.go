@@ -69,8 +69,8 @@ func TestRetranslateLocalizations(t *testing.T) {
 	}
 
 	add("web.machine", web, false)
-	add("web.person", web, true)
-	add("app.machine", app, false)
+	webPerson := add("web.person", web, true)
+	appMachine := add("app.machine", app, false)
 
 	if err := db.Delete(ptr(add("web.deleted", web, false))).Error; err != nil {
 		t.Fatal(err)
@@ -177,6 +177,34 @@ func TestRetranslateLocalizations(t *testing.T) {
 
 	if got := marked(); len(got) != 1 || !got["web.machine"] {
 		t.Errorf("marked after the edit: %v, want web.machine", got)
+	}
+
+	// Ticked entries: only theirs, and with scopes only those in both.
+	ticked := []string{webPerson.ID, appMachine.ID}
+
+	if count, pending := call(&pb.RetranslateLocalizationsRequest{LocaleId: de.ID, EntryIds: ticked, IncludeHuman: true, DryRun: true}); count != 2 || pending != 0 {
+		t.Errorf("dry run of the ticked entries: %d, %d pending; want both, none pending", count, pending)
+	}
+
+	if count, _ := call(&pb.RetranslateLocalizationsRequest{LocaleId: de.ID, EntryIds: ticked, ScopeIds: []string{app.ID}, IncludeHuman: true, DryRun: true}); count != 1 {
+		t.Errorf("dry run of the ticked entries in app: %d, want 1", count)
+	}
+
+	if count, pending := call(&pb.RetranslateLocalizationsRequest{LocaleId: de.ID, EntryIds: ticked, IncludeHuman: true}); count != 2 || pending != 2 {
+		t.Errorf("marking the ticked entries: %d, %d pending; want 2, 2", count, pending)
+	}
+
+	if got := marked(); len(got) != 3 {
+		t.Errorf("marked: %v, want web.machine and the ticked entries' texts", got)
+	}
+
+	// Taking back the ticked entries' marks leaves the others'.
+	if count, pending := call(&pb.RetranslateLocalizationsRequest{LocaleId: de.ID, EntryIds: ticked, Cancel: true}); count != 2 || pending != 0 {
+		t.Errorf("taking the ticked entries' back: %d, %d pending; want 2, 0", count, pending)
+	}
+
+	if got := marked(); len(got) != 1 || !got["web.machine"] {
+		t.Errorf("marked after taking back: %v, want web.machine", got)
 	}
 }
 

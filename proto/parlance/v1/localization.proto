@@ -223,6 +223,9 @@ message RetranslateLocalizationsRequest {
   bool cancel = 4;
   // Only counts, changing nothing.
   bool dry_run = 5;
+  // Only these entries' translations, e.g. those ticked in the editor; with scopes
+  // too, the entries in both.
+  repeated string entry_ids = 6;
 }
 
 message RetranslateLocalizationsResponse {
