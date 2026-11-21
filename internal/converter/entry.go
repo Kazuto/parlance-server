@@ -62,6 +62,7 @@ func LocalizationToProto(l *models.Localization) *pb.Localization {
 		OutdatedAt:    formatPreciseTime(l.OutdatedAt),
 		Machine:       l.IsMachine(),
 		MachineModel:  l.MachineModel,
+		Retranslate:   l.RetranslateAt != nil,
 	}
 }
 

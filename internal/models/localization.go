@@ -25,6 +25,10 @@ type Localization struct {
 	// which model, as its server names it. See WrittenBy.
 	Origin       string `gorm:"type:varchar(20);not null;default:'human'" json:"origin"`
 	MachineModel string `gorm:"type:varchar(200);not null;default:''" json:"machine_model,omitempty"`
+	// When someone asked for the text to be machine translated again, e.g. after a
+	// model switch; nil otherwise. The translation tasks replace it, and any new
+	// text, a person's too, clears it. See WrittenBy.
+	RetranslateAt *time.Time `json:"retranslate_at,omitempty"`
 
 	// Relationships
 	Entry   Entry  `gorm:"foreignKey:EntryID" json:"entry"`
@@ -40,8 +44,11 @@ const (
 )
 
 // WrittenBy records who wrote the current text: the model, or a person when model
-// is empty. Any edit by a person makes the text theirs.
+// is empty. Any edit by a person makes the text theirs, and a new text answers a
+// request to translate it again.
 func (l *Localization) WrittenBy(model string) {
+	l.RetranslateAt = nil
+
 	if model == "" {
 		l.Origin = OriginHuman
 		l.MachineModel = ""
