@@ -519,9 +519,12 @@ type UpdateLocalizationRequest struct {
 	Translation *string                `protobuf:"bytes,2,opt,name=translation,proto3,oneof" json:"translation,omitempty"`
 	// Set when the new text is a machine suggestion saved as it is: the suggestion's
 	// model. Without it, a changed text counts as the user's.
-	MachineModel  string `protobuf:"bytes,3,opt,name=machine_model,json=machineModel,proto3" json:"machine_model,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	MachineModel string `protobuf:"bytes,3,opt,name=machine_model,json=machineModel,proto3" json:"machine_model,omitempty"`
+	// For a default-locale text: the change is small, e.g. a typo or punctuation fix,
+	// so the entry's other translations still fit and are not marked outdated.
+	KeepTranslationsCurrent bool `protobuf:"varint,4,opt,name=keep_translations_current,json=keepTranslationsCurrent,proto3" json:"keep_translations_current,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *UpdateLocalizationRequest) Reset() {
@@ -573,6 +576,13 @@ func (x *UpdateLocalizationRequest) GetMachineModel() string {
 		return x.MachineModel
 	}
 	return ""
+}
+
+func (x *UpdateLocalizationRequest) GetKeepTranslationsCurrent() bool {
+	if x != nil {
+		return x.KeepTranslationsCurrent
+	}
+	return false
 }
 
 type UpdateLocalizationResponse struct {
@@ -1170,8 +1180,11 @@ type ReviewLocalizationsRequest struct {
 	// When approving, also approve outdated translations that are approved already,
 	// confirming they still fit the default text. Otherwise they are skipped.
 	ConfirmOutdated bool `protobuf:"varint,7,opt,name=confirm_outdated,json=confirmOutdated,proto3" json:"confirm_outdated,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// When approving, only the approved translations that are outdated, confirming they
+	// still fit the default text; drafts wait for their own review. Not for rejecting.
+	OnlyOutdated  bool `protobuf:"varint,8,opt,name=only_outdated,json=onlyOutdated,proto3" json:"only_outdated,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ReviewLocalizationsRequest) Reset() {
@@ -1249,6 +1262,13 @@ func (x *ReviewLocalizationsRequest) GetSkipApproved() bool {
 func (x *ReviewLocalizationsRequest) GetConfirmOutdated() bool {
 	if x != nil {
 		return x.ConfirmOutdated
+	}
+	return false
+}
+
+func (x *ReviewLocalizationsRequest) GetOnlyOutdated() bool {
+	if x != nil {
+		return x.OnlyOutdated
 	}
 	return false
 }
@@ -1549,11 +1569,12 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\vtranslation\x18\x03 \x01(\tR\vtranslation\x12#\n" +
 	"\rmachine_model\x18\x04 \x01(\tR\fmachineModel\"[\n" +
 	"\x1aCreateLocalizationResponse\x12=\n" +
-	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"\x87\x01\n" +
+	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"\xc3\x01\n" +
 	"\x19UpdateLocalizationRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
 	"\vtranslation\x18\x02 \x01(\tH\x00R\vtranslation\x88\x01\x01\x12#\n" +
-	"\rmachine_model\x18\x03 \x01(\tR\fmachineModelB\x0e\n" +
+	"\rmachine_model\x18\x03 \x01(\tR\fmachineModel\x12:\n" +
+	"\x19keep_translations_current\x18\x04 \x01(\bR\x17keepTranslationsCurrentB\x0e\n" +
 	"\f_translation\"[\n" +
 	"\x1aUpdateLocalizationResponse\x12=\n" +
 	"\flocalization\x18\x01 \x01(\v2\x19.parlance.v1.LocalizationR\flocalization\"+\n" +
@@ -1588,7 +1609,7 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\rlocalizations\x18\x01 \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations\x12#\n" +
 	"\rsuccess_count\x18\x02 \x01(\x05R\fsuccessCount\x12#\n" +
 	"\rfailure_count\x18\x03 \x01(\x05R\ffailureCount\x12#\n" +
-	"\rskipped_count\x18\x04 \x01(\x05R\fskippedCount\"\xa6\x02\n" +
+	"\rskipped_count\x18\x04 \x01(\x05R\fskippedCount\"\xcb\x02\n" +
 	"\x1aReviewLocalizationsRequest\x12)\n" +
 	"\x10localization_ids\x18\x01 \x03(\tR\x0flocalizationIds\x12\x1b\n" +
 	"\tentry_ids\x18\x02 \x03(\tR\bentryIds\x12\x1d\n" +
@@ -1597,7 +1618,8 @@ const file_parlance_v1_localization_proto_rawDesc = "" +
 	"\bdecision\x18\x04 \x01(\x0e2\x1b.parlance.v1.ReviewDecisionR\bdecision\x12\x18\n" +
 	"\acomment\x18\x05 \x01(\tR\acomment\x12#\n" +
 	"\rskip_approved\x18\x06 \x01(\bR\fskipApproved\x12)\n" +
-	"\x10confirm_outdated\x18\a \x01(\bR\x0fconfirmOutdated\"^\n" +
+	"\x10confirm_outdated\x18\a \x01(\bR\x0fconfirmOutdated\x12#\n" +
+	"\ronly_outdated\x18\b \x01(\bR\fonlyOutdated\"^\n" +
 	"\x1bReviewLocalizationsResponse\x12?\n" +
 	"\rlocalizations\x18\x01 \x03(\v2\x19.parlance.v1.LocalizationR\rlocalizations\"\xab\x01\n" +
 	"\x1eSearchTranslationMemoryRequest\x12\x1f\n" +

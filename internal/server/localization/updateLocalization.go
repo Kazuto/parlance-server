@@ -65,8 +65,10 @@ func (s *Server) UpdateLocalization(
 			return nil
 		}
 
-		if err := outdateOthers(tx, &localization, at); err != nil {
-			return err
+		if !req.Msg.KeepTranslationsCurrent {
+			if err := outdateOthers(tx, &localization, at); err != nil {
+				return err
+			}
 		}
 
 		return webhook.EmitTranslations(tx, models.WebhookEventTranslationsAwaitingApproval, []string{localization.ID}, localization.UpdatedBy, nil)

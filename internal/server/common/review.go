@@ -38,6 +38,9 @@ type ReviewSelection struct {
 	// Also approve approved rows that are outdated, confirming they still fit their
 	// source text; only for rows with an outdated_at column
 	ConfirmOutdated bool
+	// Approve only approved rows that are outdated, leaving drafts for their own
+	// review; only for rows with an outdated_at column
+	OnlyOutdated bool
 }
 
 // ValidateReview checks a review request before rows are loaded
@@ -50,6 +53,10 @@ func ValidateReview(selection ReviewSelection, decision pb.ReviewDecision, comme
 		}
 	default:
 		return errors.InvalidInput(errors.ErrInvalidInput, "decision is required")
+	}
+
+	if selection.OnlyOutdated && decision != pb.ReviewDecision_REVIEW_DECISION_APPROVE {
+		return errors.InvalidInput(errors.ErrInvalidInput, "only outdated translations are for approving")
 	}
 
 	if len(selection.IDs) == 0 && len(selection.ParentIDs) == 0 {
@@ -66,7 +73,8 @@ func ValidateReview(selection ReviewSelection, decision pb.ReviewDecision, comme
 // ReviewRows loads the selected rows and approves or rejects them in one transaction,
 // recording each review in their history. Rows that don't exist, and approved rows when
 // approving or with SkipApproved, are skipped; ConfirmOutdated approves the outdated
-// ones of those again. Approving a row clears its outdated mark.
+// ones of those again, and OnlyOutdated only those. Approving a row clears its outdated
+// mark.
 func ReviewRows[T any, P interface {
 	*T
 	Reviewable
@@ -95,6 +103,8 @@ func ReviewRows[T any, P interface {
 		// Approving leaves approved rows as they are, so their reviewer and history stay,
 		// unless it confirms they still fit their changed source text.
 		switch {
+		case decision == pb.ReviewDecision_REVIEW_DECISION_APPROVE && selection.OnlyOutdated:
+			query = query.Where("status = ? AND outdated_at IS NOT NULL", models.StatusApproved)
 		case decision == pb.ReviewDecision_REVIEW_DECISION_APPROVE && selection.ConfirmOutdated:
 			query = query.Where("(status = ? OR outdated_at IS NOT NULL)", models.StatusDraft)
 		case decision == pb.ReviewDecision_REVIEW_DECISION_APPROVE || selection.SkipApproved:
