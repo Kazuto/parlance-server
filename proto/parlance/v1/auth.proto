@@ -63,6 +63,8 @@ message GetCurrentUserResponse {
   User user = 1;
   // Whether a machine translation server is configured.
   bool translation_enabled = 2;
+  // The running server's release, e.g. "2.0.0", or "dev" for builds from source.
+  string server_version = 3;
 }
 
 message SignInProvider {

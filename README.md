@@ -59,6 +59,7 @@ Set these as environment variables or in a `.env` file (see `.env.example`):
 | `TRUSTED_PROXIES`                       | (none)                           | Comma-separated addresses or CIDR ranges of reverse proxies in front of the API, e.g. `172.16.0.0/12`. From them, `X-Forwarded-For` tells where a request came from, e.g. for `login.failed` webhooks                                                            |
 | `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET` | (none)                           | S3-compatible storage for avatars, which the API serves at `/avatars/{id}`; the bucket is created if missing and needs no public access                                                                                                                          |
 | `S3_ACCESS_KEY`, `S3_SECRET_KEY`        | (none)                           | Credentials for that storage                                                                                                                                                                                                                                     |
+| `UPDATE_CHECK`                          | `true`                           | Whether the server asks GitHub for the newest releases of Parlance, see [Updates](#updates)                                                                                                                                                                      |
 
 The Docker Compose file sets development values for all of them; set your own
 `JWT_SECRET` and `ENCRYPTION_KEY` anywhere else.
@@ -416,6 +417,21 @@ The sign-in page then offers "Sign in with …" for each enabled provider.
 Permissions: `read_sso_provider`, `create_sso_provider`, `update_sso_provider`
 (also to test) and `delete_sso_provider`. The code is in `internal/sso`, with a
 test provider in `internal/sso/ssotest`.
+
+## Updates
+
+Everyone signed in sees the running versions of the server and the web app on their
+account page; `GetCurrentUser` returns the server's as `serverVersion`. Those with
+`read_update`, which the admin role has, also see in the settings whether newer
+releases are out (`UpdateService.GetUpdates`).
+
+For that, the server asks GitHub for the newest releases at most every 12 hours, and
+only when someone looks. The request tells GitHub the server's address and version,
+nothing else. `UPDATE_CHECK=false` stops it.
+
+The images carry their release. Building one yourself, pass it with
+`--build-arg VERSION=2.0.0`; builds without it are `dev`, and aren't compared with
+the releases.
 
 ## API
 

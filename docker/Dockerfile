@@ -22,9 +22,10 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build binary
+# Build binary; VERSION is the release, e.g. 2.0.0, which the app shows
+ARG VERSION=dev
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags="-w -s" \
+    -ldflags="-w -s -X github.com/kazuto/parlance-server/internal/version.Version=${VERSION}" \
     -o api ./cmd/api
 
 # Development stage with Air for live reload

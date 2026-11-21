@@ -45,16 +45,19 @@ import (
 	"github.com/kazuto/parlance-server/internal/server/task"
 	"github.com/kazuto/parlance-server/internal/server/terminology"
 	"github.com/kazuto/parlance-server/internal/server/translationserver"
+	"github.com/kazuto/parlance-server/internal/server/update"
 	"github.com/kazuto/parlance-server/internal/server/user"
 	"github.com/kazuto/parlance-server/internal/server/webhookservice"
 	"github.com/kazuto/parlance-server/internal/sso"
 	"github.com/kazuto/parlance-server/internal/taskrunner"
 	"github.com/kazuto/parlance-server/internal/translators"
+	"github.com/kazuto/parlance-server/internal/updates"
+	"github.com/kazuto/parlance-server/internal/version"
 	"github.com/kazuto/parlance-server/internal/webhook"
 )
 
 func main() {
-	log.Println("Starting Parlance Server...")
+	log.Printf("Starting Parlance Server %s...", version.Version)
 
 	cfg := config.Load()
 	log.Printf("Environment: %s", cfg.Server.Env)
@@ -137,6 +140,14 @@ func main() {
 	webhookSender := webhook.NewSender(secretBox)
 	dispatcherDone := webhook.NewDispatcher(db.DB, webhookSender).Start(dispatcherCtx)
 
+	// Asks GitHub for newer releases only when someone with read_update looks.
+	var updateChecker *updates.Checker
+	if cfg.Updates.Check {
+		updateChecker = updates.New(updates.GitHubAPI, &http.Client{})
+	} else {
+		log.Println("Update check is off (UPDATE_CHECK=false)")
+	}
+
 	// Protected services require a valid token and the permissions rbac.Rules lists.
 	requireAuth := middleware.RequireAuth(cfg.JWT.Secret, apiTokens)
 	authorized := connect.WithInterceptors(rbac.Interceptor(db))
@@ -205,6 +216,9 @@ func main() {
 		}, true},
 		{"SsoProviderService", func(o ...connect.HandlerOption) (string, http.Handler) {
 			return parlancev1connect.NewSsoProviderServiceHandler(ssoprovider.NewServer(db, secretBox, ssoClient.Check), o...)
+		}, true},
+		{"UpdateService", func(o ...connect.HandlerOption) (string, http.Handler) {
+			return parlancev1connect.NewUpdateServiceHandler(update.NewServer(updateChecker), o...)
 		}, true},
 		{"WebhookService", func(o ...connect.HandlerOption) (string, http.Handler) {
 			return parlancev1connect.NewWebhookServiceHandler(webhookservice.NewServer(db, secretBox, webhookSender), o...)

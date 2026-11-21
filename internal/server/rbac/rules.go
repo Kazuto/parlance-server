@@ -163,6 +163,9 @@ var Rules = map[string][]string{
 	parlancev1connect.TranslationServerServiceUpdateTranslationServerProcedure:   {permissions.UpdateTranslationServer},
 	parlancev1connect.TranslationServerServiceUpdateTranslationSettingsProcedure: {permissions.UpdateTranslationServer},
 
+	// UpdateService
+	parlancev1connect.UpdateServiceGetUpdatesProcedure: {permissions.ReadUpdate},
+
 	// UserService
 	parlancev1connect.UserServiceAssignRoleProcedure:  {permissions.UpdateUser},
 	parlancev1connect.UserServiceCreateUserProcedure:  {permissions.CreateUser},

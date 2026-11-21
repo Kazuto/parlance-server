@@ -17,6 +17,7 @@ type Config struct {
 	JWT      JWTConfig
 	Secrets  SecretsConfig
 	CORS     CORSConfig
+	Updates  UpdatesConfig
 }
 
 type ServerConfig struct {
@@ -57,6 +58,12 @@ type SecretsConfig struct {
 
 type CORSConfig struct {
 	AllowedOrigins []string
+}
+
+// UpdatesConfig says whether the server asks GitHub for the newest releases of
+// Parlance, see the updates package.
+type UpdatesConfig struct {
+	Check bool
 }
 
 func Load() *Config {
@@ -103,6 +110,9 @@ func Load() *Config {
 		CORS: CORSConfig{
 			AllowedOrigins: parseCommaSeparated(getEnv("CORS_ALLOWED_ORIGINS", "http://localhost:3000")),
 		},
+		Updates: UpdatesConfig{
+			Check: parseBool("UPDATE_CHECK", getEnv("UPDATE_CHECK", "true"), true),
+		},
 	}
 }
 
@@ -140,6 +150,18 @@ func parseCommaSeparated(value string) []string {
 	}
 
 	return result
+}
+
+// parseBool reads true or false, keeping the default for anything else.
+func parseBool(name, value string, defaultValue bool) bool {
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		log.Printf("config: %s: %q is neither true nor false, so it stays %t", name, value, defaultValue)
+
+		return defaultValue
+	}
+
+	return parsed
 }
 
 // parsePrefixes reads comma-separated addresses and CIDR ranges, skipping the ones
