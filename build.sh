@@ -61,6 +61,7 @@ build_image() {
     docker build -t "${IMAGE_NAME}:${VERSION}" \
         -t "${IMAGE_NAME}:latest" \
         --target runtime \
+        --build-arg VERSION="${VERSION#v}" \
         -f docker/Dockerfile \
         .
 
