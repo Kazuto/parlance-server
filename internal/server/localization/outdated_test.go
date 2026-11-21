@@ -129,6 +129,30 @@ func TestOutdatedTranslations(t *testing.T) {
 		}
 	})
 
+	t.Run("a small fix can keep the translations current", func(t *testing.T) {
+		seed(t)
+		mark(t, "od-fr")
+
+		res, err := server.UpdateLocalization(ctx, connect.NewRequest(&pb.UpdateLocalizationRequest{
+			Id:                      "od-en",
+			Translation:             proto.String("Hello!"),
+			KeepTranslationsCurrent: true,
+		}))
+		if err != nil {
+			t.Fatalf("UpdateLocalization: %v", err)
+		}
+
+		// The French stays outdated from the change before.
+		if got := outdated(t, all...); len(got) != 1 || got[0] != "od-fr" {
+			t.Errorf("outdated = %v, want [od-fr]", got)
+		}
+
+		// The new default text still needs review.
+		if source := res.Msg.Localization; source.Translation != "Hello!" || source.Status != pb.ReviewStatus_REVIEW_STATUS_DRAFT {
+			t.Errorf("default text = %+v, want the new text as a draft", source)
+		}
+	})
+
 	t.Run("editing a translation makes it current", func(t *testing.T) {
 		seed(t)
 		mark(t, "od-de", "od-fr")
@@ -230,6 +254,45 @@ func TestOutdatedTranslations(t *testing.T) {
 
 		if reviewed := approve(t, true); len(reviewed) != 1 || reviewed[0].Id != "od-fr" {
 			t.Errorf("reviewed = %+v, want only the French draft", reviewed)
+		}
+	})
+
+	t.Run("confirming only outdated translations leaves the drafts", func(t *testing.T) {
+		seed(t)
+		mark(t, "od-de", "od-fr")
+
+		reviewed, err := review(ctx, server, &pb.ReviewLocalizationsRequest{
+			EntryIds:     []string{"od-1"},
+			LocaleIds:    []string{"od-de", "od-fr"},
+			Decision:     pb.ReviewDecision_REVIEW_DECISION_APPROVE,
+			OnlyOutdated: true,
+		})
+		if err != nil {
+			t.Fatalf("ReviewLocalizations: %v", err)
+		}
+
+		if len(reviewed) != 1 || reviewed[0].Id != "od-de" || reviewed[0].Outdated {
+			t.Errorf("reviewed = %+v, want only the German, current", reviewed)
+		}
+
+		// The French draft waits for its own review, still outdated.
+		if french := load(t, "od-fr"); french.Status != models.StatusDraft || french.OutdatedAt == nil {
+			t.Errorf("French = %+v, want an outdated draft", french)
+		}
+	})
+
+	t.Run("only outdated translations can't be rejected", func(t *testing.T) {
+		seed(t)
+		mark(t, "od-de")
+
+		_, err := review(ctx, server, &pb.ReviewLocalizationsRequest{
+			LocalizationIds: []string{"od-de"},
+			Decision:        pb.ReviewDecision_REVIEW_DECISION_REJECT,
+			Comment:         "Check the new English",
+			OnlyOutdated:    true,
+		})
+		if connect.CodeOf(err) != connect.CodeInvalidArgument {
+			t.Errorf("error = %v, want InvalidArgument", err)
 		}
 	})
 

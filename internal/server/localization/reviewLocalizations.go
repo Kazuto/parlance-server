@@ -24,6 +24,7 @@ func (s *Server) ReviewLocalizations(
 		Webhooks:        true,
 		SkipApproved:    req.Msg.SkipApproved,
 		ConfirmOutdated: req.Msg.ConfirmOutdated,
+		OnlyOutdated:    req.Msg.OnlyOutdated,
 	}, req.Msg.Decision, req.Msg.Comment)
 	if err != nil {
 		return nil, err

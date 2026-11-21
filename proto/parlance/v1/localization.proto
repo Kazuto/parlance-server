@@ -92,6 +92,9 @@ message UpdateLocalizationRequest {
   // Set when the new text is a machine suggestion saved as it is: the suggestion's
   // model. Without it, a changed text counts as the user's.
   string machine_model = 3;
+  // For a default-locale text: the change is small, e.g. a typo or punctuation fix,
+  // so the entry's other translations still fit and are not marked outdated.
+  bool keep_translations_current = 4;
 }
 
 message UpdateLocalizationResponse {
@@ -170,6 +173,9 @@ message ReviewLocalizationsRequest {
   // When approving, also approve outdated translations that are approved already,
   // confirming they still fit the default text. Otherwise they are skipped.
   bool confirm_outdated = 7;
+  // When approving, only the approved translations that are outdated, confirming they
+  // still fit the default text; drafts wait for their own review. Not for rejecting.
+  bool only_outdated = 8;
 }
 
 message ReviewLocalizationsResponse {
