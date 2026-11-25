@@ -29,6 +29,9 @@ const (
 	TaskType_TASK_TYPE_AI_TRANSLATE TaskType = 1
 	// Opens or updates a pull request with exported translation files.
 	TaskType_TASK_TYPE_GIT_EXPORT TaskType = 2
+	// Uploads exported translation files to an S3-compatible bucket, each named by its
+	// SHA-256, with a manifest listing them.
+	TaskType_TASK_TYPE_S3_EXPORT TaskType = 3
 )
 
 // Enum value maps for TaskType.
@@ -37,11 +40,13 @@ var (
 		0: "TASK_TYPE_UNSPECIFIED",
 		1: "TASK_TYPE_AI_TRANSLATE",
 		2: "TASK_TYPE_GIT_EXPORT",
+		3: "TASK_TYPE_S3_EXPORT",
 	}
 	TaskType_value = map[string]int32{
 		"TASK_TYPE_UNSPECIFIED":  0,
 		"TASK_TYPE_AI_TRANSLATE": 1,
 		"TASK_TYPE_GIT_EXPORT":   2,
+		"TASK_TYPE_S3_EXPORT":    3,
 	}
 )
 
@@ -375,10 +380,13 @@ func (x *AiTranslateConfig) GetRedoMachineDrafts() bool {
 	return false
 }
 
+// A file of a git or S3 export.
 type GitExportFile struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Format ExportFormat           `protobuf:"varint,1,opt,name=format,proto3,enum=parlance.v1.ExportFormat" json:"format,omitempty"`
-	// Where each language's file goes, with "{locale}" for its code, e.g. "lang/{locale}.json".
+	// Where each language's file goes, with "{locale}" for its code, e.g.
+	// "lang/{locale}.json". S3 exports also need "{hash}" for its SHA-256, e.g.
+	// "i18n/{locale}.{hash}.json".
 	Path          string `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -542,27 +550,174 @@ func (x *GitExportConfig) GetTagIds() []string {
 	return nil
 }
 
+type S3ExportConfig struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The storage's address, e.g. "https://<account>.r2.cloudflarestorage.com"; empty
+	// for Amazon S3.
+	Endpoint string `protobuf:"bytes,1,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	// Empty for "us-east-1".
+	Region string `protobuf:"bytes,2,opt,name=region,proto3" json:"region,omitempty"`
+	Bucket string `protobuf:"bytes,3,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	// The secret access key is the task's token.
+	AccessKeyId string `protobuf:"bytes,4,opt,name=access_key_id,json=accessKeyId,proto3" json:"access_key_id,omitempty"`
+	// Puts the bucket into the path instead of the host name, as MinIO needs.
+	PathStyle bool `protobuf:"varint,5,opt,name=path_style,json=pathStyle,proto3" json:"path_style,omitempty"`
+	// The key of the manifest that lists the files, e.g. "i18n/manifest.json". It is
+	// written after them, so it never lists a file that isn't there yet.
+	ManifestPath string `protobuf:"bytes,6,opt,name=manifest_path,json=manifestPath,proto3" json:"manifest_path,omitempty"`
+	// How many hex digits of each file's SHA-256 go into its key, 8 to 64; 0 for all 64.
+	// The manifest always holds the whole hash.
+	HashLength int32            `protobuf:"varint,7,opt,name=hash_length,json=hashLength,proto3" json:"hash_length,omitempty"`
+	Files      []*GitExportFile `protobuf:"bytes,8,rep,name=files,proto3" json:"files,omitempty"`
+	// Empty for all languages.
+	LocaleIds []string `protobuf:"bytes,9,rep,name=locale_ids,json=localeIds,proto3" json:"locale_ids,omitempty"`
+	// Entries in any of the scopes; empty for all entries.
+	ScopeIds []string `protobuf:"bytes,10,rep,name=scope_ids,json=scopeIds,proto3" json:"scope_ids,omitempty"`
+	// Narrows each scope to the entries with any of its selected tags.
+	TagIds        []string `protobuf:"bytes,11,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
+	IncludeDrafts bool     `protobuf:"varint,12,opt,name=include_drafts,json=includeDrafts,proto3" json:"include_drafts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *S3ExportConfig) Reset() {
+	*x = S3ExportConfig{}
+	mi := &file_parlance_v1_task_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *S3ExportConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*S3ExportConfig) ProtoMessage() {}
+
+func (x *S3ExportConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_parlance_v1_task_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use S3ExportConfig.ProtoReflect.Descriptor instead.
+func (*S3ExportConfig) Descriptor() ([]byte, []int) {
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *S3ExportConfig) GetEndpoint() string {
+	if x != nil {
+		return x.Endpoint
+	}
+	return ""
+}
+
+func (x *S3ExportConfig) GetRegion() string {
+	if x != nil {
+		return x.Region
+	}
+	return ""
+}
+
+func (x *S3ExportConfig) GetBucket() string {
+	if x != nil {
+		return x.Bucket
+	}
+	return ""
+}
+
+func (x *S3ExportConfig) GetAccessKeyId() string {
+	if x != nil {
+		return x.AccessKeyId
+	}
+	return ""
+}
+
+func (x *S3ExportConfig) GetPathStyle() bool {
+	if x != nil {
+		return x.PathStyle
+	}
+	return false
+}
+
+func (x *S3ExportConfig) GetManifestPath() string {
+	if x != nil {
+		return x.ManifestPath
+	}
+	return ""
+}
+
+func (x *S3ExportConfig) GetHashLength() int32 {
+	if x != nil {
+		return x.HashLength
+	}
+	return 0
+}
+
+func (x *S3ExportConfig) GetFiles() []*GitExportFile {
+	if x != nil {
+		return x.Files
+	}
+	return nil
+}
+
+func (x *S3ExportConfig) GetLocaleIds() []string {
+	if x != nil {
+		return x.LocaleIds
+	}
+	return nil
+}
+
+func (x *S3ExportConfig) GetScopeIds() []string {
+	if x != nil {
+		return x.ScopeIds
+	}
+	return nil
+}
+
+func (x *S3ExportConfig) GetTagIds() []string {
+	if x != nil {
+		return x.TagIds
+	}
+	return nil
+}
+
+func (x *S3ExportConfig) GetIncludeDrafts() bool {
+	if x != nil {
+		return x.IncludeDrafts
+	}
+	return false
+}
+
 type TaskRunSummary struct {
 	state      protoimpl.MessageState `protogen:"open.v1"`
 	Translated int32                  `protobuf:"varint,1,opt,name=translated,proto3" json:"translated,omitempty"`
 	Failed     int32                  `protobuf:"varint,2,opt,name=failed,proto3" json:"failed,omitempty"`
 	// Missing translations left for later runs.
-	Remaining      int32    `protobuf:"varint,3,opt,name=remaining,proto3" json:"remaining,omitempty"`
-	PullRequestUrl string   `protobuf:"bytes,4,opt,name=pull_request_url,json=pullRequestUrl,proto3" json:"pull_request_url,omitempty"`
-	ChangedFiles   []string `protobuf:"bytes,5,rep,name=changed_files,json=changedFiles,proto3" json:"changed_files,omitempty"`
-	// How the run ended, as a code: "no_changes" (the base branch has the files),
-	// "up_to_date" (the pull request branch has them), "updated", or
+	Remaining      int32  `protobuf:"varint,3,opt,name=remaining,proto3" json:"remaining,omitempty"`
+	PullRequestUrl string `protobuf:"bytes,4,opt,name=pull_request_url,json=pullRequestUrl,proto3" json:"pull_request_url,omitempty"`
+	// A git export's changed paths, or the keys an S3 export uploaded.
+	ChangedFiles []string `protobuf:"bytes,5,rep,name=changed_files,json=changedFiles,proto3" json:"changed_files,omitempty"`
+	// How the run ended, as a code: "no_changes" (the base branch or the bucket has the
+	// files), "up_to_date" (the pull request branch has them), "updated", or
 	// "nothing_to_translate".
 	Outcome string `protobuf:"bytes,6,opt,name=outcome,proto3" json:"outcome,omitempty"`
 	// Machine drafts translated again by the current model; counted in translated too.
-	Redone        int32 `protobuf:"varint,7,opt,name=redone,proto3" json:"redone,omitempty"`
+	Redone int32 `protobuf:"varint,7,opt,name=redone,proto3" json:"redone,omitempty"`
+	// An S3 export's manifest, as "s3://bucket/key".
+	ManifestUrl   string `protobuf:"bytes,8,opt,name=manifest_url,json=manifestUrl,proto3" json:"manifest_url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TaskRunSummary) Reset() {
 	*x = TaskRunSummary{}
-	mi := &file_parlance_v1_task_proto_msgTypes[3]
+	mi := &file_parlance_v1_task_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -574,7 +729,7 @@ func (x *TaskRunSummary) String() string {
 func (*TaskRunSummary) ProtoMessage() {}
 
 func (x *TaskRunSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[3]
+	mi := &file_parlance_v1_task_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -587,7 +742,7 @@ func (x *TaskRunSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TaskRunSummary.ProtoReflect.Descriptor instead.
 func (*TaskRunSummary) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{3}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *TaskRunSummary) GetTranslated() int32 {
@@ -639,6 +794,13 @@ func (x *TaskRunSummary) GetRedone() int32 {
 	return 0
 }
 
+func (x *TaskRunSummary) GetManifestUrl() string {
+	if x != nil {
+		return x.ManifestUrl
+	}
+	return ""
+}
+
 type TaskRun struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -663,7 +825,7 @@ type TaskRun struct {
 
 func (x *TaskRun) Reset() {
 	*x = TaskRun{}
-	mi := &file_parlance_v1_task_proto_msgTypes[4]
+	mi := &file_parlance_v1_task_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -675,7 +837,7 @@ func (x *TaskRun) String() string {
 func (*TaskRun) ProtoMessage() {}
 
 func (x *TaskRun) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[4]
+	mi := &file_parlance_v1_task_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -688,7 +850,7 @@ func (x *TaskRun) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TaskRun.ProtoReflect.Descriptor instead.
 func (*TaskRun) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{4}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *TaskRun) GetId() string {
@@ -808,16 +970,18 @@ type Task struct {
 	// The token itself is never sent back.
 	HasToken bool `protobuf:"varint,11,opt,name=has_token,json=hasToken,proto3" json:"has_token,omitempty"`
 	// The newest run, if any.
-	LastRun       *TaskRun `protobuf:"bytes,12,opt,name=last_run,json=lastRun,proto3" json:"last_run,omitempty"`
-	CreatedAt     string   `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string   `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	LastRun   *TaskRun `protobuf:"bytes,12,opt,name=last_run,json=lastRun,proto3" json:"last_run,omitempty"`
+	CreatedAt string   `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt string   `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// Set for TASK_TYPE_S3_EXPORT.
+	S3Export      *S3ExportConfig `protobuf:"bytes,15,opt,name=s3_export,json=s3Export,proto3" json:"s3_export,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Task) Reset() {
 	*x = Task{}
-	mi := &file_parlance_v1_task_proto_msgTypes[5]
+	mi := &file_parlance_v1_task_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -829,7 +993,7 @@ func (x *Task) String() string {
 func (*Task) ProtoMessage() {}
 
 func (x *Task) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[5]
+	mi := &file_parlance_v1_task_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -842,7 +1006,7 @@ func (x *Task) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Task.ProtoReflect.Descriptor instead.
 func (*Task) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{5}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Task) GetId() string {
@@ -943,6 +1107,13 @@ func (x *Task) GetUpdatedAt() string {
 	return ""
 }
 
+func (x *Task) GetS3Export() *S3ExportConfig {
+	if x != nil {
+		return x.S3Export
+	}
+	return nil
+}
+
 type ListTasksRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -951,7 +1122,7 @@ type ListTasksRequest struct {
 
 func (x *ListTasksRequest) Reset() {
 	*x = ListTasksRequest{}
-	mi := &file_parlance_v1_task_proto_msgTypes[6]
+	mi := &file_parlance_v1_task_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -963,7 +1134,7 @@ func (x *ListTasksRequest) String() string {
 func (*ListTasksRequest) ProtoMessage() {}
 
 func (x *ListTasksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[6]
+	mi := &file_parlance_v1_task_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -976,7 +1147,7 @@ func (x *ListTasksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTasksRequest.ProtoReflect.Descriptor instead.
 func (*ListTasksRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{6}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{7}
 }
 
 type ListTasksResponse struct {
@@ -988,7 +1159,7 @@ type ListTasksResponse struct {
 
 func (x *ListTasksResponse) Reset() {
 	*x = ListTasksResponse{}
-	mi := &file_parlance_v1_task_proto_msgTypes[7]
+	mi := &file_parlance_v1_task_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1000,7 +1171,7 @@ func (x *ListTasksResponse) String() string {
 func (*ListTasksResponse) ProtoMessage() {}
 
 func (x *ListTasksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[7]
+	mi := &file_parlance_v1_task_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1013,7 +1184,7 @@ func (x *ListTasksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTasksResponse.ProtoReflect.Descriptor instead.
 func (*ListTasksResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{7}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListTasksResponse) GetTasks() []*Task {
@@ -1032,7 +1203,7 @@ type GetTaskRequest struct {
 
 func (x *GetTaskRequest) Reset() {
 	*x = GetTaskRequest{}
-	mi := &file_parlance_v1_task_proto_msgTypes[8]
+	mi := &file_parlance_v1_task_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1044,7 +1215,7 @@ func (x *GetTaskRequest) String() string {
 func (*GetTaskRequest) ProtoMessage() {}
 
 func (x *GetTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[8]
+	mi := &file_parlance_v1_task_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1057,7 +1228,7 @@ func (x *GetTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTaskRequest.ProtoReflect.Descriptor instead.
 func (*GetTaskRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{8}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetTaskRequest) GetId() string {
@@ -1076,7 +1247,7 @@ type GetTaskResponse struct {
 
 func (x *GetTaskResponse) Reset() {
 	*x = GetTaskResponse{}
-	mi := &file_parlance_v1_task_proto_msgTypes[9]
+	mi := &file_parlance_v1_task_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1088,7 +1259,7 @@ func (x *GetTaskResponse) String() string {
 func (*GetTaskResponse) ProtoMessage() {}
 
 func (x *GetTaskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[9]
+	mi := &file_parlance_v1_task_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1101,7 +1272,7 @@ func (x *GetTaskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTaskResponse.ProtoReflect.Descriptor instead.
 func (*GetTaskResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{9}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetTaskResponse) GetTask() *Task {
@@ -1121,15 +1292,16 @@ type CreateTaskRequest struct {
 	EventDelayMinutes int32                  `protobuf:"varint,6,opt,name=event_delay_minutes,json=eventDelayMinutes,proto3" json:"event_delay_minutes,omitempty"`
 	AiTranslate       *AiTranslateConfig     `protobuf:"bytes,7,opt,name=ai_translate,json=aiTranslate,proto3" json:"ai_translate,omitempty"`
 	GitExport         *GitExportConfig       `protobuf:"bytes,8,opt,name=git_export,json=gitExport,proto3" json:"git_export,omitempty"`
-	// The git host's access token.
-	Token         string `protobuf:"bytes,9,opt,name=token,proto3" json:"token,omitempty"`
+	// The git host's access token, or the S3 export's secret access key.
+	Token         string          `protobuf:"bytes,9,opt,name=token,proto3" json:"token,omitempty"`
+	S3Export      *S3ExportConfig `protobuf:"bytes,10,opt,name=s3_export,json=s3Export,proto3" json:"s3_export,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateTaskRequest) Reset() {
 	*x = CreateTaskRequest{}
-	mi := &file_parlance_v1_task_proto_msgTypes[10]
+	mi := &file_parlance_v1_task_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1141,7 +1313,7 @@ func (x *CreateTaskRequest) String() string {
 func (*CreateTaskRequest) ProtoMessage() {}
 
 func (x *CreateTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[10]
+	mi := &file_parlance_v1_task_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1154,7 +1326,7 @@ func (x *CreateTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTaskRequest.ProtoReflect.Descriptor instead.
 func (*CreateTaskRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{10}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CreateTaskRequest) GetName() string {
@@ -1220,6 +1392,13 @@ func (x *CreateTaskRequest) GetToken() string {
 	return ""
 }
 
+func (x *CreateTaskRequest) GetS3Export() *S3ExportConfig {
+	if x != nil {
+		return x.S3Export
+	}
+	return nil
+}
+
 type CreateTaskResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Task          *Task                  `protobuf:"bytes,1,opt,name=task,proto3" json:"task,omitempty"`
@@ -1229,7 +1408,7 @@ type CreateTaskResponse struct {
 
 func (x *CreateTaskResponse) Reset() {
 	*x = CreateTaskResponse{}
-	mi := &file_parlance_v1_task_proto_msgTypes[11]
+	mi := &file_parlance_v1_task_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1241,7 +1420,7 @@ func (x *CreateTaskResponse) String() string {
 func (*CreateTaskResponse) ProtoMessage() {}
 
 func (x *CreateTaskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[11]
+	mi := &file_parlance_v1_task_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1254,7 +1433,7 @@ func (x *CreateTaskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTaskResponse.ProtoReflect.Descriptor instead.
 func (*CreateTaskResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{11}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CreateTaskResponse) GetTask() *Task {
@@ -1276,14 +1455,15 @@ type UpdateTaskRequest struct {
 	AiTranslate       *AiTranslateConfig     `protobuf:"bytes,7,opt,name=ai_translate,json=aiTranslate,proto3" json:"ai_translate,omitempty"`
 	GitExport         *GitExportConfig       `protobuf:"bytes,8,opt,name=git_export,json=gitExport,proto3" json:"git_export,omitempty"`
 	// Unset keeps the stored token; empty removes it.
-	Token         *string `protobuf:"bytes,9,opt,name=token,proto3,oneof" json:"token,omitempty"`
+	Token         *string         `protobuf:"bytes,9,opt,name=token,proto3,oneof" json:"token,omitempty"`
+	S3Export      *S3ExportConfig `protobuf:"bytes,10,opt,name=s3_export,json=s3Export,proto3" json:"s3_export,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateTaskRequest) Reset() {
 	*x = UpdateTaskRequest{}
-	mi := &file_parlance_v1_task_proto_msgTypes[12]
+	mi := &file_parlance_v1_task_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1295,7 +1475,7 @@ func (x *UpdateTaskRequest) String() string {
 func (*UpdateTaskRequest) ProtoMessage() {}
 
 func (x *UpdateTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[12]
+	mi := &file_parlance_v1_task_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1308,7 +1488,7 @@ func (x *UpdateTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateTaskRequest.ProtoReflect.Descriptor instead.
 func (*UpdateTaskRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{12}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *UpdateTaskRequest) GetId() string {
@@ -1374,6 +1554,13 @@ func (x *UpdateTaskRequest) GetToken() string {
 	return ""
 }
 
+func (x *UpdateTaskRequest) GetS3Export() *S3ExportConfig {
+	if x != nil {
+		return x.S3Export
+	}
+	return nil
+}
+
 type UpdateTaskResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Task          *Task                  `protobuf:"bytes,1,opt,name=task,proto3" json:"task,omitempty"`
@@ -1383,7 +1570,7 @@ type UpdateTaskResponse struct {
 
 func (x *UpdateTaskResponse) Reset() {
 	*x = UpdateTaskResponse{}
-	mi := &file_parlance_v1_task_proto_msgTypes[13]
+	mi := &file_parlance_v1_task_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1395,7 +1582,7 @@ func (x *UpdateTaskResponse) String() string {
 func (*UpdateTaskResponse) ProtoMessage() {}
 
 func (x *UpdateTaskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[13]
+	mi := &file_parlance_v1_task_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1408,7 +1595,7 @@ func (x *UpdateTaskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateTaskResponse.ProtoReflect.Descriptor instead.
 func (*UpdateTaskResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{13}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *UpdateTaskResponse) GetTask() *Task {
@@ -1427,7 +1614,7 @@ type DeleteTaskRequest struct {
 
 func (x *DeleteTaskRequest) Reset() {
 	*x = DeleteTaskRequest{}
-	mi := &file_parlance_v1_task_proto_msgTypes[14]
+	mi := &file_parlance_v1_task_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1439,7 +1626,7 @@ func (x *DeleteTaskRequest) String() string {
 func (*DeleteTaskRequest) ProtoMessage() {}
 
 func (x *DeleteTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[14]
+	mi := &file_parlance_v1_task_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1452,7 +1639,7 @@ func (x *DeleteTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteTaskRequest.ProtoReflect.Descriptor instead.
 func (*DeleteTaskRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{14}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *DeleteTaskRequest) GetId() string {
@@ -1470,7 +1657,7 @@ type DeleteTaskResponse struct {
 
 func (x *DeleteTaskResponse) Reset() {
 	*x = DeleteTaskResponse{}
-	mi := &file_parlance_v1_task_proto_msgTypes[15]
+	mi := &file_parlance_v1_task_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1482,7 +1669,7 @@ func (x *DeleteTaskResponse) String() string {
 func (*DeleteTaskResponse) ProtoMessage() {}
 
 func (x *DeleteTaskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[15]
+	mi := &file_parlance_v1_task_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1495,7 +1682,7 @@ func (x *DeleteTaskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteTaskResponse.ProtoReflect.Descriptor instead.
 func (*DeleteTaskResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{15}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{16}
 }
 
 type RunTaskRequest struct {
@@ -1507,7 +1694,7 @@ type RunTaskRequest struct {
 
 func (x *RunTaskRequest) Reset() {
 	*x = RunTaskRequest{}
-	mi := &file_parlance_v1_task_proto_msgTypes[16]
+	mi := &file_parlance_v1_task_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1519,7 +1706,7 @@ func (x *RunTaskRequest) String() string {
 func (*RunTaskRequest) ProtoMessage() {}
 
 func (x *RunTaskRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[16]
+	mi := &file_parlance_v1_task_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1532,7 +1719,7 @@ func (x *RunTaskRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunTaskRequest.ProtoReflect.Descriptor instead.
 func (*RunTaskRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{16}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *RunTaskRequest) GetId() string {
@@ -1551,7 +1738,7 @@ type RunTaskResponse struct {
 
 func (x *RunTaskResponse) Reset() {
 	*x = RunTaskResponse{}
-	mi := &file_parlance_v1_task_proto_msgTypes[17]
+	mi := &file_parlance_v1_task_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1563,7 +1750,7 @@ func (x *RunTaskResponse) String() string {
 func (*RunTaskResponse) ProtoMessage() {}
 
 func (x *RunTaskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[17]
+	mi := &file_parlance_v1_task_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1576,7 +1763,7 @@ func (x *RunTaskResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunTaskResponse.ProtoReflect.Descriptor instead.
 func (*RunTaskResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{17}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *RunTaskResponse) GetRun() *TaskRun {
@@ -1596,7 +1783,7 @@ type ListTaskRunsRequest struct {
 
 func (x *ListTaskRunsRequest) Reset() {
 	*x = ListTaskRunsRequest{}
-	mi := &file_parlance_v1_task_proto_msgTypes[18]
+	mi := &file_parlance_v1_task_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1608,7 +1795,7 @@ func (x *ListTaskRunsRequest) String() string {
 func (*ListTaskRunsRequest) ProtoMessage() {}
 
 func (x *ListTaskRunsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[18]
+	mi := &file_parlance_v1_task_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1621,7 +1808,7 @@ func (x *ListTaskRunsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTaskRunsRequest.ProtoReflect.Descriptor instead.
 func (*ListTaskRunsRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{18}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ListTaskRunsRequest) GetTaskId() string {
@@ -1649,7 +1836,7 @@ type ListTaskRunsResponse struct {
 
 func (x *ListTaskRunsResponse) Reset() {
 	*x = ListTaskRunsResponse{}
-	mi := &file_parlance_v1_task_proto_msgTypes[19]
+	mi := &file_parlance_v1_task_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1661,7 +1848,7 @@ func (x *ListTaskRunsResponse) String() string {
 func (*ListTaskRunsResponse) ProtoMessage() {}
 
 func (x *ListTaskRunsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[19]
+	mi := &file_parlance_v1_task_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1674,7 +1861,7 @@ func (x *ListTaskRunsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTaskRunsResponse.ProtoReflect.Descriptor instead.
 func (*ListTaskRunsResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{19}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ListTaskRunsResponse) GetRuns() []*TaskRun {
@@ -1700,7 +1887,7 @@ type GetTaskRunRequest struct {
 
 func (x *GetTaskRunRequest) Reset() {
 	*x = GetTaskRunRequest{}
-	mi := &file_parlance_v1_task_proto_msgTypes[20]
+	mi := &file_parlance_v1_task_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1712,7 +1899,7 @@ func (x *GetTaskRunRequest) String() string {
 func (*GetTaskRunRequest) ProtoMessage() {}
 
 func (x *GetTaskRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[20]
+	mi := &file_parlance_v1_task_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1725,7 +1912,7 @@ func (x *GetTaskRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTaskRunRequest.ProtoReflect.Descriptor instead.
 func (*GetTaskRunRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{20}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetTaskRunRequest) GetId() string {
@@ -1744,7 +1931,7 @@ type GetTaskRunResponse struct {
 
 func (x *GetTaskRunResponse) Reset() {
 	*x = GetTaskRunResponse{}
-	mi := &file_parlance_v1_task_proto_msgTypes[21]
+	mi := &file_parlance_v1_task_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1756,7 +1943,7 @@ func (x *GetTaskRunResponse) String() string {
 func (*GetTaskRunResponse) ProtoMessage() {}
 
 func (x *GetTaskRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[21]
+	mi := &file_parlance_v1_task_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1769,7 +1956,7 @@ func (x *GetTaskRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTaskRunResponse.ProtoReflect.Descriptor instead.
 func (*GetTaskRunResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{21}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetTaskRunResponse) GetRun() *TaskRun {
@@ -1788,7 +1975,7 @@ type CancelTaskRunRequest struct {
 
 func (x *CancelTaskRunRequest) Reset() {
 	*x = CancelTaskRunRequest{}
-	mi := &file_parlance_v1_task_proto_msgTypes[22]
+	mi := &file_parlance_v1_task_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1800,7 +1987,7 @@ func (x *CancelTaskRunRequest) String() string {
 func (*CancelTaskRunRequest) ProtoMessage() {}
 
 func (x *CancelTaskRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[22]
+	mi := &file_parlance_v1_task_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1813,7 +2000,7 @@ func (x *CancelTaskRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelTaskRunRequest.ProtoReflect.Descriptor instead.
 func (*CancelTaskRunRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{22}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *CancelTaskRunRequest) GetId() string {
@@ -1832,7 +2019,7 @@ type CancelTaskRunResponse struct {
 
 func (x *CancelTaskRunResponse) Reset() {
 	*x = CancelTaskRunResponse{}
-	mi := &file_parlance_v1_task_proto_msgTypes[23]
+	mi := &file_parlance_v1_task_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1844,7 +2031,7 @@ func (x *CancelTaskRunResponse) String() string {
 func (*CancelTaskRunResponse) ProtoMessage() {}
 
 func (x *CancelTaskRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[23]
+	mi := &file_parlance_v1_task_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1857,7 +2044,7 @@ func (x *CancelTaskRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelTaskRunResponse.ProtoReflect.Descriptor instead.
 func (*CancelTaskRunResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{23}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CancelTaskRunResponse) GetRun() *TaskRun {
@@ -1871,16 +2058,17 @@ type CheckTaskAccessRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// A saved task, whose stored token is used unless one is given.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// Settings to check instead of the saved ones, e.g. while editing.
+	// Settings to check instead of the saved ones, e.g. while editing; one of them.
 	GitExport     *GitExportConfig `protobuf:"bytes,2,opt,name=git_export,json=gitExport,proto3" json:"git_export,omitempty"`
 	Token         *string          `protobuf:"bytes,3,opt,name=token,proto3,oneof" json:"token,omitempty"`
+	S3Export      *S3ExportConfig  `protobuf:"bytes,4,opt,name=s3_export,json=s3Export,proto3" json:"s3_export,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CheckTaskAccessRequest) Reset() {
 	*x = CheckTaskAccessRequest{}
-	mi := &file_parlance_v1_task_proto_msgTypes[24]
+	mi := &file_parlance_v1_task_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1892,7 +2080,7 @@ func (x *CheckTaskAccessRequest) String() string {
 func (*CheckTaskAccessRequest) ProtoMessage() {}
 
 func (x *CheckTaskAccessRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[24]
+	mi := &file_parlance_v1_task_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1905,7 +2093,7 @@ func (x *CheckTaskAccessRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckTaskAccessRequest.ProtoReflect.Descriptor instead.
 func (*CheckTaskAccessRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{24}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *CheckTaskAccessRequest) GetId() string {
@@ -1929,6 +2117,13 @@ func (x *CheckTaskAccessRequest) GetToken() string {
 	return ""
 }
 
+func (x *CheckTaskAccessRequest) GetS3Export() *S3ExportConfig {
+	if x != nil {
+		return x.S3Export
+	}
+	return nil
+}
+
 type CheckTaskAccessResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Ok    bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
@@ -1940,7 +2135,7 @@ type CheckTaskAccessResponse struct {
 
 func (x *CheckTaskAccessResponse) Reset() {
 	*x = CheckTaskAccessResponse{}
-	mi := &file_parlance_v1_task_proto_msgTypes[25]
+	mi := &file_parlance_v1_task_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1952,7 +2147,7 @@ func (x *CheckTaskAccessResponse) String() string {
 func (*CheckTaskAccessResponse) ProtoMessage() {}
 
 func (x *CheckTaskAccessResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[25]
+	mi := &file_parlance_v1_task_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1965,7 +2160,7 @@ func (x *CheckTaskAccessResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckTaskAccessResponse.ProtoReflect.Descriptor instead.
 func (*CheckTaskAccessResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{25}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *CheckTaskAccessResponse) GetOk() bool {
@@ -1995,7 +2190,7 @@ type TaskSettings struct {
 
 func (x *TaskSettings) Reset() {
 	*x = TaskSettings{}
-	mi := &file_parlance_v1_task_proto_msgTypes[26]
+	mi := &file_parlance_v1_task_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2007,7 +2202,7 @@ func (x *TaskSettings) String() string {
 func (*TaskSettings) ProtoMessage() {}
 
 func (x *TaskSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[26]
+	mi := &file_parlance_v1_task_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2020,7 +2215,7 @@ func (x *TaskSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TaskSettings.ProtoReflect.Descriptor instead.
 func (*TaskSettings) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{26}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *TaskSettings) GetPaused() bool {
@@ -2045,7 +2240,7 @@ type GetTaskSettingsRequest struct {
 
 func (x *GetTaskSettingsRequest) Reset() {
 	*x = GetTaskSettingsRequest{}
-	mi := &file_parlance_v1_task_proto_msgTypes[27]
+	mi := &file_parlance_v1_task_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2057,7 +2252,7 @@ func (x *GetTaskSettingsRequest) String() string {
 func (*GetTaskSettingsRequest) ProtoMessage() {}
 
 func (x *GetTaskSettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[27]
+	mi := &file_parlance_v1_task_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2070,7 +2265,7 @@ func (x *GetTaskSettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTaskSettingsRequest.ProtoReflect.Descriptor instead.
 func (*GetTaskSettingsRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{27}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{28}
 }
 
 type GetTaskSettingsResponse struct {
@@ -2082,7 +2277,7 @@ type GetTaskSettingsResponse struct {
 
 func (x *GetTaskSettingsResponse) Reset() {
 	*x = GetTaskSettingsResponse{}
-	mi := &file_parlance_v1_task_proto_msgTypes[28]
+	mi := &file_parlance_v1_task_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2094,7 +2289,7 @@ func (x *GetTaskSettingsResponse) String() string {
 func (*GetTaskSettingsResponse) ProtoMessage() {}
 
 func (x *GetTaskSettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[28]
+	mi := &file_parlance_v1_task_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2107,7 +2302,7 @@ func (x *GetTaskSettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTaskSettingsResponse.ProtoReflect.Descriptor instead.
 func (*GetTaskSettingsResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{28}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetTaskSettingsResponse) GetSettings() *TaskSettings {
@@ -2126,7 +2321,7 @@ type UpdateTaskSettingsRequest struct {
 
 func (x *UpdateTaskSettingsRequest) Reset() {
 	*x = UpdateTaskSettingsRequest{}
-	mi := &file_parlance_v1_task_proto_msgTypes[29]
+	mi := &file_parlance_v1_task_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2138,7 +2333,7 @@ func (x *UpdateTaskSettingsRequest) String() string {
 func (*UpdateTaskSettingsRequest) ProtoMessage() {}
 
 func (x *UpdateTaskSettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[29]
+	mi := &file_parlance_v1_task_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2151,7 +2346,7 @@ func (x *UpdateTaskSettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateTaskSettingsRequest.ProtoReflect.Descriptor instead.
 func (*UpdateTaskSettingsRequest) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{29}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *UpdateTaskSettingsRequest) GetPaused() bool {
@@ -2170,7 +2365,7 @@ type UpdateTaskSettingsResponse struct {
 
 func (x *UpdateTaskSettingsResponse) Reset() {
 	*x = UpdateTaskSettingsResponse{}
-	mi := &file_parlance_v1_task_proto_msgTypes[30]
+	mi := &file_parlance_v1_task_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2182,7 +2377,7 @@ func (x *UpdateTaskSettingsResponse) String() string {
 func (*UpdateTaskSettingsResponse) ProtoMessage() {}
 
 func (x *UpdateTaskSettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_parlance_v1_task_proto_msgTypes[30]
+	mi := &file_parlance_v1_task_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2195,7 +2390,7 @@ func (x *UpdateTaskSettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateTaskSettingsResponse.ProtoReflect.Descriptor instead.
 func (*UpdateTaskSettingsResponse) Descriptor() ([]byte, []int) {
-	return file_parlance_v1_task_proto_rawDescGZIP(), []int{30}
+	return file_parlance_v1_task_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *UpdateTaskSettingsResponse) GetSettings() *TaskSettings {
@@ -2233,7 +2428,24 @@ const file_parlance_v1_task_proto_rawDesc = "" +
 	"locale_ids\x18\x06 \x03(\tR\tlocaleIds\x12\x1b\n" +
 	"\tscope_ids\x18\a \x03(\tR\bscopeIds\x12%\n" +
 	"\x0einclude_drafts\x18\b \x01(\bR\rincludeDrafts\x12\x17\n" +
-	"\atag_ids\x18\t \x03(\tR\x06tagIds\"\xe7\x01\n" +
+	"\atag_ids\x18\t \x03(\tR\x06tagIds\"\x93\x03\n" +
+	"\x0eS3ExportConfig\x12\x1a\n" +
+	"\bendpoint\x18\x01 \x01(\tR\bendpoint\x12\x16\n" +
+	"\x06region\x18\x02 \x01(\tR\x06region\x12\x16\n" +
+	"\x06bucket\x18\x03 \x01(\tR\x06bucket\x12\"\n" +
+	"\raccess_key_id\x18\x04 \x01(\tR\vaccessKeyId\x12\x1d\n" +
+	"\n" +
+	"path_style\x18\x05 \x01(\bR\tpathStyle\x12#\n" +
+	"\rmanifest_path\x18\x06 \x01(\tR\fmanifestPath\x12\x1f\n" +
+	"\vhash_length\x18\a \x01(\x05R\n" +
+	"hashLength\x120\n" +
+	"\x05files\x18\b \x03(\v2\x1a.parlance.v1.GitExportFileR\x05files\x12\x1d\n" +
+	"\n" +
+	"locale_ids\x18\t \x03(\tR\tlocaleIds\x12\x1b\n" +
+	"\tscope_ids\x18\n" +
+	" \x03(\tR\bscopeIds\x12\x17\n" +
+	"\atag_ids\x18\v \x03(\tR\x06tagIds\x12%\n" +
+	"\x0einclude_drafts\x18\f \x01(\bR\rincludeDrafts\"\x8a\x02\n" +
 	"\x0eTaskRunSummary\x12\x1e\n" +
 	"\n" +
 	"translated\x18\x01 \x01(\x05R\n" +
@@ -2243,7 +2455,8 @@ const file_parlance_v1_task_proto_rawDesc = "" +
 	"\x10pull_request_url\x18\x04 \x01(\tR\x0epullRequestUrl\x12#\n" +
 	"\rchanged_files\x18\x05 \x03(\tR\fchangedFiles\x12\x18\n" +
 	"\aoutcome\x18\x06 \x01(\tR\aoutcome\x12\x16\n" +
-	"\x06redone\x18\a \x01(\x05R\x06redone\"\xc1\x04\n" +
+	"\x06redone\x18\a \x01(\x05R\x06redone\x12!\n" +
+	"\fmanifest_url\x18\b \x01(\tR\vmanifestUrl\"\xc1\x04\n" +
 	"\aTaskRun\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\atask_id\x18\x02 \x01(\tR\x06taskId\x122\n" +
@@ -2265,7 +2478,7 @@ const file_parlance_v1_task_proto_rawDesc = "" +
 	"\x11triggered_by_user\x18\x0e \x01(\v2\x11.parlance.v1.UserR\x0ftriggeredByUserB\x0f\n" +
 	"\r_triggered_byB\r\n" +
 	"\v_started_atB\x0e\n" +
-	"\f_finished_at\"\xac\x04\n" +
+	"\f_finished_at\"\xe6\x04\n" +
 	"\x04Task\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12)\n" +
@@ -2284,7 +2497,8 @@ const file_parlance_v1_task_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\r \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x0e \x01(\tR\tupdatedAtB\x0e\n" +
+	"updated_at\x18\x0e \x01(\tR\tupdatedAt\x128\n" +
+	"\ts3_export\x18\x0f \x01(\v2\x1b.parlance.v1.S3ExportConfigR\bs3ExportB\x0e\n" +
 	"\f_next_run_at\"\x12\n" +
 	"\x10ListTasksRequest\"<\n" +
 	"\x11ListTasksResponse\x12'\n" +
@@ -2292,7 +2506,7 @@ const file_parlance_v1_task_proto_rawDesc = "" +
 	"\x0eGetTaskRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"8\n" +
 	"\x0fGetTaskResponse\x12%\n" +
-	"\x04task\x18\x01 \x01(\v2\x11.parlance.v1.TaskR\x04task\"\xfe\x02\n" +
+	"\x04task\x18\x01 \x01(\v2\x11.parlance.v1.TaskR\x04task\"\xb8\x03\n" +
 	"\x11CreateTaskRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12)\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x15.parlance.v1.TaskTypeR\x04type\x12\x18\n" +
@@ -2303,9 +2517,11 @@ const file_parlance_v1_task_proto_rawDesc = "" +
 	"\fai_translate\x18\a \x01(\v2\x1e.parlance.v1.AiTranslateConfigR\vaiTranslate\x12;\n" +
 	"\n" +
 	"git_export\x18\b \x01(\v2\x1c.parlance.v1.GitExportConfigR\tgitExport\x12\x14\n" +
-	"\x05token\x18\t \x01(\tR\x05token\";\n" +
+	"\x05token\x18\t \x01(\tR\x05token\x128\n" +
+	"\ts3_export\x18\n" +
+	" \x01(\v2\x1b.parlance.v1.S3ExportConfigR\bs3Export\";\n" +
 	"\x12CreateTaskResponse\x12%\n" +
-	"\x04task\x18\x01 \x01(\v2\x11.parlance.v1.TaskR\x04task\"\xf2\x02\n" +
+	"\x04task\x18\x01 \x01(\v2\x11.parlance.v1.TaskR\x04task\"\xac\x03\n" +
 	"\x11UpdateTaskRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x18\n" +
@@ -2316,7 +2532,9 @@ const file_parlance_v1_task_proto_rawDesc = "" +
 	"\fai_translate\x18\a \x01(\v2\x1e.parlance.v1.AiTranslateConfigR\vaiTranslate\x12;\n" +
 	"\n" +
 	"git_export\x18\b \x01(\v2\x1c.parlance.v1.GitExportConfigR\tgitExport\x12\x19\n" +
-	"\x05token\x18\t \x01(\tH\x00R\x05token\x88\x01\x01B\b\n" +
+	"\x05token\x18\t \x01(\tH\x00R\x05token\x88\x01\x01\x128\n" +
+	"\ts3_export\x18\n" +
+	" \x01(\v2\x1b.parlance.v1.S3ExportConfigR\bs3ExportB\b\n" +
 	"\x06_token\";\n" +
 	"\x12UpdateTaskResponse\x12%\n" +
 	"\x04task\x18\x01 \x01(\v2\x11.parlance.v1.TaskR\x04task\"#\n" +
@@ -2344,12 +2562,13 @@ const file_parlance_v1_task_proto_rawDesc = "" +
 	"\x14CancelTaskRunRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"?\n" +
 	"\x15CancelTaskRunResponse\x12&\n" +
-	"\x03run\x18\x01 \x01(\v2\x14.parlance.v1.TaskRunR\x03run\"\x8a\x01\n" +
+	"\x03run\x18\x01 \x01(\v2\x14.parlance.v1.TaskRunR\x03run\"\xc4\x01\n" +
 	"\x16CheckTaskAccessRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12;\n" +
 	"\n" +
 	"git_export\x18\x02 \x01(\v2\x1c.parlance.v1.GitExportConfigR\tgitExport\x12\x19\n" +
-	"\x05token\x18\x03 \x01(\tH\x00R\x05token\x88\x01\x01B\b\n" +
+	"\x05token\x18\x03 \x01(\tH\x00R\x05token\x88\x01\x01\x128\n" +
+	"\ts3_export\x18\x04 \x01(\v2\x1b.parlance.v1.S3ExportConfigR\bs3ExportB\b\n" +
 	"\x06_token\"?\n" +
 	"\x17CheckTaskAccessResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x14\n" +
@@ -2365,11 +2584,12 @@ const file_parlance_v1_task_proto_rawDesc = "" +
 	"\x19UpdateTaskSettingsRequest\x12\x16\n" +
 	"\x06paused\x18\x01 \x01(\bR\x06paused\"S\n" +
 	"\x1aUpdateTaskSettingsResponse\x125\n" +
-	"\bsettings\x18\x01 \x01(\v2\x19.parlance.v1.TaskSettingsR\bsettings*[\n" +
+	"\bsettings\x18\x01 \x01(\v2\x19.parlance.v1.TaskSettingsR\bsettings*t\n" +
 	"\bTaskType\x12\x19\n" +
 	"\x15TASK_TYPE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16TASK_TYPE_AI_TRANSLATE\x10\x01\x12\x18\n" +
-	"\x14TASK_TYPE_GIT_EXPORT\x10\x02*s\n" +
+	"\x14TASK_TYPE_GIT_EXPORT\x10\x02\x12\x17\n" +
+	"\x13TASK_TYPE_S3_EXPORT\x10\x03*s\n" +
 	"\tTaskEvent\x12\x1a\n" +
 	"\x16TASK_EVENT_UNSPECIFIED\x10\x00\x12$\n" +
 	" TASK_EVENT_TRANSLATIONS_APPROVED\x10\x01\x12$\n" +
@@ -2423,7 +2643,7 @@ func file_parlance_v1_task_proto_rawDescGZIP() []byte {
 }
 
 var file_parlance_v1_task_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_parlance_v1_task_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
+var file_parlance_v1_task_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
 var file_parlance_v1_task_proto_goTypes = []any{
 	(TaskType)(0),                      // 0: parlance.v1.TaskType
 	(TaskEvent)(0),                     // 1: parlance.v1.TaskEvent
@@ -2433,99 +2653,105 @@ var file_parlance_v1_task_proto_goTypes = []any{
 	(*AiTranslateConfig)(nil),          // 5: parlance.v1.AiTranslateConfig
 	(*GitExportFile)(nil),              // 6: parlance.v1.GitExportFile
 	(*GitExportConfig)(nil),            // 7: parlance.v1.GitExportConfig
-	(*TaskRunSummary)(nil),             // 8: parlance.v1.TaskRunSummary
-	(*TaskRun)(nil),                    // 9: parlance.v1.TaskRun
-	(*Task)(nil),                       // 10: parlance.v1.Task
-	(*ListTasksRequest)(nil),           // 11: parlance.v1.ListTasksRequest
-	(*ListTasksResponse)(nil),          // 12: parlance.v1.ListTasksResponse
-	(*GetTaskRequest)(nil),             // 13: parlance.v1.GetTaskRequest
-	(*GetTaskResponse)(nil),            // 14: parlance.v1.GetTaskResponse
-	(*CreateTaskRequest)(nil),          // 15: parlance.v1.CreateTaskRequest
-	(*CreateTaskResponse)(nil),         // 16: parlance.v1.CreateTaskResponse
-	(*UpdateTaskRequest)(nil),          // 17: parlance.v1.UpdateTaskRequest
-	(*UpdateTaskResponse)(nil),         // 18: parlance.v1.UpdateTaskResponse
-	(*DeleteTaskRequest)(nil),          // 19: parlance.v1.DeleteTaskRequest
-	(*DeleteTaskResponse)(nil),         // 20: parlance.v1.DeleteTaskResponse
-	(*RunTaskRequest)(nil),             // 21: parlance.v1.RunTaskRequest
-	(*RunTaskResponse)(nil),            // 22: parlance.v1.RunTaskResponse
-	(*ListTaskRunsRequest)(nil),        // 23: parlance.v1.ListTaskRunsRequest
-	(*ListTaskRunsResponse)(nil),       // 24: parlance.v1.ListTaskRunsResponse
-	(*GetTaskRunRequest)(nil),          // 25: parlance.v1.GetTaskRunRequest
-	(*GetTaskRunResponse)(nil),         // 26: parlance.v1.GetTaskRunResponse
-	(*CancelTaskRunRequest)(nil),       // 27: parlance.v1.CancelTaskRunRequest
-	(*CancelTaskRunResponse)(nil),      // 28: parlance.v1.CancelTaskRunResponse
-	(*CheckTaskAccessRequest)(nil),     // 29: parlance.v1.CheckTaskAccessRequest
-	(*CheckTaskAccessResponse)(nil),    // 30: parlance.v1.CheckTaskAccessResponse
-	(*TaskSettings)(nil),               // 31: parlance.v1.TaskSettings
-	(*GetTaskSettingsRequest)(nil),     // 32: parlance.v1.GetTaskSettingsRequest
-	(*GetTaskSettingsResponse)(nil),    // 33: parlance.v1.GetTaskSettingsResponse
-	(*UpdateTaskSettingsRequest)(nil),  // 34: parlance.v1.UpdateTaskSettingsRequest
-	(*UpdateTaskSettingsResponse)(nil), // 35: parlance.v1.UpdateTaskSettingsResponse
-	(*User)(nil),                       // 36: parlance.v1.User
-	(*PaginationRequest)(nil),          // 37: parlance.v1.PaginationRequest
-	(*PaginationResponse)(nil),         // 38: parlance.v1.PaginationResponse
+	(*S3ExportConfig)(nil),             // 8: parlance.v1.S3ExportConfig
+	(*TaskRunSummary)(nil),             // 9: parlance.v1.TaskRunSummary
+	(*TaskRun)(nil),                    // 10: parlance.v1.TaskRun
+	(*Task)(nil),                       // 11: parlance.v1.Task
+	(*ListTasksRequest)(nil),           // 12: parlance.v1.ListTasksRequest
+	(*ListTasksResponse)(nil),          // 13: parlance.v1.ListTasksResponse
+	(*GetTaskRequest)(nil),             // 14: parlance.v1.GetTaskRequest
+	(*GetTaskResponse)(nil),            // 15: parlance.v1.GetTaskResponse
+	(*CreateTaskRequest)(nil),          // 16: parlance.v1.CreateTaskRequest
+	(*CreateTaskResponse)(nil),         // 17: parlance.v1.CreateTaskResponse
+	(*UpdateTaskRequest)(nil),          // 18: parlance.v1.UpdateTaskRequest
+	(*UpdateTaskResponse)(nil),         // 19: parlance.v1.UpdateTaskResponse
+	(*DeleteTaskRequest)(nil),          // 20: parlance.v1.DeleteTaskRequest
+	(*DeleteTaskResponse)(nil),         // 21: parlance.v1.DeleteTaskResponse
+	(*RunTaskRequest)(nil),             // 22: parlance.v1.RunTaskRequest
+	(*RunTaskResponse)(nil),            // 23: parlance.v1.RunTaskResponse
+	(*ListTaskRunsRequest)(nil),        // 24: parlance.v1.ListTaskRunsRequest
+	(*ListTaskRunsResponse)(nil),       // 25: parlance.v1.ListTaskRunsResponse
+	(*GetTaskRunRequest)(nil),          // 26: parlance.v1.GetTaskRunRequest
+	(*GetTaskRunResponse)(nil),         // 27: parlance.v1.GetTaskRunResponse
+	(*CancelTaskRunRequest)(nil),       // 28: parlance.v1.CancelTaskRunRequest
+	(*CancelTaskRunResponse)(nil),      // 29: parlance.v1.CancelTaskRunResponse
+	(*CheckTaskAccessRequest)(nil),     // 30: parlance.v1.CheckTaskAccessRequest
+	(*CheckTaskAccessResponse)(nil),    // 31: parlance.v1.CheckTaskAccessResponse
+	(*TaskSettings)(nil),               // 32: parlance.v1.TaskSettings
+	(*GetTaskSettingsRequest)(nil),     // 33: parlance.v1.GetTaskSettingsRequest
+	(*GetTaskSettingsResponse)(nil),    // 34: parlance.v1.GetTaskSettingsResponse
+	(*UpdateTaskSettingsRequest)(nil),  // 35: parlance.v1.UpdateTaskSettingsRequest
+	(*UpdateTaskSettingsResponse)(nil), // 36: parlance.v1.UpdateTaskSettingsResponse
+	(*User)(nil),                       // 37: parlance.v1.User
+	(*PaginationRequest)(nil),          // 38: parlance.v1.PaginationRequest
+	(*PaginationResponse)(nil),         // 39: parlance.v1.PaginationResponse
 }
 var file_parlance_v1_task_proto_depIdxs = []int32{
 	4,  // 0: parlance.v1.GitExportFile.format:type_name -> parlance.v1.ExportFormat
 	6,  // 1: parlance.v1.GitExportConfig.files:type_name -> parlance.v1.GitExportFile
-	2,  // 2: parlance.v1.TaskRun.trigger:type_name -> parlance.v1.TaskTrigger
-	3,  // 3: parlance.v1.TaskRun.status:type_name -> parlance.v1.TaskRunStatus
-	8,  // 4: parlance.v1.TaskRun.summary:type_name -> parlance.v1.TaskRunSummary
-	36, // 5: parlance.v1.TaskRun.triggered_by_user:type_name -> parlance.v1.User
-	0,  // 6: parlance.v1.Task.type:type_name -> parlance.v1.TaskType
-	1,  // 7: parlance.v1.Task.events:type_name -> parlance.v1.TaskEvent
-	5,  // 8: parlance.v1.Task.ai_translate:type_name -> parlance.v1.AiTranslateConfig
-	7,  // 9: parlance.v1.Task.git_export:type_name -> parlance.v1.GitExportConfig
-	9,  // 10: parlance.v1.Task.last_run:type_name -> parlance.v1.TaskRun
-	10, // 11: parlance.v1.ListTasksResponse.tasks:type_name -> parlance.v1.Task
-	10, // 12: parlance.v1.GetTaskResponse.task:type_name -> parlance.v1.Task
-	0,  // 13: parlance.v1.CreateTaskRequest.type:type_name -> parlance.v1.TaskType
-	1,  // 14: parlance.v1.CreateTaskRequest.events:type_name -> parlance.v1.TaskEvent
-	5,  // 15: parlance.v1.CreateTaskRequest.ai_translate:type_name -> parlance.v1.AiTranslateConfig
-	7,  // 16: parlance.v1.CreateTaskRequest.git_export:type_name -> parlance.v1.GitExportConfig
-	10, // 17: parlance.v1.CreateTaskResponse.task:type_name -> parlance.v1.Task
-	1,  // 18: parlance.v1.UpdateTaskRequest.events:type_name -> parlance.v1.TaskEvent
-	5,  // 19: parlance.v1.UpdateTaskRequest.ai_translate:type_name -> parlance.v1.AiTranslateConfig
-	7,  // 20: parlance.v1.UpdateTaskRequest.git_export:type_name -> parlance.v1.GitExportConfig
-	10, // 21: parlance.v1.UpdateTaskResponse.task:type_name -> parlance.v1.Task
-	9,  // 22: parlance.v1.RunTaskResponse.run:type_name -> parlance.v1.TaskRun
-	37, // 23: parlance.v1.ListTaskRunsRequest.pagination:type_name -> parlance.v1.PaginationRequest
-	9,  // 24: parlance.v1.ListTaskRunsResponse.runs:type_name -> parlance.v1.TaskRun
-	38, // 25: parlance.v1.ListTaskRunsResponse.pagination:type_name -> parlance.v1.PaginationResponse
-	9,  // 26: parlance.v1.GetTaskRunResponse.run:type_name -> parlance.v1.TaskRun
-	9,  // 27: parlance.v1.CancelTaskRunResponse.run:type_name -> parlance.v1.TaskRun
-	7,  // 28: parlance.v1.CheckTaskAccessRequest.git_export:type_name -> parlance.v1.GitExportConfig
-	31, // 29: parlance.v1.GetTaskSettingsResponse.settings:type_name -> parlance.v1.TaskSettings
-	31, // 30: parlance.v1.UpdateTaskSettingsResponse.settings:type_name -> parlance.v1.TaskSettings
-	11, // 31: parlance.v1.TaskService.ListTasks:input_type -> parlance.v1.ListTasksRequest
-	13, // 32: parlance.v1.TaskService.GetTask:input_type -> parlance.v1.GetTaskRequest
-	15, // 33: parlance.v1.TaskService.CreateTask:input_type -> parlance.v1.CreateTaskRequest
-	17, // 34: parlance.v1.TaskService.UpdateTask:input_type -> parlance.v1.UpdateTaskRequest
-	19, // 35: parlance.v1.TaskService.DeleteTask:input_type -> parlance.v1.DeleteTaskRequest
-	21, // 36: parlance.v1.TaskService.RunTask:input_type -> parlance.v1.RunTaskRequest
-	23, // 37: parlance.v1.TaskService.ListTaskRuns:input_type -> parlance.v1.ListTaskRunsRequest
-	25, // 38: parlance.v1.TaskService.GetTaskRun:input_type -> parlance.v1.GetTaskRunRequest
-	27, // 39: parlance.v1.TaskService.CancelTaskRun:input_type -> parlance.v1.CancelTaskRunRequest
-	29, // 40: parlance.v1.TaskService.CheckTaskAccess:input_type -> parlance.v1.CheckTaskAccessRequest
-	32, // 41: parlance.v1.TaskService.GetTaskSettings:input_type -> parlance.v1.GetTaskSettingsRequest
-	34, // 42: parlance.v1.TaskService.UpdateTaskSettings:input_type -> parlance.v1.UpdateTaskSettingsRequest
-	12, // 43: parlance.v1.TaskService.ListTasks:output_type -> parlance.v1.ListTasksResponse
-	14, // 44: parlance.v1.TaskService.GetTask:output_type -> parlance.v1.GetTaskResponse
-	16, // 45: parlance.v1.TaskService.CreateTask:output_type -> parlance.v1.CreateTaskResponse
-	18, // 46: parlance.v1.TaskService.UpdateTask:output_type -> parlance.v1.UpdateTaskResponse
-	20, // 47: parlance.v1.TaskService.DeleteTask:output_type -> parlance.v1.DeleteTaskResponse
-	22, // 48: parlance.v1.TaskService.RunTask:output_type -> parlance.v1.RunTaskResponse
-	24, // 49: parlance.v1.TaskService.ListTaskRuns:output_type -> parlance.v1.ListTaskRunsResponse
-	26, // 50: parlance.v1.TaskService.GetTaskRun:output_type -> parlance.v1.GetTaskRunResponse
-	28, // 51: parlance.v1.TaskService.CancelTaskRun:output_type -> parlance.v1.CancelTaskRunResponse
-	30, // 52: parlance.v1.TaskService.CheckTaskAccess:output_type -> parlance.v1.CheckTaskAccessResponse
-	33, // 53: parlance.v1.TaskService.GetTaskSettings:output_type -> parlance.v1.GetTaskSettingsResponse
-	35, // 54: parlance.v1.TaskService.UpdateTaskSettings:output_type -> parlance.v1.UpdateTaskSettingsResponse
-	43, // [43:55] is the sub-list for method output_type
-	31, // [31:43] is the sub-list for method input_type
-	31, // [31:31] is the sub-list for extension type_name
-	31, // [31:31] is the sub-list for extension extendee
-	0,  // [0:31] is the sub-list for field type_name
+	6,  // 2: parlance.v1.S3ExportConfig.files:type_name -> parlance.v1.GitExportFile
+	2,  // 3: parlance.v1.TaskRun.trigger:type_name -> parlance.v1.TaskTrigger
+	3,  // 4: parlance.v1.TaskRun.status:type_name -> parlance.v1.TaskRunStatus
+	9,  // 5: parlance.v1.TaskRun.summary:type_name -> parlance.v1.TaskRunSummary
+	37, // 6: parlance.v1.TaskRun.triggered_by_user:type_name -> parlance.v1.User
+	0,  // 7: parlance.v1.Task.type:type_name -> parlance.v1.TaskType
+	1,  // 8: parlance.v1.Task.events:type_name -> parlance.v1.TaskEvent
+	5,  // 9: parlance.v1.Task.ai_translate:type_name -> parlance.v1.AiTranslateConfig
+	7,  // 10: parlance.v1.Task.git_export:type_name -> parlance.v1.GitExportConfig
+	10, // 11: parlance.v1.Task.last_run:type_name -> parlance.v1.TaskRun
+	8,  // 12: parlance.v1.Task.s3_export:type_name -> parlance.v1.S3ExportConfig
+	11, // 13: parlance.v1.ListTasksResponse.tasks:type_name -> parlance.v1.Task
+	11, // 14: parlance.v1.GetTaskResponse.task:type_name -> parlance.v1.Task
+	0,  // 15: parlance.v1.CreateTaskRequest.type:type_name -> parlance.v1.TaskType
+	1,  // 16: parlance.v1.CreateTaskRequest.events:type_name -> parlance.v1.TaskEvent
+	5,  // 17: parlance.v1.CreateTaskRequest.ai_translate:type_name -> parlance.v1.AiTranslateConfig
+	7,  // 18: parlance.v1.CreateTaskRequest.git_export:type_name -> parlance.v1.GitExportConfig
+	8,  // 19: parlance.v1.CreateTaskRequest.s3_export:type_name -> parlance.v1.S3ExportConfig
+	11, // 20: parlance.v1.CreateTaskResponse.task:type_name -> parlance.v1.Task
+	1,  // 21: parlance.v1.UpdateTaskRequest.events:type_name -> parlance.v1.TaskEvent
+	5,  // 22: parlance.v1.UpdateTaskRequest.ai_translate:type_name -> parlance.v1.AiTranslateConfig
+	7,  // 23: parlance.v1.UpdateTaskRequest.git_export:type_name -> parlance.v1.GitExportConfig
+	8,  // 24: parlance.v1.UpdateTaskRequest.s3_export:type_name -> parlance.v1.S3ExportConfig
+	11, // 25: parlance.v1.UpdateTaskResponse.task:type_name -> parlance.v1.Task
+	10, // 26: parlance.v1.RunTaskResponse.run:type_name -> parlance.v1.TaskRun
+	38, // 27: parlance.v1.ListTaskRunsRequest.pagination:type_name -> parlance.v1.PaginationRequest
+	10, // 28: parlance.v1.ListTaskRunsResponse.runs:type_name -> parlance.v1.TaskRun
+	39, // 29: parlance.v1.ListTaskRunsResponse.pagination:type_name -> parlance.v1.PaginationResponse
+	10, // 30: parlance.v1.GetTaskRunResponse.run:type_name -> parlance.v1.TaskRun
+	10, // 31: parlance.v1.CancelTaskRunResponse.run:type_name -> parlance.v1.TaskRun
+	7,  // 32: parlance.v1.CheckTaskAccessRequest.git_export:type_name -> parlance.v1.GitExportConfig
+	8,  // 33: parlance.v1.CheckTaskAccessRequest.s3_export:type_name -> parlance.v1.S3ExportConfig
+	32, // 34: parlance.v1.GetTaskSettingsResponse.settings:type_name -> parlance.v1.TaskSettings
+	32, // 35: parlance.v1.UpdateTaskSettingsResponse.settings:type_name -> parlance.v1.TaskSettings
+	12, // 36: parlance.v1.TaskService.ListTasks:input_type -> parlance.v1.ListTasksRequest
+	14, // 37: parlance.v1.TaskService.GetTask:input_type -> parlance.v1.GetTaskRequest
+	16, // 38: parlance.v1.TaskService.CreateTask:input_type -> parlance.v1.CreateTaskRequest
+	18, // 39: parlance.v1.TaskService.UpdateTask:input_type -> parlance.v1.UpdateTaskRequest
+	20, // 40: parlance.v1.TaskService.DeleteTask:input_type -> parlance.v1.DeleteTaskRequest
+	22, // 41: parlance.v1.TaskService.RunTask:input_type -> parlance.v1.RunTaskRequest
+	24, // 42: parlance.v1.TaskService.ListTaskRuns:input_type -> parlance.v1.ListTaskRunsRequest
+	26, // 43: parlance.v1.TaskService.GetTaskRun:input_type -> parlance.v1.GetTaskRunRequest
+	28, // 44: parlance.v1.TaskService.CancelTaskRun:input_type -> parlance.v1.CancelTaskRunRequest
+	30, // 45: parlance.v1.TaskService.CheckTaskAccess:input_type -> parlance.v1.CheckTaskAccessRequest
+	33, // 46: parlance.v1.TaskService.GetTaskSettings:input_type -> parlance.v1.GetTaskSettingsRequest
+	35, // 47: parlance.v1.TaskService.UpdateTaskSettings:input_type -> parlance.v1.UpdateTaskSettingsRequest
+	13, // 48: parlance.v1.TaskService.ListTasks:output_type -> parlance.v1.ListTasksResponse
+	15, // 49: parlance.v1.TaskService.GetTask:output_type -> parlance.v1.GetTaskResponse
+	17, // 50: parlance.v1.TaskService.CreateTask:output_type -> parlance.v1.CreateTaskResponse
+	19, // 51: parlance.v1.TaskService.UpdateTask:output_type -> parlance.v1.UpdateTaskResponse
+	21, // 52: parlance.v1.TaskService.DeleteTask:output_type -> parlance.v1.DeleteTaskResponse
+	23, // 53: parlance.v1.TaskService.RunTask:output_type -> parlance.v1.RunTaskResponse
+	25, // 54: parlance.v1.TaskService.ListTaskRuns:output_type -> parlance.v1.ListTaskRunsResponse
+	27, // 55: parlance.v1.TaskService.GetTaskRun:output_type -> parlance.v1.GetTaskRunResponse
+	29, // 56: parlance.v1.TaskService.CancelTaskRun:output_type -> parlance.v1.CancelTaskRunResponse
+	31, // 57: parlance.v1.TaskService.CheckTaskAccess:output_type -> parlance.v1.CheckTaskAccessResponse
+	34, // 58: parlance.v1.TaskService.GetTaskSettings:output_type -> parlance.v1.GetTaskSettingsResponse
+	36, // 59: parlance.v1.TaskService.UpdateTaskSettings:output_type -> parlance.v1.UpdateTaskSettingsResponse
+	48, // [48:60] is the sub-list for method output_type
+	36, // [36:48] is the sub-list for method input_type
+	36, // [36:36] is the sub-list for extension type_name
+	36, // [36:36] is the sub-list for extension extendee
+	0,  // [0:36] is the sub-list for field type_name
 }
 
 func init() { file_parlance_v1_task_proto_init() }
@@ -2535,18 +2761,18 @@ func file_parlance_v1_task_proto_init() {
 	}
 	file_parlance_v1_common_proto_init()
 	file_parlance_v1_user_proto_init()
-	file_parlance_v1_task_proto_msgTypes[4].OneofWrappers = []any{}
 	file_parlance_v1_task_proto_msgTypes[5].OneofWrappers = []any{}
-	file_parlance_v1_task_proto_msgTypes[12].OneofWrappers = []any{}
-	file_parlance_v1_task_proto_msgTypes[24].OneofWrappers = []any{}
-	file_parlance_v1_task_proto_msgTypes[26].OneofWrappers = []any{}
+	file_parlance_v1_task_proto_msgTypes[6].OneofWrappers = []any{}
+	file_parlance_v1_task_proto_msgTypes[13].OneofWrappers = []any{}
+	file_parlance_v1_task_proto_msgTypes[25].OneofWrappers = []any{}
+	file_parlance_v1_task_proto_msgTypes[27].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_parlance_v1_task_proto_rawDesc), len(file_parlance_v1_task_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   31,
+			NumMessages:   32,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

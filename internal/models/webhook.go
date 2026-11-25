@@ -17,7 +17,7 @@ const (
 	WebhookEventTaskRunFailed                = "task_run.failed"
 	// WebhookEventTranslationsReleased is sent when a release goes out.
 	WebhookEventTranslationsReleased = "translations.released"
-	// WebhookEventExportFailed is sent when a download or a git export task fails.
+	// WebhookEventExportFailed is sent when a download or a git or S3 export task fails.
 	WebhookEventExportFailed = "export.failed"
 	// WebhookEventLoginFailed is sent when someone fails to sign in, throttled.
 	WebhookEventLoginFailed = "login.failed"

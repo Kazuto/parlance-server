@@ -70,12 +70,13 @@ func (s *Server) CreateTask(
 		delay:     req.Msg.EventDelayMinutes,
 		aiConfig:  req.Msg.AiTranslate,
 		gitConfig: req.Msg.GitExport,
+		s3Config:  req.Msg.S3Export,
 		now:       time.Now(),
 	}).apply(s.db.WithContext(ctx), &task); err != nil {
 		return nil, err
 	}
 
-	if task.Type == models.TaskTypeGitExport {
+	if models.IsExportType(task.Type) {
 		secret, err := s.encryptToken(req.Msg.Token)
 		if err != nil {
 			return nil, err
@@ -112,12 +113,13 @@ func (s *Server) UpdateTask(
 		delay:     req.Msg.EventDelayMinutes,
 		aiConfig:  req.Msg.AiTranslate,
 		gitConfig: req.Msg.GitExport,
+		s3Config:  req.Msg.S3Export,
 		now:       time.Now(),
 	}).apply(s.db.WithContext(ctx), &task); err != nil {
 		return nil, err
 	}
 
-	if req.Msg.Token != nil && task.Type == models.TaskTypeGitExport {
+	if req.Msg.Token != nil && models.IsExportType(task.Type) {
 		secret, err := s.encryptToken(req.Msg.GetToken())
 		if err != nil {
 			return nil, err
