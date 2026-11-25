@@ -186,12 +186,19 @@ Tasks do work on their own, set up by admins under **Automation** in the web app
   approved ones too. Until then the text stays, in exports as well. A new text, a
   person's edit or an import, clears the mark, and the marks can be taken back. It
   needs `update_entry` and `use_machine_translation`.
+
 - **Git export** renders the chosen formats for each language, for example
   `lang/{locale}.json`, and proposes them as a GitHub pull request from its own
   branch. Only approved translations are exported unless drafts are included. The
   branch is rebuilt from the base branch on every run, and nothing is pushed while
   the repository or the branch already hold the files. It needs an access token
   (see below), which is stored encrypted, so it needs `ENCRYPTION_KEY`.
+- **S3 export** renders the same files and uploads them to a bucket on Amazon S3 or
+  an S3-compatible storage (MinIO, Cloudflare R2, Backblaze B2, …), each under a key
+  holding its SHA-256, then writes a manifest listing them (see below). Apps read the
+  manifest to find each language's file. Files the bucket has are not uploaded again,
+  and the manifest is only written when the files change. Its secret access key is
+  stored encrypted, so it needs `ENCRYPTION_KEY` too.
 
 ### GitHub access token
 
@@ -214,6 +221,59 @@ branch (the base branch is never pushed to).
 can be read and the token's user may push. GitHub reports the user's access there,
 not the token's, so a token with read-only Contents passes the check but fails on
 its first run with a 403.
+
+### S3 export
+
+Each file's path needs `{locale}` and `{hash}`, e.g. `i18n/{locale}.{hash}.json`.
+The keys hold the whole SHA-256, 64 hex digits, or its first 8 to 64 as **Hash
+length** sets; with 12, German becomes `i18n/de.9f86d081884c.json`. The manifest
+lists every file with its whole hash and size:
+
+```json
+{
+  "version": 1,
+  "generated_at": "2026-11-25T10:00:00Z",
+  "task": "Web app",
+  "include_drafts": false,
+  "files": [
+    {
+      "locale": "de",
+      "format": "json",
+      "template": "i18n/{locale}.{hash}.json",
+      "key": "i18n/de.9f86d081884c.json",
+      "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+      "size": 18342
+    }
+  ]
+}
+```
+
+The files are uploaded first, with `Cache-Control: public, max-age=31536000,
+immutable`, as a file never changes under its key, and the manifest last, with
+`Cache-Control: no-cache`. So the manifest never lists a file that isn't there yet,
+and a CDN in front of the bucket can keep the files for good while it asks for the
+manifest each time. Each file also keeps its hash in its `x-amz-meta-sha256`
+metadata: a run fails rather than replace a file holding other content under the
+same key, which a short hash makes possible.
+
+Old files are never deleted, so apps holding an older manifest keep working; a
+lifecycle rule on the bucket can expire them. The bucket isn't created either.
+
+Leave **Endpoint** empty for Amazon S3 and set the region. Other storages take
+their address, e.g. `https://<account id>.r2.cloudflarestorage.com` with the region
+`auto` for R2. MinIO needs **Path-style addressing**, which puts the bucket into the
+path instead of the host name. The access key needs these permissions on the bucket:
+
+| Permission                  | Used for                                                                   |
+| --------------------------- | -------------------------------------------------------------------------- |
+| `s3:ListBucket`             | Checking the bucket; without it, S3 reports missing files as access denied |
+| `s3:GetObject`              | Reading the manifest and the hashes of the files there                     |
+| `s3:PutObject`              | Uploading the files and the manifest                                       |
+| `s3:DeleteObject`, optional | Removing what **Check access** writes                                      |
+
+**Check access** in the task form tells whether the bucket exists and the key may
+write next to the manifest: it writes `.parlance-check` there and removes it again
+if the key may delete.
 
 ### Running tasks
 
@@ -291,7 +351,7 @@ format, retries and **Send again** use the new one.
 | `entries.created`                       | Entries are created in the app or by an import                                                                                                   | `entries` (`id`, `key`, `description`) and `user`                                                                                                                |
 | `task_run.succeeded`, `task_run.failed` | A task run ends, including runs that stopped responding; canceled runs don't                                                                     | `task` (`id`, `name`, `type`) and `run` (`id`, `trigger`, `status`, times, `error`, `summary`, `user`)                                                           |
 | `translations.released`                 | A release goes out, at its date or by hand                                                                                                       | `release` (`id`, `name`, `description`, `release_at`, `released_at`), the `entries` it let into exports, and `user`                                              |
-| `export.failed`                         | A download or a git export task fails with an error of the server's own; a failed git export also sends `task_run.failed`                        | `source` (`download` or `task`) and `error`; for downloads `format`, `locales` or `locale_ids`, `scope_ids`, `tag_ids` and `user`, for tasks `task` and `run_id` |
+| `export.failed`                         | A download or a git or S3 export task fails with an error of the server's own; a failed export task also sends `task_run.failed`                 | `source` (`download` or `task`) and `error`; for downloads `format`, `locales` or `locale_ids`, `scope_ids`, `tag_ids` and `user`, for tasks `task` and `run_id` |
 | `login.failed`                          | Someone fails to sign in with a password or single sign-on, at most once per email and address every 15 minutes                                  | `email`, `method` (`password` or `sso`), `provider` (`id`, `name`), `reason`, `ip`, `user_agent` and `attempts`; never the password                              |
 | `digest`                                | A webhook with a schedule sends what it collected                                                                                                | `since`, `count`, `events` (the bodies above, oldest first) and `truncated`                                                                                      |
 | `ping`                                  | Someone presses **Send test**                                                                                                                    | `webhook` (`id`, `name`, `events`)                                                                                                                               |
@@ -557,7 +617,7 @@ A release holds its entries back from exports until it goes out: at its date
 (`releaseAt`), or when it's published by hand (`PublishRelease`, "Release now"),
 which a release without a date waits for. An entry in several releases waits for
 all of them; releases that went out keep their entries as a record. Exports take
-`includeUnreleased` to export held entries anyway; git export tasks never do.
+`includeUnreleased` to export held entries anyway; export tasks never do.
 
 Exports leave out held entries until the date passes. The task runner then lets the
 release out within 15 seconds, also while tasks are paused, and announces it once:

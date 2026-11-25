@@ -11,7 +11,14 @@ import (
 const (
 	TaskTypeAITranslate = "ai_translate"
 	TaskTypeGitExport   = "git_export"
+	TaskTypeS3Export    = "s3_export"
 )
+
+// IsExportType tells whether tasks of the type export translations, with a secret
+// to reach where they go.
+func IsExportType(taskType string) bool {
+	return taskType == TaskTypeGitExport || taskType == TaskTypeS3Export
+}
 
 // Events a task can run after
 const (
@@ -50,7 +57,7 @@ type Task struct {
 	Events            datatypes.JSONSlice[string] `gorm:"type:jsonb" json:"events"`
 	EventDelayMinutes int                         `gorm:"not null" json:"event_delay_minutes"`
 	Config            datatypes.JSON              `gorm:"type:jsonb" json:"config"`
-	// Secret, e.g. a git host token, is encrypted with the server's encryption key.
+	// Secret, e.g. a git host token or an S3 secret key, is encrypted with the server's encryption key.
 	Secret    string    `gorm:"type:text" json:"-"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -73,13 +80,29 @@ type AITranslateConfig struct {
 	MaxPairs int `json:"max_pairs,omitempty"`
 }
 
-// LocalePlaceholder stands for a locale's code in a git export's file paths.
-const LocalePlaceholder = "{locale}"
+// Placeholders in an export's file paths
+const (
+	// LocalePlaceholder stands for a locale's code.
+	LocalePlaceholder = "{locale}"
+	// HashPlaceholder stands for the file's SHA-256, in an S3 export's object keys.
+	HashPlaceholder = "{hash}"
+)
 
-// GitExportFile is one export format and where its files go, e.g. "lang/{locale}.json".
-type GitExportFile struct {
+// ExportFile is one export format and where its files go, e.g. "lang/{locale}.json".
+type ExportFile struct {
 	Format string `json:"format"`
 	Path   string `json:"path"`
+}
+
+// ExportSelection is what an export task renders: its files, for which languages
+// and entries.
+type ExportSelection struct {
+	Files     []ExportFile `json:"files"`
+	LocaleIDs []string     `json:"locale_ids,omitempty"`
+	ScopeIDs  []string     `json:"scope_ids,omitempty"`
+	// TagIDs narrows each scope to the entries with any of its selected tags.
+	TagIDs        []string `json:"tag_ids,omitempty"`
+	IncludeDrafts bool     `json:"include_drafts,omitempty"`
 }
 
 // GitExportConfig exports translations into a repository, as a pull request.
@@ -90,13 +113,39 @@ type GitExportConfig struct {
 	Repository string `json:"repository"`
 	BaseBranch string `json:"base_branch"`
 	// Branch is the pull request's branch, rebuilt from BaseBranch on each run.
-	Branch    string          `json:"branch"`
-	Files     []GitExportFile `json:"files"`
-	LocaleIDs []string        `json:"locale_ids,omitempty"`
-	ScopeIDs  []string        `json:"scope_ids,omitempty"`
-	// TagIDs narrows each scope to the entries with any of its selected tags.
-	TagIDs        []string `json:"tag_ids,omitempty"`
-	IncludeDrafts bool     `json:"include_drafts,omitempty"`
+	Branch string `json:"branch"`
+	ExportSelection
+}
+
+// FullHashLength is the number of hex digits of a SHA-256.
+const FullHashLength = 64
+
+// S3ExportConfig uploads translations to an S3-compatible bucket, each file named by
+// its hash, with a manifest listing them. Its secret access key is the task's Secret.
+type S3ExportConfig struct {
+	// Endpoint is the storage's address, e.g. "https://minio.example.com"; empty for
+	// Amazon S3.
+	Endpoint string `json:"endpoint,omitempty"`
+	// Region is empty for "us-east-1".
+	Region      string `json:"region,omitempty"`
+	Bucket      string `json:"bucket"`
+	AccessKeyID string `json:"access_key_id"`
+	// PathStyle puts the bucket into the path instead of the host name, as MinIO needs.
+	PathStyle bool `json:"path_style,omitempty"`
+	// ManifestPath is the key of the manifest, e.g. "i18n/manifest.json".
+	ManifestPath string `json:"manifest_path"`
+	// HashLength is how many hex digits of the SHA-256 go into the keys; 0 for all.
+	HashLength int `json:"hash_length,omitempty"`
+	ExportSelection
+}
+
+// KeyHashLength is how many hex digits of the SHA-256 go into the keys.
+func (c S3ExportConfig) KeyHashLength() int {
+	if c.HashLength <= 0 || c.HashLength > FullHashLength {
+		return FullHashLength
+	}
+
+	return c.HashLength
 }
 
 // AITranslate decodes the config of an ai_translate task.
@@ -109,6 +158,13 @@ func (t *Task) AITranslate() (AITranslateConfig, error) {
 // GitExport decodes the config of a git_export task.
 func (t *Task) GitExport() (GitExportConfig, error) {
 	var config GitExportConfig
+
+	return config, decodeConfig(t.Config, &config)
+}
+
+// S3Export decodes the config of an s3_export task.
+func (t *Task) S3Export() (S3ExportConfig, error) {
+	var config S3ExportConfig
 
 	return config, decodeConfig(t.Config, &config)
 }
@@ -151,9 +207,12 @@ type TaskRunSummary struct {
 	Failed     int `json:"failed,omitempty"`
 	// Remaining are the missing translations left for later runs.
 	Remaining int `json:"remaining,omitempty"`
-	// Git export
-	PullRequestURL string   `json:"pull_request_url,omitempty"`
-	ChangedFiles   []string `json:"changed_files,omitempty"`
+	// Git and S3 export
+	PullRequestURL string `json:"pull_request_url,omitempty"`
+	// ChangedFiles are a git export's changed paths, or an S3 export's uploaded keys.
+	ChangedFiles []string `json:"changed_files,omitempty"`
+	// ManifestURL is an S3 export's manifest, as "s3://bucket/key".
+	ManifestURL string `json:"manifest_url,omitempty"`
 	// Outcome says how the run ended, e.g. forge.OutcomeNoChanges.
 	Outcome string `json:"outcome,omitempty"`
 	// Redone counts machine drafts translated again; Translated includes them.

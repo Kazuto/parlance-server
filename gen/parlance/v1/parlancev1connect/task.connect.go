@@ -77,7 +77,8 @@ type TaskServiceClient interface {
 	GetTaskRun(context.Context, *connect.Request[v1.GetTaskRunRequest]) (*connect.Response[v1.GetTaskRunResponse], error)
 	// Drops a queued run, or asks a running one to stop.
 	CancelTaskRun(context.Context, *connect.Request[v1.CancelTaskRunRequest]) (*connect.Response[v1.CancelTaskRunResponse], error)
-	// Checks a git export's repository settings and token without changing anything.
+	// Checks a git export's repository settings and token, or an S3 export's bucket
+	// and keys, without changing anything.
 	CheckTaskAccess(context.Context, *connect.Request[v1.CheckTaskAccessRequest]) (*connect.Response[v1.CheckTaskAccessResponse], error)
 	// Settings of all tasks, such as whether they are paused.
 	GetTaskSettings(context.Context, *connect.Request[v1.GetTaskSettingsRequest]) (*connect.Response[v1.GetTaskSettingsResponse], error)
@@ -259,7 +260,8 @@ type TaskServiceHandler interface {
 	GetTaskRun(context.Context, *connect.Request[v1.GetTaskRunRequest]) (*connect.Response[v1.GetTaskRunResponse], error)
 	// Drops a queued run, or asks a running one to stop.
 	CancelTaskRun(context.Context, *connect.Request[v1.CancelTaskRunRequest]) (*connect.Response[v1.CancelTaskRunResponse], error)
-	// Checks a git export's repository settings and token without changing anything.
+	// Checks a git export's repository settings and token, or an S3 export's bucket
+	// and keys, without changing anything.
 	CheckTaskAccess(context.Context, *connect.Request[v1.CheckTaskAccessRequest]) (*connect.Response[v1.CheckTaskAccessResponse], error)
 	// Settings of all tasks, such as whether they are paused.
 	GetTaskSettings(context.Context, *connect.Request[v1.GetTaskSettingsRequest]) (*connect.Response[v1.GetTaskSettingsResponse], error)

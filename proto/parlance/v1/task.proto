@@ -20,7 +20,8 @@ service TaskService {
   rpc GetTaskRun(GetTaskRunRequest) returns (GetTaskRunResponse);
   // Drops a queued run, or asks a running one to stop.
   rpc CancelTaskRun(CancelTaskRunRequest) returns (CancelTaskRunResponse);
-  // Checks a git export's repository settings and token without changing anything.
+  // Checks a git export's repository settings and token, or an S3 export's bucket
+  // and keys, without changing anything.
   rpc CheckTaskAccess(CheckTaskAccessRequest) returns (CheckTaskAccessResponse);
   // Settings of all tasks, such as whether they are paused.
   rpc GetTaskSettings(GetTaskSettingsRequest) returns (GetTaskSettingsResponse);
@@ -33,6 +34,9 @@ enum TaskType {
   TASK_TYPE_AI_TRANSLATE = 1;
   // Opens or updates a pull request with exported translation files.
   TASK_TYPE_GIT_EXPORT = 2;
+  // Uploads exported translation files to an S3-compatible bucket, each named by its
+  // SHA-256, with a manifest listing them.
+  TASK_TYPE_S3_EXPORT = 3;
 }
 
 enum TaskEvent {
@@ -81,9 +85,12 @@ message AiTranslateConfig {
   bool redo_machine_drafts = 6;
 }
 
+// A file of a git or S3 export.
 message GitExportFile {
   ExportFormat format = 1;
-  // Where each language's file goes, with "{locale}" for its code, e.g. "lang/{locale}.json".
+  // Where each language's file goes, with "{locale}" for its code, e.g.
+  // "lang/{locale}.json". S3 exports also need "{hash}" for its SHA-256, e.g.
+  // "i18n/{locale}.{hash}.json".
   string path = 2;
 }
 
@@ -105,19 +112,49 @@ message GitExportConfig {
   repeated string tag_ids = 9;
 }
 
+message S3ExportConfig {
+  // The storage's address, e.g. "https://<account>.r2.cloudflarestorage.com"; empty
+  // for Amazon S3.
+  string endpoint = 1;
+  // Empty for "us-east-1".
+  string region = 2;
+  string bucket = 3;
+  // The secret access key is the task's token.
+  string access_key_id = 4;
+  // Puts the bucket into the path instead of the host name, as MinIO needs.
+  bool path_style = 5;
+  // The key of the manifest that lists the files, e.g. "i18n/manifest.json". It is
+  // written after them, so it never lists a file that isn't there yet.
+  string manifest_path = 6;
+  // How many hex digits of each file's SHA-256 go into its key, 8 to 64; 0 for all 64.
+  // The manifest always holds the whole hash.
+  int32 hash_length = 7;
+  repeated GitExportFile files = 8;
+  // Empty for all languages.
+  repeated string locale_ids = 9;
+  // Entries in any of the scopes; empty for all entries.
+  repeated string scope_ids = 10;
+  // Narrows each scope to the entries with any of its selected tags.
+  repeated string tag_ids = 11;
+  bool include_drafts = 12;
+}
+
 message TaskRunSummary {
   int32 translated = 1;
   int32 failed = 2;
   // Missing translations left for later runs.
   int32 remaining = 3;
   string pull_request_url = 4;
+  // A git export's changed paths, or the keys an S3 export uploaded.
   repeated string changed_files = 5;
-  // How the run ended, as a code: "no_changes" (the base branch has the files),
-  // "up_to_date" (the pull request branch has them), "updated", or
+  // How the run ended, as a code: "no_changes" (the base branch or the bucket has the
+  // files), "up_to_date" (the pull request branch has them), "updated", or
   // "nothing_to_translate".
   string outcome = 6;
   // Machine drafts translated again by the current model; counted in translated too.
   int32 redone = 7;
+  // An S3 export's manifest, as "s3://bucket/key".
+  string manifest_url = 8;
 }
 
 message TaskRun {
@@ -160,6 +197,8 @@ message Task {
   TaskRun last_run = 12;
   string created_at = 13;
   string updated_at = 14;
+  // Set for TASK_TYPE_S3_EXPORT.
+  S3ExportConfig s3_export = 15;
 }
 
 message ListTasksRequest {}
@@ -185,8 +224,9 @@ message CreateTaskRequest {
   int32 event_delay_minutes = 6;
   AiTranslateConfig ai_translate = 7;
   GitExportConfig git_export = 8;
-  // The git host's access token.
+  // The git host's access token, or the S3 export's secret access key.
   string token = 9;
+  S3ExportConfig s3_export = 10;
 }
 
 message CreateTaskResponse {
@@ -205,6 +245,7 @@ message UpdateTaskRequest {
   GitExportConfig git_export = 8;
   // Unset keeps the stored token; empty removes it.
   optional string token = 9;
+  S3ExportConfig s3_export = 10;
 }
 
 message UpdateTaskResponse {
@@ -255,9 +296,10 @@ message CancelTaskRunResponse {
 message CheckTaskAccessRequest {
   // A saved task, whose stored token is used unless one is given.
   string id = 1;
-  // Settings to check instead of the saved ones, e.g. while editing.
+  // Settings to check instead of the saved ones, e.g. while editing; one of them.
   GitExportConfig git_export = 2;
   optional string token = 3;
+  S3ExportConfig s3_export = 4;
 }
 
 message CheckTaskAccessResponse {

@@ -31,12 +31,17 @@ func (r *Runner) gitExport(ctx context.Context, task *models.Task, runLog *runLo
 		return summary, stderrors.New("the access token can't be read, e.g. because ENCRYPTION_KEY changed; save it again")
 	}
 
-	files, locales, err := r.renderFiles(ctx, config)
+	rendered, locales, err := r.renderFiles(ctx, config.ExportSelection)
 	if err != nil {
 		return summary, err
 	}
 
-	runLog.Printf("Rendered %d files for %d languages", len(files), len(locales))
+	runLog.Printf("Rendered %d files for %d languages", len(rendered), len(locales))
+
+	files := make([]forge.File, len(rendered))
+	for i, file := range rendered {
+		files[i] = forge.File{Path: file.path(), Content: file.Content}
+	}
 
 	result, err := r.NewHost(config.APIURL, token).Propose(ctx, config.Repository, forge.Proposal{
 		BaseBranch:    config.BaseBranch,
@@ -70,13 +75,26 @@ func (r *Runner) gitExport(ctx context.Context, task *models.Task, runLog *runLo
 	return summary, nil
 }
 
-// renderFiles renders each of the config's files for each of its locales.
-func (r *Runner) renderFiles(ctx context.Context, config models.GitExportConfig) ([]forge.File, []models.Locale, error) {
+// renderedFile is one of an export's files for one language.
+type renderedFile struct {
+	File    models.ExportFile
+	Locale  string
+	Content string
+}
+
+// path returns the file's path with the language's code in it.
+func (f renderedFile) path() string {
+	return strings.ReplaceAll(f.File.Path, models.LocalePlaceholder, f.Locale)
+}
+
+// renderFiles renders each of the selection's files for each of its locales, by
+// file and then by locale code.
+func (r *Runner) renderFiles(ctx context.Context, selection models.ExportSelection) ([]renderedFile, []models.Locale, error) {
 	db := r.db.WithContext(ctx)
 
 	query := db.Order("code")
-	if len(config.LocaleIDs) > 0 {
-		query = query.Where("id IN ?", config.LocaleIDs)
+	if len(selection.LocaleIDs) > 0 {
+		query = query.Where("id IN ?", selection.LocaleIDs)
 	}
 
 	var locales []models.Locale
@@ -89,23 +107,20 @@ func (r *Runner) renderFiles(ctx context.Context, config models.GitExportConfig)
 	}
 
 	sel := export.Selection{
-		ScopeIDs:      common.UniqueIDs(config.ScopeIDs),
-		TagIDs:        common.UniqueIDs(config.TagIDs),
-		IncludeDrafts: config.IncludeDrafts,
+		ScopeIDs:      common.UniqueIDs(selection.ScopeIDs),
+		TagIDs:        common.UniqueIDs(selection.TagIDs),
+		IncludeDrafts: selection.IncludeDrafts,
 	}
-	files := make([]forge.File, 0, len(config.Files)*len(locales))
+	files := make([]renderedFile, 0, len(selection.Files)*len(locales))
 
-	for _, file := range config.Files {
+	for _, file := range selection.Files {
 		for _, locale := range locales {
 			content, err := export.Render(db, file.Format, locale, sel)
 			if err != nil {
 				return nil, nil, fmt.Errorf("render %s for %s: %w", file.Format, locale.Code, err)
 			}
 
-			files = append(files, forge.File{
-				Path:    strings.ReplaceAll(file.Path, models.LocalePlaceholder, locale.Code),
-				Content: content,
-			})
+			files = append(files, renderedFile{File: file, Locale: locale.Code, Content: content})
 		}
 	}
 
