@@ -25,11 +25,17 @@ const (
 	maxPairsLimit   = 5000
 	maxExportFiles  = 10
 	maxBranchLength = 200
+	// S3 limits keys to 1024 bytes; a template leaves room for the code and hash.
+	maxKeyLength  = 900
+	minHashLength = 8
 )
 
 var (
 	repositoryPattern = regexp.MustCompile(`^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$`)
 	branchPattern     = regexp.MustCompile(`^[A-Za-z0-9._/-]+$`)
+	// Lenient, as S3-compatible storages differ in what they allow.
+	bucketPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]{1,254}$`)
+	regionPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{1,64}$`)
 )
 
 // settings are a task's settings as a create or update request gives them.
@@ -41,6 +47,7 @@ type settings struct {
 	delay     int32
 	aiConfig  *pb.AiTranslateConfig
 	gitConfig *pb.GitExportConfig
+	s3Config  *pb.S3ExportConfig
 	now       time.Time
 }
 
@@ -90,6 +97,8 @@ func (in settings) apply(db *gorm.DB, task *models.Task) error {
 		config, err = aiTranslateConfig(db, in.aiConfig)
 	case models.TaskTypeGitExport:
 		config, err = gitExportConfig(db, in.gitConfig)
+	case models.TaskTypeS3Export:
+		config, err = s3ExportConfig(db, in.s3Config)
 	default:
 		err = errors.InvalidInput(errors.ErrInvalidInput, "type is required")
 	}
@@ -171,50 +180,90 @@ func gitExportConfig(db *gorm.DB, in *pb.GitExportConfig) (models.GitExportConfi
 		return config, err
 	}
 
-	if len(in.Files) == 0 {
-		return config, errors.InvalidInput(errors.ErrInvalidInput, "at least one file is required")
+	config.ExportSelection, err = exportSelection(db, in, validateFilePath)
+
+	return config, err
+}
+
+// s3ExportConfig checks an S3 export's settings. They don't touch the storage; that
+// is what CheckTaskAccess is for.
+func s3ExportConfig(db *gorm.DB, in *pb.S3ExportConfig) (models.S3ExportConfig, error) {
+	config, err := checkBucket(in)
+	if err != nil {
+		return config, err
 	}
 
-	if len(in.Files) > maxExportFiles {
-		return config, errors.InvalidInput(errors.ErrInvalidInput, "too many files")
+	config.ExportSelection, err = exportSelection(db, in, validateKeyTemplate)
+	if err != nil {
+		return config, err
 	}
 
-	for _, file := range in.Files {
+	if slices.ContainsFunc(config.Files, func(file models.ExportFile) bool { return file.Path == config.ManifestPath }) {
+		return config, errors.InvalidInput(errors.ErrInvalidInput, "the manifest path must differ from the file paths")
+	}
+
+	return config, nil
+}
+
+// exportInput is what the settings of git and S3 exports share.
+type exportInput interface {
+	GetFiles() []*pb.GitExportFile
+	GetLocaleIds() []string
+	GetScopeIds() []string
+	GetTagIds() []string
+	GetIncludeDrafts() bool
+}
+
+// exportSelection checks what an export renders: its files, whose paths must pass
+// validatePath, and the languages, scopes and tags.
+func exportSelection(db *gorm.DB, in exportInput, validatePath func(string) error) (models.ExportSelection, error) {
+	var selection models.ExportSelection
+
+	files := in.GetFiles()
+	if len(files) == 0 {
+		return selection, errors.InvalidInput(errors.ErrInvalidInput, "at least one file is required")
+	}
+
+	if len(files) > maxExportFiles {
+		return selection, errors.InvalidInput(errors.ErrInvalidInput, "too many files")
+	}
+
+	for _, file := range files {
 		format := converter.ExportFormatFromProto(file.Format)
 		if format == "" {
-			return config, errors.InvalidInput(errors.ErrInvalidInput, "each file needs a format")
+			return selection, errors.InvalidInput(errors.ErrInvalidInput, "each file needs a format")
 		}
 
 		filePath := strings.TrimSpace(file.Path)
-		if err := validateFilePath(filePath); err != nil {
-			return config, err
+		if err := validatePath(filePath); err != nil {
+			return selection, err
 		}
 
-		if slices.ContainsFunc(config.Files, func(other models.GitExportFile) bool { return other.Path == filePath }) {
-			return config, errors.InvalidInput(errors.ErrInvalidInput, "two files have the same path")
+		if slices.ContainsFunc(selection.Files, func(other models.ExportFile) bool { return other.Path == filePath }) {
+			return selection, errors.InvalidInput(errors.ErrInvalidInput, "two files have the same path")
 		}
 
-		config.Files = append(config.Files, models.GitExportFile{Format: format, Path: filePath})
+		selection.Files = append(selection.Files, models.ExportFile{Format: format, Path: filePath})
 	}
 
-	config.LocaleIDs = common.UniqueIDs(in.LocaleIds)
-	if err := requireLocales(db, config.LocaleIDs); err != nil {
-		return config, err
+	selection.LocaleIDs = common.UniqueIDs(in.GetLocaleIds())
+	if err := requireLocales(db, selection.LocaleIDs); err != nil {
+		return selection, err
 	}
 
-	config.ScopeIDs = common.UniqueIDs(in.ScopeIds)
-	if err := requireScopes(db, config.ScopeIDs); err != nil {
-		return config, err
+	selection.ScopeIDs = common.UniqueIDs(in.GetScopeIds())
+	if err := requireScopes(db, selection.ScopeIDs); err != nil {
+		return selection, err
 	}
 
-	config.TagIDs = common.UniqueIDs(in.TagIds)
-	if _, err := common.ResolveActiveTags(db, config.TagIDs); err != nil {
-		return config, err
+	selection.TagIDs = common.UniqueIDs(in.GetTagIds())
+	if _, err := common.ResolveActiveTags(db, selection.TagIDs); err != nil {
+		return selection, err
 	}
 
-	config.IncludeDrafts = in.IncludeDrafts
+	selection.IncludeDrafts = in.GetIncludeDrafts()
 
-	return config, nil
+	return selection, nil
 }
 
 // checkRepository checks where a git export goes: the host, repository and branches.
@@ -253,6 +302,57 @@ func checkRepository(in *pb.GitExportConfig) (models.GitExportConfig, error) {
 	return config, nil
 }
 
+// checkBucket checks where an S3 export goes: the storage, bucket, key and manifest.
+func checkBucket(in *pb.S3ExportConfig) (models.S3ExportConfig, error) {
+	var config models.S3ExportConfig
+	if in == nil {
+		return config, errors.InvalidInput(errors.ErrInvalidInput, "S3 export settings are required")
+	}
+
+	config.Endpoint = strings.TrimRight(strings.TrimSpace(in.Endpoint), "/")
+	if config.Endpoint != "" {
+		parsed, err := url.Parse(config.Endpoint)
+		if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") || parsed.Host == "" ||
+			parsed.RawQuery != "" || parsed.Fragment != "" {
+			return config, errors.InvalidInput(errors.ErrInvalidInput, "endpoint must be an http or https URL")
+		}
+	}
+
+	config.Region = strings.TrimSpace(in.Region)
+	if config.Region != "" && !regionPattern.MatchString(config.Region) {
+		return config, errors.InvalidInput(errors.ErrInvalidInput, "region may hold letters, digits, _ and -")
+	}
+
+	config.Bucket = strings.TrimSpace(in.Bucket)
+	if !bucketPattern.MatchString(config.Bucket) {
+		return config, errors.InvalidInput(errors.ErrInvalidInput, "bucket names may hold letters, digits and . _ -")
+	}
+
+	config.AccessKeyID = strings.TrimSpace(in.AccessKeyId)
+	if config.AccessKeyID == "" {
+		return config, errors.InvalidInput(errors.ErrInvalidInput, "access key id is required")
+	}
+
+	config.PathStyle = in.PathStyle
+
+	config.ManifestPath = strings.TrimSpace(in.ManifestPath)
+	if strings.Contains(config.ManifestPath, models.LocalePlaceholder) || strings.Contains(config.ManifestPath, models.HashPlaceholder) {
+		return config, errors.InvalidInput(errors.ErrInvalidInput, "the manifest path can't hold {locale} or {hash}")
+	}
+
+	if err := validateKey(config.ManifestPath); err != nil {
+		return config, err
+	}
+
+	if in.HashLength != 0 && (in.HashLength < minHashLength || in.HashLength > models.FullHashLength) {
+		return config, errors.InvalidInput(errors.ErrInvalidInput, "hash length must be between 8 and 64")
+	}
+
+	config.HashLength = int(in.HashLength)
+
+	return config, nil
+}
+
 // validBranch accepts the usual branch names, and none git would reject.
 func validBranch(branch string) bool {
 	return branch != "" && len(branch) <= maxBranchLength && branchPattern.MatchString(branch) &&
@@ -270,6 +370,26 @@ func validateFilePath(filePath string) error {
 	if strings.HasPrefix(filePath, "/") || strings.Contains(filePath, `\`) || path.Clean(filePath) != filePath ||
 		slices.Contains(strings.Split(filePath, "/"), "..") || strings.HasPrefix(filePath, ".git/") {
 		return errors.InvalidInput(errors.ErrInvalidInput, "file paths must be relative to the repository, without .. or empty parts")
+	}
+
+	return nil
+}
+
+// validateKeyTemplate accepts a clean key that names each locale's file by its hash.
+func validateKeyTemplate(key string) error {
+	if !strings.Contains(key, models.LocalePlaceholder) || !strings.Contains(key, models.HashPlaceholder) {
+		return errors.InvalidInput(errors.ErrInvalidInput, "each file path needs {locale} and {hash}, e.g. i18n/{locale}.{hash}.json")
+	}
+
+	return validateKey(key)
+}
+
+// validateKey accepts a key that reads like a relative path, so that the bucket can
+// be browsed and served as folders.
+func validateKey(key string) error {
+	if key == "" || len(key) > maxKeyLength || strings.HasPrefix(key, "/") || strings.Contains(key, `\`) ||
+		path.Clean(key) != key || slices.ContainsFunc(strings.Split(key, "/"), func(part string) bool { return part == "." || part == ".." }) {
+		return errors.InvalidInput(errors.ErrInvalidInput, "paths in the bucket must be relative, without . or .. or empty parts")
 	}
 
 	return nil

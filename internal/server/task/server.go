@@ -9,6 +9,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/errors"
 	"github.com/kazuto/parlance-server/internal/forge"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/objectstore"
 	"github.com/kazuto/parlance-server/internal/secret"
 )
 
@@ -18,6 +19,8 @@ type Server struct {
 	box *secret.Box
 	// newHost connects to a git host for CheckTaskAccess.
 	newHost func(apiURL, token string) forge.Host
+	// newStore connects to an S3-compatible bucket for CheckTaskAccess.
+	newStore func(config objectstore.Config) objectstore.Store
 	// wake tells the runner a run may start now; nil without a runner here.
 	wake func()
 }
@@ -32,6 +35,9 @@ func NewServer(db *database.DB, box *secret.Box, wake func()) parlancev1connect.
 		box: box,
 		newHost: func(apiURL, token string) forge.Host {
 			return forge.NewHost(apiURL, token, client)
+		},
+		newStore: func(config objectstore.Config) objectstore.Store {
+			return objectstore.NewS3(config, client)
 		},
 		wake: wake,
 	}

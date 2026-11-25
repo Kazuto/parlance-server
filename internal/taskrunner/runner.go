@@ -15,6 +15,7 @@ import (
 
 	"github.com/kazuto/parlance-server/internal/forge"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/objectstore"
 	"github.com/kazuto/parlance-server/internal/secret"
 	"github.com/kazuto/parlance-server/internal/taskqueue"
 	"github.com/kazuto/parlance-server/internal/translators"
@@ -44,6 +45,7 @@ const (
 var runTimeouts = map[string]time.Duration{
 	models.TaskTypeAITranslate: 30 * time.Minute,
 	models.TaskTypeGitExport:   5 * time.Minute,
+	models.TaskTypeS3Export:    5 * time.Minute,
 }
 
 // Why a run ended early
@@ -63,6 +65,8 @@ type Runner struct {
 	box         *secret.Box
 	// NewHost connects to a git host; tests replace it.
 	NewHost func(apiURL, token string) forge.Host
+	// NewStore connects to an S3-compatible bucket; tests replace it.
+	NewStore func(config objectstore.Config) objectstore.Store
 
 	pollInterval      time.Duration
 	heartbeatInterval time.Duration
@@ -83,6 +87,9 @@ func New(db *gorm.DB, source translators.Source, box *secret.Box) *Runner {
 		NewHost: func(apiURL, token string) forge.Host {
 			return forge.NewHost(apiURL, token, client)
 		},
+		NewStore: func(config objectstore.Config) objectstore.Store {
+			return objectstore.NewS3(config, client)
+		},
 		pollInterval:      defaultPollInterval,
 		heartbeatInterval: heartbeatInterval,
 		staleAfter:        staleAfter,
@@ -91,6 +98,7 @@ func New(db *gorm.DB, source translators.Source, box *secret.Box) *Runner {
 	r.executors = map[string]executor{
 		models.TaskTypeAITranslate: r.aiTranslate,
 		models.TaskTypeGitExport:   r.gitExport,
+		models.TaskTypeS3Export:    r.s3Export,
 	}
 
 	return r
@@ -436,7 +444,7 @@ var endedEvents = map[string]string{
 }
 
 // emitEnded sends a run that ended with the status to the webhooks subscribed to it.
-// A git export that failed is an export that failed, too.
+// A git or S3 export that failed is an export that failed, too.
 func emitEnded(tx *gorm.DB, runID, status string) error {
 	event, ok := endedEvents[status]
 	if !ok {
@@ -457,11 +465,11 @@ func emitEnded(tx *gorm.DB, runID, status string) error {
 
 	// Only the run tells whether it exported, so failed runs always load it.
 	data, err := run()
-	if err != nil || data.Task.Type != models.TaskTypeGitExport {
+	if err != nil || !models.IsExportType(data.Task.Type) {
 		return err
 	}
 
 	return webhook.Emit(tx, models.WebhookEventExportFailed, func() (any, error) {
-		return webhook.FailedGitExport(data), nil
+		return webhook.FailedExportTask(data), nil
 	})
 }

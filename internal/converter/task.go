@@ -12,6 +12,7 @@ var (
 	taskTypes = map[string]pb.TaskType{
 		models.TaskTypeAITranslate: pb.TaskType_TASK_TYPE_AI_TRANSLATE,
 		models.TaskTypeGitExport:   pb.TaskType_TASK_TYPE_GIT_EXPORT,
+		models.TaskTypeS3Export:    pb.TaskType_TASK_TYPE_S3_EXPORT,
 	}
 	taskEvents = map[string]pb.TaskEvent{
 		models.EventTranslationsApproved: pb.TaskEvent_TASK_EVENT_TRANSLATIONS_APPROVED,
@@ -97,6 +98,10 @@ func TaskToProto(task *models.Task, lastRun *models.TaskRun) *pb.Task {
 		if config, err := task.GitExport(); err == nil {
 			result.GitExport = GitExportConfigToProto(config)
 		}
+	case models.TaskTypeS3Export:
+		if config, err := task.S3Export(); err == nil {
+			result.S3Export = S3ExportConfigToProto(config)
+		}
 	}
 
 	if lastRun != nil {
@@ -119,8 +124,33 @@ func GitExportConfigToProto(config models.GitExportConfig) *pb.GitExportConfig {
 		IncludeDrafts: config.IncludeDrafts,
 	}
 
-	for _, file := range config.Files {
-		result.Files = append(result.Files, &pb.GitExportFile{Format: ExportFormatToProto(file.Format), Path: file.Path})
+	result.Files = exportFilesToProto(config.Files)
+
+	return result
+}
+
+// S3ExportConfigToProto converts an S3 export's settings.
+func S3ExportConfigToProto(config models.S3ExportConfig) *pb.S3ExportConfig {
+	return &pb.S3ExportConfig{
+		Endpoint:      config.Endpoint,
+		Region:        config.Region,
+		Bucket:        config.Bucket,
+		AccessKeyId:   config.AccessKeyID,
+		PathStyle:     config.PathStyle,
+		ManifestPath:  config.ManifestPath,
+		HashLength:    int32(config.HashLength),
+		Files:         exportFilesToProto(config.Files),
+		LocaleIds:     config.LocaleIDs,
+		ScopeIds:      config.ScopeIDs,
+		TagIds:        config.TagIDs,
+		IncludeDrafts: config.IncludeDrafts,
+	}
+}
+
+func exportFilesToProto(files []models.ExportFile) []*pb.GitExportFile {
+	result := make([]*pb.GitExportFile, len(files))
+	for i, file := range files {
+		result[i] = &pb.GitExportFile{Format: ExportFormatToProto(file.Format), Path: file.Path}
 	}
 
 	return result
@@ -151,6 +181,7 @@ func TaskRunToProto(run *models.TaskRun, withLog bool) *pb.TaskRun {
 			ChangedFiles:   summary.ChangedFiles,
 			Outcome:        summary.Outcome,
 			Redone:         int32(summary.Redone),
+			ManifestUrl:    summary.ManifestURL,
 		},
 	}
 

@@ -395,19 +395,22 @@ func TestEndedRunsAreSentToWebhooks(t *testing.T) {
 	}
 }
 
-func TestFailedGitExportsAreFailedExports(t *testing.T) {
+func TestFailedExportTasksAreFailedExports(t *testing.T) {
 	db := testutil.SetupPostgresDB(t)
 	r := newTestRunner(t, db)
 	failing := func(context.Context, *models.Task, *runLog) (models.TaskRunSummary, error) {
 		return models.TaskRunSummary{}, stderrors.New("it broke")
 	}
-	r.executors = map[string]executor{models.TaskTypeGitExport: failing, models.TaskTypeAITranslate: failing}
+	r.executors = map[string]executor{models.TaskTypeGitExport: failing, models.TaskTypeS3Export: failing, models.TaskTypeAITranslate: failing}
 
 	hook := models.Webhook{Name: "Exports", URL: "https://alerts.example", Enabled: true, Events: []string{models.WebhookEventExportFailed}}
 	create(t, db.DB, &hook)
 
 	export := models.Task{Name: "Ship", Type: models.TaskTypeGitExport}
 	create(t, db.DB, &export)
+
+	upload := models.Task{Name: "Upload", Type: models.TaskTypeS3Export}
+	create(t, db.DB, &upload)
 
 	translate := models.Task{Name: "Fill", Type: models.TaskTypeAITranslate}
 	create(t, db.DB, &translate)
@@ -419,6 +422,7 @@ func TestFailedGitExportsAreFailedExports(t *testing.T) {
 	r.Tick(context.Background())
 
 	broken := queue(t, db.DB, export.ID)
+	uploaded := queue(t, db.DB, upload.ID)
 	queue(t, db.DB, translate.ID)
 
 	r.Tick(context.Background())
@@ -439,16 +443,17 @@ func TestFailedGitExportsAreFailedExports(t *testing.T) {
 		}
 
 		if delivery.Event != models.WebhookEventExportFailed || body.Data.Source != webhook.ExportSourceTask ||
-			body.Data.Task == nil || body.Data.Task.ID != export.ID {
-			t.Errorf("sent %s %+v, want export.failed of the git export", delivery.Event, body.Data)
+			body.Data.Task == nil || (body.Data.Task.ID != export.ID && body.Data.Task.ID != upload.ID) {
+			t.Errorf("sent %s %+v, want export.failed of an export", delivery.Event, body.Data)
 		}
 
 		runs[body.Data.RunID] = body.Data
 	}
 
-	// The stale and the broken run, but not the AI task's.
-	if len(deliveries) != 2 || !strings.Contains(runs[stale.ID].Error, "stopped responding") || runs[broken.ID].Error != "it broke" {
-		t.Errorf("sent %+v, want the stale and the broken git export", runs)
+	// The stale and the broken runs, but not the AI task's.
+	if len(deliveries) != 3 || !strings.Contains(runs[stale.ID].Error, "stopped responding") || runs[broken.ID].Error != "it broke" ||
+		runs[uploaded.ID].Error != "it broke" {
+		t.Errorf("sent %+v, want the stale and the broken git export, and the broken S3 export", runs)
 	}
 }
 
@@ -644,8 +649,10 @@ func TestGitExport(t *testing.T) {
 		Repository: fake.Repository,
 		BaseBranch: "main",
 		Branch:     "parlance/translations",
-		Files:      []models.GitExportFile{{Format: "json", Path: "lang/{locale}.json"}},
-		LocaleIDs:  []string{en.ID, de.ID},
+		ExportSelection: models.ExportSelection{
+			Files:     []models.ExportFile{{Format: "json", Path: "lang/{locale}.json"}},
+			LocaleIDs: []string{en.ID, de.ID},
+		},
 	})
 
 	t.Run("fails without a token", func(t *testing.T) {
@@ -711,8 +718,8 @@ func TestGitExportTags(t *testing.T) {
 
 	seedEntry(t, db.DB, "other", map[string]string{en.ID: "other"}, models.StatusApproved)
 
-	files, _, err := newTestRunner(t, db).renderFiles(context.Background(), models.GitExportConfig{
-		Files:     []models.GitExportFile{{Format: "json", Path: "lang/{locale}.json"}},
+	files, _, err := newTestRunner(t, db).renderFiles(context.Background(), models.ExportSelection{
+		Files:     []models.ExportFile{{Format: "json", Path: "lang/{locale}.json"}},
 		LocaleIDs: []string{en.ID},
 		ScopeIDs:  []string{mail.ID},
 		TagIDs:    []string{billing.ID},

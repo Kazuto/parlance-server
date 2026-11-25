@@ -151,7 +151,7 @@ type PingData struct {
 // ExportFailedData is the data of export.failed.
 type ExportFailedData struct {
 	// Source is "download" for an export someone downloaded, or "task" for a run of
-	// a git export task.
+	// a git or S3 export task.
 	Source string `json:"source"`
 	Error  string `json:"error"`
 	// Format is a download's: "json", "php", "po" or "zip".
@@ -164,7 +164,7 @@ type ExportFailedData struct {
 	TagIDs    []string `json:"tag_ids,omitempty"`
 	// User asked for the download.
 	User *User `json:"user,omitempty"`
-	// Task and RunID name the git export task and its run.
+	// Task and RunID name the export task and its run.
 	Task  *TaskInfo `json:"task,omitempty"`
 	RunID string    `json:"run_id,omitempty"`
 }
@@ -484,8 +484,8 @@ func TaskRun(tx *gorm.DB, runID string) (TaskRunData, error) {
 	return data, nil
 }
 
-// FailedGitExport is the export.failed data of a git export run that failed.
-func FailedGitExport(run TaskRunData) ExportFailedData {
+// FailedExportTask is the export.failed data of a git or S3 export run that failed.
+func FailedExportTask(run TaskRunData) ExportFailedData {
 	task := run.Task
 
 	return ExportFailedData{

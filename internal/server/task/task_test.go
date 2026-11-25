@@ -10,6 +10,7 @@ import (
 	"github.com/kazuto/parlance-server/internal/forge"
 	"github.com/kazuto/parlance-server/internal/forge/forgetest"
 	"github.com/kazuto/parlance-server/internal/models"
+	"github.com/kazuto/parlance-server/internal/objectstore"
 	"github.com/kazuto/parlance-server/internal/secret"
 	"github.com/kazuto/parlance-server/internal/server/testutil"
 	"google.golang.org/protobuf/proto"
@@ -37,6 +38,9 @@ func setup(t *testing.T) (context.Context, *Server, *forgetest.GitHub, *int) {
 		box: box,
 		newHost: func(_, token string) forge.Host {
 			return forge.NewHost(fake.Server.URL, token, nil)
+		},
+		newStore: func(config objectstore.Config) objectstore.Store {
+			return objectstore.NewS3(config, nil)
 		},
 		wake: func() { wakes++ },
 	}
